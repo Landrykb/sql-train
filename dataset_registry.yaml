@@ -1,0 +1,199 @@
+datasets:
+  # ── Business ────────────────────────────────────────────────────────────────
+  business_retail:
+    url: "file://./datasets/business_retail.csv"
+    format: csv
+    primary_key: invoice_id
+    narrative_goal: "Supermarket sales"
+    transforms:
+      - rename:
+          Invoice_ID: invoice_id
+          Branch: branch
+          City: city
+          Customer type: customer_type
+          Gender: gender
+          Product line: product_line
+          Unit price: unit_price
+          Quantity: quantity
+          "Tax 5%": tax_5
+          Total: total
+          Date: date
+          Time: time
+          Payment: payment
+          COGS: cogs
+          gross margin percentage: gross_margin_percentage
+          gross income: gross_income
+          Rating: rating
+
+  # ── Healthcare (COVID time series) ────────────────────────────────────────
+  healthcare_covid:
+    url: "file://./datasets/healthcare_covid.csv"
+    format: csv
+    primary_key: iso_code
+    narrative_goal: "Our World in Data COVID time series"
+    transforms: []    # already lower-snake
+
+  # ── Crime (Chicago) ────────────────────────────────────────────────────────
+  crime_chicago:
+    url: "file://./datasets/crime_chicago.csv"
+    format: csv
+    primary_key: incident_id
+    narrative_goal: "Chicago crime incidents"
+    transforms:
+      - rename:
+          id: incident_id
+          date: incident_date
+          primary_type: crime_type
+          location_description: area
+          longitude: longitude
+          latitude: latitude
+
+  # ── Social (Twitter) ───────────────────────────────────────────────────────
+  social_twitter:
+    url: "file://./datasets/social_twitter.csv"
+    format: csv
+    primary_key: tweet_id
+    narrative_goal: "Sample tweets"
+    transforms:
+      - rename:
+          Tweet_ID: tweet_id
+          User_ID: user_id
+          Created_At: created_at
+          Text: text
+
+  # ── Farming (NDVI) ─────────────────────────────────────────────────────────
+  farming_ndvi:
+    url: "file://./datasets/farming_ndvi.csv"
+    format: csv
+    primary_key: id
+    narrative_goal: "Crop yield and NDVI by field"
+    transforms:
+      - rename:
+          actual_yield: yield
+
+  # ── Space (Near‐Earth Objects) ─────────────────────────────────────────────
+  space_neo:
+    url: "file://./datasets/space_neo.csv"
+    format: csv
+    primary_key: des
+    narrative_goal: "Near-Earth asteroid close approaches"
+    transforms:
+      - rename:
+          close_approach_date: date
+          dist_km: dist_km
+          relative_velocity_km_s: relative_velocity_km_s
+          is_potentially_hazardous: is_potentially_hazardous
+
+  # ── Sports (NBA) ───────────────────────────────────────────────────────────
+  sports_nba:
+    url: "file://./datasets/sports_nba.csv"
+    format: csv
+    primary_key: player
+    narrative_goal: "Season stats for top NBA players"
+    transforms: []   # already lower-snake (player, team, games, minutes, points, ...)
+
+  # ── Auxiliary (join cases) ─────────────────────────────────────────────────
+  returns:
+    url: "file://./datasets/returns.csv"
+    format: csv
+    primary_key: invoice_id
+    narrative_goal: "Stub: returned invoices"
+    transforms: []   # headers: invoice_id, return_date, return_reason
+
+  suspects:
+    url: "file://./datasets/suspects.csv"
+    format: csv
+    primary_key: suspect_id
+    narrative_goal: "Stub: crime suspects"
+    transforms: []   # headers: suspect_id, crime_id, suspect_name
+
+  soil_data:
+    url: "file://./datasets/soil_data.csv"
+    format: csv
+    primary_key: id
+    narrative_goal: "Stub: soil measurements"
+    transforms: []   # headers: id, soil_ph, soil_type
+
+  fraud_alerts:
+    url: "file://./datasets/fraud_alerts.csv"
+    format: csv
+    primary_key: alert_id
+    narrative_goal: "Stub: fraud alerts"
+    transforms: []   # headers: alert_id, transaction_id, amount, alert_type
+
+  treatments:
+    url: "file://./datasets/treatments.csv"
+    format: csv
+    primary_key: treatment_id
+    narrative_goal: "Stub: patient treatments"
+    transforms: []   # headers: treatment_id, patient_id, diagnosis, treatment_date
+
+  users:
+    url: "file://./datasets/users.csv"
+    format: csv
+    primary_key: user_id
+    narrative_goal: "Stub: social users"
+    transforms: []   # headers: user_id, user_name, signup_date
+
+  payloads:
+    url: "file://./datasets/payloads.csv"
+    format: csv
+    primary_key: payload_id
+    narrative_goal: "Stub: mission payloads"
+    transforms: []   # headers: payload_id, mission_id, orbit_type, altitude
+
+  players:
+    url: "file://./datasets/players.csv"
+    format: csv
+    primary_key: player_id
+    narrative_goal: "Stub: per-match player scores"
+    transforms: []   # headers: player_id, match_id, score, match_date
+
+  matches:
+    url: "file://./datasets/matches.csv"
+    format: csv
+    primary_key: match_id
+    narrative_goal: "Stub: match metadata"
+    transforms: []   # headers: match_id, team, opponent, score, match_date
+
+  transactions:
+    url: "file://./datasets/transactions.csv"
+    format: csv
+    primary_key: transaction_id
+    narrative_goal: "Stub: financial transactions"
+    transforms: []   # headers: transaction_id, account_id, transaction_date, amount
+
+  finance_stocks:
+    url: "file://./datasets/finance_stocks.csv"
+    format: csv
+    primary_key: date
+    narrative_goal: "Stub: daily stock prices"
+    transforms: []   # headers: date, open, high, low, close
+
+  admissions:
+    url: "file://./datasets/admissions.csv"
+    format: csv
+    primary_key: admission_id
+    narrative_goal: "Stub: hospital admissions"
+    transforms: []   # headers: admission_id, admission_date, patient_id, age
+
+  diagnoses:
+    url: "file://./datasets/diagnoses.csv"
+    format: csv
+    primary_key: diagnosis_id
+    narrative_goal: "Stub: diagnosis records"
+    transforms: []   # headers: diagnosis_id, patient_id, diagnosis
+
+  posts:
+    url: "file://./datasets/posts.csv"
+    format: csv
+    primary_key: post_id
+    narrative_goal: "Stub: social posts"
+    transforms: []   # headers: post_id, user_id, post_type, post_date, likes
+
+  patients:
+    url: "file://./datasets/patients.csv"
+    format: csv
+    primary_key: patient_id
+    narrative_goal: "Stub: patient demographics"
+    transforms: []   # headers: patient_id, age

@@ -1,0 +1,19 @@
+
+id: join_users
+name: Join Users
+tier: 2
+domain: social
+description: |
+  JOIN tweets & users.
+skills: ['join']
+dataset_key: social_twitter
+prereq_cases: ['tw_rows', 'hashtag_count']
+datasets:
+  - name: main
+    file: social_twitter.csv
+seedQuery: |
+  -- TODO: write query for join_users
+  SELECT 1;
+expected: []
+hints:
+  - "Review the join concept in the GuideBook."

@@ -1,0 +1,19 @@
+
+id: agg_revenue
+name: Total Revenue by Product
+tier: 1
+domain: business
+description: |
+  SUM(total) per item.
+skills: ['group', 'sum']
+dataset_key: business_retail
+prereq_cases: ['basics_select']
+datasets:
+  - name: main
+    file: business_retail.csv
+seedQuery: |
+  -- TODO: write query for agg_revenue
+  SELECT 1;
+expected: []
+hints:
+  - "Review the group concept in the GuideBook."

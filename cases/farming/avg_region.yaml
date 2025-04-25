@@ -1,0 +1,18 @@
+id: avg_region
+name: Avg NDVI by Region
+tier: 1
+domain: farming
+description: |
+  AVG(ndvi) per region.
+skills: ['group', 'avg']
+dataset_key: farming_ndvi
+prereq_cases: ['ndvi_overview']
+datasets:
+  - name: main
+    file: farming_ndvi.csv
+seedQuery: |
+  -- TODO: write query for avg_region
+  SELECT 1;
+expected: []
+hints:
+  - "Review the group concept in the GuideBook."

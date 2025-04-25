@@ -1,0 +1,18 @@
+id: capstone_hot
+name: "Capstone: Hotspot Factors"
+tier: 5
+domain: crime
+description: |
+  Explain hotspots.
+skills: ['subquery', 'exists']
+dataset_key: crime_chicago
+prereq_cases: ['crime_rows', 'count_type', 'hotspot_join', 'rolling_week', 'cte_sequence']
+datasets:
+  - name: main
+    file: crime_chicago.csv
+seedQuery: |
+  -- TODO: write query for capstone_hot
+  SELECT 1;
+expected: []
+hints:
+  - "Review the subquery concept in the GuideBook."

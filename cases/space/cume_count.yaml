@@ -1,0 +1,18 @@
+id: cume_count
+name: Cumulative Approaches
+tier: 3
+domain: space
+description: |
+  CUME approaches.
+skills: ['window']
+dataset_key: space_neo
+prereq_cases: ['neo_select', 'min_dist', 'hazard_flag']
+datasets:
+  - name: main
+    file: space_neo.csv
+seedQuery: |
+  -- TODO: write query for cume_count
+  SELECT 1;
+expected: []
+hints:
+  - "Review the window concept in the GuideBook."

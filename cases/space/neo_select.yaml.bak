@@ -1,0 +1,19 @@
+
+id: neo_select
+name: NEO Snapshot
+tier: 1
+domain: space
+description: |
+  Inspect close approaches.
+skills: ['select']
+dataset_key: space_neo
+prereq_cases: []
+datasets:
+  - name: main
+    file: space_neo.csv
+seedQuery: |
+  -- TODO: write query for neo_select
+  SELECT 1;
+expected: []
+hints:
+  - "Review the select concept in the GuideBook."

@@ -1,0 +1,18 @@
+id: vax_rows
+name: Vaccination Snapshot
+tier: 1
+domain: healthcare
+description: |
+  Select JP rows.
+skills: ['select']
+dataset_key: healthcare_covid
+prereq_cases: []
+datasets:
+  - name: main
+    file: healthcare_covid.csv
+seedQuery: |
+  -- TODO: write query for vax_rows
+  SELECT 1;
+expected: []
+hints:
+  - "Review the select concept in the GuideBook."

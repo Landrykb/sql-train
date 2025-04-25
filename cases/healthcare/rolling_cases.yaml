@@ -1,0 +1,18 @@
+id: rolling_cases
+name: 7‑Day Case Avg
+tier: 3
+domain: healthcare
+description: |
+  ROLLING AVG cases.
+skills: ['window']
+dataset_key: healthcare_covid
+prereq_cases: ['vax_rows', 'vax_rate', 'join_cases']
+datasets:
+  - name: main
+    file: healthcare_covid.csv
+seedQuery: |
+  -- TODO: write query for rolling_cases
+  SELECT 1;
+expected: []
+hints:
+  - "Review the window concept in the GuideBook."

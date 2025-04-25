@@ -1,0 +1,4 @@
+admission_id,admission_date,patient_id,age
+AD1,2023-01-10,P1,34
+AD2,2023-02-20,P2,29
+AD3,2023-03-15,P3,42

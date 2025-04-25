@@ -1,0 +1,18 @@
+id: crime_rows
+name: Crime Sample
+tier: 1
+domain: crime
+description: |
+  View sample crimes.
+skills: ['select']
+dataset_key: crime_chicago
+prereq_cases: []
+datasets:
+  - name: main
+    file: crime_chicago.csv
+seedQuery: |
+  -- TODO: write query for crime_rows
+  SELECT 1;
+expected: []
+hints:
+  - "Review the select concept in the GuideBook."

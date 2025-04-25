@@ -1,0 +1,18 @@
+id: rank_eff
+name: Rank By Efficiency
+tier: 3
+domain: sports
+description: |
+  RANK players.
+skills: ['rank']
+dataset_key: sports_nba
+prereq_cases: ['nba_rows', 'per_calc', 'join_shots']
+datasets:
+  - name: main
+    file: sports_nba.csv
+seedQuery: |
+  -- TODO: write query for rank_eff
+  SELECT 1;
+expected: []
+hints:
+  - "Review the rank concept in the GuideBook."

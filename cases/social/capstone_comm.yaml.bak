@@ -1,0 +1,19 @@
+
+id: capstone_comm
+name: Capstone: Community Clusters
+tier: 5
+domain: social
+description: |
+  Detect clusters.
+skills: ['subquery', 'exists']
+dataset_key: social_twitter
+prereq_cases: ['tw_rows', 'hashtag_count', 'join_users', 'rolling_htg', 'cte_graph']
+datasets:
+  - name: main
+    file: social_twitter.csv
+seedQuery: |
+  -- TODO: write query for capstone_comm
+  SELECT 1;
+expected: []
+hints:
+  - "Review the subquery concept in the GuideBook."

@@ -1,0 +1,4 @@
+alert_id,transaction_id,amount,alert_type
+A1,T100,250.00,unusual_location
+A2,T101,9999.99,large_amount
+A3,T100,250.00,repeated_decline

@@ -1,0 +1,18 @@
+id: window_trend
+name: NDVI Rolling Trend
+tier: 3
+domain: farming
+description: |
+  ROLLING AVG over 3 months.
+skills: ['window']
+dataset_key: farming_ndvi
+prereq_cases: ['ndvi_overview', 'avg_region', 'join_yield']
+datasets:
+  - name: main
+    file: farming_ndvi.csv
+seedQuery: |
+  -- TODO: write query for window_trend
+  SELECT 1;
+expected: []
+hints:
+  - "Review the window concept in the GuideBook."

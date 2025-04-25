@@ -1,0 +1,19 @@
+
+id: join_shots
+name: Join Shot Zones
+tier: 2
+domain: sports
+description: |
+  JOIN shots.
+skills: ['join']
+dataset_key: sports_nba
+prereq_cases: ['nba_rows', 'per_calc']
+datasets:
+  - name: main
+    file: sports_nba.csv
+seedQuery: |
+  -- TODO: write query for join_shots
+  SELECT 1;
+expected: []
+hints:
+  - "Review the join concept in the GuideBook."

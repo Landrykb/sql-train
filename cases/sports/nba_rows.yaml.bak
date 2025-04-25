@@ -1,0 +1,19 @@
+
+id: nba_rows
+name: NBA Stats Snapshot
+tier: 1
+domain: sports
+description: |
+  First rows.
+skills: ['select']
+dataset_key: sports_nba
+prereq_cases: []
+datasets:
+  - name: main
+    file: sports_nba.csv
+seedQuery: |
+  -- TODO: write query for nba_rows
+  SELECT 1;
+expected: []
+hints:
+  - "Review the select concept in the GuideBook."

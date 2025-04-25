@@ -1,0 +1,29 @@
+id: capstone_comm
+name: "Capstone: Community Clusters"
+tier: 5
+domain: social
+description: |
+    Detect clusters.
+skills: ['subquery', 'exists']
+dataset_key: social_twitter
+prereq_cases: ['tw_rows', 'hashtag_count', 'join_users', 'rolling_htg', 'cte_graph']
+datasets:
+    - name: main
+    file: social_twitter.csv
+seedQuery: |
+  CREATE TABLE main (tweet_id INTEGER, user_id INTEGER, created_at TEXT, text TEXT);
+  INSERT INTO main VALUES (1001, 200, '2025-04-10T08:15:00', 'Just attended the #DataSci conference!');
+  INSERT INTO main VALUES (1002, 201, '2025-04-10T09:30:00', 'SQL is fun 🤓 #SQL #Analytics');
+  INSERT INTO main VALUES (1003, 200, '2025-04-11T11:00:00', 'Analyzing sales trends #Retail #BI');
+  INSERT INTO main VALUES (1004, 202, '2025-04-12T14:45:00', 'NDVI patterns look promising #AgriTech');
+  INSERT INTO main VALUES (1005, 203, '2025-04-13T16:20:00', 'Tracking NEOs in #Space #Astronomy');
+templateQuery: |
+  SELECT * FROM main;
+expected:
+  - [1001, 200, '2025-04-10T08:15:00', 'Just attended the #DataSci conference!']
+  - [1002, 201, '2025-04-10T09:30:00', "SQL is fun \U0001F913 #SQL #Analytics"]
+  - [1003, 200, '2025-04-11T11:00:00', 'Analyzing sales trends #Retail #BI']
+  - [1004, 202, '2025-04-12T14:45:00', 'NDVI patterns look promising #AgriTech']
+  - [1005, 203, '2025-04-13T16:20:00', 'Tracking NEOs in #Space #Astronomy']
+hints:
+  - "Review the subquery concept in the GuideBook."

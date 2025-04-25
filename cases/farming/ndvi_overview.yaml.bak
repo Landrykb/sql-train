@@ -1,0 +1,19 @@
+
+id: ndvi_overview
+name: NDVI Overview
+tier: 1
+domain: farming
+description: |
+  Explore NDVI columns.
+skills: ['select']
+dataset_key: farming_ndvi
+prereq_cases: []
+datasets:
+  - name: main
+    file: farming_ndvi.csv
+seedQuery: |
+  -- TODO: write query for ndvi_overview
+  SELECT 1;
+expected: []
+hints:
+  - "Review the select concept in the GuideBook."

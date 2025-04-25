@@ -1,0 +1,4 @@
+post_id,user_id,post_type,post_date,likes
+PS1,U1,text,2023-04-01,10
+PS2,U2,image,2023-04-02,25
+PS3,U1,text,2023-04-03,7

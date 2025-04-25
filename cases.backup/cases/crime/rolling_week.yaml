@@ -1,0 +1,29 @@
+id: rolling_week
+name: "Weekly Rolling Count"
+tier: 3
+domain: crime
+description: |
+    7‑day rolling crimes.
+skills: ['window']
+dataset_key: crime_chicago
+prereq_cases: ['crime_rows', 'count_type', 'hotspot_join']
+datasets:
+    - name: main
+    file: crime_chicago.csv
+seedQuery: |
+  CREATE TABLE main (ID INTEGER, Date TEXT, Primary_Type TEXT, Location_Description TEXT, Longitude DOUBLE, Latitude DOUBLE);
+  INSERT INTO main VALUES (10001, '2025-04-10T14:23:00', 'THEFT', 'STREET', -87.6278, 41.881);
+  INSERT INTO main VALUES (10002, '2025-04-11T09:15:00', 'BATTERY', 'RESIDENCE', -87.6354, 41.8745);
+  INSERT INTO main VALUES (10003, '2025-04-12T22:05:00', 'ROBBERY', 'BANK', -87.6201, 41.8822);
+  INSERT INTO main VALUES (10004, '2025-04-13T17:45:00', 'ASSAULT', 'APARTMENT', -87.632, 41.8792);
+  INSERT INTO main VALUES (10005, '2025-04-14T12:10:00', 'NARCOTICS', 'SIDEWALK', -87.6297, 41.8843);
+templateQuery: |
+  SELECT * FROM main;
+expected:
+  - [10001, '2025-04-10T14:23:00', THEFT, STREET, -87.6278, 41.881]
+  - [10002, '2025-04-11T09:15:00', BATTERY, RESIDENCE, -87.6354, 41.8745]
+  - [10003, '2025-04-12T22:05:00', ROBBERY, BANK, -87.6201, 41.8822]
+  - [10004, '2025-04-13T17:45:00', ASSAULT, APARTMENT, -87.632, 41.8792]
+  - [10005, '2025-04-14T12:10:00', NARCOTICS, SIDEWALK, -87.6297, 41.8843]
+hints:
+  - "Review the window concept in the GuideBook."

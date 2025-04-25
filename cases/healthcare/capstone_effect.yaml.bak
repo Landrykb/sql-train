@@ -1,0 +1,19 @@
+
+id: capstone_effect
+name: Capstone: Vax Effect
+tier: 5
+domain: healthcare
+description: |
+  Quantify effect.
+skills: ['subquery', 'case']
+dataset_key: healthcare_covid
+prereq_cases: ['vax_rows', 'vax_rate', 'join_cases', 'rolling_cases', 'cte_mort']
+datasets:
+  - name: main
+    file: healthcare_covid.csv
+seedQuery: |
+  -- TODO: write query for capstone_effect
+  SELECT 1;
+expected: []
+hints:
+  - "Review the subquery concept in the GuideBook."

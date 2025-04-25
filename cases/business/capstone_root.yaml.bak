@@ -1,0 +1,19 @@
+
+id: capstone_root
+name: Capstone: Return Drivers
+tier: 5
+domain: business
+description: |
+  Top 3 factors of returns.
+skills: ['subquery', 'case']
+dataset_key: business_retail
+prereq_cases: ['basics_select', 'agg_revenue', 'joins_returns', 'window_cumsum', 'cte_profit']
+datasets:
+  - name: main
+    file: business_retail.csv
+seedQuery: |
+  -- TODO: write query for capstone_root
+  SELECT 1;
+expected: []
+hints:
+  - "Review the subquery concept in the GuideBook."

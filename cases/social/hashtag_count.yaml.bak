@@ -1,0 +1,19 @@
+
+id: hashtag_count
+name: Hashtag Counts
+tier: 1
+domain: social
+description: |
+  COUNT hashtags.
+skills: ['json_extract', 'count']
+dataset_key: social_twitter
+prereq_cases: ['tw_rows']
+datasets:
+  - name: main
+    file: social_twitter.csv
+seedQuery: |
+  -- TODO: write query for hashtag_count
+  SELECT 1;
+expected: []
+hints:
+  - "Review the json_extract concept in the GuideBook."

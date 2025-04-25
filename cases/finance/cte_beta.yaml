@@ -1,0 +1,18 @@
+id: cte_beta
+name: Beta via CTE
+tier: 4
+domain: finance
+description: |
+  Beta regression.
+skills: ['cte']
+dataset_key: finance_stocks
+prereq_cases: ['stock_rows', 'daily_ret', 'join_market', 'rolling_var']
+datasets:
+  - name: main
+    file: finance_stocks.csv
+seedQuery: |
+  -- TODO: write query for cte_beta
+  SELECT 1;
+expected: []
+hints:
+  - "Review the cte concept in the GuideBook."

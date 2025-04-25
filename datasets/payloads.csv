@@ -1,0 +1,4 @@
+payload_id,mission_id,orbit_type,altitude
+PL1,M1,LEO,400
+PL2,M2,GEO,35786
+PL3,M1,LEO,410

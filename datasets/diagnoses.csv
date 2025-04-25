@@ -1,0 +1,4 @@
+diagnosis_id,patient_id,diagnosis
+D1,P1,flu
+D2,P2,covid
+D3,P3,allergy

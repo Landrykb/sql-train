@@ -1,0 +1,19 @@
+
+id: hotspot_join
+name: Crime Hotspot Join
+tier: 2
+domain: crime
+description: |
+  JOIN crimes to grids.
+skills: ['geo_join']
+dataset_key: crime_chicago
+prereq_cases: ['crime_rows', 'count_type']
+datasets:
+  - name: main
+    file: crime_chicago.csv
+seedQuery: |
+  -- TODO: write query for hotspot_join
+  SELECT 1;
+expected: []
+hints:
+  - "Review the geo_join concept in the GuideBook."

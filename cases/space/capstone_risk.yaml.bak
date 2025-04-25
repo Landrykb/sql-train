@@ -1,0 +1,19 @@
+
+id: capstone_risk
+name: Capstone: Risk Rank
+tier: 5
+domain: space
+description: |
+  Rank top‑risk NEOs.
+skills: ['rank', 'subquery']
+dataset_key: space_neo
+prereq_cases: ['neo_select', 'min_dist', 'hazard_flag', 'cume_count', 'orbital_cte']
+datasets:
+  - name: main
+    file: space_neo.csv
+seedQuery: |
+  -- TODO: write query for capstone_risk
+  SELECT 1;
+expected: []
+hints:
+  - "Review the rank concept in the GuideBook."

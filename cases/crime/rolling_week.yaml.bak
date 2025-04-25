@@ -1,0 +1,19 @@
+
+id: rolling_week
+name: Weekly Rolling Count
+tier: 3
+domain: crime
+description: |
+  7‑day rolling crimes.
+skills: ['window']
+dataset_key: crime_chicago
+prereq_cases: ['crime_rows', 'count_type', 'hotspot_join']
+datasets:
+  - name: main
+    file: crime_chicago.csv
+seedQuery: |
+  -- TODO: write query for rolling_week
+  SELECT 1;
+expected: []
+hints:
+  - "Review the window concept in the GuideBook."

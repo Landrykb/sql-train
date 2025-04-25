@@ -1,0 +1,19 @@
+
+id: min_dist
+name: Min Distance by Object
+tier: 1
+domain: space
+description: |
+  MIN(dist) per NEO.
+skills: ['group', 'min']
+dataset_key: space_neo
+prereq_cases: ['neo_select']
+datasets:
+  - name: main
+    file: space_neo.csv
+seedQuery: |
+  -- TODO: write query for min_dist
+  SELECT 1;
+expected: []
+hints:
+  - "Review the group concept in the GuideBook."

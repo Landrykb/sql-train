@@ -1,0 +1,6 @@
+des,close_approach_date,dist_km,relative_velocity_km_s,is_potentially_hazardous
+2025 AB,2025-04-10,120000,5.6,False
+2024 XY,2025-04-15,80000,7.2,True
+2023 ZZ,2025-04-20,45000,12.4,True
+2022 MN,2025-05-01,300000,3.1,False
+2021 QT,2025-05-10,95000,6.5,False

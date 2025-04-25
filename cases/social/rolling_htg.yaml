@@ -1,0 +1,18 @@
+id: rolling_htg
+name: Rolling Hashtag Growth
+tier: 3
+domain: social
+description: |
+  7‑day hashtag growth.
+skills: ['window']
+dataset_key: social_twitter
+prereq_cases: ['tw_rows', 'hashtag_count', 'join_users']
+datasets:
+  - name: main
+    file: social_twitter.csv
+seedQuery: |
+  -- TODO: write query for rolling_htg
+  SELECT 1;
+expected: []
+hints:
+  - "Review the window concept in the GuideBook."

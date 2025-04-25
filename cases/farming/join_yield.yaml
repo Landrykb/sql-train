@@ -1,0 +1,18 @@
+id: join_yield
+name: NDVI vs Yield Join
+tier: 2
+domain: farming
+description: |
+  JOIN NDVI with yields.
+skills: ['join']
+dataset_key: farming_ndvi
+prereq_cases: ['ndvi_overview', 'avg_region']
+datasets:
+  - name: main
+    file: farming_ndvi.csv
+seedQuery: |
+  -- TODO: write query for join_yield
+  SELECT 1;
+expected: []
+hints:
+  - "Review the join concept in the GuideBook."

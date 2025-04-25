@@ -1,0 +1,18 @@
+id: orbital_cte
+name: Orbital Decay CTE
+tier: 4
+domain: space
+description: |
+  Estimate decay.
+skills: ['cte']
+dataset_key: space_neo
+prereq_cases: ['neo_select', 'min_dist', 'hazard_flag', 'cume_count']
+datasets:
+  - name: main
+    file: space_neo.csv
+seedQuery: |
+  -- TODO: write query for orbital_cte
+  SELECT 1;
+expected: []
+hints:
+  - "Review the cte concept in the GuideBook."

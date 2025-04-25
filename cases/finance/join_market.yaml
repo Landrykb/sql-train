@@ -1,0 +1,18 @@
+id: join_market
+name: Join with Market Index
+tier: 2
+domain: finance
+description: |
+  JOIN stock & index.
+skills: ['join']
+dataset_key: finance_stocks
+prereq_cases: ['stock_rows', 'daily_ret']
+datasets:
+  - name: main
+    file: finance_stocks.csv
+seedQuery: |
+  -- TODO: write query for join_market
+  SELECT 1;
+expected: []
+hints:
+  - "Review the join concept in the GuideBook."

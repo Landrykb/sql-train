@@ -1,0 +1,35 @@
+id: avg_region
+name: "Avg NDVI by Region"
+tier: 1
+domain: farming
+description: |
+    AVG(ndvi) per region.
+skills: ['group', 'avg']
+dataset_key: farming_ndvi
+prereq_cases: ['ndvi_overview']
+datasets:
+    - name: main
+    file: farming_ndvi.csv
+seedQuery: |
+  CREATE TABLE main (id INTEGER, region TEXT, ndvi DOUBLE, actual_yield DOUBLE, year INTEGER, month INTEGER);
+  INSERT INTO main VALUES (1, 'North', 0.72, 3.4, 2023, 4);
+  INSERT INTO main VALUES (2, 'North', 0.75, 3.6, 2023, 5);
+  INSERT INTO main VALUES (3, 'South', 0.63, 2.8, 2023, 4);
+  INSERT INTO main VALUES (4, 'South', 0.66, 3.0, 2023, 5);
+  INSERT INTO main VALUES (5, 'East', 0.81, 4.2, 2023, 4);
+  INSERT INTO main VALUES (6, 'East', 0.83, 4.4, 2023, 5);
+  INSERT INTO main VALUES (7, 'West', 0.58, 2.5, 2023, 4);
+  INSERT INTO main VALUES (8, 'West', 0.6, 2.7, 2023, 5);
+templateQuery: |
+  SELECT * FROM main;
+expected:
+  - [1, North, 0.72, 3.4, 2023, 4]
+  - [2, North, 0.75, 3.6, 2023, 5]
+  - [3, South, 0.63, 2.8, 2023, 4]
+  - [4, South, 0.66, 3.0, 2023, 5]
+  - [5, East, 0.81, 4.2, 2023, 4]
+  - [6, East, 0.83, 4.4, 2023, 5]
+  - [7, West, 0.58, 2.5, 2023, 4]
+  - [8, West, 0.6, 2.7, 2023, 5]
+hints:
+  - "Review the group concept in the GuideBook."

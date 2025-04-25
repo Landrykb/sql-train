@@ -1,0 +1,21 @@
+{
+  "name": "besa-sqlverse-root",
+  "private": true,
+  "packageManager": "pnpm@8.15.3",
+  "scripts": {
+    "dev": "make browser",
+    "build": "make curriculum && pnpm --filter frontend build && pnpm --filter backend build",
+    "lint": "echo 'ts/py linting TBD'",
+    "test": "node scripts/test_cases.mjs"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "turbo": "^2.5.0"
+  },
+  "dependencies": {
+    "@duckdb/duckdb-wasm": "^1.29.0",
+    "copy-webpack-plugin": "^13.0.0"
+  }
+}

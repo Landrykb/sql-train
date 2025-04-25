@@ -1,0 +1,18 @@
+id: capstone_alpha
+name: "Capstone: Alpha"
+tier: 5
+domain: finance
+description: |
+  Compute alpha.
+skills: ['subquery']
+dataset_key: finance_stocks
+prereq_cases: ['stock_rows', 'daily_ret', 'join_market', 'rolling_var', 'cte_beta']
+datasets:
+  - name: main
+    file: finance_stocks.csv
+seedQuery: |
+  -- TODO: write query for capstone_alpha
+  SELECT 1;
+expected: []
+hints:
+  - "Review the subquery concept in the GuideBook."

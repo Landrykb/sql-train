@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+"""
+Generate YAML cases with real seedQuery, templateQuery, and expected rows,
+by reading data from datasets/{dataset}.csv
+"""
+import yaml
+import pathlib
+import textwrap
+import pandas as pd
+from typing import Any
+
+# Helper: map pandas dtypes to SQL column types
+def dtype_to_sql(ser: pd.Series) -> str:
+    if pd.api.types.is_integer_dtype(ser):
+        return "INTEGER"
+    if pd.api.types.is_float_dtype(ser):
+        return "DOUBLE"
+    # fallback to TEXT for everything else
+    return "TEXT"
+
+# Helper: format a Python value as SQL literal
+def format_val(val: Any) -> str:
+    if pd.isna(val):
+        return "NULL"
+    if isinstance(val, str):
+        # escape single quotes
+        return "'" + val.replace("'", "''") + "'"
+    return str(val)
+
+# Load the blueprint
+BLUE = yaml.safe_load(pathlib.Path('curriculum_blueprints.yaml').read_text())
+
+CASES_DIR = pathlib.Path('cases')
+
+for domain_key, spec in BLUE.items():
+    domain = domain_key.split('_')[0]
+    dataset_key = spec['dataset']
+    csv_path = pathlib.Path('datasets') / f"{dataset_key}.csv"
+    if not csv_path.exists():
+        print(f"⚠️  Missing CSV for dataset {dataset_key}, skipping")
+        continue
+
+    # Read the entire CSV
+    df = pd.read_csv(csv_path)
+    # Build CREATE TABLE and INSERT statements
+    cols = df.columns.tolist()
+    col_defs = ", ".join(f"{col} {dtype_to_sql(df[col])}" for col in cols)
+    create_stmt = f"CREATE TABLE main ({col_defs});"
+
+    insert_stmts = []
+    for row in df.itertuples(index=False, name=None):
+        values = ", ".join(format_val(v) for v in row)
+        insert_stmts.append(f"INSERT INTO main VALUES ({values});")
+
+    seed_sql = "\n".join([create_stmt] + insert_stmts)
+    # The starter query for the user
+    template_sql = "SELECT * FROM main;"
+    # The expected result: list of lists
+    expected_rows = df.values.tolist()
+
+    # Now emit one YAML per case in this domain
+    steps = spec['path']
+    for idx, step in enumerate(steps):
+        case_id   = step['id']
+        title     = step['title']
+        tier      = step['tier']
+        skills    = step['skills']
+        prereqs   = [s['id'] for s in steps[:idx]]
+
+        out_dir = CASES_DIR / domain
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_file = out_dir / f"{case_id}.yaml"
+
+        with out_file.open('w') as f:
+            f.write(textwrap.dedent(f"""\
+                id: {case_id}
+                name: "{title}"
+                tier: {tier}
+                domain: {domain}
+                description: |
+                    {step['goal']}
+                skills: {skills}
+                dataset_key: {dataset_key}
+                prereq_cases: {prereqs}
+                datasets:
+                    - name: main
+                    file: {dataset_key}.csv
+                seedQuery: |
+            """))
+
+            # indent seed SQL by two spaces
+            for line in seed_sql.splitlines():
+                f.write(f"  {line}\n")
+
+            f.write(textwrap.dedent(f"""\
+                templateQuery: |
+                  {template_sql}
+                expected:
+            """))
+            # serialize expected rows
+            for row in expected_rows:
+                # each row as YAML list
+                f.write("  - " + yaml.dump(row, default_flow_style=True).strip() + "\n")
+
+            f.write(textwrap.dedent(f"""\
+                hints:
+                  - "Review the {skills[0]} concept in the GuideBook."
+                """))
+
+        print(f"✅ Wrote {out_file}")
+
+print("🎉 All cases generated with data!")

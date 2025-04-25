@@ -1,0 +1,4 @@
+match_id,team,opponent,score,match_date
+M1,Heat,Lakers,102-99,2023-05-01
+M2,Heat,Celtics,95-100,2023-05-03
+M3,Lakers,Heat,110-108,2023-05-05

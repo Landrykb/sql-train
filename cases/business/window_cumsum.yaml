@@ -1,0 +1,18 @@
+id: window_cumsum
+name: Running Monthly Revenue
+tier: 3
+domain: business
+description: |
+  Cumulative revenue.
+skills: ['window']
+dataset_key: business_retail
+prereq_cases: ['basics_select', 'agg_revenue', 'joins_returns']
+datasets:
+  - name: main
+    file: business_retail.csv
+seedQuery: |
+  -- TODO: write query for window_cumsum
+  SELECT 1;
+expected: []
+hints:
+  - "Review the window concept in the GuideBook."

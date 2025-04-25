@@ -1,0 +1,4 @@
+transaction_id,account_id,transaction_date,amount
+T100,A1,2023-04-01,250.00
+T101,A2,2023-04-02,9999.99
+T102,A1,2023-04-03,13.50

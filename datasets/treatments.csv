@@ -1,0 +1,4 @@
+treatment_id,patient_id,diagnosis,treatment_date
+TR1,P1,flu,2023-02-10
+TR2,P2,covid,2023-03-05
+TR3,P1,cold,2023-04-01

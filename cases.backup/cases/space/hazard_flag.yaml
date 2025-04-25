@@ -1,0 +1,29 @@
+id: hazard_flag
+name: "Hazardous Flag"
+tier: 2
+domain: space
+description: |
+    CASE WHEN dist<0.01.
+skills: ['case']
+dataset_key: space_neo
+prereq_cases: ['neo_select', 'min_dist']
+datasets:
+    - name: main
+    file: space_neo.csv
+seedQuery: |
+  CREATE TABLE main (des TEXT, close_approach_date TEXT, dist_km INTEGER, relative_velocity_km_s DOUBLE, is_potentially_hazardous TEXT);
+  INSERT INTO main VALUES ('2025 AB', '2025-04-10', 120000, 5.6, False);
+  INSERT INTO main VALUES ('2024 XY', '2025-04-15', 80000, 7.2, True);
+  INSERT INTO main VALUES ('2023 ZZ', '2025-04-20', 45000, 12.4, True);
+  INSERT INTO main VALUES ('2022 MN', '2025-05-01', 300000, 3.1, False);
+  INSERT INTO main VALUES ('2021 QT', '2025-05-10', 95000, 6.5, False);
+templateQuery: |
+  SELECT * FROM main;
+expected:
+  - ["2025\_AB", '2025-04-10', 120000, 5.6, false]
+  - ["2024\_XY", '2025-04-15', 80000, 7.2, true]
+  - ["2023\_ZZ", '2025-04-20', 45000, 12.4, true]
+  - ["2022\_MN", '2025-05-01', 300000, 3.1, false]
+  - ["2021\_QT", '2025-05-10', 95000, 6.5, false]
+hints:
+  - "Review the case concept in the GuideBook."

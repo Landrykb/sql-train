@@ -1,0 +1,19 @@
+
+id: hazard_flag
+name: Hazardous Flag
+tier: 2
+domain: space
+description: |
+  CASE WHEN dist<0.01.
+skills: ['case']
+dataset_key: space_neo
+prereq_cases: ['neo_select', 'min_dist']
+datasets:
+  - name: main
+    file: space_neo.csv
+seedQuery: |
+  -- TODO: write query for hazard_flag
+  SELECT 1;
+expected: []
+hints:
+  - "Review the case concept in the GuideBook."

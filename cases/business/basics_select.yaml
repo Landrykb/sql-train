@@ -1,0 +1,18 @@
+id: basics_select
+name: Inspect Sales Rows
+tier: 1
+domain: business
+description: |
+  Preview sample rows.
+skills: ['select', 'where', 'order']
+dataset_key: business_retail
+prereq_cases: []
+datasets:
+  - name: main
+    file: business_retail.csv
+seedQuery: |
+  -- TODO: write query for basics_select
+  SELECT 1;
+expected: []
+hints:
+  - "Review the select concept in the GuideBook."

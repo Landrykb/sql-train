@@ -1,0 +1,19 @@
+app = "besa-sqlverse"            # ← choose a unique name on Fly.io
+primary_region = "nrt"            # closest Fly.io region (Tokyo)
+kill_signal  = "SIGINT"
+kill_timeout = 5
+
+[build]
+  dockerfile = "Dockerfile.multi"
+
+[env]
+  FRONTEND_API_URL = "/api"      # nginx proxies /api → backend
+  API_MODE         = "server"    # FastAPI hits Postgres
+
+[[services]]
+  internal_port = 8080            # container port
+  protocol      = "tcp"
+  ports = [
+    { port = 80  },
+    { port = 443 }
+  ]

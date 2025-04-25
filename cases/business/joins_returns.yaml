@@ -1,0 +1,18 @@
+id: joins_returns
+name: Returns vs Sales
+tier: 2
+domain: business
+description: |
+  JOIN sales & returns.
+skills: ['join']
+dataset_key: business_retail
+prereq_cases: ['basics_select', 'agg_revenue']
+datasets:
+  - name: main
+    file: business_retail.csv
+seedQuery: |
+  -- TODO: write query for joins_returns
+  SELECT 1;
+expected: []
+hints:
+  - "Review the join concept in the GuideBook."

@@ -1,0 +1,19 @@
+
+id: stock_rows
+name: Stock Snapshot
+tier: 1
+domain: finance
+description: |
+  Inspect OHLC columns.
+skills: ['select']
+dataset_key: finance_stocks
+prereq_cases: []
+datasets:
+  - name: main
+    file: finance_stocks.csv
+seedQuery: |
+  -- TODO: write query for stock_rows
+  SELECT 1;
+expected: []
+hints:
+  - "Review the select concept in the GuideBook."

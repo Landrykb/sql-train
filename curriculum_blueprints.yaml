@@ -1,0 +1,89 @@
+business_retail:
+  dataset: business_retail
+  narrative: |
+    Analyse supermarket sales to uncover revenue, profit, and return drivers.
+  path:
+    - {id: basics_select,  title: "Inspect Sales Rows",              tier: 1, skills: [select, where, order], goal: "Preview sample rows."}
+    - {id: agg_revenue,     title: "Total Revenue by Product",        tier: 1, skills: [group, sum],           goal: "SUM(total) per item."}
+    - {id: joins_returns,   title: "Returns vs Sales",                tier: 2, skills: [join],                goal: "JOIN sales & returns."}
+    - {id: window_cumsum,   title: "Running Monthly Revenue",         tier: 3, skills: [window],              goal: "Cumulative revenue."}
+    - {id: cte_profit,      title: "Profit After Cost",               tier: 4, skills: [cte],                 goal: "CTE for cost & profit."}
+    - {id: capstone_root,   title: "Capstone: Return Drivers",        tier: 5, skills: [subquery, case],      goal: "Top 3 factors of returns."}
+
+farming_ndvi:
+  dataset: farming_ndvi
+  narrative: "Use NDVI to explain yield gaps across regions."
+  path:
+    - {id: ndvi_overview,   title: "NDVI Overview",                   tier: 1, skills: [select],              goal: "Explore NDVI columns."}
+    - {id: avg_region,      title: "Avg NDVI by Region",              tier: 1, skills: [group, avg],          goal: "AVG(ndvi) per region."}
+    - {id: join_yield,      title: "NDVI vs Yield Join",              tier: 2, skills: [join],                goal: "JOIN NDVI with yields."}
+    - {id: window_trend,    title: "NDVI Rolling Trend",              tier: 3, skills: [window],              goal: "ROLLING AVG over 3 months."}
+    - {id: cte_gap,         title: "Yield Gap CTE",                   tier: 4, skills: [cte],                 goal: "Compute region gap."}
+    - {id: capstone_gap,    title: "Capstone: Drivers of Yield Gap",  tier: 5, skills: [subquery, case],      goal: "Find gap factors."}
+
+space_neo:
+  dataset: space_neo
+  narrative: "Track Near‑Earth Objects and predict risks."
+  path:
+    - {id: neo_select,      title: "NEO Snapshot",                    tier: 1, skills: [select],              goal: "Inspect close approaches."}
+    - {id: min_dist,        title: "Min Distance by Object",          tier: 1, skills: [group, min],          goal: "MIN(dist) per NEO."}
+    - {id: hazard_flag,     title: "Hazardous Flag",                  tier: 2, skills: [case],                goal: "CASE WHEN dist<0.01."}
+    - {id: cume_count,      title: "Cumulative Approaches",           tier: 3, skills: [window],              goal: "CUME approaches."}
+    - {id: orbital_cte,     title: "Orbital Decay CTE",               tier: 4, skills: [cte],                 goal: "Estimate decay."}
+    - {id: capstone_risk,   title: "Capstone: Risk Rank",             tier: 5, skills: [rank, subquery],      goal: "Rank top‑risk NEOs."}
+
+crime_chicago:
+  dataset: crime_chicago
+  narrative: "Identify crime hotspots & modus operandi."
+  path:
+    - {id: crime_rows,      title: "Crime Sample",                    tier: 1, skills: [select],              goal: "View sample crimes."}
+    - {id: count_type,      title: "Crime Count by Type",             tier: 1, skills: [group, count],        goal: "COUNT by Primary_Type."}
+    - {id: hotspot_join,    title: "Crime Hotspot Join",              tier: 2, skills: [geo_join],            goal: "JOIN crimes to grids."}
+    - {id: rolling_week,    title: "Weekly Rolling Count",            tier: 3, skills: [window],              goal: "7‑day rolling crimes."}
+    - {id: cte_sequence,    title: "Sequence Pattern CTE",           tier: 4, skills: [cte],                 goal: "Detect offence sequence."}
+    - {id: capstone_hot,    title: "Capstone: Hotspot Factors",       tier: 5, skills: [subquery, exists],    goal: "Explain hotspots."}
+
+healthcare_covid:
+  dataset: healthcare_covid
+  narrative: "Assess vaccine rollout and outcomes."
+  path:
+    - {id: vax_rows,        title: "Vaccination Snapshot",            tier: 1, skills: [select],              goal: "Select JP rows."}
+    - {id: vax_rate,        title: "Vaccination Rate",                tier: 1, skills: [group, max],          goal: "MAX total_vacc JP."}
+    - {id: join_cases,      title: "Cases vs Vax Join",               tier: 2, skills: [join],                goal: "JOIN cases & vax."}
+    - {id: rolling_cases,   title: "7‑Day Case Avg",                  tier: 3, skills: [window],              goal: "ROLLING AVG cases."}
+    - {id: cte_mort,        title: "Mortality CTE",                   tier: 4, skills: [cte],                 goal: "CTE for mortality."}
+    - {id: capstone_effect, title: "Capstone: Vax Effect",            tier: 5, skills: [subquery, case],      goal: "Quantify effect."}
+
+finance_stocks:
+  dataset: finance_stocks
+  narrative: "Analyse stock risk and return."
+  path:
+    - {id: stock_rows,      title: "Stock Snapshot",                  tier: 1, skills: [select],              goal: "Inspect OHLC columns."}
+    - {id: daily_ret,       title: "Daily Returns",                   tier: 1, skills: [window, lag],         goal: "RET = close/lag."}
+    - {id: join_market,     title: "Join with Market Index",          tier: 2, skills: [join],                goal: "JOIN stock & index."}
+    - {id: rolling_var,     title: "Rolling VaR",                     tier: 3, skills: [window, quantile],    goal: "99% VaR."}
+    - {id: cte_beta,        title: "Beta via CTE",                    tier: 4, skills: [cte],                 goal: "Beta regression."}
+    - {id: capstone_alpha,  title: "Capstone: Alpha",                 tier: 5, skills: [subquery],            goal: "Compute alpha."}
+
+sports_nba:
+  dataset: sports_nba
+  narrative: "Explore player efficiency and shooting patterns."
+  path:
+    - {id: nba_rows,        title: "NBA Stats Snapshot",              tier: 1, skills: [select],              goal: "First rows."}
+    - {id: per_calc,        title: "Player Efficiency",               tier: 1, skills: [group, sum],          goal: "Compute PER."}
+    - {id: join_shots,      title: "Join Shot Zones",                 tier: 2, skills: [join],                goal: "JOIN shots."}
+    - {id: rank_eff,        title: "Rank By Efficiency",              tier: 3, skills: [rank],                goal: "RANK players."}
+    - {id: cte_trend,       title: "Season Trend CTE",                tier: 4, skills: [cte],                 goal: "Trend by season."}
+    - {id: capstone_heat,   title: "Capstone: Shot Heatmap",          tier: 5, skills: [geo_join, pivot],     goal: "Heatmap factors."}
+
+social_twitter:
+  dataset: social_twitter
+  narrative: "Uncover hashtag trends & communities."
+  path:
+    - {id: tw_rows,         title: "Tweet Snapshot",                  tier: 1, skills: [select],              goal: "View tweets."}
+    - {id: hashtag_count,   title: "Hashtag Counts",                  tier: 1, skills: [json_extract, count],  goal: "COUNT hashtags."}
+    - {id: join_users,      title: "Join Users",                      tier: 2, skills: [join],                goal: "JOIN tweets & users."}
+    - {id: rolling_htg,     title: "Rolling Hashtag Growth",         tier: 3, skills: [window],              goal: "7‑day hashtag growth."}
+    - {id: cte_graph,       title: "CTE Friend Graph",               tier: 4, skills: [recursive_cte],       goal: "Friend‑of‑friend."}
+    - {id: capstone_comm,   title: "Capstone: Community Clusters",    tier: 5, skills: [subquery, exists],    goal: "Detect clusters."}
+

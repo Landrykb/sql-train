@@ -1,0 +1,18 @@
+id: count_type
+name: Crime Count by Type
+tier: 1
+domain: crime
+description: |
+  COUNT by Primary_Type.
+skills: ['group', 'count']
+dataset_key: crime_chicago
+prereq_cases: ['crime_rows']
+datasets:
+  - name: main
+    file: crime_chicago.csv
+seedQuery: |
+  -- TODO: write query for count_type
+  SELECT 1;
+expected: []
+hints:
+  - "Review the group concept in the GuideBook."

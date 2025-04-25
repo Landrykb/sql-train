@@ -1,0 +1,18 @@
+id: capstone_gap
+name: "Capstone: Drivers of Yield Gap"
+tier: 5
+domain: farming
+description: |
+  Find gap factors.
+skills: ['subquery', 'case']
+dataset_key: farming_ndvi
+prereq_cases: ['ndvi_overview', 'avg_region', 'join_yield', 'window_trend', 'cte_gap']
+datasets:
+  - name: main
+    file: farming_ndvi.csv
+seedQuery: |
+  -- TODO: write query for capstone_gap
+  SELECT 1;
+expected: []
+hints:
+  - "Review the subquery concept in the GuideBook."

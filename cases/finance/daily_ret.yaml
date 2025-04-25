@@ -1,0 +1,18 @@
+id: daily_ret
+name: Daily Returns
+tier: 1
+domain: finance
+description: |
+  RET = close/lag.
+skills: ['window', 'lag']
+dataset_key: finance_stocks
+prereq_cases: ['stock_rows']
+datasets:
+  - name: main
+    file: finance_stocks.csv
+seedQuery: |
+  -- TODO: write query for daily_ret
+  SELECT 1;
+expected: []
+hints:
+  - "Review the window concept in the GuideBook."

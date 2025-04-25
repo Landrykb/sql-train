@@ -1,0 +1,18 @@
+id: capstone_heat
+name: "Capstone: Shot Heatmap"
+tier: 5
+domain: sports
+description: |
+  Heatmap factors.
+skills: ['geo_join', 'pivot']
+dataset_key: sports_nba
+prereq_cases: ['nba_rows', 'per_calc', 'join_shots', 'rank_eff', 'cte_trend']
+datasets:
+  - name: main
+    file: sports_nba.csv
+seedQuery: |
+  -- TODO: write query for capstone_heat
+  SELECT 1;
+expected: []
+hints:
+  - "Review the geo_join concept in the GuideBook."

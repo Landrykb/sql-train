@@ -1,0 +1,18 @@
+id: cte_graph
+name: CTE Friend Graph
+tier: 4
+domain: social
+description: |
+  Friend‑of‑friend.
+skills: ['recursive_cte']
+dataset_key: social_twitter
+prereq_cases: ['tw_rows', 'hashtag_count', 'join_users', 'rolling_htg']
+datasets:
+  - name: main
+    file: social_twitter.csv
+seedQuery: |
+  -- TODO: write query for cte_graph
+  SELECT 1;
+expected: []
+hints:
+  - "Review the recursive_cte concept in the GuideBook."

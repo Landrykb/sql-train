@@ -1,0 +1,19 @@
+
+id: cte_profit
+name: Profit After Cost
+tier: 4
+domain: business
+description: |
+  CTE for cost & profit.
+skills: ['cte']
+dataset_key: business_retail
+prereq_cases: ['basics_select', 'agg_revenue', 'joins_returns', 'window_cumsum']
+datasets:
+  - name: main
+    file: business_retail.csv
+seedQuery: |
+  -- TODO: write query for cte_profit
+  SELECT 1;
+expected: []
+hints:
+  - "Review the cte concept in the GuideBook."

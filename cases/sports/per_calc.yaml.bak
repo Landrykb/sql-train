@@ -1,0 +1,19 @@
+
+id: per_calc
+name: Player Efficiency
+tier: 1
+domain: sports
+description: |
+  Compute PER.
+skills: ['group', 'sum']
+dataset_key: sports_nba
+prereq_cases: ['nba_rows']
+datasets:
+  - name: main
+    file: sports_nba.csv
+seedQuery: |
+  -- TODO: write query for per_calc
+  SELECT 1;
+expected: []
+hints:
+  - "Review the group concept in the GuideBook."

@@ -1,0 +1,19 @@
+
+id: cte_gap
+name: Yield Gap CTE
+tier: 4
+domain: farming
+description: |
+  Compute region gap.
+skills: ['cte']
+dataset_key: farming_ndvi
+prereq_cases: ['ndvi_overview', 'avg_region', 'join_yield', 'window_trend']
+datasets:
+  - name: main
+    file: farming_ndvi.csv
+seedQuery: |
+  -- TODO: write query for cte_gap
+  SELECT 1;
+expected: []
+hints:
+  - "Review the cte concept in the GuideBook."
