@@ -1,0 +1,107 @@
+id: hidden_drought_risk
+name: "Drought Risk Early Warning System"
+tier: 7
+domain: Farming NDVI
+description: "The agricultural ministry needs an early warning system. Identify regions showing declining vegetation health (NDVI) that could signal drought — before crops fail."
+hidden: true
+skills:
+  - select
+  - join
+  - group
+  - window
+  - cte
+  - case
+datasets:
+  - name: farming_yield
+    file: farming_yield.csv
+  - name: soil_data
+    file: soil_data.csv
+prereq_cases:
+  - ndvi_overview
+  - yield_by_crop
+  - soil_joins
+  - yield_trend
+  - cte_soil
+  - capstone_farm
+  - hidden_crop_optimization
+seedQuery: |-
+  -- MINISTRY ALERT: The Agricultural Ministry asks:
+  -- "We need to detect drought risk early. Find regions
+  --  where NDVI is declining month-over-month. Compare
+  --  current NDVI to the previous month and flag regions
+  --  where vegetation health is dropping."
+  --
+  -- Build the early warning system!
+  SELECT 1;
+solutionQuery: |-
+  WITH MonthlyNDVI AS (
+    SELECT
+      region,
+      soil_type,
+      year,
+      month,
+      ROUND(AVG(ndvi), 3) AS avg_ndvi,
+      ROUND(AVG(yield), 2) AS avg_yield,
+      LAG(ROUND(AVG(ndvi), 3)) OVER (PARTITION BY region ORDER BY year, month) AS prev_ndvi
+    FROM farming_yield
+    GROUP BY region, soil_type, year, month
+  )
+  SELECT
+    region,
+    soil_type,
+    year,
+    month,
+    avg_ndvi,
+    prev_ndvi,
+    ROUND(avg_ndvi - COALESCE(prev_ndvi, avg_ndvi), 3) AS ndvi_change,
+    avg_yield,
+    CASE
+      WHEN avg_ndvi - COALESCE(prev_ndvi, avg_ndvi) < -0.1 THEN 'HIGH DROUGHT RISK'
+      WHEN avg_ndvi - COALESCE(prev_ndvi, avg_ndvi) < -0.05 THEN 'MODERATE RISK'
+      WHEN avg_ndvi < 0.3 THEN 'LOW NDVI WARNING'
+      ELSE 'NORMAL'
+    END AS risk_level
+  FROM MonthlyNDVI
+  WHERE prev_ndvi IS NOT NULL
+  ORDER BY ndvi_change ASC;
+instructions: |-
+  Build a drought early warning system:
+
+  1. Calculate monthly average NDVI and yield per region and soil_type
+  2. Use LAG() to get the previous month's NDVI for each region
+  3. Compute ndvi_change = current avg_ndvi - previous avg_ndvi
+  4. Classify risk levels:
+     - HIGH DROUGHT RISK: NDVI dropped more than 0.1
+     - MODERATE RISK: NDVI dropped more than 0.05
+     - LOW NDVI WARNING: Current NDVI below 0.3 (even if stable)
+     - NORMAL: everything else
+  5. Exclude first month (no previous data), order by ndvi_change ascending (worst first)
+
+  Return: region, soil_type, year, month, avg_ndvi, prev_ndvi, ndvi_change, avg_yield, risk_level
+hints:
+  - LAG() OVER (PARTITION BY region ORDER BY year, month) gets the previous month's value
+  - COALESCE(prev_ndvi, avg_ndvi) avoids NULL in the first row
+  - GROUP BY region, soil_type, year, month before applying window functions
+  - The WHERE prev_ndvi IS NOT NULL filter goes in the outer query
+schema:
+  - name: farming_yield
+    columns:
+      - { name: id, type: INTEGER }
+      - { name: region, type: TEXT }
+      - { name: ndvi, type: FLOAT }
+      - { name: yield, type: FLOAT }
+      - { name: year, type: INTEGER }
+      - { name: month, type: INTEGER }
+      - { name: soil_type, type: TEXT }
+  - name: soil_data
+    columns:
+      - { name: id, type: INTEGER }
+      - { name: soil_ph, type: FLOAT }
+      - { name: soil_type, type: TEXT }
+type: hidden
+tags:
+  - farming
+  - real_world
+  - drought
+  - early_warning
+category: Farming NDVI

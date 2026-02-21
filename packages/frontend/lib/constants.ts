@@ -33,14 +33,14 @@
 
   // Hidden bonus levels: real-world business scenarios that unlock after completing all regular cases
   export const hiddenCaseOrder: { [domain: string]: string[] } = {
-    business: ['hidden_sales_boost', 'hidden_credit_recommend'],
-    crime: ['hidden_crime_hotspot'],
-    farming: ['hidden_crop_optimization'],
-    finance: ['hidden_fraud_detection'],
-    healthcare: ['hidden_readmission_risk'],
-    social: ['hidden_influencer_roi'],
-    space: ['hidden_mission_risk'],
-    sports: ['hidden_player_value'],
+    business: ['hidden_sales_boost', 'hidden_credit_recommend', 'hidden_inventory_alert'],
+    crime: ['hidden_crime_hotspot', 'hidden_serial_pattern'],
+    farming: ['hidden_crop_optimization', 'hidden_drought_risk'],
+    finance: ['hidden_fraud_detection', 'hidden_portfolio_optimize'],
+    healthcare: ['hidden_readmission_risk', 'hidden_diagnosis_delay'],
+    social: ['hidden_influencer_roi', 'hidden_viral_prediction'],
+    space: ['hidden_mission_risk', 'hidden_collision_alert'],
+    sports: ['hidden_player_value', 'hidden_mvp_predictor'],
   };
 
   // Full case order including hidden levels

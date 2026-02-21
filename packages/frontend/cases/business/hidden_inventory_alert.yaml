@@ -1,0 +1,131 @@
+id: hidden_inventory_alert
+name: "Product Quality Crisis Detection"
+tier: 8
+domain: Business Retail
+description: "The Operations Director suspects certain product lines have quality issues. Find products with high sales volume but disproportionately high return rates — these need urgent quality audits."
+hidden: true
+skills:
+  - select
+  - join
+  - group
+  - order
+  - case
+  - cte
+  - window
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+  - name: returns
+    file: returns.csv
+prereq_cases:
+  - basics_select
+  - agg_revenue
+  - joins_returns
+  - window_cumsum
+  - cte_profit
+  - capstone_root
+  - hidden_sales_boost
+  - hidden_credit_recommend
+seedQuery: |-
+  -- OPERATIONS CRISIS: The Operations Director says:
+  -- "We're getting complaints about product quality.
+  --  I need you to find which product lines have high
+  --  sales but abnormally high return rates. Compare
+  --  each product line's return rate to the overall
+  --  average and flag the worst offenders."
+  --
+  -- Write a query to detect the quality crisis!
+  SELECT 1;
+solutionQuery: |-
+  WITH ProductSales AS (
+    SELECT
+      product_line,
+      COUNT(DISTINCT b.invoice_id) AS total_sales,
+      ROUND(SUM(b.total), 2) AS total_revenue,
+      ROUND(AVG(b.rating), 2) AS avg_rating
+    FROM business_retail b
+    GROUP BY product_line
+  ),
+  ProductReturns AS (
+    SELECT
+      b.product_line,
+      COUNT(DISTINCT r.invoice_id) AS total_returns
+    FROM returns r
+    JOIN business_retail b ON r.invoice_id = b.invoice_id
+    GROUP BY b.product_line
+  ),
+  Combined AS (
+    SELECT
+      ps.product_line,
+      ps.total_sales,
+      ps.total_revenue,
+      ps.avg_rating,
+      COALESCE(pr.total_returns, 0) AS total_returns,
+      ROUND(COALESCE(pr.total_returns, 0) * 100.0 / ps.total_sales, 2) AS return_rate_pct
+    FROM ProductSales ps
+    LEFT JOIN ProductReturns pr ON ps.product_line = pr.product_line
+  )
+  SELECT
+    product_line,
+    total_sales,
+    total_revenue,
+    avg_rating,
+    total_returns,
+    return_rate_pct,
+    CASE
+      WHEN return_rate_pct > (SELECT AVG(return_rate_pct) FROM Combined) * 1.2 THEN 'URGENT AUDIT'
+      WHEN return_rate_pct > (SELECT AVG(return_rate_pct) FROM Combined) THEN 'REVIEW'
+      ELSE 'OK'
+    END AS quality_status
+  FROM Combined
+  ORDER BY return_rate_pct DESC;
+instructions: |-
+  The Operations Director needs a product quality audit report. Write a query that:
+
+  1. Calculates per product_line: total_sales (distinct invoices), total_revenue, avg_rating
+  2. Counts returns per product_line by joining with returns table
+  3. Computes return_rate_pct = (total_returns / total_sales) * 100
+  4. Flags products as:
+     - URGENT AUDIT: return rate > 120% of the overall average return rate
+     - REVIEW: return rate > overall average return rate
+     - OK: everything else
+  5. Order by return_rate_pct descending
+
+  Return: product_line, total_sales, total_revenue, avg_rating, total_returns, return_rate_pct, quality_status
+hints:
+  - Use multiple CTEs to build up the analysis step by step
+  - LEFT JOIN returns through business_retail to get product_line for each return
+  - A subquery inside CASE can compare against the overall average
+  - COALESCE handles product lines with zero returns
+schema:
+  - name: business_retail
+    columns:
+      - { name: invoice_id, type: TEXT }
+      - { name: branch, type: TEXT }
+      - { name: city, type: TEXT }
+      - { name: customer_type, type: TEXT }
+      - { name: gender, type: TEXT }
+      - { name: product_line, type: TEXT }
+      - { name: unit_price, type: FLOAT }
+      - { name: quantity, type: INTEGER }
+      - { name: tax_5, type: FLOAT }
+      - { name: total, type: FLOAT }
+      - { name: date, type: DATE }
+      - { name: time, type: TEXT }
+      - { name: payment, type: TEXT }
+      - { name: cogs, type: FLOAT }
+      - { name: gross_margin_percentage, type: FLOAT }
+      - { name: gross_income, type: FLOAT }
+      - { name: rating, type: FLOAT }
+  - name: returns
+    columns:
+      - { name: invoice_id, type: TEXT }
+      - { name: return_date, type: DATE }
+      - { name: return_reason, type: TEXT }
+type: hidden
+tags:
+  - business_retail
+  - real_world
+  - quality_audit
+  - operations
+category: Business Retail

@@ -1,0 +1,109 @@
+id: hidden_serial_pattern
+name: "Serial Crime Pattern Detection"
+tier: 7
+domain: Crime Chicago
+description: "The detective unit suspects serial activity. Find locations where the same crime type occurs repeatedly — clusters that suggest a pattern rather than random incidents."
+hidden: true
+skills:
+  - select
+  - join
+  - group
+  - having
+  - window
+  - cte
+datasets:
+  - name: crime_chicago
+    file: crime_chicago.csv
+  - name: suspects
+    file: suspects.csv
+prereq_cases:
+  - crime_select
+  - crime_by_area
+  - suspect_joins
+  - crime_trend
+  - cte_crime
+  - capstone_crime
+  - hidden_crime_hotspot
+seedQuery: |-
+  -- DETECTIVE BRIEFING: The Serial Crimes Unit says:
+  -- "We need to find locations where the same crime type
+  --  keeps happening. If a location has 3+ incidents of
+  --  the same type, it could be serial activity.
+  --  Rank these hotspots by incident count."
+  --
+  -- Write a query to detect serial patterns!
+  SELECT 1;
+solutionQuery: |-
+  WITH LocationClusters AS (
+    SELECT
+      location_description,
+      primary_type,
+      COUNT(*) AS incident_count,
+      COUNT(DISTINCT date) AS distinct_dates
+    FROM crime_chicago
+    WHERE location_description IS NOT NULL
+      AND location_description != ''
+    GROUP BY location_description, primary_type
+    HAVING COUNT(*) >= 3
+  ),
+  Ranked AS (
+    SELECT
+      location_description,
+      primary_type,
+      incident_count,
+      distinct_dates,
+      RANK() OVER (PARTITION BY primary_type ORDER BY incident_count DESC) AS hotspot_rank,
+      CASE
+        WHEN incident_count >= 10 THEN 'High Serial Risk'
+        WHEN incident_count >= 5 THEN 'Medium Serial Risk'
+        ELSE 'Monitor'
+      END AS risk_level
+    FROM LocationClusters
+  )
+  SELECT
+    location_description,
+    primary_type,
+    incident_count,
+    distinct_dates,
+    hotspot_rank,
+    risk_level
+  FROM Ranked
+  WHERE hotspot_rank <= 5
+  ORDER BY primary_type, hotspot_rank;
+instructions: |-
+  The Serial Crimes Unit needs you to identify potential serial crime patterns:
+
+  1. Find location + crime type combinations with 3 or more incidents
+  2. Count distinct dates to see if incidents are spread over time
+  3. Rank hotspots within each crime type by incident count (RANK)
+  4. Classify risk: High Serial Risk (10+), Medium Serial Risk (5+), Monitor (rest)
+  5. Show only the top 5 hotspots per crime type
+
+  Return: location_description, primary_type, incident_count, distinct_dates, hotspot_rank, risk_level
+  Order by primary_type, then hotspot_rank
+hints:
+  - Use HAVING COUNT(*) >= 3 to filter for repeat locations
+  - RANK() OVER (PARTITION BY primary_type ORDER BY incident_count DESC) ranks within each crime type
+  - Filter out NULL or empty location_descriptions
+  - The WHERE hotspot_rank <= 5 goes in the outer query, not the CTE
+schema:
+  - name: crime_chicago
+    columns:
+      - { name: id, type: INTEGER }
+      - { name: date, type: DATE }
+      - { name: primary_type, type: TEXT }
+      - { name: location_description, type: TEXT }
+      - { name: latitude, type: FLOAT }
+      - { name: longitude, type: FLOAT }
+  - name: suspects
+    columns:
+      - { name: suspect_id, type: TEXT }
+      - { name: crime_id, type: INTEGER }
+      - { name: suspect_name, type: TEXT }
+type: hidden
+tags:
+  - crime
+  - real_world
+  - serial_crime
+  - pattern_detection
+category: Crime Chicago

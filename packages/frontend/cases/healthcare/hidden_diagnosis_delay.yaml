@@ -1,0 +1,120 @@
+id: hidden_diagnosis_delay
+name: "Treatment Delay Risk Analysis"
+tier: 7
+domain: Healthcare COVID
+description: "Hospital administration suspects delays between admission and treatment are affecting patient outcomes. Find patients with the longest gaps and identify which diagnoses are most affected."
+hidden: true
+skills:
+  - select
+  - join
+  - group
+  - window
+  - cte
+  - case
+datasets:
+  - name: patients
+    file: patients.csv
+  - name: treatments
+    file: treatments.csv
+  - name: admissions
+    file: admissions.csv
+prereq_cases:
+  - patient_select
+  - diagnosis_count
+  - treatment_joins
+  - admission_trend
+  - cte_treatment
+  - capstone_health
+  - hidden_readmission_risk
+seedQuery: |-
+  -- HOSPITAL ADMINISTRATION: The Chief Medical Officer asks:
+  -- "Are we treating patients fast enough after admission?
+  --  Find the average delay between admission and treatment
+  --  for each diagnosis. Flag diagnoses where the average
+  --  wait is dangerously long."
+  --
+  -- Analyze treatment delays!
+  SELECT 1;
+solutionQuery: |-
+  WITH PatientTimeline AS (
+    SELECT
+      a.patient_id,
+      a.admission_date,
+      t.treatment_date,
+      t.diagnosis,
+      JULIANDAY(t.treatment_date) - JULIANDAY(a.admission_date) AS days_to_treatment
+    FROM admissions a
+    JOIN treatments t ON a.patient_id = t.patient_id
+    WHERE t.treatment_date >= a.admission_date
+  ),
+  DiagnosisStats AS (
+    SELECT
+      diagnosis,
+      COUNT(*) AS patient_count,
+      ROUND(AVG(days_to_treatment), 1) AS avg_delay_days,
+      MIN(days_to_treatment) AS min_delay,
+      MAX(days_to_treatment) AS max_delay
+    FROM PatientTimeline
+    GROUP BY diagnosis
+  )
+  SELECT
+    diagnosis,
+    patient_count,
+    avg_delay_days,
+    min_delay,
+    max_delay,
+    CASE
+      WHEN avg_delay_days > 60 THEN 'CRITICAL DELAY'
+      WHEN avg_delay_days > 30 THEN 'CONCERNING'
+      WHEN avg_delay_days > 14 THEN 'MONITOR'
+      ELSE 'ACCEPTABLE'
+    END AS delay_status,
+    RANK() OVER (ORDER BY avg_delay_days DESC) AS delay_rank
+  FROM DiagnosisStats
+  ORDER BY delay_rank;
+instructions: |-
+  Analyze treatment delays across diagnoses:
+
+  1. Join admissions with treatments on patient_id
+  2. Calculate days_to_treatment using JULIANDAY difference
+  3. Only include cases where treatment_date >= admission_date
+  4. Aggregate per diagnosis: patient_count, avg_delay_days, min_delay, max_delay
+  5. Classify delay status:
+     - CRITICAL DELAY: avg > 60 days
+     - CONCERNING: avg > 30 days
+     - MONITOR: avg > 14 days
+     - ACCEPTABLE: 14 days or less
+  6. Rank by avg_delay_days descending
+
+  Return: diagnosis, patient_count, avg_delay_days, min_delay, max_delay, delay_status, delay_rank
+hints:
+  - JULIANDAY(date2) - JULIANDAY(date1) gives the number of days between two dates
+  - Filter WHERE treatment_date >= admission_date to exclude data errors
+  - Use a CTE for the timeline, then aggregate in a second CTE
+  - RANK() in the final SELECT for ordering
+schema:
+  - name: patients
+    columns:
+      - { name: patient_id, type: TEXT }
+      - { name: age, type: INTEGER }
+      - { name: gender, type: TEXT }
+      - { name: birthdate, type: DATE }
+  - name: treatments
+    columns:
+      - { name: treatment_id, type: TEXT }
+      - { name: patient_id, type: TEXT }
+      - { name: diagnosis, type: TEXT }
+      - { name: treatment_date, type: DATE }
+  - name: admissions
+    columns:
+      - { name: admission_id, type: TEXT }
+      - { name: patient_id, type: TEXT }
+      - { name: admission_date, type: DATE }
+      - { name: discharge_date, type: DATE }
+type: hidden
+tags:
+  - healthcare
+  - real_world
+  - treatment_delay
+  - patient_safety
+category: Healthcare COVID

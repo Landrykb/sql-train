@@ -1,0 +1,117 @@
+id: hidden_viral_prediction
+name: "Viral Content Prediction Engine"
+tier: 7
+domain: Social Twitter
+description: "The social media team wants to predict virality. Analyze posting patterns and user activity to find which users consistently create high-engagement content and what timing works best."
+hidden: true
+skills:
+  - select
+  - join
+  - group
+  - window
+  - cte
+  - case
+datasets:
+  - name: tweets
+    file: tweets.csv
+  - name: users
+    file: users.csv
+prereq_cases:
+  - post_select
+  - engagement_by_type
+  - user_joins
+  - likes_trend
+  - cte_engagement
+  - capstone_social
+  - hidden_influencer_roi
+seedQuery: |-
+  -- SOCIAL MEDIA STRATEGY: The Content Director asks:
+  -- "Which users are our power creators? Find users who
+  --  post the most, and rank them by activity. Also show
+  --  how long they've been on the platform — veteran
+  --  creators are our most valuable partners."
+  --
+  -- Build the creator analytics engine!
+  SELECT 1;
+solutionQuery: |-
+  WITH UserActivity AS (
+    SELECT
+      t.user_id,
+      u.user_name,
+      u.signup_date,
+      COUNT(t.tweet_id) AS total_posts,
+      MIN(t.created_at) AS first_post,
+      MAX(t.created_at) AS last_post
+    FROM tweets t
+    JOIN users u ON t.user_id = u.user_id
+    GROUP BY t.user_id, u.user_name, u.signup_date
+  ),
+  Ranked AS (
+    SELECT
+      user_id,
+      user_name,
+      signup_date,
+      total_posts,
+      first_post,
+      last_post,
+      JULIANDAY(last_post) - JULIANDAY(first_post) AS active_days,
+      RANK() OVER (ORDER BY total_posts DESC) AS activity_rank,
+      CASE
+        WHEN total_posts >= 10 THEN 'Power Creator'
+        WHEN total_posts >= 5 THEN 'Active Creator'
+        WHEN total_posts >= 2 THEN 'Casual Creator'
+        ELSE 'Lurker'
+      END AS creator_tier
+    FROM UserActivity
+  )
+  SELECT
+    user_id,
+    user_name,
+    signup_date,
+    total_posts,
+    first_post,
+    last_post,
+    ROUND(active_days, 0) AS active_days,
+    activity_rank,
+    creator_tier
+  FROM Ranked
+  ORDER BY activity_rank;
+instructions: |-
+  Build a creator analytics engine:
+
+  1. Join tweets with users to get user details
+  2. Per user: count total_posts, find first_post and last_post dates
+  3. Calculate active_days (days between first and last post)
+  4. Rank users by total_posts descending
+  5. Classify creator tier:
+     - Power Creator: 10+ posts
+     - Active Creator: 5+ posts
+     - Casual Creator: 2+ posts
+     - Lurker: 1 post or less
+
+  Return: user_id, user_name, signup_date, total_posts, first_post, last_post, active_days, activity_rank, creator_tier
+  Order by activity_rank
+hints:
+  - JOIN tweets with users ON user_id
+  - JULIANDAY(last_post) - JULIANDAY(first_post) gives active days
+  - RANK() OVER (ORDER BY total_posts DESC) for ranking
+  - Use a CTE for the base metrics, then classify in a second step
+schema:
+  - name: tweets
+    columns:
+      - { name: tweet_id, type: TEXT }
+      - { name: user_id, type: TEXT }
+      - { name: created_at, type: DATE }
+      - { name: text, type: TEXT }
+  - name: users
+    columns:
+      - { name: user_id, type: TEXT }
+      - { name: user_name, type: TEXT }
+      - { name: signup_date, type: DATE }
+type: hidden
+tags:
+  - social
+  - real_world
+  - viral_content
+  - creator_analytics
+category: Social Twitter

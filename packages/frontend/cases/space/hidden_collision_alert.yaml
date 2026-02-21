@@ -1,0 +1,103 @@
+id: hidden_collision_alert
+name: "Planetary Defense: Collision Risk Assessment"
+tier: 7
+domain: Space NEO
+description: "NASA's Planetary Defense office needs a risk assessment. Identify the closest-approaching, fastest-moving near-Earth objects and classify their threat level based on proximity and velocity."
+hidden: true
+skills:
+  - select
+  - group
+  - window
+  - cte
+  - case
+  - order
+datasets:
+  - name: space_neo
+    file: space_neo.csv
+prereq_cases:
+  - orbit_select
+  - velocity_by_type
+  - mission_joins
+  - orbit_trend
+  - cte_payload
+  - capstone_space
+  - hidden_mission_risk
+seedQuery: |-
+  -- NASA PLANETARY DEFENSE: The Director asks:
+  -- "We need a threat assessment for all tracked NEOs.
+  --  Classify each object by its closest approach distance
+  --  and velocity. The fast ones that come close are our
+  --  highest priority. Rank them for the defense team."
+  --
+  -- Build the collision risk assessment!
+  SELECT 1;
+solutionQuery: |-
+  WITH NEOMetrics AS (
+    SELECT
+      des,
+      close_approach_date,
+      dist_km,
+      relative_velocity_km_s,
+      is_potentially_hazardous,
+      MIN(dist_km) OVER (PARTITION BY des) AS closest_approach_km,
+      MAX(relative_velocity_km_s) OVER (PARTITION BY des) AS max_velocity
+    FROM space_neo
+  ),
+  ThreatAssessment AS (
+    SELECT DISTINCT
+      des,
+      closest_approach_km,
+      max_velocity,
+      is_potentially_hazardous,
+      CASE
+        WHEN closest_approach_km < 100000 AND max_velocity > 15 THEN 'CRITICAL'
+        WHEN closest_approach_km < 200000 AND max_velocity > 10 THEN 'HIGH'
+        WHEN closest_approach_km < 500000 THEN 'MODERATE'
+        ELSE 'LOW'
+      END AS threat_level,
+      RANK() OVER (ORDER BY closest_approach_km ASC) AS proximity_rank
+    FROM NEOMetrics
+  )
+  SELECT
+    des,
+    ROUND(closest_approach_km, 1) AS closest_approach_km,
+    ROUND(max_velocity, 2) AS max_velocity,
+    is_potentially_hazardous,
+    threat_level,
+    proximity_rank
+  FROM ThreatAssessment
+  ORDER BY proximity_rank;
+instructions: |-
+  Build a planetary defense threat assessment:
+
+  1. For each NEO (des), find its closest approach distance and maximum velocity
+     using window functions (MIN/MAX OVER PARTITION BY des)
+  2. Deduplicate so each NEO appears once (use DISTINCT)
+  3. Classify threat level:
+     - CRITICAL: closest < 100,000 km AND max velocity > 15 km/s
+     - HIGH: closest < 200,000 km AND max velocity > 10 km/s
+     - MODERATE: closest < 500,000 km
+     - LOW: everything else
+  4. Rank by closest_approach_km ascending (nearest = highest priority)
+
+  Return: des, closest_approach_km, max_velocity, is_potentially_hazardous, threat_level, proximity_rank
+hints:
+  - MIN(dist_km) OVER (PARTITION BY des) gives the closest approach for each NEO
+  - Use DISTINCT in the outer CTE to deduplicate after window functions
+  - RANK() OVER (ORDER BY closest_approach_km ASC) ranks nearest first
+  - Combine distance and velocity in CASE for realistic threat classification
+schema:
+  - name: space_neo
+    columns:
+      - { name: des, type: TEXT }
+      - { name: close_approach_date, type: DATE }
+      - { name: dist_km, type: FLOAT }
+      - { name: relative_velocity_km_s, type: FLOAT }
+      - { name: is_potentially_hazardous, type: TEXT }
+type: hidden
+tags:
+  - space
+  - real_world
+  - planetary_defense
+  - collision_risk
+category: Space NEO

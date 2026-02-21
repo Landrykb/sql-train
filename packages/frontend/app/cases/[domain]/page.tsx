@@ -10,6 +10,7 @@ import DashboardButton from '@/components/DashboardButton';
 import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
 import BleepxLogo from '@/components/BleepxLogo';
+import PathMap from '@/components/PathMap';
 import { domainFolderMap, caseOrder, fullCaseOrder, hiddenCaseOrder } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
 
@@ -169,6 +170,7 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
       <ProgressSummary caseIds={caseOrder[domainKey] || []} />
       <BleepxPointsTracker caseIds={currentOrder} />
       <CaseProgress caseIds={currentOrder} domain={domainKey} cases={orderedCases} />
+      <PathMap domain={domainKey} cases={orderedCases} />
       <ClientCaseGrid cases={orderedCases} domain={domainKey} nextCaseId={orderedCases[0]?.id} />
       <AchievementNotification />
     </div>

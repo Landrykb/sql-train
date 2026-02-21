@@ -1,0 +1,116 @@
+id: hidden_portfolio_optimize
+name: "Risk-Adjusted Portfolio Builder"
+tier: 7
+domain: Finance Stocks
+description: "The fund manager needs a data-driven portfolio strategy. Calculate risk-adjusted returns for each ticker using volatility and market correlation to build an optimized allocation."
+hidden: true
+skills:
+  - select
+  - join
+  - group
+  - window
+  - cte
+  - case
+datasets:
+  - name: finance_stocks
+    file: finance_stocks.csv
+  - name: market_index
+    file: market_index.csv
+prereq_cases:
+  - transaction_select
+  - balance_by_account
+  - fraud_joins
+  - balance_trend
+  - cte_fraud
+  - capstone_finance
+  - hidden_fraud_detection
+seedQuery: |-
+  -- FUND MANAGER REQUEST: The Portfolio Manager asks:
+  -- "I need risk-adjusted metrics for each ticker.
+  --  Calculate average daily return, volatility (stddev),
+  --  and a Sharpe-like ratio. Then rank tickers by
+  --  risk-adjusted performance to build our portfolio."
+  --
+  -- Build the portfolio optimizer!
+  SELECT 1;
+solutionQuery: |-
+  WITH DailyReturns AS (
+    SELECT
+      ticker,
+      date,
+      close,
+      LAG(close) OVER (PARTITION BY ticker ORDER BY date) AS prev_close,
+      ROUND((close - LAG(close) OVER (PARTITION BY ticker ORDER BY date))
+        / LAG(close) OVER (PARTITION BY ticker ORDER BY date) * 100, 3) AS daily_return_pct
+    FROM finance_stocks
+  ),
+  TickerStats AS (
+    SELECT
+      ticker,
+      COUNT(*) AS trading_days,
+      ROUND(AVG(daily_return_pct), 3) AS avg_daily_return,
+      ROUND(AVG(close), 2) AS avg_price,
+      MIN(close) AS min_price,
+      MAX(close) AS max_price
+    FROM DailyReturns
+    WHERE prev_close IS NOT NULL
+    GROUP BY ticker
+  )
+  SELECT
+    ticker,
+    trading_days,
+    avg_daily_return,
+    avg_price,
+    min_price,
+    max_price,
+    ROUND(max_price - min_price, 2) AS price_range,
+    CASE
+      WHEN avg_daily_return > 0.05 THEN 'STRONG BUY'
+      WHEN avg_daily_return > 0 THEN 'BUY'
+      WHEN avg_daily_return > -0.05 THEN 'HOLD'
+      ELSE 'SELL'
+    END AS recommendation,
+    ROW_NUMBER() OVER (ORDER BY avg_daily_return DESC) AS performance_rank
+  FROM TickerStats
+  ORDER BY performance_rank;
+instructions: |-
+  Build a portfolio optimization report:
+
+  1. Calculate daily returns for each ticker: (close - prev_close) / prev_close * 100
+     Use LAG() to get the previous day's closing price
+  2. Aggregate per ticker: trading_days, avg_daily_return, avg_price, min_price, max_price
+  3. Compute price_range = max_price - min_price
+  4. Classify recommendation:
+     - STRONG BUY: avg daily return > 0.05%
+     - BUY: avg daily return > 0%
+     - HOLD: avg daily return > -0.05%
+     - SELL: everything else
+  5. Rank by avg_daily_return descending
+
+  Return: ticker, trading_days, avg_daily_return, avg_price, min_price, max_price, price_range, recommendation, performance_rank
+hints:
+  - LAG(close) OVER (PARTITION BY ticker ORDER BY date) gets yesterday's price
+  - Filter WHERE prev_close IS NOT NULL to exclude first trading day
+  - Use two CTEs: one for daily returns, one for aggregated stats
+  - ROW_NUMBER() in the final SELECT for ranking
+schema:
+  - name: finance_stocks
+    columns:
+      - { name: ticker, type: TEXT }
+      - { name: date, type: DATE }
+      - { name: open, type: FLOAT }
+      - { name: high, type: FLOAT }
+      - { name: low, type: FLOAT }
+      - { name: close, type: FLOAT }
+      - { name: volume, type: INTEGER }
+  - name: market_index
+    columns:
+      - { name: date, type: DATE }
+      - { name: index_close, type: FLOAT }
+type: hidden
+tags:
+  - finance
+  - real_world
+  - portfolio
+  - risk_analysis
+category: Finance Stocks
