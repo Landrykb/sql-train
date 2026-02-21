@@ -138,26 +138,32 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
     console.log('Navigation Debug:', { id, rawDomain, normalizedDomain: domain, completed: Array.from(completed), currentIndex, currentOrder, nextCaseId, prerequisites, isUnlocked: isUnlocked(prerequisites) });
   }, [id, rawDomain, domain, completed, currentIndex, currentOrder, nextCaseId, prerequisites, isUnlocked]);
 
-  // Stable key so the effect doesn't restart on every parent re-render
-  const datasetsKey = useMemo(() => JSON.stringify(datasets.map(d => `${d.name}:${d.file}`)), [datasets]);
-  const loadedRef = useRef(false);
+  const loadAttemptRef = useRef(0);
 
   useEffect(() => {
     if (!datasets.length) {
       setLoadError('No datasets specified for this case.');
       return;
     }
-    if (loadedRef.current) return;
 
-    let isMounted = true;
-    const loadDatasets = async () => {
+    const attempt = ++loadAttemptRef.current;
+    setDbReady(false);
+    setLoadError(null);
+
+    (async () => {
       try {
+        console.log('[SQL] init WASM...');
         await initSQL('/static/wasm/sql-wasm.wasm');
+        if (attempt !== loadAttemptRef.current) return;
+        console.log('[SQL] WASM ready');
 
         for (const dataset of datasets) {
           if (!/^[a-zA-Z0-9_]+$/.test(dataset.name)) throw new Error(`Invalid dataset name: ${dataset.name}`);
+          console.log(`[SQL] loading ${dataset.name} from ${dataset.file}`);
           await loadCSV(dataset.name, dataset.file);
+          if (attempt !== loadAttemptRef.current) return;
         }
+        console.log('[SQL] all CSVs loaded');
 
         const tableData = await Promise.all(
           datasets.map(async (dataset) => {
@@ -185,24 +191,22 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
           })
         );
 
-        if (isMounted) {
+        if (attempt === loadAttemptRef.current) {
+          console.log('[SQL] ready:', tableData.map(t => `${t.name}(${t.rowCount} rows)`));
           setTables(tableData);
           setSelectedTable(tableData[0]?.name || null);
           setDbReady(true);
           setLoadError(null);
-          loadedRef.current = true;
         }
       } catch (err) {
-        if (isMounted) {
+        console.error('[SQL] load failed:', err);
+        if (attempt === loadAttemptRef.current) {
           const msg = err instanceof Error ? err.message : String(err);
           setLoadError(getLoadError(msg));
         }
       }
-    };
-
-    loadDatasets();
-    return () => { isMounted = false; };
-  }, [datasetsKey]);
+    })();
+  }, [id, datasets]);
 
   const onRun = useCallback(async () => {
     if (query.length > 1000) {
