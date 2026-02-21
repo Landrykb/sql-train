@@ -1,0 +1,82 @@
+id: soil_joins
+name: Soil and Crop Analysis
+tier: 3
+domain: Farming Ndvi
+description: Join crop and soil data
+skills:
+  - join
+datasets:
+  - name: farming_yield
+    file: farming_yield.csv
+  - name: soil_data
+    file: soil_data.csv
+prereq_cases:
+  - ndvi_overview
+  - yield_by_crop
+seedQuery: |-
+  -- TODO: write query for soil_joins
+  SELECT 1;
+solutionQuery: |-
+  SELECT f.id, f.ndvi, s.soil_ph, s.soil_type
+  FROM farming_yield f
+  LEFT JOIN soil_data s ON f.id = s.id
+  WHERE s.soil_type = 'sandy_loam'
+  ORDER BY f.ndvi DESC
+  LIMIT 5;
+instructions: Join crop and soil data, filter for sandy_loam soil, order by NDVI
+hints:
+  - Review the join concept in the GuideBook
+  - Use LEFT JOIN to include soil data
+  - Filter with WHERE for soil_type
+  - Use LIMIT to get 5 rows
+schema:
+  - name: farming_yield
+    columns:
+      - name: id
+        type: INTEGER
+      - name: region
+        type: TEXT
+      - name: ndvi
+        type: FLOAT
+      - name: yield
+        type: FLOAT
+      - name: year
+        type: INTEGER
+      - name: month
+        type: INTEGER
+      - name: soil_type
+        type: TEXT
+  - name: soil_data
+    columns:
+      - name: id
+        type: INTEGER
+      - name: soil_ph
+        type: FLOAT
+      - name: soil_type
+        type: TEXT
+expected:
+  - id: 7
+    ndvi: 0.9
+    soil_ph: 5.9
+    soil_type: sandy_loam
+  - id: 128
+    ndvi: 0.9
+    soil_ph: 6.2
+    soil_type: sandy_loam
+  - id: 198
+    ndvi: 0.9
+    soil_ph: 6.4
+    soil_type: sandy_loam
+  - id: 728
+    ndvi: 0.9
+    soil_ph: 6.8
+    soil_type: sandy_loam
+  - id: 768
+    ndvi: 0.9
+    soil_ph: 7.4
+    soil_type: sandy_loam
+type: standard
+tags:
+  - farming_ndvi
+  - join
+category: Farming Ndvi

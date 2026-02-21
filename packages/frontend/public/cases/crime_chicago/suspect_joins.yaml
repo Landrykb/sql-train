@@ -1,0 +1,76 @@
+id: suspect_joins
+name: Crime Suspects
+tier: 3
+domain: Crime Chicago
+description: Join crime and suspect data
+skills:
+  - join
+datasets:
+  - name: crime_chicago
+    file: crime_chicago.csv
+  - name: suspects
+    file: suspects.csv
+prereq_cases:
+  - crime_select
+  - crime_by_area
+seedQuery: |-
+  -- TODO: write query for suspect_joins
+  SELECT 1;
+solutionQuery: |-
+  SELECT c.id, c.date, s.suspect_name
+  FROM crime_chicago c
+  LEFT JOIN suspects s ON c.id = s.crime_id
+  WHERE s.suspect_name IS NOT NULL
+  ORDER BY c.date DESC
+  LIMIT 5;
+instructions: Join crime and suspect data, show incidents with suspects, order by
+  date
+hints:
+  - Review the join concept in the GuideBook
+  - Use LEFT JOIN to include suspect data
+  - Filter with WHERE for non-null suspects
+  - Use LIMIT to get 5 rows
+schema:
+  - name: crime_chicago
+    columns:
+      - name: id
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: primary_type
+        type: TEXT
+      - name: location_description
+        type: TEXT
+      - name: latitude
+        type: FLOAT
+      - name: longitude
+        type: FLOAT
+  - name: suspects
+    columns:
+      - name: suspect_id
+        type: TEXT
+      - name: crime_id
+        type: TEXT
+      - name: suspect_name
+        type: TEXT
+expected:
+  - date: '2024-12-31'
+    id: '443266'
+    suspect_name: Suspect_482
+  - date: '2024-12-31'
+    id: '143640'
+    suspect_name: Suspect_653
+  - date: '2024-12-31'
+    id: '439644'
+    suspect_name: Suspect_2192
+  - date: '2024-12-31'
+    id: '106390'
+    suspect_name: Suspect_2403
+  - date: '2024-12-31'
+    id: '385217'
+    suspect_name: Suspect_2673
+type: standard
+tags:
+  - crime_chicago
+  - join
+category: Crime Chicago

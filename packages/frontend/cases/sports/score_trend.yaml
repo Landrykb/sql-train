@@ -1,0 +1,88 @@
+id: score_trend
+name: Scoring Trends
+tier: 3
+domain: Sports Nba
+description: Analyze player scoring trends
+skills:
+  - aggregation
+  - date_functions
+datasets:
+  - name: nba_games
+    file: nba_games.csv
+  - name: shot_zones
+    file: shot_zones.csv
+prereq_cases:
+  - match_select
+  - score_by_team
+seedQuery: |-
+  -- TODO: write query for score_trend
+  SELECT 1;
+solutionQuery: |-
+  SELECT strftime('%Y-%m', game_date) AS month, AVG(points) AS avg_points
+  FROM nba_games
+  GROUP BY strftime('%Y-%m', game_date)
+  ORDER BY month;
+instructions: Calculate average points per game by month, order by month
+hints:
+  - Review date functions in the GuideBook
+  - Use strftime to group by month
+  - Use AVG for points
+  - Order by month
+schema:
+  - name: nba_games
+    columns:
+      - name: game_id
+        type: TEXT
+      - name: player_id
+        type: TEXT
+      - name: points
+        type: INTEGER
+      - name: assists
+        type: INTEGER
+      - name: rebounds
+        type: INTEGER
+      - name: game_date
+        type: DATE
+  - name: shot_zones
+    columns:
+      - name: shot_id
+        type: TEXT
+      - name: player_id
+        type: TEXT
+      - name: shot_zone
+        type: TEXT
+      - name: made
+        type: BOOLEAN
+expected:
+  - avg_points: 24.951474201474202
+    month: 2023-01
+  - avg_points: 25.125959079283888
+    month: 2023-02
+  - avg_points: 25.490107405313736
+    month: 2023-03
+  - avg_points: 24.72449602932193
+    month: 2023-04
+  - avg_points: 24.65214797136038
+    month: 2023-05
+  - avg_points: 24.493849938499384
+    month: 2023-06
+  - avg_points: 24.84416331224842
+    month: 2023-07
+  - avg_points: 25.285796766743648
+    month: 2023-08
+  - avg_points: 25.065443425076452
+    month: 2023-09
+  - avg_points: 25.219646125686396
+    month: 2023-10
+  - avg_points: 25.02075702075702
+    month: 2023-11
+  - avg_points: 25.194545454545455
+    month: 2023-12
+  - avg_points: 24.52238805970149
+    month: 2024-01
+type: standard
+tags:
+  - sports_nba
+  - aggregation
+  - date_functions
+category: Sports Nba

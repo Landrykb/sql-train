@@ -1,0 +1,94 @@
+id: capstone_farm
+name: Farming Capstone
+tier: 5
+domain: Farming Ndvi
+description: Build a comprehensive farming dashboard
+skills:
+  - ctes
+  - joins
+  - aggregation
+datasets:
+  - name: farming_yield
+    file: farming_yield.csv
+  - name: soil_data
+    file: soil_data.csv
+prereq_cases:
+  - ndvi_overview
+  - yield_by_crop
+  - soil_joins
+  - yield_trend
+  - cte_soil
+seedQuery: |-
+  -- TODO: write query for capstone_farm
+  SELECT 1;
+solutionQuery: |-
+  WITH YieldStats AS (
+   SELECT region, AVG(yield) AS avg_yield, AVG(ndvi) AS avg_ndvi
+   FROM farming_yield
+   GROUP BY region
+  ),
+  SoilStats AS (
+   SELECT f.region, AVG(s.soil_ph) AS avg_soil_ph
+   FROM farming_yield f
+   JOIN soil_data s ON f.id = s.id
+   GROUP BY f.region
+  )
+  SELECT y.region, y.avg_yield, y.avg_ndvi, s.avg_soil_ph
+  FROM YieldStats y
+  JOIN SoilStats s ON y.region = s.region
+  ORDER BY y.avg_yield DESC;
+instructions: Summarize yield, NDVI, and soil metrics by region
+hints:
+  - Review all SQL concepts in the GuideBook
+  - Use multiple CTEs for clarity
+  - Join yield and soil data
+  - Group by region
+schema:
+  - name: farming_yield
+    columns:
+      - name: id
+        type: INTEGER
+      - name: region
+        type: TEXT
+      - name: ndvi
+        type: FLOAT
+      - name: yield
+        type: FLOAT
+      - name: year
+        type: INTEGER
+      - name: month
+        type: INTEGER
+      - name: soil_type
+        type: TEXT
+  - name: soil_data
+    columns:
+      - name: id
+        type: INTEGER
+      - name: soil_ph
+        type: FLOAT
+      - name: soil_type
+        type: TEXT
+expected:
+  - avg_ndvi: 0.7032029722330794
+    avg_soil_ph: 6.459432048681547
+    avg_yield: 3.5089949159170923
+    region: North
+  - avg_ndvi: 0.6996555915721187
+    avg_soil_ph: 6.490618762475049
+    avg_yield: 3.4952188006482965
+    region: West
+  - avg_ndvi: 0.6994395866454625
+    avg_soil_ph: 6.508163265306125
+    avg_yield: 3.490739268680448
+    region: East
+  - avg_ndvi: 0.695750305002029
+    avg_soil_ph: 6.506589147286829
+    avg_yield: 3.4900366002439958
+    region: South
+type: standard
+tags:
+  - farming_ndvi
+  - ctes
+  - joins
+  - aggregation
+category: Farming Ndvi

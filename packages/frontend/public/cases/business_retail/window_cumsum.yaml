@@ -1,0 +1,4082 @@
+id: window_cumsum
+name: Cumulative Sales
+tier: 3
+domain: Business Retail
+description: Calculate cumulative sales by branch
+skills:
+  - window_functions
+  - aggregation
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+  - name: returns
+    file: returns.csv
+prereq_cases:
+  - basics_select
+  - agg_revenue
+seedQuery: |-
+  -- TODO: write query for window_cumsum
+  SELECT 1;
+solutionQuery: |-
+  SELECT branch, date, total,
+   SUM(total) OVER (PARTITION BY branch ORDER BY date) AS cumulative_sales
+  FROM business_retail
+  ORDER BY branch, date;
+instructions: Compute running total of sales per branch, ordered by date
+hints:
+  - Review window functions in the GuideBook
+  - Use SUM OVER to calculate cumulative total
+  - PARTITION BY branch
+  - Order by date
+schema:
+  - name: business_retail
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: branch
+        type: TEXT
+      - name: city
+        type: TEXT
+      - name: customer_type
+        type: TEXT
+      - name: gender
+        type: TEXT
+      - name: product_line
+        type: TEXT
+      - name: unit_price
+        type: FLOAT
+      - name: quantity
+        type: INTEGER
+      - name: tax_5
+        type: FLOAT
+      - name: total
+        type: FLOAT
+      - name: date
+        type: DATE
+      - name: time
+        type: TEXT
+      - name: payment
+        type: TEXT
+      - name: cogs
+        type: FLOAT
+      - name: gross_margin_percentage
+        type: FLOAT
+      - name: gross_income
+        type: FLOAT
+      - name: rating
+        type: FLOAT
+  - name: returns
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: return_date
+        type: DATE
+      - name: return_reason
+        type: TEXT
+expected:
+  - branch: A
+    cumulative_sales: 2371.3199999999997
+    date: '2019-01-01'
+    total: 457.443
+  - branch: A
+    cumulative_sales: 2371.3199999999997
+    date: '2019-01-01'
+    total: 399.756
+  - branch: A
+    cumulative_sales: 2371.3199999999997
+    date: '2019-01-01'
+    total: 621.243
+  - branch: A
+    cumulative_sales: 2371.3199999999997
+    date: '2019-01-01'
+    total: 113.568
+  - branch: A
+    cumulative_sales: 2371.3199999999997
+    date: '2019-01-01'
+    total: 779.31
+  - branch: A
+    cumulative_sales: 2678.3714999999997
+    date: '2019-01-02'
+    total: 44.5935
+  - branch: A
+    cumulative_sales: 2678.3714999999997
+    date: '2019-01-02'
+    total: 262.458
+  - branch: A
+    cumulative_sales: 3615.7799999999997
+    date: '2019-01-03'
+    total: 367.5525
+  - branch: A
+    cumulative_sales: 3615.7799999999997
+    date: '2019-01-03'
+    total: 217.6335
+  - branch: A
+    cumulative_sales: 3615.7799999999997
+    date: '2019-01-03'
+    total: 352.2225
+  - branch: A
+    cumulative_sales: 4099.0425
+    date: '2019-01-04'
+    total: 373.17
+  - branch: A
+    cumulative_sales: 4099.0425
+    date: '2019-01-04'
+    total: 110.0925
+  - branch: A
+    cumulative_sales: 6123.5475
+    date: '2019-01-05'
+    total: 548.9715
+  - branch: A
+    cumulative_sales: 6123.5475
+    date: '2019-01-05'
+    total: 263.13
+  - branch: A
+    cumulative_sales: 6123.5475
+    date: '2019-01-05'
+    total: 297.108
+  - branch: A
+    cumulative_sales: 6123.5475
+    date: '2019-01-05'
+    total: 225.2775
+  - branch: A
+    cumulative_sales: 6123.5475
+    date: '2019-01-05'
+    total: 690.018
+  - branch: A
+    cumulative_sales: 7433.517000000001
+    date: '2019-01-06'
+    total: 494.76
+  - branch: A
+    cumulative_sales: 7433.517000000001
+    date: '2019-01-06'
+    total: 16.107
+  - branch: A
+    cumulative_sales: 7433.517000000001
+    date: '2019-01-06'
+    total: 214.935
+  - branch: A
+    cumulative_sales: 7433.517000000001
+    date: '2019-01-06'
+    total: 271.278
+  - branch: A
+    cumulative_sales: 7433.517000000001
+    date: '2019-01-06'
+    total: 312.8895
+  - branch: A
+    cumulative_sales: 8539.4715
+    date: '2019-01-07'
+    total: 326.424
+  - branch: A
+    cumulative_sales: 8539.4715
+    date: '2019-01-07'
+    total: 203.553
+  - branch: A
+    cumulative_sales: 8539.4715
+    date: '2019-01-07'
+    total: 575.9775
+  - branch: A
+    cumulative_sales: 9222.927000000001
+    date: '2019-01-08'
+    total: 194.985
+  - branch: A
+    cumulative_sales: 9222.927000000001
+    date: '2019-01-08'
+    total: 210.966
+  - branch: A
+    cumulative_sales: 9222.927000000001
+    date: '2019-01-08'
+    total: 26.796
+  - branch: A
+    cumulative_sales: 9222.927000000001
+    date: '2019-01-08'
+    total: 250.7085
+  - branch: A
+    cumulative_sales: 9425.262
+    date: '2019-01-09'
+    total: 202.335
+  - branch: A
+    cumulative_sales: 10156.755000000001
+    date: '2019-01-10'
+    total: 76.146
+  - branch: A
+    cumulative_sales: 10156.755000000001
+    date: '2019-01-10'
+    total: 161.553
+  - branch: A
+    cumulative_sales: 10156.755000000001
+    date: '2019-01-10'
+    total: 493.794
+  - branch: A
+    cumulative_sales: 11818.421999999999
+    date: '2019-01-11'
+    total: 94.1745
+  - branch: A
+    cumulative_sales: 11818.421999999999
+    date: '2019-01-11'
+    total: 235.683
+  - branch: A
+    cumulative_sales: 11818.421999999999
+    date: '2019-01-11'
+    total: 345.786
+  - branch: A
+    cumulative_sales: 11818.421999999999
+    date: '2019-01-11'
+    total: 72.3975
+  - branch: A
+    cumulative_sales: 11818.421999999999
+    date: '2019-01-11'
+    total: 305.55
+  - branch: A
+    cumulative_sales: 11818.421999999999
+    date: '2019-01-11'
+    total: 608.076
+  - branch: A
+    cumulative_sales: 13247.461499999998
+    date: '2019-01-12'
+    total: 189.0945
+  - branch: A
+    cumulative_sales: 13247.461499999998
+    date: '2019-01-12'
+    total: 931.035
+  - branch: A
+    cumulative_sales: 13247.461499999998
+    date: '2019-01-12'
+    total: 308.91
+  - branch: A
+    cumulative_sales: 14359.863
+    date: '2019-01-13'
+    total: 147.798
+  - branch: A
+    cumulative_sales: 14359.863
+    date: '2019-01-13'
+    total: 335.013
+  - branch: A
+    cumulative_sales: 14359.863
+    date: '2019-01-13'
+    total: 374.409
+  - branch: A
+    cumulative_sales: 14359.863
+    date: '2019-01-13'
+    total: 255.1815
+  - branch: A
+    cumulative_sales: 15455.957999999999
+    date: '2019-01-14'
+    total: 507.675
+  - branch: A
+    cumulative_sales: 15455.957999999999
+    date: '2019-01-14'
+    total: 588.42
+  - branch: A
+    cumulative_sales: 17262.619499999997
+    date: '2019-01-15'
+    total: 575.316
+  - branch: A
+    cumulative_sales: 17262.619499999997
+    date: '2019-01-15'
+    total: 843.0345
+  - branch: A
+    cumulative_sales: 17262.619499999997
+    date: '2019-01-15'
+    total: 140.385
+  - branch: A
+    cumulative_sales: 17262.619499999997
+    date: '2019-01-15'
+    total: 175.917
+  - branch: A
+    cumulative_sales: 17262.619499999997
+    date: '2019-01-15'
+    total: 72.009
+  - branch: A
+    cumulative_sales: 18125.677499999998
+    date: '2019-01-16'
+    total: 667.38
+  - branch: A
+    cumulative_sales: 18125.677499999998
+    date: '2019-01-16'
+    total: 195.678
+  - branch: A
+    cumulative_sales: 19627.902000000002
+    date: '2019-01-17'
+    total: 135.576
+  - branch: A
+    cumulative_sales: 19627.902000000002
+    date: '2019-01-17'
+    total: 852.705
+  - branch: A
+    cumulative_sales: 19627.902000000002
+    date: '2019-01-17'
+    total: 80.955
+  - branch: A
+    cumulative_sales: 19627.902000000002
+    date: '2019-01-17'
+    total: 432.9885
+  - branch: A
+    cumulative_sales: 20787.732000000004
+    date: '2019-01-18'
+    total: 138.1275
+  - branch: A
+    cumulative_sales: 20787.732000000004
+    date: '2019-01-18'
+    total: 182.952
+  - branch: A
+    cumulative_sales: 20787.732000000004
+    date: '2019-01-18'
+    total: 277.6725
+  - branch: A
+    cumulative_sales: 20787.732000000004
+    date: '2019-01-18'
+    total: 561.078
+  - branch: A
+    cumulative_sales: 24042.217500000002
+    date: '2019-01-19'
+    total: 548.7615
+  - branch: A
+    cumulative_sales: 24042.217500000002
+    date: '2019-01-19'
+    total: 323.064
+  - branch: A
+    cumulative_sales: 24042.217500000002
+    date: '2019-01-19'
+    total: 282.492
+  - branch: A
+    cumulative_sales: 24042.217500000002
+    date: '2019-01-19'
+    total: 673.995
+  - branch: A
+    cumulative_sales: 24042.217500000002
+    date: '2019-01-19'
+    total: 37.611
+  - branch: A
+    cumulative_sales: 24042.217500000002
+    date: '2019-01-19'
+    total: 284.592
+  - branch: A
+    cumulative_sales: 24042.217500000002
+    date: '2019-01-19'
+    total: 624.33
+  - branch: A
+    cumulative_sales: 24042.217500000002
+    date: '2019-01-19'
+    total: 479.64
+  - branch: A
+    cumulative_sales: 25767.1785
+    date: '2019-01-20'
+    total: 759.675
+  - branch: A
+    cumulative_sales: 25767.1785
+    date: '2019-01-20'
+    total: 195.594
+  - branch: A
+    cumulative_sales: 25767.1785
+    date: '2019-01-20'
+    total: 536.592
+  - branch: A
+    cumulative_sales: 25767.1785
+    date: '2019-01-20'
+    total: 233.1
+  - branch: A
+    cumulative_sales: 27358.915500000003
+    date: '2019-01-21'
+    total: 172.2105
+  - branch: A
+    cumulative_sales: 27358.915500000003
+    date: '2019-01-21'
+    total: 491.085
+  - branch: A
+    cumulative_sales: 27358.915500000003
+    date: '2019-01-21'
+    total: 76.356
+  - branch: A
+    cumulative_sales: 27358.915500000003
+    date: '2019-01-21'
+    total: 461.286
+  - branch: A
+    cumulative_sales: 27358.915500000003
+    date: '2019-01-21'
+    total: 390.7995
+  - branch: A
+    cumulative_sales: 28161.189000000002
+    date: '2019-01-22'
+    total: 705.6315
+  - branch: A
+    cumulative_sales: 28161.189000000002
+    date: '2019-01-22'
+    total: 96.642
+  - branch: A
+    cumulative_sales: 30522.502500000006
+    date: '2019-01-23'
+    total: 94.185
+  - branch: A
+    cumulative_sales: 30522.502500000006
+    date: '2019-01-23'
+    total: 416.178
+  - branch: A
+    cumulative_sales: 30522.502500000006
+    date: '2019-01-23'
+    total: 32.1405
+  - branch: A
+    cumulative_sales: 30522.502500000006
+    date: '2019-01-23'
+    total: 620.739
+  - branch: A
+    cumulative_sales: 30522.502500000006
+    date: '2019-01-23'
+    total: 503.7375
+  - branch: A
+    cumulative_sales: 30522.502500000006
+    date: '2019-01-23'
+    total: 450.1035
+  - branch: A
+    cumulative_sales: 30522.502500000006
+    date: '2019-01-23'
+    total: 244.23
+  - branch: A
+    cumulative_sales: 32981.6865
+    date: '2019-01-24'
+    total: 827.085
+  - branch: A
+    cumulative_sales: 32981.6865
+    date: '2019-01-24'
+    total: 406.875
+  - branch: A
+    cumulative_sales: 32981.6865
+    date: '2019-01-24'
+    total: 728.112
+  - branch: A
+    cumulative_sales: 32981.6865
+    date: '2019-01-24'
+    total: 408.408
+  - branch: A
+    cumulative_sales: 32981.6865
+    date: '2019-01-24'
+    total: 88.704
+  - branch: A
+    cumulative_sales: 33895.512
+    date: '2019-01-25'
+    total: 247.8735
+  - branch: A
+    cumulative_sales: 33895.512
+    date: '2019-01-25'
+    total: 252.042
+  - branch: A
+    cumulative_sales: 33895.512
+    date: '2019-01-25'
+    total: 168.21
+  - branch: A
+    cumulative_sales: 33895.512
+    date: '2019-01-25'
+    total: 167.895
+  - branch: A
+    cumulative_sales: 33895.512
+    date: '2019-01-25'
+    total: 77.805
+  - branch: A
+    cumulative_sales: 34310.513999999996
+    date: '2019-01-26'
+    total: 379.9215
+  - branch: A
+    cumulative_sales: 34310.513999999996
+    date: '2019-01-26'
+    total: 12.6945
+  - branch: A
+    cumulative_sales: 34310.513999999996
+    date: '2019-01-26'
+    total: 22.386
+  - branch: A
+    cumulative_sales: 35984.7915
+    date: '2019-01-27'
+    total: 489.048
+  - branch: A
+    cumulative_sales: 35984.7915
+    date: '2019-01-27'
+    total: 169.3125
+  - branch: A
+    cumulative_sales: 35984.7915
+    date: '2019-01-27'
+    total: 25.263
+  - branch: A
+    cumulative_sales: 35984.7915
+    date: '2019-01-27'
+    total: 398.958
+  - branch: A
+    cumulative_sales: 35984.7915
+    date: '2019-01-27'
+    total: 514.773
+  - branch: A
+    cumulative_sales: 35984.7915
+    date: '2019-01-27'
+    total: 76.923
+  - branch: A
+    cumulative_sales: 36272.649
+    date: '2019-01-28'
+    total: 203.112
+  - branch: A
+    cumulative_sales: 36272.649
+    date: '2019-01-28'
+    total: 84.7455
+  - branch: A
+    cumulative_sales: 37797.564
+    date: '2019-01-29'
+    total: 786.618
+  - branch: A
+    cumulative_sales: 37797.564
+    date: '2019-01-29'
+    total: 40.53
+  - branch: A
+    cumulative_sales: 37797.564
+    date: '2019-01-29'
+    total: 146.6325
+  - branch: A
+    cumulative_sales: 37797.564
+    date: '2019-01-29'
+    total: 458.6925
+  - branch: A
+    cumulative_sales: 37797.564
+    date: '2019-01-29'
+    total: 92.442
+  - branch: A
+    cumulative_sales: 38092.971
+    date: '2019-01-30'
+    total: 295.407
+  - branch: A
+    cumulative_sales: 38681.1285
+    date: '2019-01-31'
+    total: 69.6675
+  - branch: A
+    cumulative_sales: 38681.1285
+    date: '2019-01-31'
+    total: 87.234
+  - branch: A
+    cumulative_sales: 38681.1285
+    date: '2019-01-31'
+    total: 431.256
+  - branch: A
+    cumulative_sales: 39593.064
+    date: '2019-02-01'
+    total: 510.972
+  - branch: A
+    cumulative_sales: 39593.064
+    date: '2019-02-01'
+    total: 74.7075
+  - branch: A
+    cumulative_sales: 39593.064
+    date: '2019-02-01'
+    total: 326.256
+  - branch: A
+    cumulative_sales: 40613.023499999996
+    date: '2019-02-02'
+    total: 19.2465
+  - branch: A
+    cumulative_sales: 40613.023499999996
+    date: '2019-02-02'
+    total: 115.08
+  - branch: A
+    cumulative_sales: 40613.023499999996
+    date: '2019-02-02'
+    total: 452.865
+  - branch: A
+    cumulative_sales: 40613.023499999996
+    date: '2019-02-02'
+    total: 432.768
+  - branch: A
+    cumulative_sales: 43330.3815
+    date: '2019-02-03'
+    total: 697.368
+  - branch: A
+    cumulative_sales: 43330.3815
+    date: '2019-02-03'
+    total: 404.355
+  - branch: A
+    cumulative_sales: 43330.3815
+    date: '2019-02-03'
+    total: 708.225
+  - branch: A
+    cumulative_sales: 43330.3815
+    date: '2019-02-03'
+    total: 764.19
+  - branch: A
+    cumulative_sales: 43330.3815
+    date: '2019-02-03'
+    total: 143.22
+  - branch: A
+    cumulative_sales: 44569.770000000004
+    date: '2019-02-04'
+    total: 75.5475
+  - branch: A
+    cumulative_sales: 44569.770000000004
+    date: '2019-02-04'
+    total: 185.367
+  - branch: A
+    cumulative_sales: 44569.770000000004
+    date: '2019-02-04'
+    total: 226.065
+  - branch: A
+    cumulative_sales: 44569.770000000004
+    date: '2019-02-04'
+    total: 204.246
+  - branch: A
+    cumulative_sales: 44569.770000000004
+    date: '2019-02-04'
+    total: 548.163
+  - branch: A
+    cumulative_sales: 45138.198
+    date: '2019-02-05'
+    total: 163.233
+  - branch: A
+    cumulative_sales: 45138.198
+    date: '2019-02-05'
+    total: 236.88
+  - branch: A
+    cumulative_sales: 45138.198
+    date: '2019-02-05'
+    total: 32.151
+  - branch: A
+    cumulative_sales: 45138.198
+    date: '2019-02-05'
+    total: 92.295
+  - branch: A
+    cumulative_sales: 45138.198
+    date: '2019-02-05'
+    total: 43.869
+  - branch: A
+    cumulative_sales: 45561.39
+    date: '2019-02-06'
+    total: 235.872
+  - branch: A
+    cumulative_sales: 45561.39
+    date: '2019-02-06'
+    total: 187.32
+  - branch: A
+    cumulative_sales: 47628.0
+    date: '2019-02-07'
+    total: 453.495
+  - branch: A
+    cumulative_sales: 47628.0
+    date: '2019-02-07'
+    total: 752.64
+  - branch: A
+    cumulative_sales: 47628.0
+    date: '2019-02-07'
+    total: 47.859
+  - branch: A
+    cumulative_sales: 47628.0
+    date: '2019-02-07'
+    total: 30.408
+  - branch: A
+    cumulative_sales: 47628.0
+    date: '2019-02-07'
+    total: 782.208
+  - branch: A
+    cumulative_sales: 49322.3535
+    date: '2019-02-08'
+    total: 634.3785
+  - branch: A
+    cumulative_sales: 49322.3535
+    date: '2019-02-08'
+    total: 1039.29
+  - branch: A
+    cumulative_sales: 49322.3535
+    date: '2019-02-08'
+    total: 20.685
+  - branch: A
+    cumulative_sales: 49920.43349999999
+    date: '2019-02-09'
+    total: 233.52
+  - branch: A
+    cumulative_sales: 49920.43349999999
+    date: '2019-02-09'
+    total: 331.128
+  - branch: A
+    cumulative_sales: 49920.43349999999
+    date: '2019-02-09'
+    total: 33.432
+  - branch: A
+    cumulative_sales: 50943.102
+    date: '2019-02-10'
+    total: 234.0975
+  - branch: A
+    cumulative_sales: 50943.102
+    date: '2019-02-10'
+    total: 316.47
+  - branch: A
+    cumulative_sales: 50943.102
+    date: '2019-02-10'
+    total: 77.7735
+  - branch: A
+    cumulative_sales: 50943.102
+    date: '2019-02-10'
+    total: 394.3275
+  - branch: A
+    cumulative_sales: 51593.346
+    date: '2019-02-11'
+    total: 397.992
+  - branch: A
+    cumulative_sales: 51593.346
+    date: '2019-02-11'
+    total: 252.252
+  - branch: A
+    cumulative_sales: 52150.465500000006
+    date: '2019-02-12'
+    total: 246.4875
+  - branch: A
+    cumulative_sales: 52150.465500000006
+    date: '2019-02-12'
+    total: 160.209
+  - branch: A
+    cumulative_sales: 52150.465500000006
+    date: '2019-02-12'
+    total: 150.423
+  - branch: A
+    cumulative_sales: 52366.5765
+    date: '2019-02-13'
+    total: 135.45
+  - branch: A
+    cumulative_sales: 52366.5765
+    date: '2019-02-13'
+    total: 80.661
+  - branch: A
+    cumulative_sales: 53439.393
+    date: '2019-02-14'
+    total: 836.304
+  - branch: A
+    cumulative_sales: 53439.393
+    date: '2019-02-14'
+    total: 140.6475
+  - branch: A
+    cumulative_sales: 53439.393
+    date: '2019-02-14'
+    total: 95.865
+  - branch: A
+    cumulative_sales: 54662.60099999999
+    date: '2019-02-15'
+    total: 587.664
+  - branch: A
+    cumulative_sales: 54662.60099999999
+    date: '2019-02-15'
+    total: 96.138
+  - branch: A
+    cumulative_sales: 54662.60099999999
+    date: '2019-02-15'
+    total: 164.43
+  - branch: A
+    cumulative_sales: 54662.60099999999
+    date: '2019-02-15'
+    total: 211.365
+  - branch: A
+    cumulative_sales: 54662.60099999999
+    date: '2019-02-15'
+    total: 163.611
+  - branch: A
+    cumulative_sales: 54845.02799999999
+    date: '2019-02-16'
+    total: 182.427
+  - branch: A
+    cumulative_sales: 57915.984
+    date: '2019-02-17'
+    total: 181.44
+  - branch: A
+    cumulative_sales: 57915.984
+    date: '2019-02-17'
+    total: 745.836
+  - branch: A
+    cumulative_sales: 57915.984
+    date: '2019-02-17'
+    total: 103.635
+  - branch: A
+    cumulative_sales: 57915.984
+    date: '2019-02-17'
+    total: 680.064
+  - branch: A
+    cumulative_sales: 57915.984
+    date: '2019-02-17'
+    total: 926.9505
+  - branch: A
+    cumulative_sales: 57915.984
+    date: '2019-02-17'
+    total: 142.947
+  - branch: A
+    cumulative_sales: 57915.984
+    date: '2019-02-17'
+    total: 290.0835
+  - branch: A
+    cumulative_sales: 58847.73299999999
+    date: '2019-02-18'
+    total: 216.846
+  - branch: A
+    cumulative_sales: 58847.73299999999
+    date: '2019-02-18'
+    total: 65.604
+  - branch: A
+    cumulative_sales: 58847.73299999999
+    date: '2019-02-18'
+    total: 649.299
+  - branch: A
+    cumulative_sales: 60911.05649999999
+    date: '2019-02-19'
+    total: 657.531
+  - branch: A
+    cumulative_sales: 60911.05649999999
+    date: '2019-02-19'
+    total: 206.808
+  - branch: A
+    cumulative_sales: 60911.05649999999
+    date: '2019-02-19'
+    total: 266.6475
+  - branch: A
+    cumulative_sales: 60911.05649999999
+    date: '2019-02-19'
+    total: 932.337
+  - branch: A
+    cumulative_sales: 61814.08799999999
+    date: '2019-02-20'
+    total: 484.5225
+  - branch: A
+    cumulative_sales: 61814.08799999999
+    date: '2019-02-20'
+    total: 339.36
+  - branch: A
+    cumulative_sales: 61814.08799999999
+    date: '2019-02-20'
+    total: 79.149
+  - branch: A
+    cumulative_sales: 62112.20399999999
+    date: '2019-02-21'
+    total: 298.116
+  - branch: A
+    cumulative_sales: 62621.36999999999
+    date: '2019-02-22'
+    total: 182.91
+  - branch: A
+    cumulative_sales: 62621.36999999999
+    date: '2019-02-22'
+    total: 257.145
+  - branch: A
+    cumulative_sales: 62621.36999999999
+    date: '2019-02-22'
+    total: 69.111
+  - branch: A
+    cumulative_sales: 62929.94399999999
+    date: '2019-02-23'
+    total: 308.574
+  - branch: A
+    cumulative_sales: 63452.80199999999
+    date: '2019-02-24'
+    total: 422.73
+  - branch: A
+    cumulative_sales: 63452.80199999999
+    date: '2019-02-24'
+    total: 100.128
+  - branch: A
+    cumulative_sales: 65259.137999999984
+    date: '2019-02-25'
+    total: 433.692
+  - branch: A
+    cumulative_sales: 65259.137999999984
+    date: '2019-02-25'
+    total: 66.8745
+  - branch: A
+    cumulative_sales: 65259.137999999984
+    date: '2019-02-25'
+    total: 205.317
+  - branch: A
+    cumulative_sales: 65259.137999999984
+    date: '2019-02-25'
+    total: 479.9025
+  - branch: A
+    cumulative_sales: 65259.137999999984
+    date: '2019-02-25'
+    total: 306.81
+  - branch: A
+    cumulative_sales: 65259.137999999984
+    date: '2019-02-25'
+    total: 313.74
+  - branch: A
+    cumulative_sales: 65415.24149999999
+    date: '2019-02-26'
+    total: 58.2225
+  - branch: A
+    cumulative_sales: 65415.24149999999
+    date: '2019-02-26'
+    total: 97.881
+  - branch: A
+    cumulative_sales: 67856.94299999998
+    date: '2019-02-27'
+    total: 736.4385
+  - branch: A
+    cumulative_sales: 67856.94299999998
+    date: '2019-02-27'
+    total: 45.108
+  - branch: A
+    cumulative_sales: 67856.94299999998
+    date: '2019-02-27'
+    total: 197.925
+  - branch: A
+    cumulative_sales: 67856.94299999998
+    date: '2019-02-27'
+    total: 680.61
+  - branch: A
+    cumulative_sales: 67856.94299999998
+    date: '2019-02-27'
+    total: 781.62
+  - branch: A
+    cumulative_sales: 68541.24899999998
+    date: '2019-02-28'
+    total: 507.906
+  - branch: A
+    cumulative_sales: 68541.24899999998
+    date: '2019-02-28'
+    total: 176.4
+  - branch: A
+    cumulative_sales: 69185.46599999999
+    date: '2019-03-01'
+    total: 72.933
+  - branch: A
+    cumulative_sales: 69185.46599999999
+    date: '2019-03-01'
+    total: 477.54
+  - branch: A
+    cumulative_sales: 69185.46599999999
+    date: '2019-03-01'
+    total: 93.744
+  - branch: A
+    cumulative_sales: 69826.9215
+    date: '2019-03-02'
+    total: 279.1845
+  - branch: A
+    cumulative_sales: 69826.9215
+    date: '2019-03-02'
+    total: 82.887
+  - branch: A
+    cumulative_sales: 69826.9215
+    date: '2019-03-02'
+    total: 279.384
+  - branch: A
+    cumulative_sales: 70641.43800000001
+    date: '2019-03-03'
+    total: 340.5255
+  - branch: A
+    cumulative_sales: 70641.43800000001
+    date: '2019-03-03'
+    total: 186.228
+  - branch: A
+    cumulative_sales: 70641.43800000001
+    date: '2019-03-03'
+    total: 26.25
+  - branch: A
+    cumulative_sales: 70641.43800000001
+    date: '2019-03-03'
+    total: 212.7825
+  - branch: A
+    cumulative_sales: 70641.43800000001
+    date: '2019-03-03'
+    total: 48.7305
+  - branch: A
+    cumulative_sales: 73493.22750000002
+    date: '2019-03-04'
+    total: 90.699
+  - branch: A
+    cumulative_sales: 73493.22750000002
+    date: '2019-03-04'
+    total: 628.929
+  - branch: A
+    cumulative_sales: 73493.22750000002
+    date: '2019-03-04'
+    total: 237.426
+  - branch: A
+    cumulative_sales: 73493.22750000002
+    date: '2019-03-04'
+    total: 76.755
+  - branch: A
+    cumulative_sales: 73493.22750000002
+    date: '2019-03-04'
+    total: 510.615
+  - branch: A
+    cumulative_sales: 73493.22750000002
+    date: '2019-03-04'
+    total: 462.672
+  - branch: A
+    cumulative_sales: 73493.22750000002
+    date: '2019-03-04'
+    total: 216.4365
+  - branch: A
+    cumulative_sales: 73493.22750000002
+    date: '2019-03-04'
+    total: 314.685
+  - branch: A
+    cumulative_sales: 73493.22750000002
+    date: '2019-03-04'
+    total: 313.572
+  - branch: A
+    cumulative_sales: 73911.91500000002
+    date: '2019-03-05'
+    total: 172.011
+  - branch: A
+    cumulative_sales: 73911.91500000002
+    date: '2019-03-05'
+    total: 246.6765
+  - branch: A
+    cumulative_sales: 74945.24100000002
+    date: '2019-03-06'
+    total: 166.005
+  - branch: A
+    cumulative_sales: 74945.24100000002
+    date: '2019-03-06'
+    total: 580.419
+  - branch: A
+    cumulative_sales: 74945.24100000002
+    date: '2019-03-06'
+    total: 203.175
+  - branch: A
+    cumulative_sales: 74945.24100000002
+    date: '2019-03-06'
+    total: 83.727
+  - branch: A
+    cumulative_sales: 75313.92750000002
+    date: '2019-03-07'
+    total: 146.9475
+  - branch: A
+    cumulative_sales: 75313.92750000002
+    date: '2019-03-07'
+    total: 102.837
+  - branch: A
+    cumulative_sales: 75313.92750000002
+    date: '2019-03-07'
+    total: 118.902
+  - branch: A
+    cumulative_sales: 76906.20000000001
+    date: '2019-03-08'
+    total: 102.018
+  - branch: A
+    cumulative_sales: 76906.20000000001
+    date: '2019-03-08'
+    total: 324.2925
+  - branch: A
+    cumulative_sales: 76906.20000000001
+    date: '2019-03-08'
+    total: 951.825
+  - branch: A
+    cumulative_sales: 76906.20000000001
+    date: '2019-03-08'
+    total: 214.137
+  - branch: A
+    cumulative_sales: 79686.39000000001
+    date: '2019-03-09'
+    total: 545.37
+  - branch: A
+    cumulative_sales: 79686.39000000001
+    date: '2019-03-09'
+    total: 523.845
+  - branch: A
+    cumulative_sales: 79686.39000000001
+    date: '2019-03-09'
+    total: 548.73
+  - branch: A
+    cumulative_sales: 79686.39000000001
+    date: '2019-03-09'
+    total: 217.182
+  - branch: A
+    cumulative_sales: 79686.39000000001
+    date: '2019-03-09'
+    total: 127.827
+  - branch: A
+    cumulative_sales: 79686.39000000001
+    date: '2019-03-09'
+    total: 817.236
+  - branch: A
+    cumulative_sales: 81165.588
+    date: '2019-03-10'
+    total: 184.107
+  - branch: A
+    cumulative_sales: 81165.588
+    date: '2019-03-10'
+    total: 328.755
+  - branch: A
+    cumulative_sales: 81165.588
+    date: '2019-03-10'
+    total: 688.6215
+  - branch: A
+    cumulative_sales: 81165.588
+    date: '2019-03-10'
+    total: 81.396
+  - branch: A
+    cumulative_sales: 81165.588
+    date: '2019-03-10'
+    total: 74.4555
+  - branch: A
+    cumulative_sales: 81165.588
+    date: '2019-03-10'
+    total: 121.863
+  - branch: A
+    cumulative_sales: 82876.76250000001
+    date: '2019-03-11'
+    total: 506.6355
+  - branch: A
+    cumulative_sales: 82876.76250000001
+    date: '2019-03-11'
+    total: 532.728
+  - branch: A
+    cumulative_sales: 82876.76250000001
+    date: '2019-03-11'
+    total: 125.517
+  - branch: A
+    cumulative_sales: 82876.76250000001
+    date: '2019-03-11'
+    total: 148.68
+  - branch: A
+    cumulative_sales: 82876.76250000001
+    date: '2019-03-11'
+    total: 397.614
+  - branch: A
+    cumulative_sales: 83800.21650000002
+    date: '2019-03-12'
+    total: 723.24
+  - branch: A
+    cumulative_sales: 83800.21650000002
+    date: '2019-03-12'
+    total: 200.214
+  - branch: A
+    cumulative_sales: 84588.32550000002
+    date: '2019-03-13'
+    total: 166.635
+  - branch: A
+    cumulative_sales: 84588.32550000002
+    date: '2019-03-13'
+    total: 336.5565
+  - branch: A
+    cumulative_sales: 84588.32550000002
+    date: '2019-03-13'
+    total: 284.9175
+  - branch: A
+    cumulative_sales: 86339.93550000004
+    date: '2019-03-14'
+    total: 49.308
+  - branch: A
+    cumulative_sales: 86339.93550000004
+    date: '2019-03-14'
+    total: 731.6925
+  - branch: A
+    cumulative_sales: 86339.93550000004
+    date: '2019-03-14'
+    total: 49.4235
+  - branch: A
+    cumulative_sales: 86339.93550000004
+    date: '2019-03-14'
+    total: 921.186
+  - branch: A
+    cumulative_sales: 86984.39400000003
+    date: '2019-03-15'
+    total: 235.2105
+  - branch: A
+    cumulative_sales: 86984.39400000003
+    date: '2019-03-15'
+    total: 202.818
+  - branch: A
+    cumulative_sales: 86984.39400000003
+    date: '2019-03-15'
+    total: 206.43
+  - branch: A
+    cumulative_sales: 88027.09650000003
+    date: '2019-03-16'
+    total: 609.0
+  - branch: A
+    cumulative_sales: 88027.09650000003
+    date: '2019-03-16'
+    total: 99.75
+  - branch: A
+    cumulative_sales: 88027.09650000003
+    date: '2019-03-16'
+    total: 333.9525
+  - branch: A
+    cumulative_sales: 89160.13050000003
+    date: '2019-03-17'
+    total: 325.374
+  - branch: A
+    cumulative_sales: 89160.13050000003
+    date: '2019-03-17'
+    total: 807.66
+  - branch: A
+    cumulative_sales: 89549.74350000004
+    date: '2019-03-18'
+    total: 214.998
+  - branch: A
+    cumulative_sales: 89549.74350000004
+    date: '2019-03-18'
+    total: 174.615
+  - branch: A
+    cumulative_sales: 91441.87500000001
+    date: '2019-03-19'
+    total: 171.7275
+  - branch: A
+    cumulative_sales: 91441.87500000001
+    date: '2019-03-19'
+    total: 709.317
+  - branch: A
+    cumulative_sales: 91441.87500000001
+    date: '2019-03-19'
+    total: 721.98
+  - branch: A
+    cumulative_sales: 91441.87500000001
+    date: '2019-03-19'
+    total: 97.818
+  - branch: A
+    cumulative_sales: 91441.87500000001
+    date: '2019-03-19'
+    total: 175.014
+  - branch: A
+    cumulative_sales: 91441.87500000001
+    date: '2019-03-19'
+    total: 16.275
+  - branch: A
+    cumulative_sales: 93814.33950000002
+    date: '2019-03-20'
+    total: 90.825
+  - branch: A
+    cumulative_sales: 93814.33950000002
+    date: '2019-03-20'
+    total: 462.21
+  - branch: A
+    cumulative_sales: 93814.33950000002
+    date: '2019-03-20'
+    total: 469.413
+  - branch: A
+    cumulative_sales: 93814.33950000002
+    date: '2019-03-20'
+    total: 365.904
+  - branch: A
+    cumulative_sales: 93814.33950000002
+    date: '2019-03-20'
+    total: 96.1905
+  - branch: A
+    cumulative_sales: 93814.33950000002
+    date: '2019-03-20'
+    total: 887.922
+  - branch: A
+    cumulative_sales: 95123.07000000002
+    date: '2019-03-21'
+    total: 319.788
+  - branch: A
+    cumulative_sales: 95123.07000000002
+    date: '2019-03-21'
+    total: 83.412
+  - branch: A
+    cumulative_sales: 95123.07000000002
+    date: '2019-03-21'
+    total: 149.3625
+  - branch: A
+    cumulative_sales: 95123.07000000002
+    date: '2019-03-21'
+    total: 756.168
+  - branch: A
+    cumulative_sales: 97251.12600000002
+    date: '2019-03-22'
+    total: 441.756
+  - branch: A
+    cumulative_sales: 97251.12600000002
+    date: '2019-03-22'
+    total: 391.419
+  - branch: A
+    cumulative_sales: 97251.12600000002
+    date: '2019-03-22'
+    total: 19.194
+  - branch: A
+    cumulative_sales: 97251.12600000002
+    date: '2019-03-22'
+    total: 427.812
+  - branch: A
+    cumulative_sales: 97251.12600000002
+    date: '2019-03-22'
+    total: 451.0275
+  - branch: A
+    cumulative_sales: 97251.12600000002
+    date: '2019-03-22'
+    total: 99.9075
+  - branch: A
+    cumulative_sales: 97251.12600000002
+    date: '2019-03-22'
+    total: 296.94
+  - branch: A
+    cumulative_sales: 98999.50200000002
+    date: '2019-03-23'
+    total: 166.1625
+  - branch: A
+    cumulative_sales: 98999.50200000002
+    date: '2019-03-23'
+    total: 465.444
+  - branch: A
+    cumulative_sales: 98999.50200000002
+    date: '2019-03-23'
+    total: 162.75
+  - branch: A
+    cumulative_sales: 98999.50200000002
+    date: '2019-03-23'
+    total: 26.5545
+  - branch: A
+    cumulative_sales: 98999.50200000002
+    date: '2019-03-23'
+    total: 156.03
+  - branch: A
+    cumulative_sales: 98999.50200000002
+    date: '2019-03-23'
+    total: 771.435
+  - branch: A
+    cumulative_sales: 99424.12200000003
+    date: '2019-03-24'
+    total: 276.948
+  - branch: A
+    cumulative_sales: 99424.12200000003
+    date: '2019-03-24'
+    total: 147.672
+  - branch: A
+    cumulative_sales: 100001.24400000004
+    date: '2019-03-25'
+    total: 152.712
+  - branch: A
+    cumulative_sales: 100001.24400000004
+    date: '2019-03-25'
+    total: 142.002
+  - branch: A
+    cumulative_sales: 100001.24400000004
+    date: '2019-03-25'
+    total: 232.638
+  - branch: A
+    cumulative_sales: 100001.24400000004
+    date: '2019-03-25'
+    total: 49.77
+  - branch: A
+    cumulative_sales: 101188.58400000003
+    date: '2019-03-26'
+    total: 530.67
+  - branch: A
+    cumulative_sales: 101188.58400000003
+    date: '2019-03-26'
+    total: 269.934
+  - branch: A
+    cumulative_sales: 101188.58400000003
+    date: '2019-03-26'
+    total: 56.1225
+  - branch: A
+    cumulative_sales: 101188.58400000003
+    date: '2019-03-26'
+    total: 130.032
+  - branch: A
+    cumulative_sales: 101188.58400000003
+    date: '2019-03-26'
+    total: 54.999
+  - branch: A
+    cumulative_sales: 101188.58400000003
+    date: '2019-03-26'
+    total: 145.5825
+  - branch: A
+    cumulative_sales: 102249.21000000004
+    date: '2019-03-27'
+    total: 93.114
+  - branch: A
+    cumulative_sales: 102249.21000000004
+    date: '2019-03-27'
+    total: 362.943
+  - branch: A
+    cumulative_sales: 102249.21000000004
+    date: '2019-03-27'
+    total: 272.664
+  - branch: A
+    cumulative_sales: 102249.21000000004
+    date: '2019-03-27'
+    total: 164.871
+  - branch: A
+    cumulative_sales: 102249.21000000004
+    date: '2019-03-27'
+    total: 167.034
+  - branch: A
+    cumulative_sales: 103902.14100000005
+    date: '2019-03-28'
+    total: 367.038
+  - branch: A
+    cumulative_sales: 103902.14100000005
+    date: '2019-03-28'
+    total: 191.247
+  - branch: A
+    cumulative_sales: 103902.14100000005
+    date: '2019-03-28'
+    total: 269.535
+  - branch: A
+    cumulative_sales: 103902.14100000005
+    date: '2019-03-28'
+    total: 225.792
+  - branch: A
+    cumulative_sales: 103902.14100000005
+    date: '2019-03-28'
+    total: 525.231
+  - branch: A
+    cumulative_sales: 103902.14100000005
+    date: '2019-03-28'
+    total: 74.088
+  - branch: A
+    cumulative_sales: 104879.75400000006
+    date: '2019-03-29'
+    total: 749.49
+  - branch: A
+    cumulative_sales: 104879.75400000006
+    date: '2019-03-29'
+    total: 228.123
+  - branch: A
+    cumulative_sales: 106200.37050000006
+    date: '2019-03-30'
+    total: 295.6905
+  - branch: A
+    cumulative_sales: 106200.37050000006
+    date: '2019-03-30'
+    total: 338.31
+  - branch: A
+    cumulative_sales: 106200.37050000006
+    date: '2019-03-30'
+    total: 216.846
+  - branch: A
+    cumulative_sales: 106200.37050000006
+    date: '2019-03-30'
+    total: 469.77
+  - branch: B
+    cumulative_sales: 1536.696
+    date: '2019-01-01'
+    total: 470.673
+  - branch: B
+    cumulative_sales: 1536.696
+    date: '2019-01-01'
+    total: 177.408
+  - branch: B
+    cumulative_sales: 1536.696
+    date: '2019-01-01'
+    total: 888.615
+  - branch: B
+    cumulative_sales: 2699.4975
+    date: '2019-01-02'
+    total: 359.205
+  - branch: B
+    cumulative_sales: 2699.4975
+    date: '2019-01-02'
+    total: 383.7645
+  - branch: B
+    cumulative_sales: 2699.4975
+    date: '2019-01-02'
+    total: 138.663
+  - branch: B
+    cumulative_sales: 2699.4975
+    date: '2019-01-02'
+    total: 281.169
+  - branch: B
+    cumulative_sales: 3716.1915
+    date: '2019-01-03'
+    total: 98.049
+  - branch: B
+    cumulative_sales: 3716.1915
+    date: '2019-01-03'
+    total: 397.845
+  - branch: B
+    cumulative_sales: 3716.1915
+    date: '2019-01-03'
+    total: 520.8
+  - branch: B
+    cumulative_sales: 4226.775
+    date: '2019-01-04'
+    total: 75.7785
+  - branch: B
+    cumulative_sales: 4226.775
+    date: '2019-01-04'
+    total: 146.223
+  - branch: B
+    cumulative_sales: 4226.775
+    date: '2019-01-04'
+    total: 288.582
+  - branch: B
+    cumulative_sales: 4713.534000000001
+    date: '2019-01-05'
+    total: 334.341
+  - branch: B
+    cumulative_sales: 4713.534000000001
+    date: '2019-01-05'
+    total: 77.658
+  - branch: B
+    cumulative_sales: 4713.534000000001
+    date: '2019-01-05'
+    total: 74.76
+  - branch: B
+    cumulative_sales: 5735.173500000001
+    date: '2019-01-06'
+    total: 261.198
+  - branch: B
+    cumulative_sales: 5735.173500000001
+    date: '2019-01-06'
+    total: 760.4415
+  - branch: B
+    cumulative_sales: 7077.084000000001
+    date: '2019-01-07'
+    total: 614.943
+  - branch: B
+    cumulative_sales: 7077.084000000001
+    date: '2019-01-07'
+    total: 352.5795
+  - branch: B
+    cumulative_sales: 7077.084000000001
+    date: '2019-01-07'
+    total: 374.388
+  - branch: B
+    cumulative_sales: 9286.032000000001
+    date: '2019-01-08'
+    total: 783.3
+  - branch: B
+    cumulative_sales: 9286.032000000001
+    date: '2019-01-08'
+    total: 152.775
+  - branch: B
+    cumulative_sales: 9286.032000000001
+    date: '2019-01-08'
+    total: 103.11
+  - branch: B
+    cumulative_sales: 9286.032000000001
+    date: '2019-01-08'
+    total: 136.143
+  - branch: B
+    cumulative_sales: 9286.032000000001
+    date: '2019-01-08'
+    total: 684.915
+  - branch: B
+    cumulative_sales: 9286.032000000001
+    date: '2019-01-08'
+    total: 348.705
+  - branch: B
+    cumulative_sales: 9454.557000000003
+    date: '2019-01-09'
+    total: 99.54
+  - branch: B
+    cumulative_sales: 9454.557000000003
+    date: '2019-01-09'
+    total: 68.985
+  - branch: B
+    cumulative_sales: 10803.156000000003
+    date: '2019-01-10'
+    total: 703.752
+  - branch: B
+    cumulative_sales: 10803.156000000003
+    date: '2019-01-10'
+    total: 586.971
+  - branch: B
+    cumulative_sales: 10803.156000000003
+    date: '2019-01-10'
+    total: 57.876
+  - branch: B
+    cumulative_sales: 13115.298000000003
+    date: '2019-01-12'
+    total: 120.162
+  - branch: B
+    cumulative_sales: 13115.298000000003
+    date: '2019-01-12'
+    total: 28.4235
+  - branch: B
+    cumulative_sales: 13115.298000000003
+    date: '2019-01-12'
+    total: 874.125
+  - branch: B
+    cumulative_sales: 13115.298000000003
+    date: '2019-01-12'
+    total: 769.104
+  - branch: B
+    cumulative_sales: 13115.298000000003
+    date: '2019-01-12'
+    total: 144.963
+  - branch: B
+    cumulative_sales: 13115.298000000003
+    date: '2019-01-12'
+    total: 375.3645
+  - branch: B
+    cumulative_sales: 13850.403000000002
+    date: '2019-01-13'
+    total: 125.706
+  - branch: B
+    cumulative_sales: 13850.403000000002
+    date: '2019-01-13'
+    total: 152.019
+  - branch: B
+    cumulative_sales: 13850.403000000002
+    date: '2019-01-13'
+    total: 457.38
+  - branch: B
+    cumulative_sales: 15041.890500000001
+    date: '2019-01-14'
+    total: 536.991
+  - branch: B
+    cumulative_sales: 15041.890500000001
+    date: '2019-01-14'
+    total: 523.3725
+  - branch: B
+    cumulative_sales: 15041.890500000001
+    date: '2019-01-14'
+    total: 75.936
+  - branch: B
+    cumulative_sales: 15041.890500000001
+    date: '2019-01-14'
+    total: 36.5505
+  - branch: B
+    cumulative_sales: 15041.890500000001
+    date: '2019-01-14'
+    total: 18.6375
+  - branch: B
+    cumulative_sales: 17904.2535
+    date: '2019-01-15'
+    total: 590.436
+  - branch: B
+    cumulative_sales: 17904.2535
+    date: '2019-01-15'
+    total: 154.392
+  - branch: B
+    cumulative_sales: 17904.2535
+    date: '2019-01-15'
+    total: 697.935
+  - branch: B
+    cumulative_sales: 17904.2535
+    date: '2019-01-15'
+    total: 397.215
+  - branch: B
+    cumulative_sales: 17904.2535
+    date: '2019-01-15'
+    total: 1022.385
+  - branch: B
+    cumulative_sales: 18789.802499999998
+    date: '2019-01-16'
+    total: 53.928
+  - branch: B
+    cumulative_sales: 18789.802499999998
+    date: '2019-01-16'
+    total: 666.939
+  - branch: B
+    cumulative_sales: 18789.802499999998
+    date: '2019-01-16'
+    total: 164.682
+  - branch: B
+    cumulative_sales: 19782.965999999997
+    date: '2019-01-17'
+    total: 91.056
+  - branch: B
+    cumulative_sales: 19782.965999999997
+    date: '2019-01-17'
+    total: 121.569
+  - branch: B
+    cumulative_sales: 19782.965999999997
+    date: '2019-01-17'
+    total: 695.2365
+  - branch: B
+    cumulative_sales: 19782.965999999997
+    date: '2019-01-17'
+    total: 85.302
+  - branch: B
+    cumulative_sales: 20059.325999999997
+    date: '2019-01-18'
+    total: 166.236
+  - branch: B
+    cumulative_sales: 20059.325999999997
+    date: '2019-01-18'
+    total: 110.124
+  - branch: B
+    cumulative_sales: 20692.811999999994
+    date: '2019-01-19'
+    total: 333.207
+  - branch: B
+    cumulative_sales: 20692.811999999994
+    date: '2019-01-19'
+    total: 198.639
+  - branch: B
+    cumulative_sales: 20692.811999999994
+    date: '2019-01-19'
+    total: 101.64
+  - branch: B
+    cumulative_sales: 20923.097999999994
+    date: '2019-01-20'
+    total: 112.224
+  - branch: B
+    cumulative_sales: 20923.097999999994
+    date: '2019-01-20'
+    total: 118.062
+  - branch: B
+    cumulative_sales: 21026.134499999993
+    date: '2019-01-21'
+    total: 103.0365
+  - branch: B
+    cumulative_sales: 21529.25249999999
+    date: '2019-01-22'
+    total: 351.603
+  - branch: B
+    cumulative_sales: 21529.25249999999
+    date: '2019-01-22'
+    total: 151.515
+  - branch: B
+    cumulative_sales: 24138.187499999993
+    date: '2019-01-24'
+    total: 423.15
+  - branch: B
+    cumulative_sales: 24138.187499999993
+    date: '2019-01-24'
+    total: 293.643
+  - branch: B
+    cumulative_sales: 24138.187499999993
+    date: '2019-01-24'
+    total: 145.404
+  - branch: B
+    cumulative_sales: 24138.187499999993
+    date: '2019-01-24'
+    total: 557.718
+  - branch: B
+    cumulative_sales: 24138.187499999993
+    date: '2019-01-24'
+    total: 384.72
+  - branch: B
+    cumulative_sales: 24138.187499999993
+    date: '2019-01-24'
+    total: 804.3
+  - branch: B
+    cumulative_sales: 25739.43749999999
+    date: '2019-01-25'
+    total: 463.89
+  - branch: B
+    cumulative_sales: 25739.43749999999
+    date: '2019-01-25'
+    total: 291.207
+  - branch: B
+    cumulative_sales: 25739.43749999999
+    date: '2019-01-25'
+    total: 356.5485
+  - branch: B
+    cumulative_sales: 25739.43749999999
+    date: '2019-01-25'
+    total: 214.746
+  - branch: B
+    cumulative_sales: 25739.43749999999
+    date: '2019-01-25'
+    total: 128.016
+  - branch: B
+    cumulative_sales: 25739.43749999999
+    date: '2019-01-25'
+    total: 45.927
+  - branch: B
+    cumulative_sales: 25739.43749999999
+    date: '2019-01-25'
+    total: 100.9155
+  - branch: B
+    cumulative_sales: 28942.71449999999
+    date: '2019-01-26'
+    total: 304.542
+  - branch: B
+    cumulative_sales: 28942.71449999999
+    date: '2019-01-26'
+    total: 420.2625
+  - branch: B
+    cumulative_sales: 28942.71449999999
+    date: '2019-01-26'
+    total: 107.31
+  - branch: B
+    cumulative_sales: 28942.71449999999
+    date: '2019-01-26'
+    total: 655.5465
+  - branch: B
+    cumulative_sales: 28942.71449999999
+    date: '2019-01-26'
+    total: 170.877
+  - branch: B
+    cumulative_sales: 28942.71449999999
+    date: '2019-01-26'
+    total: 398.475
+  - branch: B
+    cumulative_sales: 28942.71449999999
+    date: '2019-01-26'
+    total: 270.585
+  - branch: B
+    cumulative_sales: 28942.71449999999
+    date: '2019-01-26'
+    total: 165.648
+  - branch: B
+    cumulative_sales: 28942.71449999999
+    date: '2019-01-26'
+    total: 69.993
+  - branch: B
+    cumulative_sales: 28942.71449999999
+    date: '2019-01-26'
+    total: 640.038
+  - branch: B
+    cumulative_sales: 29861.19149999999
+    date: '2019-01-27'
+    total: 403.872
+  - branch: B
+    cumulative_sales: 29861.19149999999
+    date: '2019-01-27'
+    total: 514.605
+  - branch: B
+    cumulative_sales: 32991.56699999999
+    date: '2019-01-28'
+    total: 737.7615
+  - branch: B
+    cumulative_sales: 32991.56699999999
+    date: '2019-01-28'
+    total: 20.1075
+  - branch: B
+    cumulative_sales: 32991.56699999999
+    date: '2019-01-28'
+    total: 681.4395
+  - branch: B
+    cumulative_sales: 32991.56699999999
+    date: '2019-01-28'
+    total: 225.015
+  - branch: B
+    cumulative_sales: 32991.56699999999
+    date: '2019-01-28'
+    total: 832.944
+  - branch: B
+    cumulative_sales: 32991.56699999999
+    date: '2019-01-28'
+    total: 633.108
+  - branch: B
+    cumulative_sales: 33938.12099999999
+    date: '2019-01-29'
+    total: 137.004
+  - branch: B
+    cumulative_sales: 33938.12099999999
+    date: '2019-01-29'
+    total: 529.515
+  - branch: B
+    cumulative_sales: 33938.12099999999
+    date: '2019-01-29'
+    total: 280.035
+  - branch: B
+    cumulative_sales: 34393.778999999995
+    date: '2019-01-30'
+    total: 99.33
+  - branch: B
+    cumulative_sales: 34393.778999999995
+    date: '2019-01-30'
+    total: 356.328
+  - branch: B
+    cumulative_sales: 37176.05849999999
+    date: '2019-01-31'
+    total: 285.705
+  - branch: B
+    cumulative_sales: 37176.05849999999
+    date: '2019-01-31'
+    total: 503.559
+  - branch: B
+    cumulative_sales: 37176.05849999999
+    date: '2019-01-31'
+    total: 79.611
+  - branch: B
+    cumulative_sales: 37176.05849999999
+    date: '2019-01-31'
+    total: 145.068
+  - branch: B
+    cumulative_sales: 37176.05849999999
+    date: '2019-01-31'
+    total: 180.6
+  - branch: B
+    cumulative_sales: 37176.05849999999
+    date: '2019-01-31'
+    total: 757.365
+  - branch: B
+    cumulative_sales: 37176.05849999999
+    date: '2019-01-31'
+    total: 830.3715
+  - branch: B
+    cumulative_sales: 38785.34099999999
+    date: '2019-02-02'
+    total: 788.508
+  - branch: B
+    cumulative_sales: 38785.34099999999
+    date: '2019-02-02'
+    total: 439.8975
+  - branch: B
+    cumulative_sales: 38785.34099999999
+    date: '2019-02-02'
+    total: 193.011
+  - branch: B
+    cumulative_sales: 38785.34099999999
+    date: '2019-02-02'
+    total: 187.866
+  - branch: B
+    cumulative_sales: 39822.83549999999
+    date: '2019-02-03'
+    total: 520.4115
+  - branch: B
+    cumulative_sales: 39822.83549999999
+    date: '2019-02-03'
+    total: 77.6685
+  - branch: B
+    cumulative_sales: 39822.83549999999
+    date: '2019-02-03'
+    total: 135.3555
+  - branch: B
+    cumulative_sales: 39822.83549999999
+    date: '2019-02-03'
+    total: 247.59
+  - branch: B
+    cumulative_sales: 39822.83549999999
+    date: '2019-02-03'
+    total: 56.469
+  - branch: B
+    cumulative_sales: 40877.38199999998
+    date: '2019-02-04'
+    total: 734.076
+  - branch: B
+    cumulative_sales: 40877.38199999998
+    date: '2019-02-04'
+    total: 151.284
+  - branch: B
+    cumulative_sales: 40877.38199999998
+    date: '2019-02-04'
+    total: 98.028
+  - branch: B
+    cumulative_sales: 40877.38199999998
+    date: '2019-02-04'
+    total: 71.1585
+  - branch: B
+    cumulative_sales: 41867.027999999984
+    date: '2019-02-05'
+    total: 34.629
+  - branch: B
+    cumulative_sales: 41867.027999999984
+    date: '2019-02-05'
+    total: 404.649
+  - branch: B
+    cumulative_sales: 41867.027999999984
+    date: '2019-02-05'
+    total: 550.368
+  - branch: B
+    cumulative_sales: 42947.69849999998
+    date: '2019-02-06'
+    total: 60.816
+  - branch: B
+    cumulative_sales: 42947.69849999998
+    date: '2019-02-06'
+    total: 189.0945
+  - branch: B
+    cumulative_sales: 42947.69849999998
+    date: '2019-02-06'
+    total: 271.95
+  - branch: B
+    cumulative_sales: 42947.69849999998
+    date: '2019-02-06'
+    total: 240.975
+  - branch: B
+    cumulative_sales: 42947.69849999998
+    date: '2019-02-06'
+    total: 317.835
+  - branch: B
+    cumulative_sales: 45671.00999999998
+    date: '2019-02-07'
+    total: 208.089
+  - branch: B
+    cumulative_sales: 45671.00999999998
+    date: '2019-02-07'
+    total: 833.595
+  - branch: B
+    cumulative_sales: 45671.00999999998
+    date: '2019-02-07'
+    total: 570.78
+  - branch: B
+    cumulative_sales: 45671.00999999998
+    date: '2019-02-07'
+    total: 486.444
+  - branch: B
+    cumulative_sales: 45671.00999999998
+    date: '2019-02-07'
+    total: 289.926
+  - branch: B
+    cumulative_sales: 45671.00999999998
+    date: '2019-02-07'
+    total: 334.4775
+  - branch: B
+    cumulative_sales: 47426.46299999998
+    date: '2019-02-08'
+    total: 35.196
+  - branch: B
+    cumulative_sales: 47426.46299999998
+    date: '2019-02-08'
+    total: 435.456
+  - branch: B
+    cumulative_sales: 47426.46299999998
+    date: '2019-02-08'
+    total: 853.146
+  - branch: B
+    cumulative_sales: 47426.46299999998
+    date: '2019-02-08'
+    total: 195.174
+  - branch: B
+    cumulative_sales: 47426.46299999998
+    date: '2019-02-08'
+    total: 133.35
+  - branch: B
+    cumulative_sales: 47426.46299999998
+    date: '2019-02-08'
+    total: 103.131
+  - branch: B
+    cumulative_sales: 48471.58049999999
+    date: '2019-02-09'
+    total: 256.41
+  - branch: B
+    cumulative_sales: 48471.58049999999
+    date: '2019-02-09'
+    total: 180.4005
+  - branch: B
+    cumulative_sales: 48471.58049999999
+    date: '2019-02-09'
+    total: 193.074
+  - branch: B
+    cumulative_sales: 48471.58049999999
+    date: '2019-02-09'
+    total: 415.233
+  - branch: B
+    cumulative_sales: 49159.93949999999
+    date: '2019-02-10'
+    total: 119.259
+  - branch: B
+    cumulative_sales: 49159.93949999999
+    date: '2019-02-10'
+    total: 146.328
+  - branch: B
+    cumulative_sales: 49159.93949999999
+    date: '2019-02-10'
+    total: 151.4835
+  - branch: B
+    cumulative_sales: 49159.93949999999
+    date: '2019-02-10'
+    total: 271.2885
+  - branch: B
+    cumulative_sales: 51007.865999999995
+    date: '2019-02-11'
+    total: 242.676
+  - branch: B
+    cumulative_sales: 51007.865999999995
+    date: '2019-02-11'
+    total: 794.6505
+  - branch: B
+    cumulative_sales: 51007.865999999995
+    date: '2019-02-11'
+    total: 810.6
+  - branch: B
+    cumulative_sales: 52480.21799999999
+    date: '2019-02-12'
+    total: 796.908
+  - branch: B
+    cumulative_sales: 52480.21799999999
+    date: '2019-02-12'
+    total: 633.99
+  - branch: B
+    cumulative_sales: 52480.21799999999
+    date: '2019-02-12'
+    total: 41.454
+  - branch: B
+    cumulative_sales: 52806.411
+    date: '2019-02-13'
+    total: 155.19
+  - branch: B
+    cumulative_sales: 52806.411
+    date: '2019-02-13'
+    total: 84.756
+  - branch: B
+    cumulative_sales: 52806.411
+    date: '2019-02-13'
+    total: 86.247
+  - branch: B
+    cumulative_sales: 53566.107
+    date: '2019-02-14'
+    total: 318.108
+  - branch: B
+    cumulative_sales: 53566.107
+    date: '2019-02-14'
+    total: 441.588
+  - branch: B
+    cumulative_sales: 56780.92350000001
+    date: '2019-02-15'
+    total: 535.374
+  - branch: B
+    cumulative_sales: 56780.92350000001
+    date: '2019-02-15'
+    total: 93.2925
+  - branch: B
+    cumulative_sales: 56780.92350000001
+    date: '2019-02-15'
+    total: 565.215
+  - branch: B
+    cumulative_sales: 56780.92350000001
+    date: '2019-02-15'
+    total: 731.43
+  - branch: B
+    cumulative_sales: 56780.92350000001
+    date: '2019-02-15'
+    total: 362.817
+  - branch: B
+    cumulative_sales: 56780.92350000001
+    date: '2019-02-15'
+    total: 92.7255
+  - branch: B
+    cumulative_sales: 56780.92350000001
+    date: '2019-02-15'
+    total: 833.9625
+  - branch: B
+    cumulative_sales: 58019.67150000002
+    date: '2019-02-16'
+    total: 545.055
+  - branch: B
+    cumulative_sales: 58019.67150000002
+    date: '2019-02-16'
+    total: 95.9175
+  - branch: B
+    cumulative_sales: 58019.67150000002
+    date: '2019-02-16'
+    total: 252.756
+  - branch: B
+    cumulative_sales: 58019.67150000002
+    date: '2019-02-16'
+    total: 345.0195
+  - branch: B
+    cumulative_sales: 58870.82250000002
+    date: '2019-02-17'
+    total: 550.935
+  - branch: B
+    cumulative_sales: 58870.82250000002
+    date: '2019-02-17'
+    total: 300.216
+  - branch: B
+    cumulative_sales: 58901.818500000016
+    date: '2019-02-18'
+    total: 30.996
+  - branch: B
+    cumulative_sales: 59372.80650000001
+    date: '2019-02-19'
+    total: 470.988
+  - branch: B
+    cumulative_sales: 61085.60850000001
+    date: '2019-02-20'
+    total: 172.746
+  - branch: B
+    cumulative_sales: 61085.60850000001
+    date: '2019-02-20'
+    total: 418.95
+  - branch: B
+    cumulative_sales: 61085.60850000001
+    date: '2019-02-20'
+    total: 350.07
+  - branch: B
+    cumulative_sales: 61085.60850000001
+    date: '2019-02-20'
+    total: 253.26
+  - branch: B
+    cumulative_sales: 61085.60850000001
+    date: '2019-02-20'
+    total: 181.881
+  - branch: B
+    cumulative_sales: 61085.60850000001
+    date: '2019-02-20'
+    total: 335.895
+  - branch: B
+    cumulative_sales: 61521.36900000001
+    date: '2019-02-21'
+    total: 310.044
+  - branch: B
+    cumulative_sales: 61521.36900000001
+    date: '2019-02-21'
+    total: 125.7165
+  - branch: B
+    cumulative_sales: 62693.99850000001
+    date: '2019-02-22'
+    total: 208.6875
+  - branch: B
+    cumulative_sales: 62693.99850000001
+    date: '2019-02-22'
+    total: 49.812
+  - branch: B
+    cumulative_sales: 62693.99850000001
+    date: '2019-02-22'
+    total: 513.2295
+  - branch: B
+    cumulative_sales: 62693.99850000001
+    date: '2019-02-22'
+    total: 217.2555
+  - branch: B
+    cumulative_sales: 62693.99850000001
+    date: '2019-02-22'
+    total: 183.645
+  - branch: B
+    cumulative_sales: 63920.6505
+    date: '2019-02-23'
+    total: 125.664
+  - branch: B
+    cumulative_sales: 63920.6505
+    date: '2019-02-23'
+    total: 311.1885
+  - branch: B
+    cumulative_sales: 63920.6505
+    date: '2019-02-23'
+    total: 75.474
+  - branch: B
+    cumulative_sales: 63920.6505
+    date: '2019-02-23'
+    total: 714.3255
+  - branch: B
+    cumulative_sales: 64683.664500000006
+    date: '2019-02-24'
+    total: 365.085
+  - branch: B
+    cumulative_sales: 64683.664500000006
+    date: '2019-02-24'
+    total: 175.917
+  - branch: B
+    cumulative_sales: 64683.664500000006
+    date: '2019-02-24'
+    total: 222.012
+  - branch: B
+    cumulative_sales: 67181.81400000001
+    date: '2019-02-25'
+    total: 494.1825
+  - branch: B
+    cumulative_sales: 67181.81400000001
+    date: '2019-02-25'
+    total: 357.588
+  - branch: B
+    cumulative_sales: 67181.81400000001
+    date: '2019-02-25'
+    total: 92.8725
+  - branch: B
+    cumulative_sales: 67181.81400000001
+    date: '2019-02-25'
+    total: 430.71
+  - branch: B
+    cumulative_sales: 67181.81400000001
+    date: '2019-02-25'
+    total: 262.794
+  - branch: B
+    cumulative_sales: 67181.81400000001
+    date: '2019-02-25'
+    total: 554.295
+  - branch: B
+    cumulative_sales: 67181.81400000001
+    date: '2019-02-25'
+    total: 41.7375
+  - branch: B
+    cumulative_sales: 67181.81400000001
+    date: '2019-02-25'
+    total: 263.97
+  - branch: B
+    cumulative_sales: 69217.18650000001
+    date: '2019-02-26'
+    total: 571.41
+  - branch: B
+    cumulative_sales: 69217.18650000001
+    date: '2019-02-26'
+    total: 57.1725
+  - branch: B
+    cumulative_sales: 69217.18650000001
+    date: '2019-02-26'
+    total: 628.173
+  - branch: B
+    cumulative_sales: 69217.18650000001
+    date: '2019-02-26'
+    total: 209.769
+  - branch: B
+    cumulative_sales: 69217.18650000001
+    date: '2019-02-26'
+    total: 401.268
+  - branch: B
+    cumulative_sales: 69217.18650000001
+    date: '2019-02-26'
+    total: 167.58
+  - branch: B
+    cumulative_sales: 71105.56950000001
+    date: '2019-02-27'
+    total: 535.7205
+  - branch: B
+    cumulative_sales: 71105.56950000001
+    date: '2019-02-27'
+    total: 485.037
+  - branch: B
+    cumulative_sales: 71105.56950000001
+    date: '2019-02-27'
+    total: 141.75
+  - branch: B
+    cumulative_sales: 71105.56950000001
+    date: '2019-02-27'
+    total: 353.1675
+  - branch: B
+    cumulative_sales: 71105.56950000001
+    date: '2019-02-27'
+    total: 165.123
+  - branch: B
+    cumulative_sales: 71105.56950000001
+    date: '2019-02-27'
+    total: 207.585
+  - branch: B
+    cumulative_sales: 71600.32950000002
+    date: '2019-02-28'
+    total: 431.445
+  - branch: B
+    cumulative_sales: 71600.32950000002
+    date: '2019-02-28'
+    total: 63.315
+  - branch: B
+    cumulative_sales: 72533.64300000004
+    date: '2019-03-01'
+    total: 86.625
+  - branch: B
+    cumulative_sales: 72533.64300000004
+    date: '2019-03-01'
+    total: 597.6285
+  - branch: B
+    cumulative_sales: 72533.64300000004
+    date: '2019-03-01'
+    total: 145.971
+  - branch: B
+    cumulative_sales: 72533.64300000004
+    date: '2019-03-01'
+    total: 46.683
+  - branch: B
+    cumulative_sales: 72533.64300000004
+    date: '2019-03-01'
+    total: 56.406
+  - branch: B
+    cumulative_sales: 76105.90050000003
+    date: '2019-03-02'
+    total: 942.4485
+  - branch: B
+    cumulative_sales: 76105.90050000003
+    date: '2019-03-02'
+    total: 69.405
+  - branch: B
+    cumulative_sales: 76105.90050000003
+    date: '2019-03-02'
+    total: 255.15
+  - branch: B
+    cumulative_sales: 76105.90050000003
+    date: '2019-03-02'
+    total: 231.2415
+  - branch: B
+    cumulative_sales: 76105.90050000003
+    date: '2019-03-02'
+    total: 835.2855
+  - branch: B
+    cumulative_sales: 76105.90050000003
+    date: '2019-03-02'
+    total: 82.719
+  - branch: B
+    cumulative_sales: 76105.90050000003
+    date: '2019-03-02'
+    total: 53.151
+  - branch: B
+    cumulative_sales: 76105.90050000003
+    date: '2019-03-02'
+    total: 80.367
+  - branch: B
+    cumulative_sales: 76105.90050000003
+    date: '2019-03-02'
+    total: 1022.49
+  - branch: B
+    cumulative_sales: 77919.64950000003
+    date: '2019-03-03'
+    total: 253.008
+  - branch: B
+    cumulative_sales: 77919.64950000003
+    date: '2019-03-03'
+    total: 793.716
+  - branch: B
+    cumulative_sales: 77919.64950000003
+    date: '2019-03-03'
+    total: 767.025
+  - branch: B
+    cumulative_sales: 78101.46750000003
+    date: '2019-03-04'
+    total: 181.818
+  - branch: B
+    cumulative_sales: 81641.46900000003
+    date: '2019-03-05'
+    total: 277.137
+  - branch: B
+    cumulative_sales: 81641.46900000003
+    date: '2019-03-05'
+    total: 152.838
+  - branch: B
+    cumulative_sales: 81641.46900000003
+    date: '2019-03-05'
+    total: 521.01
+  - branch: B
+    cumulative_sales: 81641.46900000003
+    date: '2019-03-05'
+    total: 115.185
+  - branch: B
+    cumulative_sales: 81641.46900000003
+    date: '2019-03-05'
+    total: 56.952
+  - branch: B
+    cumulative_sales: 81641.46900000003
+    date: '2019-03-05'
+    total: 411.3795
+  - branch: B
+    cumulative_sales: 81641.46900000003
+    date: '2019-03-05'
+    total: 258.678
+  - branch: B
+    cumulative_sales: 81641.46900000003
+    date: '2019-03-05'
+    total: 212.688
+  - branch: B
+    cumulative_sales: 81641.46900000003
+    date: '2019-03-05'
+    total: 732.27
+  - branch: B
+    cumulative_sales: 81641.46900000003
+    date: '2019-03-05'
+    total: 801.864
+  - branch: B
+    cumulative_sales: 83661.88950000002
+    date: '2019-03-06'
+    total: 603.624
+  - branch: B
+    cumulative_sales: 83661.88950000002
+    date: '2019-03-06'
+    total: 456.288
+  - branch: B
+    cumulative_sales: 83661.88950000002
+    date: '2019-03-06'
+    total: 354.0075
+  - branch: B
+    cumulative_sales: 83661.88950000002
+    date: '2019-03-06'
+    total: 352.674
+  - branch: B
+    cumulative_sales: 83661.88950000002
+    date: '2019-03-06'
+    total: 148.995
+  - branch: B
+    cumulative_sales: 83661.88950000002
+    date: '2019-03-06'
+    total: 104.832
+  - branch: B
+    cumulative_sales: 83959.79550000002
+    date: '2019-03-07'
+    total: 33.936
+  - branch: B
+    cumulative_sales: 83959.79550000002
+    date: '2019-03-07'
+    total: 263.97
+  - branch: B
+    cumulative_sales: 84052.35300000002
+    date: '2019-03-08'
+    total: 92.5575
+  - branch: B
+    cumulative_sales: 87058.83900000002
+    date: '2019-03-09'
+    total: 107.142
+  - branch: B
+    cumulative_sales: 87058.83900000002
+    date: '2019-03-09'
+    total: 394.632
+  - branch: B
+    cumulative_sales: 87058.83900000002
+    date: '2019-03-09'
+    total: 944.622
+  - branch: B
+    cumulative_sales: 87058.83900000002
+    date: '2019-03-09'
+    total: 474.348
+  - branch: B
+    cumulative_sales: 87058.83900000002
+    date: '2019-03-09'
+    total: 702.219
+  - branch: B
+    cumulative_sales: 87058.83900000002
+    date: '2019-03-09'
+    total: 383.523
+  - branch: B
+    cumulative_sales: 87400.09950000003
+    date: '2019-03-10'
+    total: 180.621
+  - branch: B
+    cumulative_sales: 87400.09950000003
+    date: '2019-03-10'
+    total: 133.917
+  - branch: B
+    cumulative_sales: 87400.09950000003
+    date: '2019-03-10'
+    total: 26.7225
+  - branch: B
+    cumulative_sales: 87883.43550000002
+    date: '2019-03-11'
+    total: 84.63
+  - branch: B
+    cumulative_sales: 87883.43550000002
+    date: '2019-03-11'
+    total: 217.6335
+  - branch: B
+    cumulative_sales: 87883.43550000002
+    date: '2019-03-11'
+    total: 181.0725
+  - branch: B
+    cumulative_sales: 89275.83000000003
+    date: '2019-03-12'
+    total: 608.202
+  - branch: B
+    cumulative_sales: 89275.83000000003
+    date: '2019-03-12'
+    total: 33.3585
+  - branch: B
+    cumulative_sales: 89275.83000000003
+    date: '2019-03-12'
+    total: 40.9605
+  - branch: B
+    cumulative_sales: 89275.83000000003
+    date: '2019-03-12'
+    total: 410.508
+  - branch: B
+    cumulative_sales: 89275.83000000003
+    date: '2019-03-12'
+    total: 299.3655
+  - branch: B
+    cumulative_sales: 89699.71500000003
+    date: '2019-03-13'
+    total: 160.86
+  - branch: B
+    cumulative_sales: 89699.71500000003
+    date: '2019-03-13'
+    total: 190.155
+  - branch: B
+    cumulative_sales: 89699.71500000003
+    date: '2019-03-13'
+    total: 72.87
+  - branch: B
+    cumulative_sales: 91713.70950000003
+    date: '2019-03-14'
+    total: 402.2655
+  - branch: B
+    cumulative_sales: 91713.70950000003
+    date: '2019-03-14'
+    total: 203.931
+  - branch: B
+    cumulative_sales: 91713.70950000003
+    date: '2019-03-14'
+    total: 867.09
+  - branch: B
+    cumulative_sales: 91713.70950000003
+    date: '2019-03-14'
+    total: 93.744
+  - branch: B
+    cumulative_sales: 91713.70950000003
+    date: '2019-03-14'
+    total: 446.964
+  - branch: B
+    cumulative_sales: 93463.48200000002
+    date: '2019-03-15'
+    total: 69.72
+  - branch: B
+    cumulative_sales: 93463.48200000002
+    date: '2019-03-15'
+    total: 241.458
+  - branch: B
+    cumulative_sales: 93463.48200000002
+    date: '2019-03-15'
+    total: 128.4255
+  - branch: B
+    cumulative_sales: 93463.48200000002
+    date: '2019-03-15'
+    total: 304.92
+  - branch: B
+    cumulative_sales: 93463.48200000002
+    date: '2019-03-15'
+    total: 57.078
+  - branch: B
+    cumulative_sales: 93463.48200000002
+    date: '2019-03-15'
+    total: 97.419
+  - branch: B
+    cumulative_sales: 93463.48200000002
+    date: '2019-03-15'
+    total: 90.3
+  - branch: B
+    cumulative_sales: 93463.48200000002
+    date: '2019-03-15'
+    total: 760.452
+  - branch: B
+    cumulative_sales: 94304.77350000001
+    date: '2019-03-16'
+    total: 78.7185
+  - branch: B
+    cumulative_sales: 94304.77350000001
+    date: '2019-03-16'
+    total: 360.885
+  - branch: B
+    cumulative_sales: 94304.77350000001
+    date: '2019-03-16'
+    total: 401.688
+  - branch: B
+    cumulative_sales: 94754.78250000002
+    date: '2019-03-17'
+    total: 343.413
+  - branch: B
+    cumulative_sales: 94754.78250000002
+    date: '2019-03-17'
+    total: 106.596
+  - branch: B
+    cumulative_sales: 95207.81550000001
+    date: '2019-03-18'
+    total: 314.055
+  - branch: B
+    cumulative_sales: 95207.81550000001
+    date: '2019-03-18'
+    total: 138.978
+  - branch: B
+    cumulative_sales: 95807.418
+    date: '2019-03-19'
+    total: 223.0725
+  - branch: B
+    cumulative_sales: 95807.418
+    date: '2019-03-19'
+    total: 213.528
+  - branch: B
+    cumulative_sales: 95807.418
+    date: '2019-03-19'
+    total: 163.002
+  - branch: B
+    cumulative_sales: 97491.2295
+    date: '2019-03-20'
+    total: 484.89
+  - branch: B
+    cumulative_sales: 97491.2295
+    date: '2019-03-20'
+    total: 65.7405
+  - branch: B
+    cumulative_sales: 97491.2295
+    date: '2019-03-20'
+    total: 637.728
+  - branch: B
+    cumulative_sales: 97491.2295
+    date: '2019-03-20'
+    total: 208.425
+  - branch: B
+    cumulative_sales: 97491.2295
+    date: '2019-03-20'
+    total: 251.7165
+  - branch: B
+    cumulative_sales: 97491.2295
+    date: '2019-03-20'
+    total: 35.3115
+  - branch: B
+    cumulative_sales: 97699.0875
+    date: '2019-03-21'
+    total: 207.858
+  - branch: B
+    cumulative_sales: 98750.1795
+    date: '2019-03-22'
+    total: 75.054
+  - branch: B
+    cumulative_sales: 98750.1795
+    date: '2019-03-22'
+    total: 742.812
+  - branch: B
+    cumulative_sales: 98750.1795
+    date: '2019-03-22'
+    total: 233.226
+  - branch: B
+    cumulative_sales: 99134.64749999999
+    date: '2019-03-23'
+    total: 384.468
+  - branch: B
+    cumulative_sales: 100699.43099999998
+    date: '2019-03-24'
+    total: 130.0425
+  - branch: B
+    cumulative_sales: 100699.43099999998
+    date: '2019-03-24'
+    total: 370.125
+  - branch: B
+    cumulative_sales: 100699.43099999998
+    date: '2019-03-24'
+    total: 435.12
+  - branch: B
+    cumulative_sales: 100699.43099999998
+    date: '2019-03-24'
+    total: 629.496
+  - branch: B
+    cumulative_sales: 101117.51999999999
+    date: '2019-03-25'
+    total: 195.951
+  - branch: B
+    cumulative_sales: 101117.51999999999
+    date: '2019-03-25'
+    total: 222.138
+  - branch: B
+    cumulative_sales: 101418.72299999998
+    date: '2019-03-26'
+    total: 41.076
+  - branch: B
+    cumulative_sales: 101418.72299999998
+    date: '2019-03-26'
+    total: 143.9865
+  - branch: B
+    cumulative_sales: 101418.72299999998
+    date: '2019-03-26'
+    total: 116.1405
+  - branch: B
+    cumulative_sales: 102317.6175
+    date: '2019-03-27'
+    total: 588.357
+  - branch: B
+    cumulative_sales: 102317.6175
+    date: '2019-03-27'
+    total: 116.907
+  - branch: B
+    cumulative_sales: 102317.6175
+    date: '2019-03-27'
+    total: 101.808
+  - branch: B
+    cumulative_sales: 102317.6175
+    date: '2019-03-27'
+    total: 91.8225
+  - branch: B
+    cumulative_sales: 102413.283
+    date: '2019-03-28'
+    total: 95.6655
+  - branch: B
+    cumulative_sales: 104473.215
+    date: '2019-03-29'
+    total: 922.635
+  - branch: B
+    cumulative_sales: 104473.215
+    date: '2019-03-29'
+    total: 321.7725
+  - branch: B
+    cumulative_sales: 104473.215
+    date: '2019-03-29'
+    total: 288.015
+  - branch: B
+    cumulative_sales: 104473.215
+    date: '2019-03-29'
+    total: 527.5095
+  - branch: B
+    cumulative_sales: 106197.672
+    date: '2019-03-30'
+    total: 918.729
+  - branch: B
+    cumulative_sales: 106197.672
+    date: '2019-03-30'
+    total: 609.588
+  - branch: B
+    cumulative_sales: 106197.672
+    date: '2019-03-30'
+    total: 196.14
+  - branch: C
+    cumulative_sales: 837.165
+    date: '2019-01-01'
+    total: 388.29
+  - branch: C
+    cumulative_sales: 837.165
+    date: '2019-01-01'
+    total: 132.762
+  - branch: C
+    cumulative_sales: 837.165
+    date: '2019-01-01'
+    total: 132.027
+  - branch: C
+    cumulative_sales: 837.165
+    date: '2019-01-01'
+    total: 184.086
+  - branch: C
+    cumulative_sales: 1312.815
+    date: '2019-01-02'
+    total: 209.622
+  - branch: C
+    cumulative_sales: 1312.815
+    date: '2019-01-02'
+    total: 266.028
+  - branch: C
+    cumulative_sales: 1436.8410000000001
+    date: '2019-01-03'
+    total: 44.352
+  - branch: C
+    cumulative_sales: 1436.8410000000001
+    date: '2019-01-03'
+    total: 79.674
+  - branch: C
+    cumulative_sales: 2066.6835
+    date: '2019-01-04'
+    total: 629.8425
+  - branch: C
+    cumulative_sales: 3092.103
+    date: '2019-01-05'
+    total: 172.494
+  - branch: C
+    cumulative_sales: 3092.103
+    date: '2019-01-05'
+    total: 33.495
+  - branch: C
+    cumulative_sales: 3092.103
+    date: '2019-01-05'
+    total: 239.589
+  - branch: C
+    cumulative_sales: 3092.103
+    date: '2019-01-05'
+    total: 579.8415
+  - branch: C
+    cumulative_sales: 4374.699
+    date: '2019-01-06'
+    total: 939.54
+  - branch: C
+    cumulative_sales: 4374.699
+    date: '2019-01-06'
+    total: 343.056
+  - branch: C
+    cumulative_sales: 4761.0779999999995
+    date: '2019-01-07'
+    total: 71.526
+  - branch: C
+    cumulative_sales: 4761.0779999999995
+    date: '2019-01-07'
+    total: 229.11
+  - branch: C
+    cumulative_sales: 4761.0779999999995
+    date: '2019-01-07'
+    total: 85.743
+  - branch: C
+    cumulative_sales: 7162.407
+    date: '2019-01-08'
+    total: 299.8485
+  - branch: C
+    cumulative_sales: 7162.407
+    date: '2019-01-08'
+    total: 575.736
+  - branch: C
+    cumulative_sales: 7162.407
+    date: '2019-01-08'
+    total: 190.596
+  - branch: C
+    cumulative_sales: 7162.407
+    date: '2019-01-08'
+    total: 13.419
+  - branch: C
+    cumulative_sales: 7162.407
+    date: '2019-01-08'
+    total: 381.3915
+  - branch: C
+    cumulative_sales: 7162.407
+    date: '2019-01-08'
+    total: 175.0455
+  - branch: C
+    cumulative_sales: 7162.407
+    date: '2019-01-08'
+    total: 688.716
+  - branch: C
+    cumulative_sales: 7162.407
+    date: '2019-01-08'
+    total: 76.5765
+  - branch: C
+    cumulative_sales: 9812.8905
+    date: '2019-01-09'
+    total: 463.428
+  - branch: C
+    cumulative_sales: 9812.8905
+    date: '2019-01-09'
+    total: 1002.12
+  - branch: C
+    cumulative_sales: 9812.8905
+    date: '2019-01-09'
+    total: 310.716
+  - branch: C
+    cumulative_sales: 9812.8905
+    date: '2019-01-09'
+    total: 165.9
+  - branch: C
+    cumulative_sales: 9812.8905
+    date: '2019-01-09'
+    total: 708.3195
+  - branch: C
+    cumulative_sales: 11293.747499999998
+    date: '2019-01-10'
+    total: 392.6475
+  - branch: C
+    cumulative_sales: 11293.747499999998
+    date: '2019-01-10'
+    total: 611.079
+  - branch: C
+    cumulative_sales: 11293.747499999998
+    date: '2019-01-10'
+    total: 477.1305
+  - branch: C
+    cumulative_sales: 11747.042999999998
+    date: '2019-01-11'
+    total: 183.036
+  - branch: C
+    cumulative_sales: 11747.042999999998
+    date: '2019-01-11'
+    total: 270.2595
+  - branch: C
+    cumulative_sales: 13190.624999999998
+    date: '2019-01-12'
+    total: 419.832
+  - branch: C
+    cumulative_sales: 13190.624999999998
+    date: '2019-01-12'
+    total: 1023.75
+  - branch: C
+    cumulative_sales: 13794.322499999998
+    date: '2019-01-13'
+    total: 437.325
+  - branch: C
+    cumulative_sales: 13794.322499999998
+    date: '2019-01-13'
+    total: 78.0045
+  - branch: C
+    cumulative_sales: 13794.322499999998
+    date: '2019-01-13'
+    total: 88.368
+  - branch: C
+    cumulative_sales: 15473.356499999996
+    date: '2019-01-14'
+    total: 451.3635
+  - branch: C
+    cumulative_sales: 15473.356499999996
+    date: '2019-01-14'
+    total: 133.434
+  - branch: C
+    cumulative_sales: 15473.356499999996
+    date: '2019-01-14'
+    total: 89.0715
+  - branch: C
+    cumulative_sales: 15473.356499999996
+    date: '2019-01-14'
+    total: 190.4805
+  - branch: C
+    cumulative_sales: 15473.356499999996
+    date: '2019-01-14'
+    total: 390.9465
+  - branch: C
+    cumulative_sales: 15473.356499999996
+    date: '2019-01-14'
+    total: 423.738
+  - branch: C
+    cumulative_sales: 16748.591999999993
+    date: '2019-01-15'
+    total: 91.56
+  - branch: C
+    cumulative_sales: 16748.591999999993
+    date: '2019-01-15'
+    total: 597.0405
+  - branch: C
+    cumulative_sales: 16748.591999999993
+    date: '2019-01-15'
+    total: 586.635
+  - branch: C
+    cumulative_sales: 19289.066999999992
+    date: '2019-01-16'
+    total: 1003.59
+  - branch: C
+    cumulative_sales: 19289.066999999992
+    date: '2019-01-16'
+    total: 881.307
+  - branch: C
+    cumulative_sales: 19289.066999999992
+    date: '2019-01-16'
+    total: 32.529
+  - branch: C
+    cumulative_sales: 19289.066999999992
+    date: '2019-01-16'
+    total: 125.979
+  - branch: C
+    cumulative_sales: 19289.066999999992
+    date: '2019-01-16'
+    total: 497.07
+  - branch: C
+    cumulative_sales: 19936.433999999994
+    date: '2019-01-17'
+    total: 377.58
+  - branch: C
+    cumulative_sales: 19936.433999999994
+    date: '2019-01-17'
+    total: 137.865
+  - branch: C
+    cumulative_sales: 19936.433999999994
+    date: '2019-01-17'
+    total: 131.922
+  - branch: C
+    cumulative_sales: 21280.71749999999
+    date: '2019-01-18'
+    total: 41.391
+  - branch: C
+    cumulative_sales: 21280.71749999999
+    date: '2019-01-18'
+    total: 856.4535
+  - branch: C
+    cumulative_sales: 21280.71749999999
+    date: '2019-01-18'
+    total: 446.439
+  - branch: C
+    cumulative_sales: 22307.47049999999
+    date: '2019-01-19'
+    total: 362.712
+  - branch: C
+    cumulative_sales: 22307.47049999999
+    date: '2019-01-19'
+    total: 93.0405
+  - branch: C
+    cumulative_sales: 22307.47049999999
+    date: '2019-01-19'
+    total: 84.9765
+  - branch: C
+    cumulative_sales: 22307.47049999999
+    date: '2019-01-19'
+    total: 235.746
+  - branch: C
+    cumulative_sales: 22307.47049999999
+    date: '2019-01-19'
+    total: 250.278
+  - branch: C
+    cumulative_sales: 24007.67249999999
+    date: '2019-01-20'
+    total: 749.7
+  - branch: C
+    cumulative_sales: 24007.67249999999
+    date: '2019-01-20'
+    total: 348.306
+  - branch: C
+    cumulative_sales: 24007.67249999999
+    date: '2019-01-20'
+    total: 131.208
+  - branch: C
+    cumulative_sales: 24007.67249999999
+    date: '2019-01-20'
+    total: 470.988
+  - branch: C
+    cumulative_sales: 24704.99849999999
+    date: '2019-01-21'
+    total: 624.897
+  - branch: C
+    cumulative_sales: 24704.99849999999
+    date: '2019-01-21'
+    total: 72.429
+  - branch: C
+    cumulative_sales: 25104.37649999999
+    date: '2019-01-22'
+    total: 106.995
+  - branch: C
+    cumulative_sales: 25104.37649999999
+    date: '2019-01-22'
+    total: 85.5855
+  - branch: C
+    cumulative_sales: 25104.37649999999
+    date: '2019-01-22'
+    total: 206.7975
+  - branch: C
+    cumulative_sales: 28737.25049999999
+    date: '2019-01-23'
+    total: 161.7
+  - branch: C
+    cumulative_sales: 28737.25049999999
+    date: '2019-01-23'
+    total: 198.996
+  - branch: C
+    cumulative_sales: 28737.25049999999
+    date: '2019-01-23'
+    total: 942.9
+  - branch: C
+    cumulative_sales: 28737.25049999999
+    date: '2019-01-23'
+    total: 323.148
+  - branch: C
+    cumulative_sales: 28737.25049999999
+    date: '2019-01-23'
+    total: 264.7575
+  - branch: C
+    cumulative_sales: 28737.25049999999
+    date: '2019-01-23'
+    total: 527.751
+  - branch: C
+    cumulative_sales: 28737.25049999999
+    date: '2019-01-23'
+    total: 87.234
+  - branch: C
+    cumulative_sales: 28737.25049999999
+    date: '2019-01-23'
+    total: 57.6975
+  - branch: C
+    cumulative_sales: 28737.25049999999
+    date: '2019-01-23'
+    total: 333.984
+  - branch: C
+    cumulative_sales: 28737.25049999999
+    date: '2019-01-23'
+    total: 734.706
+  - branch: C
+    cumulative_sales: 29071.18199999999
+    date: '2019-01-24'
+    total: 63.9135
+  - branch: C
+    cumulative_sales: 29071.18199999999
+    date: '2019-01-24'
+    total: 270.018
+  - branch: C
+    cumulative_sales: 31256.47349999999
+    date: '2019-01-25'
+    total: 16.2015
+  - branch: C
+    cumulative_sales: 31256.47349999999
+    date: '2019-01-25'
+    total: 950.25
+  - branch: C
+    cumulative_sales: 31256.47349999999
+    date: '2019-01-25'
+    total: 288.204
+  - branch: C
+    cumulative_sales: 31256.47349999999
+    date: '2019-01-25'
+    total: 663.2955
+  - branch: C
+    cumulative_sales: 31256.47349999999
+    date: '2019-01-25'
+    total: 267.3405
+  - branch: C
+    cumulative_sales: 32095.706999999988
+    date: '2019-01-26'
+    total: 471.03
+  - branch: C
+    cumulative_sales: 32095.706999999988
+    date: '2019-01-26'
+    total: 193.4625
+  - branch: C
+    cumulative_sales: 32095.706999999988
+    date: '2019-01-26'
+    total: 68.2395
+  - branch: C
+    cumulative_sales: 32095.706999999988
+    date: '2019-01-26'
+    total: 106.5015
+  - branch: C
+    cumulative_sales: 34138.84949999998
+    date: '2019-01-27'
+    total: 150.78
+  - branch: C
+    cumulative_sales: 34138.84949999998
+    date: '2019-01-27'
+    total: 510.9615
+  - branch: C
+    cumulative_sales: 34138.84949999998
+    date: '2019-01-27'
+    total: 488.985
+  - branch: C
+    cumulative_sales: 34138.84949999998
+    date: '2019-01-27'
+    total: 568.512
+  - branch: C
+    cumulative_sales: 34138.84949999998
+    date: '2019-01-27'
+    total: 145.74
+  - branch: C
+    cumulative_sales: 34138.84949999998
+    date: '2019-01-27'
+    total: 178.164
+  - branch: C
+    cumulative_sales: 35720.32799999997
+    date: '2019-01-28'
+    total: 680.148
+  - branch: C
+    cumulative_sales: 35720.32799999997
+    date: '2019-01-28'
+    total: 273.42
+  - branch: C
+    cumulative_sales: 35720.32799999997
+    date: '2019-01-28'
+    total: 293.202
+  - branch: C
+    cumulative_sales: 35720.32799999997
+    date: '2019-01-28'
+    total: 91.4025
+  - branch: C
+    cumulative_sales: 35720.32799999997
+    date: '2019-01-28'
+    total: 125.055
+  - branch: C
+    cumulative_sales: 35720.32799999997
+    date: '2019-01-28'
+    total: 118.251
+  - branch: C
+    cumulative_sales: 36765.42449999997
+    date: '2019-01-29'
+    total: 120.645
+  - branch: C
+    cumulative_sales: 36765.42449999997
+    date: '2019-01-29'
+    total: 265.104
+  - branch: C
+    cumulative_sales: 36765.42449999997
+    date: '2019-01-29'
+    total: 616.98
+  - branch: C
+    cumulative_sales: 36765.42449999997
+    date: '2019-01-29'
+    total: 42.3675
+  - branch: C
+    cumulative_sales: 38572.62149999998
+    date: '2019-01-30'
+    total: 160.44
+  - branch: C
+    cumulative_sales: 38572.62149999998
+    date: '2019-01-30'
+    total: 509.4075
+  - branch: C
+    cumulative_sales: 38572.62149999998
+    date: '2019-01-30'
+    total: 24.108
+  - branch: C
+    cumulative_sales: 38572.62149999998
+    date: '2019-01-30'
+    total: 1034.46
+  - branch: C
+    cumulative_sales: 38572.62149999998
+    date: '2019-01-30'
+    total: 55.2825
+  - branch: C
+    cumulative_sales: 38572.62149999998
+    date: '2019-01-30'
+    total: 23.499
+  - branch: C
+    cumulative_sales: 40434.68099999998
+    date: '2019-01-31'
+    total: 155.652
+  - branch: C
+    cumulative_sales: 40434.68099999998
+    date: '2019-01-31'
+    total: 224.4375
+  - branch: C
+    cumulative_sales: 40434.68099999998
+    date: '2019-01-31'
+    total: 829.08
+  - branch: C
+    cumulative_sales: 40434.68099999998
+    date: '2019-01-31'
+    total: 652.89
+  - branch: C
+    cumulative_sales: 41967.281999999985
+    date: '2019-02-01'
+    total: 218.0115
+  - branch: C
+    cumulative_sales: 41967.281999999985
+    date: '2019-02-01'
+    total: 763.4655
+  - branch: C
+    cumulative_sales: 41967.281999999985
+    date: '2019-02-01'
+    total: 551.124
+  - branch: C
+    cumulative_sales: 43478.98799999999
+    date: '2019-02-02'
+    total: 117.831
+  - branch: C
+    cumulative_sales: 43478.98799999999
+    date: '2019-02-02'
+    total: 400.764
+  - branch: C
+    cumulative_sales: 43478.98799999999
+    date: '2019-02-02'
+    total: 554.148
+  - branch: C
+    cumulative_sales: 43478.98799999999
+    date: '2019-02-02'
+    total: 40.341
+  - branch: C
+    cumulative_sales: 43478.98799999999
+    date: '2019-02-02'
+    total: 223.587
+  - branch: C
+    cumulative_sales: 43478.98799999999
+    date: '2019-02-02'
+    total: 175.035
+  - branch: C
+    cumulative_sales: 45192.06299999999
+    date: '2019-02-03'
+    total: 671.79
+  - branch: C
+    cumulative_sales: 45192.06299999999
+    date: '2019-02-03'
+    total: 212.73
+  - branch: C
+    cumulative_sales: 45192.06299999999
+    date: '2019-02-03'
+    total: 310.59
+  - branch: C
+    cumulative_sales: 45192.06299999999
+    date: '2019-02-03'
+    total: 517.965
+  - branch: C
+    cumulative_sales: 45337.62449999998
+    date: '2019-02-04'
+    total: 14.679
+  - branch: C
+    cumulative_sales: 45337.62449999998
+    date: '2019-02-04'
+    total: 130.8825
+  - branch: C
+    cumulative_sales: 46810.679999999986
+    date: '2019-02-05'
+    total: 309.3615
+  - branch: C
+    cumulative_sales: 46810.679999999986
+    date: '2019-02-05'
+    total: 720.3
+  - branch: C
+    cumulative_sales: 46810.679999999986
+    date: '2019-02-05'
+    total: 145.593
+  - branch: C
+    cumulative_sales: 46810.679999999986
+    date: '2019-02-05'
+    total: 297.801
+  - branch: C
+    cumulative_sales: 48212.24099999999
+    date: '2019-02-06'
+    total: 417.564
+  - branch: C
+    cumulative_sales: 48212.24099999999
+    date: '2019-02-06'
+    total: 94.2375
+  - branch: C
+    cumulative_sales: 48212.24099999999
+    date: '2019-02-06'
+    total: 407.316
+  - branch: C
+    cumulative_sales: 48212.24099999999
+    date: '2019-02-06'
+    total: 239.4
+  - branch: C
+    cumulative_sales: 48212.24099999999
+    date: '2019-02-06'
+    total: 55.041
+  - branch: C
+    cumulative_sales: 48212.24099999999
+    date: '2019-02-06'
+    total: 188.0025
+  - branch: C
+    cumulative_sales: 50650.52999999999
+    date: '2019-02-07'
+    total: 103.824
+  - branch: C
+    cumulative_sales: 50650.52999999999
+    date: '2019-02-07'
+    total: 276.948
+  - branch: C
+    cumulative_sales: 50650.52999999999
+    date: '2019-02-07'
+    total: 343.224
+  - branch: C
+    cumulative_sales: 50650.52999999999
+    date: '2019-02-07'
+    total: 122.5245
+  - branch: C
+    cumulative_sales: 50650.52999999999
+    date: '2019-02-07'
+    total: 273.798
+  - branch: C
+    cumulative_sales: 50650.52999999999
+    date: '2019-02-07'
+    total: 618.975
+  - branch: C
+    cumulative_sales: 50650.52999999999
+    date: '2019-02-07'
+    total: 507.444
+  - branch: C
+    cumulative_sales: 50650.52999999999
+    date: '2019-02-07'
+    total: 10.6785
+  - branch: C
+    cumulative_sales: 50650.52999999999
+    date: '2019-02-07'
+    total: 180.873
+  - branch: C
+    cumulative_sales: 52285.37999999999
+    date: '2019-02-08'
+    total: 1020.705
+  - branch: C
+    cumulative_sales: 52285.37999999999
+    date: '2019-02-08'
+    total: 273.0525
+  - branch: C
+    cumulative_sales: 52285.37999999999
+    date: '2019-02-08'
+    total: 341.0925
+  - branch: C
+    cumulative_sales: 53914.07699999999
+    date: '2019-02-09'
+    total: 78.435
+  - branch: C
+    cumulative_sales: 53914.07699999999
+    date: '2019-02-09'
+    total: 472.311
+  - branch: C
+    cumulative_sales: 53914.07699999999
+    date: '2019-02-09'
+    total: 66.402
+  - branch: C
+    cumulative_sales: 53914.07699999999
+    date: '2019-02-09'
+    total: 22.659
+  - branch: C
+    cumulative_sales: 53914.07699999999
+    date: '2019-02-09'
+    total: 100.485
+  - branch: C
+    cumulative_sales: 53914.07699999999
+    date: '2019-02-09'
+    total: 888.405
+  - branch: C
+    cumulative_sales: 55344.071999999986
+    date: '2019-02-10'
+    total: 70.287
+  - branch: C
+    cumulative_sales: 55344.071999999986
+    date: '2019-02-10'
+    total: 820.365
+  - branch: C
+    cumulative_sales: 55344.071999999986
+    date: '2019-02-10'
+    total: 539.343
+  - branch: C
+    cumulative_sales: 57388.054499999984
+    date: '2019-02-11'
+    total: 652.26
+  - branch: C
+    cumulative_sales: 57388.054499999984
+    date: '2019-02-11'
+    total: 936.6
+  - branch: C
+    cumulative_sales: 57388.054499999984
+    date: '2019-02-11'
+    total: 455.1225
+  - branch: C
+    cumulative_sales: 58357.571999999986
+    date: '2019-02-12'
+    total: 914.55
+  - branch: C
+    cumulative_sales: 58357.571999999986
+    date: '2019-02-12'
+    total: 54.9675
+  - branch: C
+    cumulative_sales: 58749.505499999985
+    date: '2019-02-13'
+    total: 165.4485
+  - branch: C
+    cumulative_sales: 58749.505499999985
+    date: '2019-02-13'
+    total: 195.258
+  - branch: C
+    cumulative_sales: 58749.505499999985
+    date: '2019-02-13'
+    total: 31.227
+  - branch: C
+    cumulative_sales: 59371.08449999999
+    date: '2019-02-14'
+    total: 208.677
+  - branch: C
+    cumulative_sales: 59371.08449999999
+    date: '2019-02-14'
+    total: 290.43
+  - branch: C
+    cumulative_sales: 59371.08449999999
+    date: '2019-02-14'
+    total: 122.472
+  - branch: C
+    cumulative_sales: 61763.845499999996
+    date: '2019-02-15'
+    total: 77.931
+  - branch: C
+    cumulative_sales: 61763.845499999996
+    date: '2019-02-15'
+    total: 1042.65
+  - branch: C
+    cumulative_sales: 61763.845499999996
+    date: '2019-02-15'
+    total: 253.512
+  - branch: C
+    cumulative_sales: 61763.845499999996
+    date: '2019-02-15'
+    total: 103.782
+  - branch: C
+    cumulative_sales: 61763.845499999996
+    date: '2019-02-15'
+    total: 344.4
+  - branch: C
+    cumulative_sales: 61763.845499999996
+    date: '2019-02-15'
+    total: 282.576
+  - branch: C
+    cumulative_sales: 61763.845499999996
+    date: '2019-02-15'
+    total: 287.91
+  - branch: C
+    cumulative_sales: 62846.43749999999
+    date: '2019-02-16'
+    total: 718.7565
+  - branch: C
+    cumulative_sales: 62846.43749999999
+    date: '2019-02-16'
+    total: 63.2625
+  - branch: C
+    cumulative_sales: 62846.43749999999
+    date: '2019-02-16'
+    total: 300.573
+  - branch: C
+    cumulative_sales: 64223.90099999999
+    date: '2019-02-17'
+    total: 374.7975
+  - branch: C
+    cumulative_sales: 64223.90099999999
+    date: '2019-02-17'
+    total: 62.0025
+  - branch: C
+    cumulative_sales: 64223.90099999999
+    date: '2019-02-17'
+    total: 440.937
+  - branch: C
+    cumulative_sales: 64223.90099999999
+    date: '2019-02-17'
+    total: 499.7265
+  - branch: C
+    cumulative_sales: 64757.185499999985
+    date: '2019-02-18'
+    total: 284.193
+  - branch: C
+    cumulative_sales: 64757.185499999985
+    date: '2019-02-18'
+    total: 185.094
+  - branch: C
+    cumulative_sales: 64757.185499999985
+    date: '2019-02-18'
+    total: 63.9975
+  - branch: C
+    cumulative_sales: 66450.99299999999
+    date: '2019-02-19'
+    total: 173.208
+  - branch: C
+    cumulative_sales: 66450.99299999999
+    date: '2019-02-19'
+    total: 733.6035
+  - branch: C
+    cumulative_sales: 66450.99299999999
+    date: '2019-02-19'
+    total: 183.12
+  - branch: C
+    cumulative_sales: 66450.99299999999
+    date: '2019-02-19'
+    total: 603.876
+  - branch: C
+    cumulative_sales: 66541.57649999998
+    date: '2019-02-20'
+    total: 90.5835
+  - branch: C
+    cumulative_sales: 67201.43849999997
+    date: '2019-02-21'
+    total: 13.167
+  - branch: C
+    cumulative_sales: 67201.43849999997
+    date: '2019-02-21'
+    total: 207.48
+  - branch: C
+    cumulative_sales: 67201.43849999997
+    date: '2019-02-21'
+    total: 439.215
+  - branch: C
+    cumulative_sales: 67961.95349999997
+    date: '2019-02-22'
+    total: 31.9305
+  - branch: C
+    cumulative_sales: 67961.95349999997
+    date: '2019-02-22'
+    total: 701.8515
+  - branch: C
+    cumulative_sales: 67961.95349999997
+    date: '2019-02-22'
+    total: 26.733
+  - branch: C
+    cumulative_sales: 68766.31649999999
+    date: '2019-02-23'
+    total: 337.512
+  - branch: C
+    cumulative_sales: 68766.31649999999
+    date: '2019-02-23'
+    total: 37.6845
+  - branch: C
+    cumulative_sales: 68766.31649999999
+    date: '2019-02-23'
+    total: 429.1665
+  - branch: C
+    cumulative_sales: 70202.9055
+    date: '2019-02-24'
+    total: 772.38
+  - branch: C
+    cumulative_sales: 70202.9055
+    date: '2019-02-24'
+    total: 351.099
+  - branch: C
+    cumulative_sales: 70202.9055
+    date: '2019-02-24'
+    total: 259.77
+  - branch: C
+    cumulative_sales: 70202.9055
+    date: '2019-02-24'
+    total: 53.34
+  - branch: C
+    cumulative_sales: 70705.656
+    date: '2019-02-25'
+    total: 451.71
+  - branch: C
+    cumulative_sales: 70705.656
+    date: '2019-02-25'
+    total: 51.0405
+  - branch: C
+    cumulative_sales: 70922.3445
+    date: '2019-02-26'
+    total: 216.6885
+  - branch: C
+    cumulative_sales: 72451.71149999999
+    date: '2019-02-27'
+    total: 793.548
+  - branch: C
+    cumulative_sales: 72451.71149999999
+    date: '2019-02-27'
+    total: 104.6745
+  - branch: C
+    cumulative_sales: 72451.71149999999
+    date: '2019-02-27'
+    total: 631.1445
+  - branch: C
+    cumulative_sales: 73369.6635
+    date: '2019-02-28'
+    total: 722.232
+  - branch: C
+    cumulative_sales: 73369.6635
+    date: '2019-02-28'
+    total: 195.72
+  - branch: C
+    cumulative_sales: 74426.499
+    date: '2019-03-01'
+    total: 742.2975
+  - branch: C
+    cumulative_sales: 74426.499
+    date: '2019-03-01'
+    total: 314.538
+  - branch: C
+    cumulative_sales: 76773.09149999998
+    date: '2019-03-02'
+    total: 85.113
+  - branch: C
+    cumulative_sales: 76773.09149999998
+    date: '2019-03-02'
+    total: 30.219
+  - branch: C
+    cumulative_sales: 76773.09149999998
+    date: '2019-03-02'
+    total: 572.775
+  - branch: C
+    cumulative_sales: 76773.09149999998
+    date: '2019-03-02'
+    total: 543.753
+  - branch: C
+    cumulative_sales: 76773.09149999998
+    date: '2019-03-02'
+    total: 485.5725
+  - branch: C
+    cumulative_sales: 76773.09149999998
+    date: '2019-03-02'
+    total: 629.16
+  - branch: C
+    cumulative_sales: 78997.99949999996
+    date: '2019-03-03'
+    total: 860.685
+  - branch: C
+    cumulative_sales: 78997.99949999996
+    date: '2019-03-03'
+    total: 175.14
+  - branch: C
+    cumulative_sales: 78997.99949999996
+    date: '2019-03-03'
+    total: 272.58
+  - branch: C
+    cumulative_sales: 78997.99949999996
+    date: '2019-03-03'
+    total: 293.139
+  - branch: C
+    cumulative_sales: 78997.99949999996
+    date: '2019-03-03'
+    total: 369.684
+  - branch: C
+    cumulative_sales: 78997.99949999996
+    date: '2019-03-03'
+    total: 253.68
+  - branch: C
+    cumulative_sales: 79858.83149999996
+    date: '2019-03-04'
+    total: 829.08
+  - branch: C
+    cumulative_sales: 79858.83149999996
+    date: '2019-03-04'
+    total: 31.752
+  - branch: C
+    cumulative_sales: 82131.02099999995
+    date: '2019-03-05'
+    total: 822.255
+  - branch: C
+    cumulative_sales: 82131.02099999995
+    date: '2019-03-05'
+    total: 610.491
+  - branch: C
+    cumulative_sales: 82131.02099999995
+    date: '2019-03-05'
+    total: 232.155
+  - branch: C
+    cumulative_sales: 82131.02099999995
+    date: '2019-03-05'
+    total: 127.26
+  - branch: C
+    cumulative_sales: 82131.02099999995
+    date: '2019-03-05'
+    total: 480.0285
+  - branch: C
+    cumulative_sales: 82169.87099999996
+    date: '2019-03-06'
+    total: 38.85
+  - branch: C
+    cumulative_sales: 82941.53699999994
+    date: '2019-03-07'
+    total: 69.09
+  - branch: C
+    cumulative_sales: 82941.53699999994
+    date: '2019-03-07'
+    total: 209.559
+  - branch: C
+    cumulative_sales: 82941.53699999994
+    date: '2019-03-07'
+    total: 353.094
+  - branch: C
+    cumulative_sales: 82941.53699999994
+    date: '2019-03-07'
+    total: 139.923
+  - branch: C
+    cumulative_sales: 84382.09499999993
+    date: '2019-03-08'
+    total: 80.22
+  - branch: C
+    cumulative_sales: 84382.09499999993
+    date: '2019-03-08'
+    total: 512.19
+  - branch: C
+    cumulative_sales: 84382.09499999993
+    date: '2019-03-08'
+    total: 291.438
+  - branch: C
+    cumulative_sales: 84382.09499999993
+    date: '2019-03-08'
+    total: 394.275
+  - branch: C
+    cumulative_sales: 84382.09499999993
+    date: '2019-03-08'
+    total: 90.867
+  - branch: C
+    cumulative_sales: 84382.09499999993
+    date: '2019-03-08'
+    total: 71.568
+  - branch: C
+    cumulative_sales: 86069.46599999991
+    date: '2019-03-09'
+    total: 478.233
+  - branch: C
+    cumulative_sales: 86069.46599999991
+    date: '2019-03-09'
+    total: 256.7775
+  - branch: C
+    cumulative_sales: 86069.46599999991
+    date: '2019-03-09'
+    total: 17.094
+  - branch: C
+    cumulative_sales: 86069.46599999991
+    date: '2019-03-09'
+    total: 935.2665
+  - branch: C
+    cumulative_sales: 87412.23749999993
+    date: '2019-03-10'
+    total: 144.081
+  - branch: C
+    cumulative_sales: 87412.23749999993
+    date: '2019-03-10'
+    total: 860.475
+  - branch: C
+    cumulative_sales: 87412.23749999993
+    date: '2019-03-10'
+    total: 338.2155
+  - branch: C
+    cumulative_sales: 88178.97899999993
+    date: '2019-03-11'
+    total: 254.016
+  - branch: C
+    cumulative_sales: 88178.97899999993
+    date: '2019-03-11'
+    total: 218.0745
+  - branch: C
+    cumulative_sales: 88178.97899999993
+    date: '2019-03-11'
+    total: 294.651
+  - branch: C
+    cumulative_sales: 89540.68199999993
+    date: '2019-03-12'
+    total: 192.843
+  - branch: C
+    cumulative_sales: 89540.68199999993
+    date: '2019-03-12'
+    total: 174.3
+  - branch: C
+    cumulative_sales: 89540.68199999993
+    date: '2019-03-12'
+    total: 395.892
+  - branch: C
+    cumulative_sales: 89540.68199999993
+    date: '2019-03-12'
+    total: 194.124
+  - branch: C
+    cumulative_sales: 89540.68199999993
+    date: '2019-03-12'
+    total: 404.544
+  - branch: C
+    cumulative_sales: 90392.29499999991
+    date: '2019-03-13'
+    total: 536.844
+  - branch: C
+    cumulative_sales: 90392.29499999991
+    date: '2019-03-13'
+    total: 153.048
+  - branch: C
+    cumulative_sales: 90392.29499999991
+    date: '2019-03-13'
+    total: 59.325
+  - branch: C
+    cumulative_sales: 90392.29499999991
+    date: '2019-03-13'
+    total: 102.396
+  - branch: C
+    cumulative_sales: 93841.3244999999
+    date: '2019-03-14'
+    total: 148.974
+  - branch: C
+    cumulative_sales: 93841.3244999999
+    date: '2019-03-14'
+    total: 204.6975
+  - branch: C
+    cumulative_sales: 93841.3244999999
+    date: '2019-03-14'
+    total: 484.974
+  - branch: C
+    cumulative_sales: 93841.3244999999
+    date: '2019-03-14'
+    total: 441.693
+  - branch: C
+    cumulative_sales: 93841.3244999999
+    date: '2019-03-14'
+    total: 625.905
+  - branch: C
+    cumulative_sales: 93841.3244999999
+    date: '2019-03-14'
+    total: 814.38
+  - branch: C
+    cumulative_sales: 93841.3244999999
+    date: '2019-03-14'
+    total: 461.5275
+  - branch: C
+    cumulative_sales: 93841.3244999999
+    date: '2019-03-14'
+    total: 44.9925
+  - branch: C
+    cumulative_sales: 93841.3244999999
+    date: '2019-03-14'
+    total: 221.886
+  - branch: C
+    cumulative_sales: 94389.5084999999
+    date: '2019-03-15'
+    total: 548.184
+  - branch: C
+    cumulative_sales: 95659.9874999999
+    date: '2019-03-16'
+    total: 32.277
+  - branch: C
+    cumulative_sales: 95659.9874999999
+    date: '2019-03-16'
+    total: 829.71
+  - branch: C
+    cumulative_sales: 95659.9874999999
+    date: '2019-03-16'
+    total: 408.492
+  - branch: C
+    cumulative_sales: 96053.2334999999
+    date: '2019-03-17'
+    total: 369.495
+  - branch: C
+    cumulative_sales: 96053.2334999999
+    date: '2019-03-17'
+    total: 23.751
+  - branch: C
+    cumulative_sales: 96503.4209999999
+    date: '2019-03-18'
+    total: 299.565
+  - branch: C
+    cumulative_sales: 96503.4209999999
+    date: '2019-03-18'
+    total: 54.0435
+  - branch: C
+    cumulative_sales: 96503.4209999999
+    date: '2019-03-18'
+    total: 96.579
+  - branch: C
+    cumulative_sales: 99752.0789999999
+    date: '2019-03-19'
+    total: 867.615
+  - branch: C
+    cumulative_sales: 99752.0789999999
+    date: '2019-03-19'
+    total: 277.788
+  - branch: C
+    cumulative_sales: 99752.0789999999
+    date: '2019-03-19'
+    total: 55.881
+  - branch: C
+    cumulative_sales: 99752.0789999999
+    date: '2019-03-19'
+    total: 937.818
+  - branch: C
+    cumulative_sales: 99752.0789999999
+    date: '2019-03-19'
+    total: 48.51
+  - branch: C
+    cumulative_sales: 99752.0789999999
+    date: '2019-03-19'
+    total: 743.82
+  - branch: C
+    cumulative_sales: 99752.0789999999
+    date: '2019-03-19'
+    total: 317.226
+  - branch: C
+    cumulative_sales: 101154.0074999999
+    date: '2019-03-20'
+    total: 745.395
+  - branch: C
+    cumulative_sales: 101154.0074999999
+    date: '2019-03-20'
+    total: 523.971
+  - branch: C
+    cumulative_sales: 101154.0074999999
+    date: '2019-03-20'
+    total: 132.5625
+  - branch: C
+    cumulative_sales: 101514.9344999999
+    date: '2019-03-21'
+    total: 360.927
+  - branch: C
+    cumulative_sales: 103477.1324999999
+    date: '2019-03-23'
+    total: 461.328
+  - branch: C
+    cumulative_sales: 103477.1324999999
+    date: '2019-03-23'
+    total: 596.82
+  - branch: C
+    cumulative_sales: 103477.1324999999
+    date: '2019-03-23'
+    total: 408.7335
+  - branch: C
+    cumulative_sales: 103477.1324999999
+    date: '2019-03-23'
+    total: 495.3165
+  - branch: C
+    cumulative_sales: 104965.19249999992
+    date: '2019-03-24'
+    total: 321.111
+  - branch: C
+    cumulative_sales: 104965.19249999992
+    date: '2019-03-24'
+    total: 78.603
+  - branch: C
+    cumulative_sales: 104965.19249999992
+    date: '2019-03-24'
+    total: 77.175
+  - branch: C
+    cumulative_sales: 104965.19249999992
+    date: '2019-03-24'
+    total: 681.975
+  - branch: C
+    cumulative_sales: 104965.19249999992
+    date: '2019-03-24'
+    total: 329.196
+  - branch: C
+    cumulative_sales: 106242.94799999992
+    date: '2019-03-25'
+    total: 627.6165
+  - branch: C
+    cumulative_sales: 106242.94799999992
+    date: '2019-03-25'
+    total: 401.73
+  - branch: C
+    cumulative_sales: 106242.94799999992
+    date: '2019-03-25'
+    total: 248.409
+  - branch: C
+    cumulative_sales: 106716.91799999992
+    date: '2019-03-26'
+    total: 51.1455
+  - branch: C
+    cumulative_sales: 106716.91799999992
+    date: '2019-03-26'
+    total: 91.77
+  - branch: C
+    cumulative_sales: 106716.91799999992
+    date: '2019-03-26'
+    total: 154.1295
+  - branch: C
+    cumulative_sales: 106716.91799999992
+    date: '2019-03-26'
+    total: 176.925
+  - branch: C
+    cumulative_sales: 107660.21699999992
+    date: '2019-03-27'
+    total: 943.299
+  - branch: C
+    cumulative_sales: 108141.02249999992
+    date: '2019-03-28'
+    total: 150.0975
+  - branch: C
+    cumulative_sales: 108141.02249999992
+    date: '2019-03-28'
+    total: 121.59
+  - branch: C
+    cumulative_sales: 108141.02249999992
+    date: '2019-03-28'
+    total: 209.118
+  - branch: C
+    cumulative_sales: 109126.72049999992
+    date: '2019-03-29'
+    total: 121.128
+  - branch: C
+    cumulative_sales: 109126.72049999992
+    date: '2019-03-29'
+    total: 864.57
+  - branch: C
+    cumulative_sales: 110568.70649999993
+    date: '2019-03-30'
+    total: 609.168
+  - branch: C
+    cumulative_sales: 110568.70649999993
+    date: '2019-03-30'
+    total: 442.323
+  - branch: C
+    cumulative_sales: 110568.70649999993
+    date: '2019-03-30'
+    total: 85.512
+  - branch: C
+    cumulative_sales: 110568.70649999993
+    date: '2019-03-30'
+    total: 304.983
+type: standard
+tags:
+  - business_retail
+  - window_functions
+  - aggregation
+category: Business Retail

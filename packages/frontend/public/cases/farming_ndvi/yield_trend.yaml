@@ -1,0 +1,70 @@
+id: yield_trend
+name: Yield Trends
+tier: 3
+domain: Farming Ndvi
+description: Analyze yield trends over time
+skills:
+  - aggregation
+  - time_series
+datasets:
+  - name: farming_yield
+    file: farming_yield.csv
+  - name: soil_data
+    file: soil_data.csv
+prereq_cases:
+  - ndvi_overview
+  - yield_by_crop
+seedQuery: |-
+  -- TODO: write query for yield_trend
+  SELECT 1;
+solutionQuery: |-
+  SELECT year, AVG(yield) AS avg_yield
+  FROM farming_yield
+  GROUP BY year
+  ORDER BY year;
+instructions: Calculate average yield by year, order by year
+hints:
+  - Review aggregation in the GuideBook
+  - Use GROUP BY for year
+  - Use AVG for yield
+  - Order by year
+schema:
+  - name: farming_yield
+    columns:
+      - name: id
+        type: INTEGER
+      - name: region
+        type: TEXT
+      - name: ndvi
+        type: FLOAT
+      - name: yield
+        type: FLOAT
+      - name: year
+        type: INTEGER
+      - name: month
+        type: INTEGER
+      - name: soil_type
+        type: TEXT
+  - name: soil_data
+    columns:
+      - name: id
+        type: INTEGER
+      - name: soil_ph
+        type: FLOAT
+      - name: soil_type
+        type: TEXT
+expected:
+  - avg_yield: 3.517987321711574
+    year: 2020
+  - avg_yield: 3.4793631600161237
+    year: 2021
+  - avg_yield: 3.473665338645413
+    year: 2022
+  - avg_yield: 3.5142052313883254
+    year: 2023
+type: standard
+tags:
+  - farming_ndvi
+  - aggregation
+  - time_series
+category: Farming Ndvi

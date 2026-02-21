@@ -1,0 +1,70 @@
+id: engagement_by_type
+name: User Tweets
+tier: 2
+domain: Social Twitter
+description: Join tweet and user data
+skills:
+  - join
+datasets:
+  - name: tweets
+    file: tweets.csv
+  - name: users
+    file: users.csv
+prereq_cases:
+  - post_select
+seedQuery: |-
+  -- TODO: write query for engagement_by_type
+  SELECT 1;
+solutionQuery: |-
+  SELECT t.tweet_id, t.created_at, u.user_name
+  FROM tweets t
+  LEFT JOIN users u ON t.user_id = u.user_id
+  WHERE u.user_name IS NOT NULL
+  ORDER BY t.created_at DESC
+  LIMIT 5;
+instructions: Join tweets and users, show tweets with user names, order by date
+hints:
+  - Review the join concept in the GuideBook
+  - Use LEFT JOIN to include user data
+  - Filter with WHERE for non-null user names
+  - Use LIMIT to get 5 rows
+schema:
+  - name: tweets
+    columns:
+      - name: tweet_id
+        type: TEXT
+      - name: user_id
+        type: TEXT
+      - name: created_at
+        type: DATE
+      - name: text
+        type: TEXT
+  - name: users
+    columns:
+      - name: user_id
+        type: TEXT
+      - name: user_name
+        type: TEXT
+      - name: signup_date
+        type: DATE
+expected:
+  - created_at: '2024-01-01'
+    tweet_id: TW608
+    user_name: User_608
+  - created_at: '2024-01-01'
+    tweet_id: TW633
+    user_name: User_633
+  - created_at: '2024-01-01'
+    tweet_id: TW663
+    user_name: User_663
+  - created_at: '2024-01-01'
+    tweet_id: TW681
+    user_name: User_681
+  - created_at: '2024-01-01'
+    tweet_id: TW1729
+    user_name: User_1729
+type: standard
+tags:
+  - social_twitter
+  - join
+category: Social Twitter

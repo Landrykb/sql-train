@@ -1,0 +1,49 @@
+id: velocity_by_type
+name: NEO Velocity
+tier: 2
+domain: Space Neo
+description: Analyze NEO velocities
+skills:
+  - aggregation
+datasets:
+  - name: space_neo
+    file: space_neo.csv
+prereq_cases:
+  - orbit_select
+seedQuery: |-
+  -- TODO: write query for velocity_by_type
+  SELECT 1;
+solutionQuery: |-
+  SELECT is_potentially_hazardous, AVG(relative_velocity_km_s) AS avg_velocity
+  FROM space_neo
+  GROUP BY is_potentially_hazardous
+  ORDER BY avg_velocity DESC;
+instructions: Calculate average velocity by hazard status, order by velocity
+hints:
+  - Review aggregation in the GuideBook
+  - Use GROUP BY for is_potentially_hazardous
+  - Use AVG for relative_velocity_km_s
+  - Order by average velocity
+schema:
+  - name: space_neo
+    columns:
+      - name: des
+        type: TEXT
+      - name: close_approach_date
+        type: DATE
+      - name: dist_km
+        type: INTEGER
+      - name: relative_velocity_km_s
+        type: FLOAT
+      - name: is_potentially_hazardous
+        type: BOOLEAN
+expected:
+  - avg_velocity: 9.048102277267299
+    is_potentially_hazardous: 0
+  - avg_velocity: 8.968241890268326
+    is_potentially_hazardous: 1
+type: standard
+tags:
+  - space_neo
+  - aggregation
+category: Space Neo

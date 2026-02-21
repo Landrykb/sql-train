@@ -1,0 +1,202 @@
+id: hidden_credit_recommend
+name: "Find High-Value Customers for Loyalty Program"
+tier: 7
+domain: Business Retail
+description: A real-world business scenario — the marketing team needs you to identify high-spending, high-satisfaction customers to invite into a premium loyalty program.
+hidden: true
+skills:
+  - select
+  - group
+  - order
+  - case
+  - cte
+  - window
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+  - name: returns
+    file: returns.csv
+prereq_cases:
+  - basics_select
+  - agg_revenue
+  - joins_returns
+  - window_cumsum
+  - cte_profit
+  - capstone_root
+  - hidden_sales_boost
+seedQuery: |-
+  -- BUSINESS SCENARIO: The Head of Marketing asks:
+  -- "We're launching a Premium Loyalty Program.
+  --  Find customers who spend a lot, rate us highly,
+  --  and rarely return items. Rank them so we can
+  --  send invitations to the top candidates first."
+  --
+  -- Write a query to identify and rank these customers!
+  SELECT 1;
+solutionQuery: |-
+  WITH CustomerMetrics AS (
+    SELECT
+      b.customer_type,
+      b.gender,
+      b.branch,
+      COUNT(DISTINCT b.invoice_id) AS total_purchases,
+      ROUND(SUM(b.total), 2) AS total_spent,
+      ROUND(AVG(b.rating), 2) AS avg_rating,
+      COUNT(DISTINCT r.invoice_id) AS return_count
+    FROM business_retail b
+    LEFT JOIN returns r ON b.invoice_id = r.invoice_id
+    GROUP BY b.customer_type, b.gender, b.branch
+  ),
+  Scored AS (
+    SELECT *,
+      CASE
+        WHEN total_spent > 30000 AND avg_rating >= 7.0 AND return_count < 30 THEN 'Platinum Invite'
+        WHEN total_spent > 20000 AND avg_rating >= 6.5 THEN 'Gold Invite'
+        WHEN total_spent > 10000 THEN 'Silver Invite'
+        ELSE 'Not Eligible'
+      END AS program_tier,
+      ROW_NUMBER() OVER (ORDER BY total_spent DESC) AS spend_rank
+    FROM CustomerMetrics
+  )
+  SELECT
+    branch,
+    customer_type,
+    gender,
+    total_purchases,
+    total_spent,
+    avg_rating,
+    return_count,
+    program_tier,
+    spend_rank
+  FROM Scored
+  ORDER BY spend_rank;
+instructions: |-
+  The marketing team is launching a Premium Loyalty Program. They need you to:
+
+  1. Calculate per-segment metrics (by customer_type, gender, branch):
+     total_purchases, total_spent, avg_rating, return_count
+  2. Classify each segment into a program_tier:
+     - Platinum Invite: spent > 30000, avg_rating >= 7.0, returns < 30
+     - Gold Invite: spent > 20000, avg_rating >= 6.5
+     - Silver Invite: spent > 10000
+     - Not Eligible: everyone else
+  3. Rank by total_spent descending using ROW_NUMBER()
+
+  Return: branch, customer_type, gender, total_purchases, total_spent,
+  avg_rating, return_count, program_tier, spend_rank
+hints:
+  - Use a CTE to compute per-segment metrics with GROUP BY
+  - LEFT JOIN returns to count returned items per segment
+  - Use CASE with multiple conditions for the program_tier
+  - Use ROW_NUMBER() OVER (ORDER BY total_spent DESC) for ranking
+  - Review the window concept in the GuideBook
+schema:
+  - name: business_retail
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: branch
+        type: TEXT
+      - name: city
+        type: TEXT
+      - name: customer_type
+        type: TEXT
+      - name: gender
+        type: TEXT
+      - name: product_line
+        type: TEXT
+      - name: unit_price
+        type: FLOAT
+      - name: quantity
+        type: INTEGER
+      - name: tax_5
+        type: FLOAT
+      - name: total
+        type: FLOAT
+      - name: date
+        type: DATE
+      - name: time
+        type: TEXT
+      - name: payment
+        type: TEXT
+      - name: cogs
+        type: FLOAT
+      - name: gross_margin_percentage
+        type: FLOAT
+      - name: gross_income
+        type: FLOAT
+      - name: rating
+        type: FLOAT
+  - name: returns
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: return_date
+        type: DATE
+      - name: return_reason
+        type: TEXT
+expected:
+  - branch: A
+    customer_type: Member
+    gender: Female
+    total_purchases: 87
+    total_spent: 30408.31
+    avg_rating: 6.97
+    return_count: 28
+    program_tier: Platinum Invite
+    spend_rank: 1
+  - branch: C
+    customer_type: Member
+    gender: Female
+    total_purchases: 79
+    total_spent: 28649.04
+    avg_rating: 7.16
+    return_count: 24
+    program_tier: Gold Invite
+    spend_rank: 2
+  - branch: B
+    customer_type: Member
+    gender: Female
+    total_purchases: 79
+    total_spent: 27478.96
+    avg_rating: 7.02
+    return_count: 30
+    program_tier: Gold Invite
+    spend_rank: 3
+  - branch: A
+    customer_type: Normal
+    gender: Male
+    total_purchases: 76
+    total_spent: 25867.41
+    avg_rating: 6.75
+    return_count: 27
+    program_tier: Gold Invite
+    spend_rank: 4
+  - branch: C
+    customer_type: Normal
+    gender: Female
+    total_purchases: 68
+    total_spent: 24152.93
+    avg_rating: 6.83
+    return_count: 24
+    program_tier: Gold Invite
+    spend_rank: 5
+  - branch: B
+    customer_type: Normal
+    gender: Male
+    total_purchases: 62
+    total_spent: 21129.47
+    avg_rating: 6.89
+    return_count: 23
+    program_tier: Gold Invite
+    spend_rank: 6
+type: hidden
+tags:
+  - business_retail
+  - real_world
+  - loyalty_program
+  - customer_segmentation
+  - case
+  - cte
+  - window
+category: Business Retail

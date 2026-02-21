@@ -1,0 +1,95 @@
+id: hidden_fraud_detection
+name: "Flag Suspicious Trading Patterns"
+tier: 6
+domain: Finance Stocks
+description: The compliance team needs you to identify potentially fraudulent trading — find accounts with unusual volume spikes that deviate from their normal pattern.
+hidden: true
+skills:
+  - select
+  - group
+  - order
+  - case
+  - cte
+  - window
+datasets:
+  - name: finance_stocks
+    file: finance_stocks.csv
+  - name: market_index
+    file: market_index.csv
+prereq_cases:
+  - transaction_select
+  - balance_by_account
+  - fraud_joins
+  - balance_trend
+  - cte_fraud
+  - capstone_finance
+seedQuery: |-
+  -- SCENARIO: The Compliance Officer asks:
+  -- "Find tickers where single-day volume exceeds
+  --  3x the average daily volume. Those are our
+  --  red flags for potential market manipulation."
+  SELECT 1;
+solutionQuery: |-
+  WITH DailyVolume AS (
+    SELECT
+      ticker,
+      transaction_date,
+      SUM(amount) AS daily_volume
+    FROM finance_stocks
+    GROUP BY ticker, transaction_date
+  ),
+  TickerAvg AS (
+    SELECT
+      ticker,
+      ROUND(AVG(daily_volume), 2) AS avg_daily_volume
+    FROM DailyVolume
+    GROUP BY ticker
+  )
+  SELECT
+    d.ticker,
+    d.transaction_date,
+    d.daily_volume,
+    t.avg_daily_volume,
+    ROUND(d.daily_volume / t.avg_daily_volume, 2) AS volume_ratio,
+    CASE
+      WHEN d.daily_volume > 3 * t.avg_daily_volume THEN 'RED FLAG'
+      WHEN d.daily_volume > 2 * t.avg_daily_volume THEN 'WARNING'
+      ELSE 'NORMAL'
+    END AS alert_level
+  FROM DailyVolume d
+  INNER JOIN TickerAvg t ON d.ticker = t.ticker
+  WHERE d.daily_volume > 2 * t.avg_daily_volume
+  ORDER BY volume_ratio DESC
+  LIMIT 15;
+instructions: |-
+  The compliance team suspects market manipulation. They need you to:
+
+  1. Compute daily_volume per ticker per day
+  2. Compute avg_daily_volume per ticker
+  3. Flag days where daily_volume > 2x average:
+     - RED FLAG: > 3x average
+     - WARNING: > 2x average
+  4. Show ticker, date, daily_volume, avg_daily_volume, volume_ratio, alert_level
+  5. Order by volume_ratio DESC, LIMIT 15
+hints:
+  - First CTE: daily volume per ticker/date
+  - Second CTE: average daily volume per ticker
+  - JOIN the two CTEs on ticker
+  - Use CASE for alert classification
+  - Filter with WHERE after the join
+expected:
+  - ticker: AAPL
+    transaction_date: "2024-01-15"
+    daily_volume: 15230.50
+    avg_daily_volume: 3200.12
+    volume_ratio: 4.76
+    alert_level: RED FLAG
+type: hidden
+tags:
+  - finance_stocks
+  - real_world
+  - fraud_detection
+  - compliance
+  - case
+  - cte
+category: Finance Stocks

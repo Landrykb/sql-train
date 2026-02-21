@@ -1,0 +1,80 @@
+id: balance_by_account
+name: Stock vs Market
+tier: 2
+domain: Finance Stocks
+description: Join stock and market index data
+skills:
+  - join
+datasets:
+  - name: finance_stocks
+    file: finance_stocks.csv
+  - name: market_index
+    file: market_index.csv
+prereq_cases:
+  - transaction_select
+seedQuery: |-
+  -- TODO: write query for balance_by_account
+  SELECT 1;
+solutionQuery: |-
+  SELECT s.ticker, s.date, s.close, m.index_close
+  FROM finance_stocks s
+  LEFT JOIN market_index m ON s.date = m.date
+  WHERE m.index_close IS NOT NULL
+  ORDER BY s.date DESC
+  LIMIT 5;
+instructions: Join stock and market index, show stocks with index values, order by
+  date
+hints:
+  - Review the join concept in the GuideBook
+  - Use LEFT JOIN to include market data
+  - Filter with WHERE for non-null index values
+  - Use LIMIT to get 5 rows
+schema:
+  - name: finance_stocks
+    columns:
+      - name: ticker
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: open
+        type: FLOAT
+      - name: high
+        type: FLOAT
+      - name: low
+        type: FLOAT
+      - name: close
+        type: FLOAT
+      - name: volume
+        type: INTEGER
+  - name: market_index
+    columns:
+      - name: date
+        type: DATE
+      - name: index_close
+        type: FLOAT
+expected:
+  - close: 174.77
+    date: '2024-12-30'
+    index_close: 4071.82
+    ticker: TICK1070
+  - close: 192.5
+    date: '2024-12-30'
+    index_close: 4071.82
+    ticker: TICK1082
+  - close: 107.45
+    date: '2024-12-30'
+    index_close: 4071.82
+    ticker: TICK1148
+  - close: 187.46
+    date: '2024-12-30'
+    index_close: 4071.82
+    ticker: TICK13861
+  - close: 108.62
+    date: '2024-12-30'
+    index_close: 4071.82
+    ticker: TICK15308
+type: standard
+tags:
+  - finance_stocks
+  - join
+category: Finance Stocks

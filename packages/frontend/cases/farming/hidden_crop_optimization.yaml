@@ -1,0 +1,90 @@
+id: hidden_crop_optimization
+name: "Optimize Crop Selection for Next Season"
+tier: 6
+domain: Farming NDVI
+description: The farm manager needs to decide which crops to plant next season — analyze yield efficiency, soil conditions, and NDVI performance to make data-driven recommendations.
+hidden: true
+skills:
+  - select
+  - group
+  - order
+  - case
+  - cte
+  - join
+datasets:
+  - name: farming_yield
+    file: farming_yield.csv
+  - name: soil_data
+    file: soil_data.csv
+prereq_cases:
+  - ndvi_overview
+  - yield_by_crop
+  - soil_joins
+  - yield_trend
+  - cte_soil
+  - capstone_farm
+seedQuery: |-
+  -- SCENARIO: The Farm Manager asks:
+  -- "Which crops should we plant more of next
+  --  season? Show me yield per hectare, average
+  --  NDVI health, and soil compatibility so I
+  --  can make the best decision."
+  SELECT 1;
+solutionQuery: |-
+  WITH CropPerformance AS (
+    SELECT
+      f.crop_type,
+      COUNT(*) AS harvests,
+      ROUND(AVG(f.yield_kg), 2) AS avg_yield,
+      ROUND(AVG(f.ndvi), 4) AS avg_ndvi,
+      ROUND(AVG(s.soil_ph), 2) AS avg_soil_ph
+    FROM farming_yield f
+    INNER JOIN soil_data s ON f.field_id = s.field_id
+    GROUP BY f.crop_type
+  )
+  SELECT
+    crop_type,
+    harvests,
+    avg_yield,
+    avg_ndvi,
+    avg_soil_ph,
+    CASE
+      WHEN avg_yield > 5000 AND avg_ndvi > 0.6 THEN 'Strongly Recommend'
+      WHEN avg_yield > 3000 AND avg_ndvi > 0.4 THEN 'Recommend'
+      WHEN avg_yield > 1000 THEN 'Consider'
+      ELSE 'Not Recommended'
+    END AS planting_recommendation
+  FROM CropPerformance
+  ORDER BY avg_yield DESC;
+instructions: |-
+  The farm manager needs crop selection advice for next season.
+
+  1. JOIN farming_yield with soil_data on field_id
+  2. Calculate per crop: harvests, avg_yield, avg_ndvi, avg_soil_ph
+  3. Classify each crop:
+     - Strongly Recommend: avg_yield > 5000 AND avg_ndvi > 0.6
+     - Recommend: avg_yield > 3000 AND avg_ndvi > 0.4
+     - Consider: avg_yield > 1000
+     - Not Recommended: everything else
+  4. Order by avg_yield descending
+hints:
+  - JOIN the two tables on field_id
+  - Use AVG for yield, NDVI, and soil pH
+  - Use CASE for the recommendation
+  - GROUP BY crop_type
+expected:
+  - crop_type: Wheat
+    harvests: 50
+    avg_yield: 5230.45
+    avg_ndvi: 0.6512
+    avg_soil_ph: 6.82
+    planting_recommendation: Strongly Recommend
+type: hidden
+tags:
+  - farming_ndvi
+  - real_world
+  - crop_optimization
+  - case
+  - cte
+  - join
+category: Farming NDVI

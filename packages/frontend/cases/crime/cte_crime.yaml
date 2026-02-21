@@ -1,0 +1,85 @@
+id: cte_crime
+name: Crime Analysis
+tier: 4
+domain: Crime Chicago
+description: Summarize crime patterns using CTEs
+skills:
+  - ctes
+  - joins
+  - aggregation
+datasets:
+  - name: crime_chicago
+    file: crime_chicago.csv
+  - name: suspects
+    file: suspects.csv
+prereq_cases:
+  - crime_select
+  - crime_by_area
+  - suspect_joins
+seedQuery: |-
+  -- TODO: write query for cte_crime
+  SELECT 1;
+solutionQuery: |-
+  WITH SuspectCounts AS (
+   SELECT c.location_description, COUNT(s.suspect_name) AS suspect_count
+   FROM crime_chicago c
+   LEFT JOIN suspects s ON c.id = s.crime_id
+   GROUP BY c.location_description
+  )
+  SELECT c.location_description, COUNT(*) AS crime_count, s.suspect_count
+  FROM crime_chicago c
+  JOIN SuspectCounts s ON c.location_description = s.location_description
+  GROUP BY c.location_description, s.suspect_count
+  ORDER BY crime_count DESC;
+instructions: Calculate crime counts and suspect counts by location, using a CTE
+hints:
+  - Review CTEs in the GuideBook
+  - Use a CTE to count suspects
+  - Join with crimes
+  - Group by location_description
+schema:
+  - name: crime_chicago
+    columns:
+      - name: id
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: primary_type
+        type: TEXT
+      - name: location_description
+        type: TEXT
+      - name: latitude
+        type: FLOAT
+      - name: longitude
+        type: FLOAT
+  - name: suspects
+    columns:
+      - name: suspect_id
+        type: TEXT
+      - name: crime_id
+        type: TEXT
+      - name: suspect_name
+        type: TEXT
+expected:
+  - crime_count: 100265
+    location_description: STREET
+    suspect_count: 1968
+  - crime_count: 100074
+    location_description: RESIDENCE
+    suspect_count: 2014
+  - crime_count: 100012
+    location_description: SIDEWALK
+    suspect_count: 2036
+  - crime_count: 99883
+    location_description: BANK
+    suspect_count: 2005
+  - crime_count: 99766
+    location_description: APARTMENT
+    suspect_count: 1977
+type: standard
+tags:
+  - crime_chicago
+  - ctes
+  - joins
+  - aggregation
+category: Crime Chicago

@@ -1,0 +1,68 @@
+id: user_joins
+name: User Engagement
+tier: 3
+domain: Social Twitter
+description: Analyze user engagement via tweets
+skills:
+  - joins
+  - aggregation
+datasets:
+  - name: tweets
+    file: tweets.csv
+  - name: users
+    file: users.csv
+prereq_cases:
+  - post_select
+  - engagement_by_type
+seedQuery: |-
+  -- TODO: write query for user_joins
+  SELECT 1;
+solutionQuery: |-
+  SELECT u.user_name, COUNT(t.tweet_id) AS tweet_count
+  FROM tweets t
+  JOIN users u ON t.user_id = u.user_id
+  GROUP BY u.user_name
+  ORDER BY tweet_count DESC
+  LIMIT 5;
+instructions: Count tweets per user, order by count
+hints:
+  - Review joins in the GuideBook
+  - Use JOIN to link tweets and users
+  - Group by user_name
+  - Order by tweet count
+schema:
+  - name: tweets
+    columns:
+      - name: tweet_id
+        type: TEXT
+      - name: user_id
+        type: TEXT
+      - name: created_at
+        type: DATE
+      - name: text
+        type: TEXT
+  - name: users
+    columns:
+      - name: user_id
+        type: TEXT
+      - name: user_name
+        type: TEXT
+      - name: signup_date
+        type: DATE
+expected:
+  - tweet_count: 1
+    user_name: User_9999
+  - tweet_count: 1
+    user_name: User_9998
+  - tweet_count: 1
+    user_name: User_9997
+  - tweet_count: 1
+    user_name: User_9996
+  - tweet_count: 1
+    user_name: User_9995
+type: standard
+tags:
+  - social_twitter
+  - joins
+  - aggregation
+category: Social Twitter

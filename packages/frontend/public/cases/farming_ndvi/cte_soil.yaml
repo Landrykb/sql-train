@@ -1,0 +1,133 @@
+id: cte_soil
+name: Soil Health Analysis
+tier: 4
+domain: Farming Ndvi
+description: Summarize soil and yield metrics using CTEs
+skills:
+  - ctes
+  - joins
+  - aggregation
+datasets:
+  - name: farming_yield
+    file: farming_yield.csv
+  - name: soil_data
+    file: soil_data.csv
+prereq_cases:
+  - ndvi_overview
+  - yield_by_crop
+  - soil_joins
+seedQuery: |-
+  -- TODO: write query for cte_soil
+  SELECT 1;
+solutionQuery: |-
+  WITH SoilBuckets AS (
+   SELECT f.id, f.yield, f.ndvi, ROUND(s.soil_ph, 1) AS ph_bucket
+   FROM farming_yield f
+   JOIN soil_data s ON f.id = s.id
+  )
+  SELECT ph_bucket, AVG(ndvi) AS avg_ndvi, AVG(yield) AS avg_yield
+  FROM SoilBuckets
+  GROUP BY ph_bucket
+  ORDER BY avg_yield DESC;
+instructions: Calculate average NDVI and yield by soil pH range, using a CTE
+hints:
+  - Review CTEs in the GuideBook
+  - Use a CTE to bucket soil pH
+  - Join yield and soil data
+  - Group by pH range
+schema:
+  - name: farming_yield
+    columns:
+      - name: id
+        type: INTEGER
+      - name: region
+        type: TEXT
+      - name: ndvi
+        type: FLOAT
+      - name: yield
+        type: FLOAT
+      - name: year
+        type: INTEGER
+      - name: month
+        type: INTEGER
+      - name: soil_type
+        type: TEXT
+  - name: soil_data
+    columns:
+      - name: id
+        type: INTEGER
+      - name: soil_ph
+        type: FLOAT
+      - name: soil_type
+        type: TEXT
+expected:
+  - avg_ndvi: 0.697719298245614
+    avg_yield: 3.6175438596491225
+    ph_bucket: 5.5
+  - avg_ndvi: 0.695
+    avg_yield: 3.6100000000000008
+    ph_bucket: 7.5
+  - avg_ndvi: 0.6873469387755102
+    avg_yield: 3.6071428571428608
+    ph_bucket: 7.4
+  - avg_ndvi: 0.7170212765957449
+    avg_yield: 3.5882978723404255
+    ph_bucket: 7.1
+  - avg_ndvi: 0.6992079207920797
+    avg_yield: 3.570297029702969
+    ph_bucket: 6.5
+  - avg_ndvi: 0.6824545454545456
+    avg_yield: 3.5700000000000003
+    ph_bucket: 6.0
+  - avg_ndvi: 0.6742727272727275
+    avg_yield: 3.556363636363636
+    ph_bucket: 6.6
+  - avg_ndvi: 0.7187179487179489
+    avg_yield: 3.540170940170939
+    ph_bucket: 6.4
+  - avg_ndvi: 0.7085393258426965
+    avg_yield: 3.4988764044943816
+    ph_bucket: 7.0
+  - avg_ndvi: 0.7286666666666668
+    avg_yield: 3.479047619047618
+    ph_bucket: 6.3
+  - avg_ndvi: 0.7008653846153846
+    avg_yield: 3.4634615384615355
+    ph_bucket: 6.1
+  - avg_ndvi: 0.6938709677419359
+    avg_yield: 3.4620967741935496
+    ph_bucket: 6.7
+  - avg_ndvi: 0.7076190476190476
+    avg_yield: 3.461904761904763
+    ph_bucket: 5.7
+  - avg_ndvi: 0.7120238095238095
+    avg_yield: 3.43690476190476
+    ph_bucket: 5.8
+  - avg_ndvi: 0.7168627450980394
+    avg_yield: 3.4352941176470586
+    ph_bucket: 6.9
+  - avg_ndvi: 0.6962222222222224
+    avg_yield: 3.428888888888888
+    ph_bucket: 6.2
+  - avg_ndvi: 0.6996551724137929
+    avg_yield: 3.422988505747128
+    ph_bucket: 7.3
+  - avg_ndvi: 0.6901190476190476
+    avg_yield: 3.4154761904761894
+    ph_bucket: 7.2
+  - avg_ndvi: 0.708913043478261
+    avg_yield: 3.389130434782609
+    ph_bucket: 5.9
+  - avg_ndvi: 0.7035164835164837
+    avg_yield: 3.375824175824177
+    ph_bucket: 5.6
+  - avg_ndvi: 0.6985849056603769
+    avg_yield: 3.29245283018868
+    ph_bucket: 6.8
+type: standard
+tags:
+  - farming_ndvi
+  - ctes
+  - joins
+  - aggregation
+category: Farming Ndvi

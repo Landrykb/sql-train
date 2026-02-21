@@ -1,0 +1,41 @@
+// packages/frontend/global.d.ts
+
+// Raw string imports for YAML
+declare module '*.yaml?raw' {
+    const content: string;
+    export default content;
+  }
+  declare module '*.yml?raw' {
+    const content: string;
+    export default content;
+  }
+  
+  // Parsed object imports (if using yaml-loader without ?raw)
+  declare module '*.yaml' {
+    const content: any;
+    export default content;
+  }
+  declare module '*.yml' {
+    const content: any;
+    export default content;
+  }
+  
+// Static assets emitted by Webpack
+declare module '*.wasm' {
+    const src: string;  // this will be the URL under /_next/static/wasm/
+    export default src;
+  }
+  
+  declare module '*.worker.js' {
+    const src: string;  // this will be the URL under /_next/static/worker/
+    export default src;
+  }
+
+  // global.d.ts
+declare module 'next/link';
+declare module 'next/dynamic';
+declare module 'react-confetti';
+declare module '@uiw/react-codemirror';
+declare module '@codemirror/lang-sql';
+declare module 'matplotlib';
+  

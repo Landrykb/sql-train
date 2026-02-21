@@ -1,0 +1,98 @@
+id: joins_returns
+name: Returns vs Sales
+tier: 2
+domain: Business Retail
+description: Analyze sales with return reasons
+skills:
+  - join
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+  - name: returns
+    file: returns.csv
+prereq_cases:
+  - basics_select
+  - agg_revenue
+seedQuery: |-
+  -- TODO: write query for joins_returns
+  SELECT 1;
+solutionQuery: |-
+  SELECT b.invoice_id, b.total, r.return_reason
+  FROM business_retail b
+  LEFT JOIN returns r ON b.invoice_id = r.invoice_id
+  WHERE r.return_reason IS NOT NULL
+  ORDER BY b.total DESC
+  LIMIT 5;
+instructions: Join sales and returns to show sales with return reasons, ordered by
+  total
+hints:
+  - Review the join concept in the GuideBook
+  - Use LEFT JOIN to include return data
+  - Filter for non-null return reasons with WHERE
+  - Use LIMIT to get top 5
+schema:
+  - name: business_retail
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: branch
+        type: TEXT
+      - name: city
+        type: TEXT
+      - name: customer_type
+        type: TEXT
+      - name: gender
+        type: TEXT
+      - name: product_line
+        type: TEXT
+      - name: unit_price
+        type: FLOAT
+      - name: quantity
+        type: INTEGER
+      - name: tax_5
+        type: FLOAT
+      - name: total
+        type: FLOAT
+      - name: date
+        type: DATE
+      - name: time
+        type: TEXT
+      - name: payment
+        type: TEXT
+      - name: cogs
+        type: FLOAT
+      - name: gross_margin_percentage
+        type: FLOAT
+      - name: gross_income
+        type: FLOAT
+      - name: rating
+        type: FLOAT
+  - name: returns
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: return_date
+        type: DATE
+      - name: return_reason
+        type: TEXT
+expected:
+  - invoice_id: 687-47-8271
+    return_reason: damaged
+    total: 1039.29
+  - invoice_id: 687-47-8271
+    return_reason: damaged
+    total: 1039.29
+  - invoice_id: 283-26-5248
+    return_reason: wrong_size
+    total: 1034.46
+  - invoice_id: 751-41-9720
+    return_reason: late_delivery
+    total: 1023.75
+  - invoice_id: 751-41-9720
+    return_reason: wrong_size
+    total: 1023.75
+type: standard
+tags:
+  - business_retail
+  - join
+category: Business Retail

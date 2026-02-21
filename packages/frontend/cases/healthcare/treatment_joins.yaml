@@ -1,0 +1,501 @@
+id: treatment_joins
+name: Patient Treatments
+tier: 3
+domain: Healthcare Covid
+description: Join patient and treatment data
+skills:
+  - join
+datasets:
+  - name: healthcare_covid
+    file: healthcare_covid.csv
+  - name: patients
+    file: patients.csv
+  - name: treatments
+    file: treatments.csv
+  - name: admissions
+    file: admissions.csv
+prereq_cases:
+  - patient_select
+  - diagnosis_count
+seedQuery: |-
+  -- TODO: write query for treatment_joins
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    p.patient_id,
+    p.age,
+    t.diagnosis,
+    strftime('%Y-%m-%d', t.treatment_date) AS treatment_date
+  FROM patients p
+  JOIN treatments t
+    ON p.patient_id = t.patient_id
+  WHERE t.diagnosis IS NOT NULL
+    AND t.treatment_date >= '2020-04-01'
+  ORDER BY t.treatment_date
+  LIMIT 100;
+instructions: Join patients to treatments on the patient_id column, keeping only non-null diagnoses from 2020-04-01 onward. 
+    Then sort by treatment_date and return the first 100 rows.
+hints:
+  - Review the join concept in the GuideBook
+  - Use JOIN to combine patients and treatments on patient_id
+  - Filter with WHERE for non-null diagnoses and treatment dates after 2020-04-01
+  - Use ORDER BY to sort by treatment_date and LIMIT for the first 100 records
+schema:
+  - name: healthcare_covid
+    columns:
+      - name: iso_code
+        type: TEXT
+      - name: continent
+        type: TEXT
+      - name: location
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: total_cases
+        type: FLOAT
+      - name: new_cases
+        type: FLOAT
+      - name: total_deaths
+        type: FLOAT
+      - name: total_vaccinations
+        type: FLOAT
+      - name: people_vaccinated
+        type: FLOAT
+      - name: population
+        type: INTEGER
+  - name: patients
+    columns:
+      - name: patient_id
+        type: TEXT
+      - name: age
+        type: INTEGER
+      - name: gender
+        type: TEXT
+      - name: birthdate
+        type: DATE
+  - name: treatments
+    columns:
+      - name: treatment_id
+        type: TEXT
+      - name: patient_id
+        type: TEXT
+      - name: diagnosis
+        type: TEXT
+      - name: treatment_date
+        type: DATE
+  - name: admissions
+    columns:
+      - name: admission_id
+        type: TEXT
+      - name: patient_id
+        type: TEXT
+      - name: admission_date
+        type: DATE
+      - name: discharge_date
+        type: DATE
+expected:
+  - patient_id: P1544
+    age: 64
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P6213
+    age: 103
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P8251
+    age: 45
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P3499
+    age: 101
+    diagnosis: flu
+    treatment_date: "2023-01-02"
+  - patient_id: P3144
+    age: 64
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P1946
+    age: 50
+    diagnosis: flu
+    treatment_date: "2023-01-02"
+  - patient_id: P4667
+    age: 98
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P1520
+    age: 103
+    diagnosis: allergy
+    treatment_date: "2023-01-02"
+  - patient_id: P1693
+    age: 54
+    diagnosis: flu
+    treatment_date: "2023-01-02"
+  - patient_id: P6114
+    age: 42
+    diagnosis: flu
+    treatment_date: "2023-01-02"
+  - patient_id: P1049
+    age: 80
+    diagnosis: flu
+    treatment_date: "2023-01-02"
+  - patient_id: P1438
+    age: 48
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P1459
+    age: 54
+    diagnosis: flu
+    treatment_date: "2023-01-02"
+  - patient_id: P1669
+    age: 69
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P1166
+    age: 44
+    diagnosis: flu
+    treatment_date: "2023-01-02"
+  - patient_id: P7074
+    age: 52
+    diagnosis: covid
+    treatment_date: "2023-01-02"
+  - patient_id: P1979
+    age: 53
+    diagnosis: flu
+    treatment_date: "2023-01-02"
+  - patient_id: P8993
+    age: 42
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P9485
+    age: 83
+    diagnosis: flu
+    treatment_date: "2023-01-02"
+  - patient_id: P7988
+    age: 69
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P6474
+    age: 104
+    diagnosis: allergy
+    treatment_date: "2023-01-02"
+  - patient_id: P1701
+    age: 69
+    diagnosis: allergy
+    treatment_date: "2023-01-02"
+  - patient_id: P383
+    age: 83
+    diagnosis: flu
+    treatment_date: "2023-01-02"
+  - patient_id: P4426
+    age: 60
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P828
+    age: 96
+    diagnosis: allergy
+    treatment_date: "2023-01-02"
+  - patient_id: P6274
+    age: 85
+    diagnosis: allergy
+    treatment_date: "2023-01-02"
+  - patient_id: P7189
+    age: 106
+    diagnosis: allergy
+    treatment_date: "2023-01-02"
+  - patient_id: P2628
+    age: 73
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P6208
+    age: 99
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P682
+    age: 56
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P1715
+    age: 79
+    diagnosis: allergy
+    treatment_date: "2023-01-02"
+  - patient_id: P7982
+    age: 62
+    diagnosis: allergy
+    treatment_date: "2023-01-02"
+  - patient_id: P5829
+    age: 82
+    diagnosis: covid
+    treatment_date: "2023-01-02"
+  - patient_id: P7094
+    age: 79
+    diagnosis: flu
+    treatment_date: "2023-01-02"
+  - patient_id: P1362
+    age: 53
+    diagnosis: allergy
+    treatment_date: "2023-01-02"
+  - patient_id: P1737
+    age: 108
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P3031
+    age: 78
+    diagnosis: covid
+    treatment_date: "2023-01-02"
+  - patient_id: P277
+    age: 55
+    diagnosis: hypertension
+    treatment_date: "2023-01-02"
+  - patient_id: P6120
+    age: 83
+    diagnosis: allergy
+    treatment_date: "2023-01-02"
+  - patient_id: P5751
+    age: 107
+    diagnosis: flu
+    treatment_date: "2023-01-02"
+  - patient_id: P4101
+    age: 62
+    diagnosis: covid
+    treatment_date: "2023-01-02"
+  - patient_id: P4662
+    age: 58
+    diagnosis: allergy
+    treatment_date: "2023-01-02"
+  - patient_id: P5663
+    age: 66
+    diagnosis: covid
+    treatment_date: "2023-01-02"
+  - patient_id: P6777
+    age: 100
+    diagnosis: covid
+    treatment_date: "2023-01-02"
+  - patient_id: P4757
+    age: 108
+    diagnosis: covid
+    treatment_date: "2023-01-03"
+  - patient_id: P8893
+    age: 49
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P7310
+    age: 52
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P2069
+    age: 66
+    diagnosis: covid
+    treatment_date: "2023-01-03"
+  - patient_id: P7754
+    age: 64
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P6331
+    age: 47
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P3160
+    age: 79
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P5347
+    age: 74
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P8614
+    age: 92
+    diagnosis: covid
+    treatment_date: "2023-01-03"
+  - patient_id: P2112
+    age: 80
+    diagnosis: covid
+    treatment_date: "2023-01-03"
+  - patient_id: P793
+    age: 52
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P2776
+    age: 69
+    diagnosis: covid
+    treatment_date: "2023-01-03"
+  - patient_id: P9104
+    age: 47
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P5578
+    age: 68
+    diagnosis: hypertension
+    treatment_date: "2023-01-03"
+  - patient_id: P8525
+    age: 110
+    diagnosis: covid
+    treatment_date: "2023-01-03"
+  - patient_id: P360
+    age: 98
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P454
+    age: 46
+    diagnosis: covid
+    treatment_date: "2023-01-03"
+  - patient_id: P7454
+    age: 93
+    diagnosis: hypertension
+    treatment_date: "2023-01-03"
+  - patient_id: P5176
+    age: 87
+    diagnosis: hypertension
+    treatment_date: "2023-01-03"
+  - patient_id: P8375
+    age: 73
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P804
+    age: 63
+    diagnosis: hypertension
+    treatment_date: "2023-01-03"
+  - patient_id: P2826
+    age: 91
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P7241
+    age: 90
+    diagnosis: covid
+    treatment_date: "2023-01-03"
+  - patient_id: P649
+    age: 55
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P8098
+    age: 96
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P3598
+    age: 52
+    diagnosis: hypertension
+    treatment_date: "2023-01-03"
+  - patient_id: P5971
+    age: 44
+    diagnosis: hypertension
+    treatment_date: "2023-01-03"
+  - patient_id: P1725
+    age: 90
+    diagnosis: covid
+    treatment_date: "2023-01-03"
+  - patient_id: P785
+    age: 102
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P3748
+    age: 49
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P8094
+    age: 104
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P7548
+    age: 49
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P3971
+    age: 100
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P9850
+    age: 67
+    diagnosis: hypertension
+    treatment_date: "2023-01-03"
+  - patient_id: P3515
+    age: 90
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P2833
+    age: 47
+    diagnosis: hypertension
+    treatment_date: "2023-01-03"
+  - patient_id: P1402
+    age: 107
+    diagnosis: covid
+    treatment_date: "2023-01-03"
+  - patient_id: P2092
+    age: 95
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P3484
+    age: 49
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P5073
+    age: 68
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P5104
+    age: 91
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P7925
+    age: 103
+    diagnosis: covid
+    treatment_date: "2023-01-03"
+  - patient_id: P1648
+    age: 63
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P6406
+    age: 61
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P9536
+    age: 45
+    diagnosis: hypertension
+    treatment_date: "2023-01-03"
+  - patient_id: P8328
+    age: 67
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P6286
+    age: 77
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P1906
+    age: 61
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P2590
+    age: 41
+    diagnosis: hypertension
+    treatment_date: "2023-01-03"
+  - patient_id: P2798
+    age: 101
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P3456
+    age: 106
+    diagnosis: hypertension
+    treatment_date: "2023-01-03"
+  - patient_id: P4043
+    age: 79
+    diagnosis: flu
+    treatment_date: "2023-01-03"
+  - patient_id: P9428
+    age: 67
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+  - patient_id: P5598
+    age: 92
+    diagnosis: hypertension
+    treatment_date: "2023-01-03"
+  - patient_id: P5216
+    age: 87
+    diagnosis: hypertension
+    treatment_date: "2023-01-03"
+  - patient_id: P5079
+    age: 91
+    diagnosis: allergy
+    treatment_date: "2023-01-03"
+type: standard
+tags:
+  - healthcare_covid
+  - join
+category: Healthcare Covid

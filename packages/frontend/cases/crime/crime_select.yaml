@@ -1,0 +1,74 @@
+id: crime_select
+name: Crime Incident Overview
+tier: 1
+domain: Crime Chicago
+description: Retrieve recent theft incidents
+skills:
+  - select
+  - filter
+datasets:
+  - name: crime_chicago
+    file: crime_chicago.csv
+  - name: suspects
+    file: suspects.csv
+prereq_cases: []
+seedQuery: |-
+  -- TODO: write query for crime_select
+  SELECT 1;
+solutionQuery: |-
+  SELECT id, date, primary_type
+  FROM crime_chicago
+  WHERE primary_type = 'THEFT'
+  ORDER BY date DESC
+  LIMIT 5;
+instructions: Select the top 5 theft incidents, ordered by date
+hints:
+  - Review the select concept in the GuideBook
+  - Use WHERE to filter primary_type
+  - Use ORDER BY to sort by date
+  - Use LIMIT to get 5 rows
+schema:
+  - name: crime_chicago
+    columns:
+      - name: id
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: primary_type
+        type: TEXT
+      - name: location_description
+        type: TEXT
+      - name: latitude
+        type: FLOAT
+      - name: longitude
+        type: FLOAT
+  - name: suspects
+    columns:
+      - name: suspect_id
+        type: TEXT
+      - name: crime_id
+        type: TEXT
+      - name: suspect_name
+        type: TEXT
+expected:
+  - date: '2024-12-31'
+    id: '25'
+    primary_type: THEFT
+  - date: '2024-12-31'
+    id: '2444'
+    primary_type: THEFT
+  - date: '2024-12-31'
+    id: '7311'
+    primary_type: THEFT
+  - date: '2024-12-31'
+    id: '21926'
+    primary_type: THEFT
+  - date: '2024-12-31'
+    id: '25347'
+    primary_type: THEFT
+type: standard
+tags:
+  - crime_chicago
+  - select
+  - filter
+category: Crime Chicago

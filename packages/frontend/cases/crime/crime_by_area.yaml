@@ -1,0 +1,68 @@
+id: crime_by_area
+name: Crime Types by Location
+tier: 2
+domain: Crime Chicago
+description: Summarize crime types by location
+skills:
+  - aggregation
+datasets:
+  - name: crime_chicago
+    file: crime_chicago.csv
+  - name: suspects
+    file: suspects.csv
+prereq_cases:
+  - crime_select
+seedQuery: |-
+  -- TODO: write query for crime_by_area
+  SELECT 1;
+solutionQuery: |-
+  SELECT primary_type, COUNT(*) as crime_count
+  FROM crime_chicago
+  GROUP BY primary_type
+  ORDER BY crime_count DESC
+  LIMIT 10;
+instructions: Count crimes by primary_type, order by count
+hints:
+  - Review aggregation in the GuideBook
+  - Use GROUP BY for primary_type
+  - Use COUNT for crime counts
+  - Order by count
+schema:
+  - name: crime_chicago
+    columns:
+      - name: id
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: primary_type
+        type: TEXT
+      - name: location_description
+        type: TEXT
+      - name: latitude
+        type: FLOAT
+      - name: longitude
+        type: FLOAT
+  - name: suspects
+    columns:
+      - name: suspect_id
+        type: TEXT
+      - name: crime_id
+        type: TEXT
+      - name: suspect_name
+        type: TEXT
+expected:
+  - crime_count: 100216
+    primary_type: ASSAULT
+  - crime_count: 100085
+    primary_type: THEFT
+  - crime_count: 100068
+    primary_type: BATTERY
+  - crime_count: 99945
+    primary_type: ROBBERY
+  - crime_count: 99686
+    primary_type: NARCOTICS
+type: standard
+tags:
+  - crime_chicago
+  - aggregation
+category: Crime Chicago

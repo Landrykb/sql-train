@@ -1,0 +1,88 @@
+id: hidden_crime_hotspot
+name: "Predict Crime Hotspots for Patrol Deployment"
+tier: 6
+domain: Crime Chicago
+description: The police chief needs data-driven patrol deployment — identify the highest-crime areas, peak times, and arrest rates to optimize officer scheduling.
+hidden: true
+skills:
+  - select
+  - group
+  - order
+  - case
+  - cte
+  - window
+datasets:
+  - name: crime_chicago
+    file: crime_chicago.csv
+  - name: suspects
+    file: suspects.csv
+prereq_cases:
+  - crime_select
+  - crime_by_area
+  - suspect_joins
+  - crime_trend
+  - cte_crime
+  - capstone_crime
+seedQuery: |-
+  -- SCENARIO: The Police Chief asks:
+  -- "Where should we deploy extra patrols?
+  --  Show me the top crime hotspots with their
+  --  arrest rates so we can prioritize areas
+  --  that need the most attention."
+  SELECT 1;
+solutionQuery: |-
+  WITH AreaStats AS (
+    SELECT
+      area_name,
+      COUNT(*) AS total_crimes,
+      SUM(CASE WHEN arrest = 'true' THEN 1 ELSE 0 END) AS total_arrests,
+      ROUND(100.0 * SUM(CASE WHEN arrest = 'true' THEN 1 ELSE 0 END) / COUNT(*), 2) AS arrest_rate
+    FROM crime_chicago
+    GROUP BY area_name
+  )
+  SELECT
+    area_name,
+    total_crimes,
+    total_arrests,
+    arrest_rate,
+    CASE
+      WHEN total_crimes > 500 AND arrest_rate < 20 THEN 'Critical — Deploy Now'
+      WHEN total_crimes > 300 THEN 'High Priority'
+      WHEN total_crimes > 100 THEN 'Monitor'
+      ELSE 'Low Risk'
+    END AS deployment_priority,
+    RANK() OVER (ORDER BY total_crimes DESC) AS crime_rank
+  FROM AreaStats
+  ORDER BY total_crimes DESC
+  LIMIT 10;
+instructions: |-
+  The Police Chief wants to know where to deploy extra patrols.
+
+  1. Calculate per-area: total_crimes, total_arrests, arrest_rate (percentage)
+  2. Classify each area with a deployment_priority:
+     - Critical: > 500 crimes AND arrest_rate < 20%
+     - High Priority: > 300 crimes
+     - Monitor: > 100 crimes
+     - Low Risk: everything else
+  3. Rank by total_crimes descending and show top 10
+hints:
+  - Use SUM(CASE WHEN arrest = 'true' THEN 1 ELSE 0 END) for arrest counts
+  - Divide arrests by total to get arrest_rate
+  - Use RANK() OVER for ranking
+  - LIMIT 10 for top areas
+expected:
+  - area_name: Austin
+    total_crimes: 862
+    total_arrests: 152
+    arrest_rate: 17.63
+    deployment_priority: "Critical — Deploy Now"
+    crime_rank: 1
+type: hidden
+tags:
+  - crime_chicago
+  - real_world
+  - patrol_deployment
+  - case
+  - cte
+  - window
+category: Crime Chicago

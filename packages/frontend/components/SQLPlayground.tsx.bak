@@ -1,0 +1,111 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import CodeMirror from '@uiw/react-codemirror';
+import { basicSetup } from '@codemirror/basic-setup';
+import { sql } from '@codemirror/lang-sql';
+import { initDuckDB, loadCSV, runQuery } from '../lib/duckdbClient';
+import { DataGrid } from './Table';
+
+interface CaseData {
+  name: string;
+  description: string;
+  instructions?: string;
+  hints?: string[];
+  datasets: { name: string; file: string }[];
+  seedQuery?: string;
+  expected?: any[];
+}
+
+interface Props {
+  caseData: CaseData;
+}
+
+export default function SQLPlayground({ caseData }: Props) {
+  const {
+    name,
+    description,
+    instructions,
+    hints = [],
+    datasets,
+    seedQuery = '',
+    expected = [],
+  } = caseData;
+
+  const [ready, setReady] = useState(false);
+  const [query, setQuery] = useState(seedQuery);
+  const [rows, setRows] = useState<any[]>([]);
+  const [msg, setMsg] = useState('');
+
+  // bootstrap DB & load CSVs
+  useEffect(() => {
+    (async () => {
+      await initDuckDB();
+      for (const ds of datasets) {
+        await loadCSV(ds.name, ds.file);
+      }
+      if (seedQuery) {
+        try { await runQuery(seedQuery); } catch {}
+      }
+      setReady(true);
+    })();
+  }, [datasets, seedQuery]);
+
+  const onRun = async () => {
+    try {
+      const res = await runQuery(query);
+      setRows(res);
+      setMsg(
+        JSON.stringify(res) === JSON.stringify(expected)
+          ? '✅ Correct'
+          : '❌ Try again'
+      );
+    } catch (err: any) {
+      setMsg('❌ ' + err.message);
+    }
+  };
+
+  if (!ready) return <p>Loading database…</p>;
+
+  return (
+    <div className="space-y-6 p-6 bg-white border rounded-lg shadow">
+      <h2 className="text-2xl font-bold">{name}</h2>
+      <p className="text-gray-700">{description}</p>
+
+      {instructions && (
+        <pre className="mt-2 p-4 bg-gray-100 rounded whitespace-pre-wrap">
+          {instructions}
+        </pre>
+      )}
+
+      {hints.length > 0 && (
+        <ul className="mt-2 list-disc pl-5 text-sm text-gray-600">
+          {hints.map((h, i) => <li key={i}>{h}</li>)}
+        </ul>
+      )}
+
+      <div className="mt-2 text-sm text-gray-600">
+        <strong>Datasets:</strong> {datasets.map(d => d.file).join(', ')}
+      </div>
+
+      <CodeMirror
+        value={query}
+        height="200px"
+        extensions={[basicSetup, sql()]}
+        onChange={setQuery}
+      />
+
+      <button
+        onClick={onRun}
+        disabled={!ready}
+        className="mt-2 rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+      >
+        Run Query
+      </button>
+
+      {msg && <p className="mt-1 font-medium">{msg}</p>}
+
+      <DataGrid data={rows} />
+    </div>
+  );
+}

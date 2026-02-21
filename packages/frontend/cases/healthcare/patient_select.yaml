@@ -1,0 +1,108 @@
+id: patient_select
+name: Patient Overview
+tier: 1
+domain: Healthcare Covid
+description: Retrieve recent elderly patients
+skills:
+  - select
+  - filter
+datasets:
+  - name: healthcare_covid
+    file: healthcare_covid.csv
+  - name: patients
+    file: patients.csv
+  - name: treatments
+    file: treatments.csv
+  - name: admissions
+    file: admissions.csv
+prereq_cases: []
+seedQuery: |-
+  -- TODO: write query for patient_select
+  SELECT 1;
+solutionQuery: |-
+  SELECT patient_id, age, birthdate
+  FROM patients
+  WHERE age > 50
+  ORDER BY birthdate DESC
+  LIMIT 5;
+instructions: Select top 5 patients over 50, ordered by admission date
+hints:
+  - Review the select concept in the GuideBook
+  - Use WHERE to filter age
+  - Use ORDER BY to sort by admission_date
+  - Use LIMIT to get 5 rows
+schema:
+  - name: healthcare_covid
+    columns:
+      - name: iso_code
+        type: TEXT
+      - name: continent
+        type: TEXT
+      - name: location
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: total_cases
+        type: FLOAT
+      - name: new_cases
+        type: FLOAT
+      - name: total_deaths
+        type: FLOAT
+      - name: total_vaccinations
+        type: FLOAT
+      - name: people_vaccinated
+        type: FLOAT
+      - name: population
+        type: INTEGER
+  - name: patients
+    columns:
+      - name: patient_id
+        type: TEXT
+      - name: age
+        type: INTEGER
+      - name: gender
+        type: TEXT
+      - name: birthdate
+        type: DATE
+  - name: treatments
+    columns:
+      - name: treatment_id
+        type: TEXT
+      - name: patient_id
+        type: TEXT
+      - name: diagnosis
+        type: TEXT
+      - name: treatment_date
+        type: DATE
+  - name: admissions
+    columns:
+      - name: admission_id
+        type: TEXT
+      - name: patient_id
+        type: TEXT
+      - name: admission_date
+        type: DATE
+      - name: discharge_date
+        type: DATE
+expected:
+  - age: 51
+    birthdate: '1972-01-11'
+    patient_id: P2170
+  - age: 51
+    birthdate: '1972-01-10'
+    patient_id: P5900
+  - age: 51
+    birthdate: '1972-01-08'
+    patient_id: P2340
+  - age: 51
+    birthdate: '1972-01-08'
+    patient_id: P3687
+  - age: 51
+    birthdate: '1972-01-06'
+    patient_id: P3384
+type: standard
+tags:
+  - healthcare_covid
+  - select
+  - filter
+category: Healthcare Covid

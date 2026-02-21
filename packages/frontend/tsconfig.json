@@ -1,0 +1,73 @@
+{
+  // No more broken "../../tsconfig.base.json" extend lookup
+  "compilerOptions": {
+    /* ----------------------------------------------------------
+       Target & module settings for Next.js
+    ---------------------------------------------------------- */
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "jsx": "preserve", // enable TSX
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    /* ----------------------------------------------------------
+       Strictness & interop
+    ---------------------------------------------------------- */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "isolatedModules": true,
+    /* ----------------------------------------------------------
+       No emit—Next.js will do the bundling
+    ---------------------------------------------------------- */
+    "noEmit": true,
+    "incremental": true,
+    /* ----------------------------------------------------------
+       Path aliases
+    ---------------------------------------------------------- */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "@/components/*": [
+        "components/*"
+      ],
+      "@/lib/*": [
+        "lib/*"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  /* ----------------------------------------------------------
+     Which files to include
+  ---------------------------------------------------------- */
+  "include": [
+    "next-env.d.ts",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "lib/**/*.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "out"
+  ]
+}

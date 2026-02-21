@@ -1,0 +1,94 @@
+id: agg_revenue
+name: Total Revenue by Product
+tier: 1
+domain: Business Retail
+description: Calculate total revenue by product line
+skills:
+  - group
+  - aggregation
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+  - name: returns
+    file: returns.csv
+prereq_cases:
+  - basics_select
+seedQuery: |-
+  -- TODO: write query for agg_revenue
+  SELECT *;
+solutionQuery: |-
+  SELECT product_line, SUM(total) AS total_revenue
+  FROM business_retail
+  GROUP BY product_line
+  ORDER BY total_revenue DESC;
+instructions: Write a query to sum the total revenue for each product line, ordered
+  by revenue
+hints:
+  - Review the group concept in the GuideBook
+  - Use SUM to aggregate totals
+  - Use GROUP BY to group by product_line
+  - Use ORDER BY to sort results
+schema:
+  - name: business_retail
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: branch
+        type: TEXT
+      - name: city
+        type: TEXT
+      - name: customer_type
+        type: TEXT
+      - name: gender
+        type: TEXT
+      - name: product_line
+        type: TEXT
+      - name: unit_price
+        type: FLOAT
+      - name: quantity
+        type: INTEGER
+      - name: tax_5
+        type: FLOAT
+      - name: total
+        type: FLOAT
+      - name: date
+        type: DATE
+      - name: time
+        type: TEXT
+      - name: payment
+        type: TEXT
+      - name: cogs
+        type: FLOAT
+      - name: gross_margin_percentage
+        type: FLOAT
+      - name: gross_income
+        type: FLOAT
+      - name: rating
+        type: FLOAT
+  - name: returns
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: return_date
+        type: DATE
+      - name: return_reason
+        type: TEXT
+expected:
+  - product_line: Food and beverages
+    total_revenue: 56144.844000000005
+  - product_line: Sports and travel
+    total_revenue: 55122.826499999996
+  - product_line: Electronic accessories
+    total_revenue: 54337.531500000005
+  - product_line: Fashion accessories
+    total_revenue: 54305.895
+  - product_line: Home and lifestyle
+    total_revenue: 53861.91300000001
+  - product_line: Health and beauty
+    total_revenue: 49193.739000000016
+type: standard
+tags:
+  - business_retail
+  - group
+  - aggregation
+category: Business Retail

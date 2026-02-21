@@ -1,0 +1,15 @@
+// packages/frontend/app/layout.tsx
+import '../styles/globals.css';
+export const metadata = {
+  title: 'Business Economics SQL Academy',
+  description: 'Interactive, data-driven SQL exercises',
+};
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body className="bg-gray-50 text-gray-900 antialiased">
+        {children}
+      </body>
+    </html>
+  );
+}

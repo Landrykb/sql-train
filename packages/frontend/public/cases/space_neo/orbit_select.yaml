@@ -1,0 +1,62 @@
+id: orbit_select
+name: NEO Overview
+tier: 1
+domain: Space Neo
+description: Retrieve close-approach NEOs
+skills:
+  - select
+  - filter
+datasets:
+  - name: space_neo
+    file: space_neo.csv
+prereq_cases: []
+seedQuery: |-
+  -- TODO: write query for orbit_select
+  SELECT 1;
+solutionQuery: |-
+  SELECT des, close_approach_date, dist_km
+  FROM space_neo
+  WHERE dist_km < 500000
+  ORDER BY close_approach_date DESC
+  LIMIT 5;
+instructions: Select top 5 NEOs with distance < 500000 km, order by date
+hints:
+  - Review the select concept in the GuideBook
+  - Use WHERE to filter dist_km
+  - Use ORDER BY to sort by close_approach_date
+  - Use LIMIT to get 5 rows
+schema:
+  - name: space_neo
+    columns:
+      - name: des
+        type: TEXT
+      - name: close_approach_date
+        type: DATE
+      - name: dist_km
+        type: INTEGER
+      - name: relative_velocity_km_s
+        type: FLOAT
+      - name: is_potentially_hazardous
+        type: BOOLEAN
+expected:
+  - close_approach_date: '2026-01-01'
+    des: NEO434
+    dist_km: 213403
+  - close_approach_date: '2026-01-01'
+    des: NEO560
+    dist_km: 204528
+  - close_approach_date: '2026-01-01'
+    des: NEO565
+    dist_km: 67116
+  - close_approach_date: '2026-01-01'
+    des: NEO1083
+    dist_km: 58195
+  - close_approach_date: '2026-01-01'
+    des: NEO1176
+    dist_km: 155212
+type: standard
+tags:
+  - space_neo
+  - select
+  - filter
+category: Space Neo

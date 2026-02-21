@@ -1,0 +1,52 @@
+id: orbit_trend
+name: NEO Trends
+tier: 3
+domain: Space Neo
+description: Analyze NEO approach trends
+skills:
+  - aggregation
+  - date_functions
+datasets:
+  - name: space_neo
+    file: space_neo.csv
+prereq_cases:
+  - orbit_select
+  - velocity_by_type
+seedQuery: |-
+  -- TODO: write query for orbit_trend
+  SELECT 1;
+solutionQuery: |-
+  SELECT strftime('%Y', close_approach_date) AS year, COUNT(*) AS neo_count
+  FROM space_neo
+  GROUP BY strftime('%Y', close_approach_date)
+  ORDER BY year;
+instructions: Count NEO approaches by year, order by year
+hints:
+  - Review date functions in the GuideBook
+  - Use strftime to extract year
+  - Use COUNT for NEO counts
+  - Order by year
+schema:
+  - name: space_neo
+    columns:
+      - name: des
+        type: TEXT
+      - name: close_approach_date
+        type: DATE
+      - name: dist_km
+        type: INTEGER
+      - name: relative_velocity_km_s
+        type: FLOAT
+      - name: is_potentially_hazardous
+        type: BOOLEAN
+expected:
+  - neo_count: 4992
+    year: '2025'
+  - neo_count: 8
+    year: '2026'
+type: standard
+tags:
+  - space_neo
+  - aggregation
+  - date_functions
+category: Space Neo

@@ -1,0 +1,1 @@
+export declare function DataGrid(props: { data: Record<string, unknown>[] }): JSX.Element;

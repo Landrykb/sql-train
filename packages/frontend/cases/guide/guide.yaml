@@ -1,0 +1,471 @@
+id: guide
+title: SQL Query Guide
+description: A comprehensive guide to SQL query types with examples and variants, applicable across all domains.
+query_types:
+  - name: SELECT
+    description: Select specific columns from a dataset.
+    variants:
+      - name: Basic SELECT
+        description: Select specific columns from a table.
+        example_generic: |-
+          SELECT col1, col2
+          FROM table_main;
+        example: |-
+          SELECT product_line, total
+          FROM business_retail;
+      - name: SELECT All
+        description: Select all columns using *.
+        example_generic: |-
+          SELECT *
+          FROM table_main
+          LIMIT N;
+        example: |-
+          SELECT *
+          FROM business_retail
+          LIMIT 5;
+      - name: SELECT DISTINCT
+        description: Select unique values.
+        example_generic: |-
+          SELECT DISTINCT col1
+          FROM table_main;
+        example: |-
+          SELECT DISTINCT product_line
+          FROM business_retail;
+  - name: WHERE
+    description: Filter rows based on conditions.
+    variants:
+      - name: Basic WHERE
+        description: Filter rows with a single condition.
+        example_generic: |-
+          SELECT col1, col2
+          FROM table_main
+          WHERE col2 > X;
+        example: |-
+          SELECT product_line, total
+          FROM business_retail
+          WHERE total > 150;
+      - name: WHERE with Operators
+        description: Combine conditions with AND, OR, NOT.
+        example_generic: |-
+          SELECT *
+          FROM table_main
+          WHERE col2 > X AND col1 = 'Y';
+        example: |-
+          SELECT *
+          FROM business_retail
+          WHERE total > 100 AND product_line = 'Food and beverages';
+  - name: ORDER BY
+    description: Sort the result set.
+    variants:
+      - name: Basic ORDER BY
+        description: Sort by a column in ascending or descending order.
+        example_generic: |-
+          SELECT col1, col2
+          FROM table_main
+          ORDER BY col2 DESC;
+        example: |-
+          SELECT product_line, total
+          FROM business_retail
+          ORDER BY total DESC;
+      - name: Multi-Column ORDER BY
+        description: Sort by multiple columns.
+        example_generic: |-
+          SELECT col1, col2
+          FROM table_main
+          ORDER BY col1 ASC, col2 DESC;
+        example: |-
+          SELECT product_line, total
+          FROM business_retail
+          ORDER BY product_line ASC, total DESC;
+  - name: GROUP BY
+    description: Aggregate rows into groups.
+    variants:
+      - name: Basic GROUP BY
+        description: Group rows and apply an aggregate function.
+        example_generic: |-
+          SELECT col1, SUM(col2)
+          FROM table_main
+          GROUP BY col1;
+        example: |-
+          SELECT product_line, SUM(total)
+          FROM business_retail
+          GROUP BY product_line;
+  - name: HAVING
+    description: Filter groups based on aggregate conditions.
+    variants:
+      - name: Basic HAVING
+        description: Apply conditions to grouped results.
+        example_generic: |-
+          SELECT col1, SUM(col2) AS sum_col2
+          FROM table_main
+          GROUP BY col1
+          HAVING SUM(col2) > X;
+        example: |-
+          SELECT product_line, SUM(total) AS total_revenue
+          FROM business_retail
+          GROUP BY product_line
+          HAVING SUM(total) > 50000;
+  - name: LIMIT
+    description: Restrict the number of rows returned.
+    variants:
+      - name: Basic LIMIT
+        description: Return a fixed number of rows.
+        example_generic: |-
+          SELECT col1, col2
+          FROM table_main
+          LIMIT N;
+        example: |-
+          SELECT product_line, total
+          FROM business_retail
+          LIMIT 5;
+      - name: LIMIT with OFFSET
+        description: Skip rows before returning a fixed number.
+        example_generic: |-
+          SELECT col1, col2
+          FROM table_main
+          LIMIT N OFFSET M;
+        example: |-
+          SELECT product_line, total
+          FROM business_retail
+          LIMIT 5 OFFSET 10;
+  - name: UNION
+    description: Combine results of multiple SELECT statements.
+    variants:
+      - name: Basic UNION
+        description: Combine unique rows from multiple queries.
+        example_generic: |-
+          SELECT col1 FROM table_main WHERE col2 > X
+          UNION
+          SELECT col1 FROM table_main WHERE col2 < Y;
+        example: |-
+          SELECT product_line FROM business_retail WHERE total > 200
+          UNION
+          SELECT product_line FROM business_retail WHERE total < 50;
+      - name: UNION ALL
+        description: Combine all rows, including duplicates.
+        example_generic: |-
+          SELECT col1 FROM table_main WHERE col2 > X
+          UNION ALL
+          SELECT col1 FROM table_main WHERE col2 < Y;
+        example: |-
+          SELECT product_line FROM business_retail WHERE total > 200
+          UNION ALL
+          SELECT product_line FROM business_retail WHERE total < 50;
+  - name: LIKE
+    description: Pattern matching for strings.
+    variants:
+      - name: Basic LIKE
+        description: Match strings using wildcards.
+        example_generic: |-
+          SELECT col1
+          FROM table_main
+          WHERE col1 LIKE 'pattern%';
+        example: |-
+          SELECT product_line
+          FROM business_retail
+          WHERE product_line LIKE 'Food%';
+  - name: BETWEEN
+    description: Filter values within a range.
+    variants:
+      - name: Basic BETWEEN
+        description: Include values between two bounds.
+        example_generic: |-
+          SELECT col1, col2
+          FROM table_main
+          WHERE col2 BETWEEN X AND Y;
+        example: |-
+          SELECT product_line, total
+          FROM business_retail
+          WHERE total BETWEEN 100 AND 200;
+  - name: IN
+    description: Filter rows matching a list of values.
+    variants:
+      - name: Basic IN
+        description: Check if a column value is in a list.
+        example_generic: |-
+          SELECT col1, col2
+          FROM table_main
+          WHERE col1 IN ('A','B','C');
+        example: |-
+          SELECT product_line, total
+          FROM business_retail
+          WHERE product_line IN ('Food and beverages','Sports and travel');
+  - name: IS NULL
+    description: Check for NULL values.
+    variants:
+      - name: Basic IS NULL
+        description: Filter rows where a column is NULL.
+        example_generic: |-
+          SELECT col1
+          FROM table_main
+          WHERE col2 IS NULL;
+        example: |-
+          SELECT product_line
+          FROM business_retail
+          WHERE customer_id IS NULL;
+  - name: SUM
+    description: Sum numeric values in each group.
+    variants:
+      - name: Basic SUM
+        description: Calculate the total of a numeric column.
+        example_generic: |-
+          SELECT SUM(col2)
+          FROM table_main;
+        example: |-
+          SELECT SUM(total)
+          FROM business_retail;
+  - name: COUNT
+    description: Count rows or non-null values.
+    variants:
+      - name: Basic COUNT
+        description: Count all rows.
+        example_generic: |-
+          SELECT COUNT(*)
+          FROM table_main;
+        example: |-
+          SELECT COUNT(*)
+          FROM business_retail;
+  - name: AVG
+    description: Average numeric values.
+    variants:
+      - name: Basic AVG
+        description: Calculate the average of a numeric column.
+        example_generic: |-
+          SELECT AVG(col2)
+          FROM table_main;
+        example: |-
+          SELECT AVG(total)
+          FROM business_retail;
+  - name: MIN / MAX
+    description: Find minimum or maximum values.
+    variants:
+      - name: Basic MIN/MAX
+        description: Retrieve the smallest or largest value.
+        example_generic: |-
+          SELECT MIN(col2), MAX(col2)
+          FROM table_main;
+        example: |-
+          SELECT MIN(total), MAX(total)
+          FROM business_retail;
+  - name: JOIN
+    description: Combine two tables row-wise based on a related column.
+    variants:
+      - name: INNER JOIN
+        description: Returns rows where there is a match in both tables.
+        example_generic: |-
+          SELECT a.col1, b.col2
+          FROM table_main a
+          INNER JOIN ref_table b ON a.key = b.key;
+        example: |-
+          SELECT b.product_line, c.customer_name
+          FROM business_retail b
+          INNER JOIN customers c ON b.customer_id = c.customer_id;
+      - name: LEFT JOIN
+        description: Returns all rows from the left table, with matches or NULL.
+        example_generic: |-
+          SELECT a.col1, b.col2
+          FROM table_main a
+          LEFT JOIN ref_table b ON a.key = b.key;
+        example: |-
+          SELECT b.product_line, c.customer_name
+          FROM business_retail b
+          LEFT JOIN customers c ON b.customer_id = c.customer_id;
+  - name: WINDOW FUNCTIONS
+    description: Compute metrics across a moving frame.
+    variants:
+      - name: ROW_NUMBER
+        description: Assign a unique number to each row within a partition.
+        example_generic: |-
+          SELECT col1, col2, ROW_NUMBER() OVER (PARTITION BY col1 ORDER BY col2 DESC)
+          FROM table_main;
+        example: |-
+          SELECT product_line, total, ROW_NUMBER() OVER (PARTITION BY product_line ORDER BY total DESC)
+          FROM business_retail;
+  - name: CTE
+    description: Define temporary result sets for readability.
+    variants:
+      - name: Basic CTE
+        description: Use WITH to create a named subquery.
+        example_generic: |-
+          WITH temp AS (SELECT * FROM table_main WHERE col2 > X)
+          SELECT col1, SUM(col2) FROM temp GROUP BY col1;
+        example: |-
+          WITH high_sales AS (SELECT * FROM business_retail WHERE total > 150)
+          SELECT product_line, SUM(total) FROM high_sales GROUP BY product_line;
+  - name: SUBQUERY
+    description: Nest SELECTs inside other queries.
+    variants:
+      - name: Basic SUBQUERY
+        description: Use a subquery in the WHERE clause.
+        example_generic: |-
+          SELECT * FROM table_main
+          WHERE col1 IN (SELECT col1 FROM ref_table WHERE condition);
+        example: |-
+          SELECT * FROM business_retail
+          WHERE customer_id IN (SELECT customer_id FROM customers WHERE status = 'active');
+  - name: CASE
+    description: Apply conditional logic in SELECT.
+    variants:
+      - name: Basic CASE
+        description: Transform values based on conditions.
+        example_generic: |-
+          SELECT col1,
+                 CASE WHEN col2 > X THEN 'High' ELSE 'Low' END AS category
+          FROM table_main;
+        example: |-
+          SELECT product_line,
+                 CASE WHEN total > 150 THEN 'High' ELSE 'Low' END AS sale_category
+          FROM business_retail;
+  - name: EXISTS
+    description: Test whether a subquery returns any rows.
+    variants:
+      - name: Basic EXISTS
+        description: Filter rows based on subquery results.
+        example_generic: |-
+          SELECT * FROM table_main t
+          WHERE EXISTS (SELECT 1 FROM ref_table r WHERE r.key = t.key);
+        example: |-
+          SELECT * FROM business_retail b
+          WHERE EXISTS (
+            SELECT 1
+            FROM customers c
+            WHERE c.customer_id = b.customer_id
+              AND c.status = 'active'
+          );
+  - name: RANK / DENSE_RANK
+    description: Assign ranks in windowed results.
+    variants:
+      - name: Basic RANK
+        description: Assign ranks with gaps for ties.
+        example_generic: |-
+          SELECT col1, col2, RANK() OVER (ORDER BY col2 DESC)
+          FROM table_main;
+        example: |-
+          SELECT product_line, total, RANK() OVER (ORDER BY total DESC)
+          FROM business_retail;
+      - name: DENSE_RANK
+        description: Assign ranks without gaps for ties.
+        example_generic: |-
+          SELECT col1, col2, DENSE_RANK() OVER (ORDER BY col2 DESC)
+          FROM table_main;
+        example: |-
+          SELECT product_line, total, DENSE_RANK() OVER (ORDER BY total DESC)
+          FROM business_retail;
+  - name: LAG / LEAD
+    description: Access previous or next row in a window.
+    variants:
+      - name: Basic LAG
+        description: Retrieve the previous row’s value.
+        example_generic: |-
+          SELECT col1, col2, LAG(col2) OVER (ORDER BY col2)
+          FROM table_main;
+        example: |-
+          SELECT product_line, total, LAG(total) OVER (ORDER BY total)
+          FROM business_retail;
+      - name: Basic LEAD
+        description: Retrieve the next row’s value.
+        example_generic: |-
+          SELECT col1, col2, LEAD(col2) OVER (ORDER BY col2)
+          FROM table_main;
+        example: |-
+          SELECT product_line, total, LEAD(total) OVER (ORDER BY total)
+          FROM business_retail;
+  - name: QUANTILE
+    description: Compute distribution quantiles (DuckDB extension).
+    variants:
+      - name: Basic QUANTILE
+        description: Calculate a specific quantile of a column.
+        example_generic: |-
+          SELECT QUANTILE_CONT(col2, 0.5)
+          FROM table_main;
+        example: |-
+          SELECT QUANTILE_CONT(total, 0.5) FROM business_retail; -- Median
+  - name: GEO_JOIN
+    description: Map points into spatial grids (DuckDB spatial extension).
+    variants:
+      - name: Basic GEO_JOIN
+        description: Join tables based on spatial relationships.
+        example_generic: |-
+          SELECT a.col1
+          FROM table_main a
+          JOIN spatial_grid g ON ST_Contains(g.geom, ST_Point(a.lon, a.lat));
+        example: |-
+          SELECT b.product_line
+          FROM business_retail b
+          JOIN spatial_grid g ON ST_Contains(g.geom, ST_Point(b.longitude, b.latitude));
+  - name: PIVOT
+    description: Rotate groups into columns (DuckDB extension).
+    variants:
+      - name: Basic PIVOT
+        description: Transform rows into columns based on a pivot column.
+        example_generic: |-
+          SELECT * FROM table_main
+          PIVOT (SUM(col2) FOR col1 IN ('A','B'));
+        example: |-
+          SELECT * FROM business_retail
+          PIVOT (SUM(total) FOR product_line IN ('Food and beverages','Sports and travel'));
+  - name: RECURSIVE CTE
+    description: Handle hierarchical or recursive data.
+    variants:
+      - name: Basic RECURSIVE CTE
+        description: Traverse a hierarchy.
+        example_generic: |-
+          WITH RECURSIVE tree AS (
+            SELECT id, parent_id FROM table_main WHERE parent_id IS NULL
+            UNION ALL
+            SELECT t.id, t.parent_id
+            FROM table_main t
+            JOIN tree tr ON t.parent_id = tr.id
+          )
+          SELECT * FROM tree;
+        example: |-
+          WITH RECURSIVE hierarchy AS (
+            SELECT customer_id, manager_id FROM customers WHERE manager_id IS NULL
+            UNION ALL
+            SELECT c.customer_id, c.manager_id
+            FROM customers c JOIN hierarchy h ON c.manager_id = h.customer_id
+          )
+          SELECT * FROM hierarchy;
+  - name: JSON_EXTRACT
+    description: Pull a path out of JSON text (SQLite JSON1 extension).
+    variants:
+      - name: Basic JSON_EXTRACT
+        description: Extract a value from a JSON column.
+        example_generic: |-
+          SELECT JSON_EXTRACT(json_col, '$.key')
+          FROM table_main;
+        example: |-
+          SELECT JSON_EXTRACT(json_data, '$.key')
+          FROM business_retail;
+  - name: ALL / ANY
+    description: Compare against all or any values in a subquery.
+    variants:
+      - name: Basic ALL
+        description: Ensure a condition holds for all subquery values.
+        example_generic: |-
+          SELECT col1, col2
+          FROM table_main
+          WHERE col2 > ALL (SELECT col2 FROM table_main WHERE col1 = 'X');
+        example: |-
+          SELECT product_line, total
+          FROM business_retail
+          WHERE total > ALL (SELECT total FROM business_retail WHERE product_line = 'Sports and travel');
+      - name: Basic ANY
+        description: Ensure a condition holds for any subquery value.
+        example_generic: |-
+          SELECT col1, col2
+          FROM table_main
+          WHERE col2 > ANY (SELECT col2 FROM table_main WHERE col1 = 'X');
+        example: |-
+          SELECT product_line, total
+          FROM business_retail
+          WHERE total > ANY (SELECT total FROM business_retail WHERE product_line = 'Sports and travel');
+all_cases_by_domain:
+  business: ['basics_select','agg_revenue','joins_returns','window_cumsum','cte_profit','capstone_root']
+  crime:    ['crime_select','crime_by_area','suspect_joins','crime_trend','cte_crime','capstone_crime']
+  farming:  ['ndvi_overview','yield_by_crop','soil_joins','yield_trend','cte_soil','capstone_farm']
+  finance:  ['transaction_select','balance_by_account','fraud_joins','balance_trend','cte_fraud','capstone_finance']
+  healthcare: ['patient_select','diagnosis_count','treatment_joins','admission_trend','cte_treatment','capstone_health']
+  social:   ['post_select','engagement_by_type','user_joins','likes_trend','cte_engagement','capstone_social']
+  space:    ['orbit_select','velocity_by_type','mission_joins','orbit_trend','cte_payload','capstone_space']
+  sports:   ['match_select','score_by_team','player_joins','score_trend','cte_player','capstone_sports']

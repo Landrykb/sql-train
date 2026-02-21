@@ -1,0 +1,26 @@
+// packages/frontend/app/cases/page.tsx
+import Link from 'next/link';
+import fs from 'fs';
+import path from 'path';
+
+export default function DomainsIndex() {
+  // projectRoot = two levels up (repo root)
+  const projectRoot = path.resolve(process.cwd(), '..', '..');
+  const root = path.join(projectRoot, 'cases');
+  const domains = fs.readdirSync(root);
+
+  return (
+    <main className="p-8 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">All Domains</h1>
+      <ul className="list-disc ml-6 space-y-2">
+        {domains.map((domain) => (
+          <li key={domain}>
+            <Link href={`/cases/${domain}`} className="text-blue-600 hover:underline">
+              {domain.charAt(0).toUpperCase() + domain.slice(1)}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </main>
+  );
+}

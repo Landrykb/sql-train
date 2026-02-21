@@ -1,0 +1,90 @@
+id: hidden_readmission_risk
+name: "Identify Patients at Risk of Readmission"
+tier: 6
+domain: Healthcare Covid
+description: The hospital director needs to reduce readmission rates — identify patient segments with high readmission risk so the care team can provide targeted follow-up.
+hidden: true
+skills:
+  - select
+  - group
+  - order
+  - case
+  - cte
+  - join
+datasets:
+  - name: patients
+    file: patients.csv
+  - name: admissions
+    file: admissions.csv
+  - name: treatments
+    file: treatments.csv
+prereq_cases:
+  - patient_select
+  - diagnosis_count
+  - treatment_joins
+  - admission_trend
+  - cte_treatment
+  - capstone_health
+seedQuery: |-
+  -- SCENARIO: The Hospital Director asks:
+  -- "Which patient groups are most likely to be
+  --  readmitted? We need to set up proactive
+  --  care follow-ups for high-risk segments."
+  SELECT 1;
+solutionQuery: |-
+  WITH PatientAdmissions AS (
+    SELECT
+      p.diagnosis,
+      p.gender,
+      COUNT(DISTINCT a.admission_id) AS total_admissions,
+      COUNT(DISTINCT p.patient_id) AS unique_patients,
+      ROUND(1.0 * COUNT(DISTINCT a.admission_id) / COUNT(DISTINCT p.patient_id), 2) AS avg_admissions_per_patient
+    FROM patients p
+    INNER JOIN admissions a ON p.patient_id = a.patient_id
+    GROUP BY p.diagnosis, p.gender
+  )
+  SELECT
+    diagnosis,
+    gender,
+    total_admissions,
+    unique_patients,
+    avg_admissions_per_patient,
+    CASE
+      WHEN avg_admissions_per_patient > 2.0 THEN 'High Risk'
+      WHEN avg_admissions_per_patient > 1.5 THEN 'Medium Risk'
+      ELSE 'Low Risk'
+    END AS readmission_risk
+  FROM PatientAdmissions
+  ORDER BY avg_admissions_per_patient DESC;
+instructions: |-
+  The hospital director wants to reduce readmissions.
+
+  1. JOIN patients with admissions on patient_id
+  2. Group by diagnosis and gender
+  3. Calculate: total_admissions, unique_patients, avg_admissions_per_patient
+  4. Classify readmission_risk:
+     - High Risk: avg > 2.0 admissions per patient
+     - Medium Risk: avg > 1.5
+     - Low Risk: everything else
+  5. Order by avg_admissions_per_patient DESC
+hints:
+  - COUNT(DISTINCT admission_id) for total admissions
+  - COUNT(DISTINCT patient_id) for unique patients
+  - Divide total by unique for the ratio
+  - Use CASE for risk classification
+expected:
+  - diagnosis: Diabetes
+    gender: Male
+    total_admissions: 145
+    unique_patients: 62
+    avg_admissions_per_patient: 2.34
+    readmission_risk: High Risk
+type: hidden
+tags:
+  - healthcare
+  - real_world
+  - readmission
+  - case
+  - cte
+  - join
+category: Healthcare Covid

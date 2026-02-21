@@ -1,0 +1,99 @@
+id: diagnosis_count
+name: Diagnosis Distribution
+tier: 2
+domain: Healthcare Covid
+description: Count diagnoses from treatments
+skills:
+  - aggregation
+datasets:
+  - name: healthcare_covid
+    file: healthcare_covid.csv
+  - name: patients
+    file: patients.csv
+  - name: treatments
+    file: treatments.csv
+  - name: admissions
+    file: admissions.csv
+prereq_cases:
+  - patient_select
+seedQuery: |-
+  -- TODO: write query for diagnosis_count
+  SELECT 1;
+solutionQuery: |-
+  SELECT diagnosis, COUNT(*) as diagnosis_count
+  FROM treatments
+  GROUP BY diagnosis
+  ORDER BY diagnosis_count DESC;
+instructions: Count occurrences of each diagnosis, order by count
+hints:
+  - Review aggregation in the GuideBook
+  - Use GROUP BY for diagnosis
+  - Use COUNT for occurrences
+  - Order by count
+schema:
+  - name: healthcare_covid
+    columns:
+      - name: iso_code
+        type: TEXT
+      - name: continent
+        type: TEXT
+      - name: location
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: total_cases
+        type: FLOAT
+      - name: new_cases
+        type: FLOAT
+      - name: total_deaths
+        type: FLOAT
+      - name: total_vaccinations
+        type: FLOAT
+      - name: people_vaccinated
+        type: FLOAT
+      - name: population
+        type: INTEGER
+  - name: patients
+    columns:
+      - name: patient_id
+        type: TEXT
+      - name: age
+        type: INTEGER
+      - name: gender
+        type: TEXT
+      - name: birthdate
+        type: DATE
+  - name: treatments
+    columns:
+      - name: treatment_id
+        type: TEXT
+      - name: patient_id
+        type: TEXT
+      - name: diagnosis
+        type: TEXT
+      - name: treatment_date
+        type: DATE
+  - name: admissions
+    columns:
+      - name: admission_id
+        type: TEXT
+      - name: patient_id
+        type: TEXT
+      - name: admission_date
+        type: DATE
+      - name: discharge_date
+        type: DATE
+expected:
+  - diagnosis: allergy
+    diagnosis_count: 5037
+  - diagnosis: flu
+    diagnosis_count: 5036
+  - diagnosis: covid
+    diagnosis_count: 4994
+  - diagnosis: hypertension
+    diagnosis_count: 4933
+type: standard
+tags:
+  - healthcare_covid
+  - aggregation
+category: Healthcare Covid

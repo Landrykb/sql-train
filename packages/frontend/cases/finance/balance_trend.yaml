@@ -1,0 +1,108 @@
+id: balance_trend
+name: Stock Price Trends
+tier: 3
+domain: Finance Stocks
+description: Analyze stock price trends
+skills:
+  - aggregation
+  - date_functions
+datasets:
+  - name: finance_stocks
+    file: finance_stocks.csv
+  - name: market_index
+    file: market_index.csv
+prereq_cases:
+  - transaction_select
+  - balance_by_account
+seedQuery: |-
+  -- TODO: write query for balance_trend
+  SELECT 1;
+solutionQuery: |-
+  SELECT strftime('%Y-%m', date) AS month, AVG(close) AS avg_close
+  FROM finance_stocks
+  GROUP BY strftime('%Y-%m', date)
+  ORDER BY month;
+instructions: Calculate monthly average stock price, order by month
+hints:
+  - Review date functions in the GuideBook
+  - Use strftime to group by month
+  - Use AVG for closing prices
+  - Order by month
+schema:
+  - name: finance_stocks
+    columns:
+      - name: ticker
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: open
+        type: FLOAT
+      - name: high
+        type: FLOAT
+      - name: low
+        type: FLOAT
+      - name: close
+        type: FLOAT
+      - name: volume
+        type: INTEGER
+  - name: market_index
+    columns:
+      - name: date
+        type: DATE
+      - name: index_close
+        type: FLOAT
+expected:
+  - avg_close: 150.33431688804563
+    month: 2023-01
+  - avg_close: 150.40029718456694
+    month: 2023-02
+  - avg_close: 149.4902797534375
+    month: 2023-03
+  - avg_close: 150.5896923852747
+    month: 2023-04
+  - avg_close: 150.1210109789571
+    month: 2023-05
+  - avg_close: 148.7939270283242
+    month: 2023-06
+  - avg_close: 150.82683301343556
+    month: 2023-07
+  - avg_close: 149.21496722846433
+    month: 2023-08
+  - avg_close: 150.46178108497386
+    month: 2023-09
+  - avg_close: 149.11517441860465
+    month: 2023-10
+  - avg_close: 150.3737869822484
+    month: 2023-11
+  - avg_close: 150.60658828953436
+    month: 2023-12
+  - avg_close: 150.42800280636132
+    month: 2024-01
+  - avg_close: 149.733341823739
+    month: 2024-02
+  - avg_close: 149.02288151221825
+    month: 2024-03
+  - avg_close: 149.92001458434555
+    month: 2024-04
+  - avg_close: 150.31448259860792
+    month: 2024-05
+  - avg_close: 148.99681222707406
+    month: 2024-06
+  - avg_close: 149.09507808802653
+    month: 2024-07
+  - avg_close: 149.78107856810755
+    month: 2024-08
+  - avg_close: 150.2701021897812
+    month: 2024-09
+  - avg_close: 150.16215521271624
+    month: 2024-10
+  - avg_close: 150.3696485148516
+    month: 2024-11
+  - avg_close: 149.50452169625225
+    month: 2024-12
+type: standard
+tags:
+  - finance_stocks
+  - aggregation
+  - date_functions
+category: Finance Stocks

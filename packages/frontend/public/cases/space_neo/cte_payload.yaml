@@ -1,0 +1,73 @@
+id: cte_payload
+name: NEO Risk Analysis
+tier: 4
+domain: Space Neo
+description: Summarize NEO risks using CTEs
+skills:
+  - ctes
+  - aggregation
+datasets:
+  - name: space_neo
+    file: space_neo.csv
+prereq_cases:
+  - orbit_select
+  - velocity_by_type
+  - mission_joins
+seedQuery: |-
+  -- TODO: write query for cte_payload
+  SELECT 1;
+solutionQuery: |-
+  WITH RiskScores AS (
+   SELECT des, (dist_km * relative_velocity_km_s) AS risk_score
+   FROM space_neo
+  )
+  SELECT des, risk_score
+  FROM RiskScores
+  ORDER BY risk_score DESC
+  LIMIT 10;
+instructions: Calculate risk scores by NEO, using a CTE
+hints:
+  - Review CTEs in the GuideBook
+  - Use a CTE to compute risk scores
+  - Calculate risk as dist_km * relative_velocity_km_s
+  - Order by risk score
+schema:
+  - name: space_neo
+    columns:
+      - name: des
+        type: TEXT
+      - name: close_approach_date
+        type: DATE
+      - name: dist_km
+        type: INTEGER
+      - name: relative_velocity_km_s
+        type: FLOAT
+      - name: is_potentially_hazardous
+        type: BOOLEAN
+expected:
+  - des: NEO3355
+    risk_score: 4441779.4
+  - des: NEO438
+    risk_score: 4410105.0
+  - des: NEO366
+    risk_score: 4373588.1
+  - des: NEO3365
+    risk_score: 4355603.399999999
+  - des: NEO4417
+    risk_score: 4353743.1
+  - des: NEO2757
+    risk_score: 4345026.0
+  - des: NEO4899
+    risk_score: 4340563.7
+  - des: NEO3127
+    risk_score: 4312060.0
+  - des: NEO4244
+    risk_score: 4265913.600000001
+  - des: NEO3629
+    risk_score: 4256884.8
+type: standard
+tags:
+  - space_neo
+  - ctes
+  - aggregation
+category: Space Neo

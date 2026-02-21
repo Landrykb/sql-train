@@ -1,0 +1,121 @@
+id: crime_trend
+name: Crime Trends
+tier: 3
+domain: Crime Chicago
+description: Analyze weekly crime trends
+skills:
+  - aggregation
+  - date_functions
+datasets:
+  - name: crime_chicago
+    file: crime_chicago.csv
+  - name: suspects
+    file: suspects.csv
+prereq_cases:
+  - crime_select
+  - crime_by_area
+seedQuery: |-
+  -- TODO: write query for crime_trend
+  SELECT 1;
+solutionQuery: |-
+  SELECT strftime('%Y-%W', date) AS week, primary_type, COUNT(*) AS crime_count
+  FROM crime_chicago
+  GROUP BY strftime('%Y-%W', date), primary_type
+  ORDER BY week, crime_count DESC
+  LIMIT 20;
+instructions: Count weekly crimes by primary_type, order by week
+hints:
+  - Review date functions in the GuideBook
+  - Use strftime to group by week
+  - Use COUNT for crime counts
+  - Order by week
+schema:
+  - name: crime_chicago
+    columns:
+      - name: id
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: primary_type
+        type: TEXT
+      - name: location_description
+        type: TEXT
+      - name: latitude
+        type: FLOAT
+      - name: longitude
+        type: FLOAT
+  - name: suspects
+    columns:
+      - name: suspect_id
+        type: TEXT
+      - name: crime_id
+        type: TEXT
+      - name: suspect_name
+        type: TEXT
+expected:
+  - crime_count: 952
+    primary_type: BATTERY
+    week: 2023-01
+  - crime_count: 946
+    primary_type: NARCOTICS
+    week: 2023-01
+  - crime_count: 943
+    primary_type: THEFT
+    week: 2023-01
+  - crime_count: 937
+    primary_type: ASSAULT
+    week: 2023-01
+  - crime_count: 920
+    primary_type: ROBBERY
+    week: 2023-01
+  - crime_count: 964
+    primary_type: BATTERY
+    week: 2023-02
+  - crime_count: 960
+    primary_type: ROBBERY
+    week: 2023-02
+  - crime_count: 951
+    primary_type: NARCOTICS
+    week: 2023-02
+  - crime_count: 951
+    primary_type: ASSAULT
+    week: 2023-02
+  - crime_count: 902
+    primary_type: THEFT
+    week: 2023-02
+  - crime_count: 1006
+    primary_type: THEFT
+    week: 2023-03
+  - crime_count: 1003
+    primary_type: BATTERY
+    week: 2023-03
+  - crime_count: 992
+    primary_type: NARCOTICS
+    week: 2023-03
+  - crime_count: 916
+    primary_type: ROBBERY
+    week: 2023-03
+  - crime_count: 900
+    primary_type: ASSAULT
+    week: 2023-03
+  - crime_count: 1012
+    primary_type: ASSAULT
+    week: 2023-04
+  - crime_count: 965
+    primary_type: NARCOTICS
+    week: 2023-04
+  - crime_count: 957
+    primary_type: ROBBERY
+    week: 2023-04
+  - crime_count: 949
+    primary_type: BATTERY
+    week: 2023-04
+  - crime_count: 940
+    primary_type: THEFT
+    week: 2023-04
+type: standard
+tags:
+  - crime_chicago
+  - aggregation
+  - date_functions
+category: Crime Chicago

@@ -1,0 +1,132 @@
+id: capstone_health
+name: Healthcare Capstone
+tier: 5
+domain: Healthcare Covid
+description: Build a comprehensive healthcare dashboard
+skills:
+  - ctes
+  - joins
+  - aggregation
+datasets:
+  - name: healthcare_covid
+    file: healthcare_covid.csv
+  - name: patients
+    file: patients.csv
+  - name: treatments
+    file: treatments.csv
+  - name: admissions
+    file: admissions.csv
+prereq_cases:
+  - patient_select
+  - diagnosis_count
+  - treatment_joins
+  - admission_trend
+  - cte_treatment
+seedQuery: |-
+  -- TODO: write query for capstone_health
+  SELECT 1;
+solutionQuery: |-
+  WITH PatientTreatments AS (
+    SELECT
+      p.patient_id,
+      p.age,
+      t.diagnosis
+    FROM patients p
+    INNER JOIN treatments t
+      ON p.patient_id = t.patient_id
+  ),
+  AdmissionsStats AS (
+    SELECT
+      patient_id,
+      COUNT(*)          AS admission_count
+    FROM admissions
+    GROUP BY patient_id
+  )
+  SELECT
+    pt.diagnosis,
+    ROUND(AVG(pt.age), 1)                 AS avg_age,
+    SUM(COALESCE(a.admission_count, 0))   AS total_admissions
+  FROM PatientTreatments pt
+  LEFT JOIN AdmissionsStats a
+    ON pt.patient_id = a.patient_id
+  GROUP BY pt.diagnosis
+  ORDER BY total_admissions DESC;
+instructions: Summarize patient admissions, treatments, and outcomes
+hints:
+  - Review all SQL concepts in the GuideBook
+  - Use multiple CTEs for clarity
+  - Join patients, treatments, and admissions
+  - Group by diagnosis
+schema:
+  - name: healthcare_covid
+    columns:
+      - name: iso_code
+        type: TEXT
+      - name: continent
+        type: TEXT
+      - name: location
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: total_cases
+        type: FLOAT
+      - name: new_cases
+        type: FLOAT
+      - name: total_deaths
+        type: FLOAT
+      - name: total_vaccinations
+        type: FLOAT
+      - name: people_vaccinated
+        type: FLOAT
+      - name: population
+        type: INTEGER
+  - name: patients
+    columns:
+      - name: patient_id
+        type: TEXT
+      - name: age
+        type: INTEGER
+      - name: gender
+        type: TEXT
+      - name: birthdate
+        type: DATE
+  - name: treatments
+    columns:
+      - name: treatment_id
+        type: TEXT
+      - name: patient_id
+        type: TEXT
+      - name: diagnosis
+        type: TEXT
+      - name: treatment_date
+        type: DATE
+  - name: admissions
+    columns:
+      - name: admission_id
+        type: TEXT
+      - name: patient_id
+        type: TEXT
+      - name: admission_date
+        type: DATE
+      - name: discharge_date
+        type: DATE
+expected:
+  - diagnosis: flu
+    avg_age: 76.9
+    total_admissions: 2510
+  - diagnosis: allergy
+    avg_age: 76.7
+    total_admissions: 2510
+  - diagnosis: hypertension
+    avg_age: 76.5
+    total_admissions: 2480
+  - diagnosis: covid
+    avg_age: 76.3
+    total_admissions: 2475
+type: standard
+tags:
+  - healthcare_covid
+  - ctes
+  - joins
+  - aggregation
+category: Healthcare Covid

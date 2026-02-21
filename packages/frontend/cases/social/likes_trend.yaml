@@ -1,0 +1,82 @@
+id: likes_trend
+name: Engagement Trends
+tier: 3
+domain: Social Twitter
+description: Analyze tweet engagement trends
+skills:
+  - aggregation
+  - date_functions
+datasets:
+  - name: tweets
+    file: tweets.csv
+  - name: users
+    file: users.csv
+prereq_cases:
+  - post_select
+  - engagement_by_type
+seedQuery: |-
+  -- TODO: write query for likes_trend
+  SELECT 1;
+solutionQuery: |-
+  SELECT strftime('%Y-%m', created_at) AS month, COUNT(*) AS tweet_count
+  FROM tweets
+  GROUP BY strftime('%Y-%m', created_at)
+  ORDER BY month;
+instructions: Count tweets by month, order by month
+hints:
+  - Review date functions in the GuideBook
+  - Use strftime to group by month
+  - Use COUNT for tweets
+  - Order by month
+schema:
+  - name: tweets
+    columns:
+      - name: tweet_id
+        type: TEXT
+      - name: user_id
+        type: TEXT
+      - name: created_at
+        type: DATE
+      - name: text
+        type: TEXT
+  - name: users
+    columns:
+      - name: user_id
+        type: TEXT
+      - name: user_name
+        type: TEXT
+      - name: signup_date
+        type: DATE
+expected:
+  - month: 2023-01
+    tweet_count: 8228
+  - month: 2023-02
+    tweet_count: 7720
+  - month: 2023-03
+    tweet_count: 8420
+  - month: 2023-04
+    tweet_count: 8370
+  - month: 2023-05
+    tweet_count: 8441
+  - month: 2023-06
+    tweet_count: 8163
+  - month: 2023-07
+    tweet_count: 8369
+  - month: 2023-08
+    tweet_count: 8467
+  - month: 2023-09
+    tweet_count: 8345
+  - month: 2023-10
+    tweet_count: 8453
+  - month: 2023-11
+    tweet_count: 8174
+  - month: 2023-12
+    tweet_count: 8576
+  - month: 2024-01
+    tweet_count: 274
+type: standard
+tags:
+  - social_twitter
+  - aggregation
+  - date_functions
+category: Social Twitter

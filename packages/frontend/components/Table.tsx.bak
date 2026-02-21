@@ -1,0 +1,35 @@
+'use client';
+import React from 'react';
+
+export function DataGrid({ data }: { data: any[] }) {
+  if (!data || data.length === 0) {
+    return <p className="italic text-gray-500">No rows to display.</p>;
+  }
+  const cols = Object.keys(data[0]);
+  return (
+    <div className="overflow-auto border rounded">
+      <table className="min-w-full table-auto">
+        <thead className="bg-gray-100">
+          <tr>
+            {cols.map((c) => (
+              <th key={c} className="px-2 py-1 text-left text-sm font-medium">
+                {c.toUpperCase()}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, i) => (
+            <tr key={i} className={i % 2 ? 'bg-gray-50' : ''}>
+              {cols.map((c) => (
+                <td key={c} className="px-2 py-1 text-sm">
+                  {String(row[c])}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

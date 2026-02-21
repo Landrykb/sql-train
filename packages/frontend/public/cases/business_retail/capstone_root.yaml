@@ -1,0 +1,98 @@
+id: capstone_root
+name: Retail Capstone
+tier: 5
+domain: Business Retail
+description: Build a comprehensive retail dashboard
+skills:
+  - ctes
+  - joins
+  - aggregation
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+  - name: returns
+    file: returns.csv
+prereq_cases:
+  - basics_select
+  - agg_revenue
+  - joins_returns
+  - window_cumsum
+  - cte_profit
+seedQuery: |-
+  -- TODO: write query for capstone_root
+  SELECT 1;
+solutionQuery: |-
+  WITH Sales AS (
+   SELECT branch, product_line, SUM(total) AS total_sales
+   FROM business_retail
+   GROUP BY branch, product_line
+  ),
+  Returns AS (
+   SELECT b.branch, b.product_line, COUNT(r.invoice_id) AS return_count
+   FROM business_retail b
+   JOIN returns r ON b.invoice_id = r.invoice_id
+   GROUP BY b.branch, b.product_line
+  )
+  SELECT s.branch, s.product_line, s.total_sales, COALESCE(r.return_count, 0) AS return_count
+  FROM Sales s
+  LEFT JOIN Returns r ON s.branch = r.branch AND s.product_line = r.product_line
+  ORDER BY s.total_sales DESC;
+instructions: Summarize sales, returns, and profit by branch and product line
+hints:
+  - Review all SQL concepts in the GuideBook
+  - Use multiple CTEs for clarity
+  - Join sales and returns
+  - Group by branch and product_line
+schema:
+  - name: business_retail
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: branch
+        type: TEXT
+      - name: city
+        type: TEXT
+      - name: customer_type
+        type: TEXT
+      - name: gender
+        type: TEXT
+      - name: product_line
+        type: TEXT
+      - name: unit_price
+        type: FLOAT
+      - name: quantity
+        type: INTEGER
+      - name: tax_5
+        type: FLOAT
+      - name: total
+        type: FLOAT
+      - name: date
+        type: DATE
+      - name: time
+        type: TEXT
+      - name: payment
+        type: TEXT
+      - name: cogs
+        type: FLOAT
+      - name: gross_margin_percentage
+        type: FLOAT
+      - name: gross_income
+        type: FLOAT
+      - name: rating
+        type: FLOAT
+  - name: returns
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: return_date
+        type: DATE
+      - name: return_reason
+        type: TEXT
+expected: []
+type: standard
+tags:
+  - business_retail
+  - ctes
+  - joins
+  - aggregation
+category: Business Retail

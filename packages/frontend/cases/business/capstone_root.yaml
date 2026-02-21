@@ -1,0 +1,183 @@
+id: capstone_root
+name: Retail Capstone
+tier: 5
+domain: Business Retail
+description: Build a comprehensive retail dashboard
+skills:
+  - ctes
+  - joins
+  - aggregation
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+  - name: returns
+    file: returns.csv
+prereq_cases:
+  - basics_select
+  - agg_revenue
+  - joins_returns
+  - window_cumsum
+  - cte_profit
+seedQuery: |-
+  -- TODO: write query for capstone_root
+  SELECT 1;
+solutionQuery: |-
+  WITH Sales AS (
+    SELECT
+      branch,
+      product_line,
+      SUM(total) AS total_sales
+    FROM business_retail
+    GROUP BY branch, product_line
+  ),
+  ReturnCounts AS (
+    SELECT
+      b.branch,
+      b.product_line,
+      COUNT(*) AS return_count
+    FROM returns r
+    INNER JOIN business_retail b
+      ON r.invoice_id = b.invoice_id
+    GROUP BY b.branch, b.product_line
+  )
+  SELECT
+    s.branch,
+    s.product_line,
+    s.total_sales,
+    COALESCE(rc.return_count, 0) AS return_count
+  FROM Sales s
+  LEFT JOIN ReturnCounts rc
+    ON s.branch       = rc.branch
+   AND s.product_line = rc.product_line
+  ORDER BY s.total_sales DESC;
+instructions: Summarize sales, returns, and profit by branch and product line
+hints:
+  - Review all SQL concepts in the GuideBook
+  - Use multiple CTEs for clarity
+  - Join sales and returns
+  - Group by branch and product_line
+schema:
+  - name: business_retail
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: branch
+        type: TEXT
+      - name: city
+        type: TEXT
+      - name: customer_type
+        type: TEXT
+      - name: gender
+        type: TEXT
+      - name: product_line
+        type: TEXT
+      - name: unit_price
+        type: FLOAT
+      - name: quantity
+        type: INTEGER
+      - name: tax_5
+        type: FLOAT
+      - name: total
+        type: FLOAT
+      - name: date
+        type: DATE
+      - name: time
+        type: TEXT
+      - name: payment
+        type: TEXT
+      - name: cogs
+        type: FLOAT
+      - name: gross_margin_percentage
+        type: FLOAT
+      - name: gross_income
+        type: FLOAT
+      - name: rating
+        type: FLOAT
+  - name: returns
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: return_date
+        type: DATE
+      - name: return_reason
+        type: TEXT
+expected:
+  - branch: C
+    product_line: Food and beverages
+    total_sales: 23766.855
+    return_count: 33
+  - branch: A
+    product_line: Home and lifestyle
+    total_sales: 22417.1955
+    return_count: 27
+  - branch: C
+    product_line: Fashion accessories
+    total_sales: 21560.07
+    return_count: 33
+  - branch: B
+    product_line: Sports and travel
+    total_sales: 19988.199
+    return_count: 36
+  - branch: B
+    product_line: Health and beauty
+    total_sales: 19980.66
+    return_count: 34
+  - branch: A
+    product_line: Sports and travel
+    total_sales: 19372.6995
+    return_count: 28
+  - branch: C
+    product_line: Electronic accessories
+    total_sales: 18968.9745
+    return_count: 25
+  - branch: A
+    product_line: Electronic accessories
+    total_sales: 18317.1135
+    return_count: 40
+  - branch: B
+    product_line: Home and lifestyle
+    total_sales: 17549.1645
+    return_count: 25
+  - branch: A
+    product_line: Food and beverages
+    total_sales: 17163.1005
+    return_count: 26
+  - branch: B
+    product_line: Electronic accessories
+    total_sales: 17051.4435
+    return_count: 27
+  - branch: C
+    product_line: Health and beauty
+    total_sales: 16615.326
+    return_count: 27
+  - branch: B
+    product_line: Fashion accessories
+    total_sales: 16413.3165
+    return_count: 23
+  - branch: A
+    product_line: Fashion accessories
+    total_sales: 16332.5085
+    return_count: 30
+  - branch: C
+    product_line: Sports and travel
+    total_sales: 15761.928
+    return_count: 17
+  - branch: B
+    product_line: Food and beverages
+    total_sales: 15214.8885
+    return_count: 22
+  - branch: C
+    product_line: Home and lifestyle
+    total_sales: 13895.553
+    return_count: 27
+  - branch: A
+    product_line: Health and beauty
+    total_sales: 12597.753
+    return_count: 20
+type: standard
+tags:
+  - business_retail
+  - ctes
+  - joins
+  - aggregation
+category: Business Retail

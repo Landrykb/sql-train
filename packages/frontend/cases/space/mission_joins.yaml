@@ -1,0 +1,59 @@
+id: mission_joins
+name: NEO Missions
+tier: 3
+domain: Space Neo
+description: Identify NEOs for potential missions
+skills:
+  - select
+  - filter
+datasets:
+  - name: space_neo
+    file: space_neo.csv
+prereq_cases:
+  - orbit_select
+  - velocity_by_type
+seedQuery: |-
+  -- TODO: write query for mission_joins
+  SELECT 1;
+solutionQuery: |-
+  SELECT des, close_approach_date
+  FROM space_neo
+  WHERE dist_km < 1000000
+  ORDER BY close_approach_date DESC
+  LIMIT 5;
+instructions: Select NEOs with close approaches within 1M km, order by date
+hints:
+  - Review filtering in the GuideBook
+  - Use WHERE to filter by distance
+  - Order by close_approach_date
+  - Use LIMIT to get 5 rows
+schema:
+  - name: space_neo
+    columns:
+      - name: des
+        type: TEXT
+      - name: close_approach_date
+        type: DATE
+      - name: dist_km
+        type: INTEGER
+      - name: relative_velocity_km_s
+        type: FLOAT
+      - name: is_potentially_hazardous
+        type: BOOLEAN
+expected:
+  - close_approach_date: '2026-01-01'
+    des: NEO434
+  - close_approach_date: '2026-01-01'
+    des: NEO560
+  - close_approach_date: '2026-01-01'
+    des: NEO565
+  - close_approach_date: '2026-01-01'
+    des: NEO1083
+  - close_approach_date: '2026-01-01'
+    des: NEO1176
+type: standard
+tags:
+  - space_neo
+  - select
+  - filter
+category: Space Neo

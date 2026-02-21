@@ -1,0 +1,104 @@
+id: cte_treatment
+name: Treatment Outcomes
+tier: 4
+domain: Healthcare Covid
+description: Summarize treatment outcomes using CTEs
+skills:
+  - ctes
+  - joins
+  - aggregation
+datasets:
+  - name: healthcare_covid
+    file: healthcare_covid.csv
+  - name: patients
+    file: patients.csv
+  - name: treatments
+    file: treatments.csv
+  - name: admissions
+    file: admissions.csv
+prereq_cases:
+  - patient_select
+  - diagnosis_count
+  - treatment_joins
+seedQuery: |-
+  -- TODO: write query for cte_treatment
+  SELECT 1;
+solutionQuery: "WITH TreatmentDurations AS (\n SELECT t.diagnosis, \n AVG((julianday(a.discharge_date)
+  - julianday(a.admission_date))) AS avg_duration\n FROM treatments t\n JOIN admissions
+  a ON t.patient_id = a.patient_id\n GROUP BY t.diagnosis\n)\nSELECT diagnosis, ROUND(avg_duration,
+  1) AS avg_duration_days\nFROM TreatmentDurations\nORDER BY avg_duration DESC;"
+instructions: Calculate average treatment duration by diagnosis, using a CTE
+hints:
+  - Review CTEs in the GuideBook
+  - Use a CTE to join treatments and admissions
+  - Calculate duration as discharge_date - admission_date
+  - Group by diagnosis
+schema:
+  - name: healthcare_covid
+    columns:
+      - name: iso_code
+        type: TEXT
+      - name: continent
+        type: TEXT
+      - name: location
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: total_cases
+        type: FLOAT
+      - name: new_cases
+        type: FLOAT
+      - name: total_deaths
+        type: FLOAT
+      - name: total_vaccinations
+        type: FLOAT
+      - name: people_vaccinated
+        type: FLOAT
+      - name: population
+        type: INTEGER
+  - name: patients
+    columns:
+      - name: patient_id
+        type: TEXT
+      - name: age
+        type: INTEGER
+      - name: gender
+        type: TEXT
+      - name: birthdate
+        type: DATE
+  - name: treatments
+    columns:
+      - name: treatment_id
+        type: TEXT
+      - name: patient_id
+        type: TEXT
+      - name: diagnosis
+        type: TEXT
+      - name: treatment_date
+        type: DATE
+  - name: admissions
+    columns:
+      - name: admission_id
+        type: TEXT
+      - name: patient_id
+        type: TEXT
+      - name: admission_date
+        type: DATE
+      - name: discharge_date
+        type: DATE
+expected:
+  - avg_duration_days: 365.9
+    diagnosis: covid
+  - avg_duration_days: 363.9
+    diagnosis: allergy
+  - avg_duration_days: 362.0
+    diagnosis: hypertension
+  - avg_duration_days: 360.9
+    diagnosis: flu
+type: standard
+tags:
+  - healthcare_covid
+  - ctes
+  - joins
+  - aggregation
+category: Healthcare Covid

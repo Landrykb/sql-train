@@ -1,0 +1,97 @@
+id: hidden_player_value
+name: "Identify Undervalued Players for Trade Deadline"
+tier: 6
+domain: Sports NBA
+description: The GM needs trade deadline analysis — find players delivering outsized performance relative to their team's record to identify undervalued trade targets.
+hidden: true
+skills:
+  - select
+  - group
+  - order
+  - case
+  - cte
+  - join
+datasets:
+  - name: nba_games
+    file: nba_games.csv
+  - name: shot_zones
+    file: shot_zones.csv
+prereq_cases:
+  - match_select
+  - score_by_team
+  - player_joins
+  - score_trend
+  - cte_player
+  - capstone_sports
+seedQuery: |-
+  -- SCENARIO: The General Manager asks:
+  -- "The trade deadline is coming. Find teams
+  --  with the best scorers but worst records —
+  --  those teams might be willing to trade their
+  --  star players. Show me the data."
+  SELECT 1;
+solutionQuery: |-
+  WITH TeamRecords AS (
+    SELECT
+      home_team AS team,
+      SUM(CASE WHEN home_score > away_score THEN 1 ELSE 0 END) AS wins,
+      COUNT(*) AS games,
+      ROUND(100.0 * SUM(CASE WHEN home_score > away_score THEN 1 ELSE 0 END) / COUNT(*), 1) AS win_pct
+    FROM nba_games
+    GROUP BY home_team
+  ),
+  TeamScoring AS (
+    SELECT
+      home_team AS team,
+      ROUND(AVG(home_score), 1) AS avg_score,
+      MAX(home_score) AS max_score
+    FROM nba_games
+    GROUP BY home_team
+  )
+  SELECT
+    r.team,
+    r.wins,
+    r.games,
+    r.win_pct,
+    s.avg_score,
+    s.max_score,
+    CASE
+      WHEN r.win_pct < 40 AND s.avg_score > 105 THEN 'Prime Trade Target'
+      WHEN r.win_pct < 50 AND s.avg_score > 100 THEN 'Possible Target'
+      ELSE 'Unlikely to Trade'
+    END AS trade_likelihood
+  FROM TeamRecords r
+  INNER JOIN TeamScoring s ON r.team = s.team
+  ORDER BY s.avg_score DESC;
+instructions: |-
+  The GM needs trade deadline intelligence:
+
+  1. Calculate each team's win record (wins, games, win_pct) from home games
+  2. Calculate each team's scoring (avg_score, max_score)
+  3. Classify trade_likelihood:
+     - Prime Trade Target: win_pct < 40% AND avg_score > 105
+     - Possible Target: win_pct < 50% AND avg_score > 100
+     - Unlikely to Trade: everyone else
+  4. Order by avg_score DESC
+hints:
+  - Use CASE inside SUM for win counting
+  - Two CTEs: one for records, one for scoring
+  - JOIN them on team name
+  - Use CASE for trade classification
+expected:
+  - team: Golden State Warriors
+    wins: 5
+    games: 12
+    win_pct: 41.7
+    avg_score: 112.3
+    max_score: 142
+    trade_likelihood: Possible Target
+type: hidden
+tags:
+  - sports_nba
+  - real_world
+  - trade_analysis
+  - case
+  - cte
+  - join
+category: Sports NBA

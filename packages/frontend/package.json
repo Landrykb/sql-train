@@ -1,0 +1,49 @@
+{
+  "name": "@besa/frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "audit:datasets": "node script/auditDatasets.js",
+    "audit:exercises": "node script/auditExercises.js",
+    "generate:solutions": "node script/generateSolutions.js",
+    "fix:expected": "node script/fixExpected.js",
+    "fix:expected-reg": "node script/fixExpectedFromRegistry.js"
+  },
+  "dependencies": {
+    "@codemirror/lang-sql": "^6.8.0",
+    "@uiw/react-codemirror": "^4.23.10",
+    "axios": "^1.9.0",
+    "js-yaml": "^4.1.0",
+    "marked": "^15.0.10",
+    "next": "^15.5.12",
+    "papaparse": "^5.5.2",
+    "plotly.js": "^2.27.0",
+    "react": "18.2.0",
+    "react-confetti": "^6.4.0",
+    "react-dom": "18.2.0",
+    "react-plotly.js": "^2.6.0",
+    "sql.js": "^1.13.0",
+    "tailwindcss": "^3.3.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.0.0",
+    "@types/papaparse": "^5.3.15",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@types/react-plotly.js": "^2.6.0",
+    "@types/sql.js": "^1.4.9",
+    "autoprefixer": "^10.4.21",
+    "cypress": "^14.3.2",
+    "postcss": "^8.5.3",
+    "stylelint": "^16.19.1",
+    "stylelint-config-standard": "^36.0.1",
+    "stylelint-config-tailwindcss": "^0.0.7",
+    "typescript": "^5.0.0"
+  }
+}

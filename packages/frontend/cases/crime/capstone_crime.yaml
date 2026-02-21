@@ -1,0 +1,176 @@
+id: capstone_crime
+name: Crime Capstone
+tier: 5
+domain: Crime Chicago
+description: Build a comprehensive crime dashboard
+skills:
+  - ctes
+  - joins
+  - aggregation
+datasets:
+  - name: crime_chicago
+    file: crime_chicago.csv
+  - name: suspects
+    file: suspects.csv
+prereq_cases:
+  - crime_select
+  - crime_by_area
+  - suspect_joins
+  - crime_trend
+  - cte_crime
+seedQuery: |-
+  -- TODO: write query for capstone_crime
+  SELECT 1;
+solutionQuery: |-
+  WITH CrimeStats AS (
+   SELECT primary_type, location_description, COUNT(*) AS crime_count
+   FROM crime_chicago
+   GROUP BY primary_type, location_description
+  ),
+  SuspectStats AS (
+   SELECT c.location_description, COUNT(s.suspect_name) AS suspect_count
+   FROM crime_chicago c
+   LEFT JOIN suspects s ON c.id = s.crime_id
+   GROUP BY c.location_description
+  )
+  SELECT cs.primary_type, cs.location_description, cs.crime_count, s.suspect_count
+  FROM CrimeStats cs
+  JOIN SuspectStats s ON cs.location_description = s.location_description
+  ORDER BY cs.crime_count DESC;
+instructions: Summarize crimes, suspects, and trends by location and type
+hints:
+  - Review all SQL concepts in the GuideBook
+  - Use multiple CTEs for clarity
+  - Join crimes and suspects
+  - Group by location and type
+schema:
+  - name: crime_chicago
+    columns:
+      - name: id
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: primary_type
+        type: TEXT
+      - name: location_description
+        type: TEXT
+      - name: latitude
+        type: FLOAT
+      - name: longitude
+        type: FLOAT
+  - name: suspects
+    columns:
+      - name: suspect_id
+        type: TEXT
+      - name: crime_id
+        type: TEXT
+      - name: suspect_name
+        type: TEXT
+expected:
+  - crime_count: 20226
+    location_description: STREET
+    primary_type: ROBBERY
+    suspect_count: 1968
+  - crime_count: 20186
+    location_description: SIDEWALK
+    primary_type: ASSAULT
+    suspect_count: 2036
+  - crime_count: 20146
+    location_description: BANK
+    primary_type: BATTERY
+    suspect_count: 2005
+  - crime_count: 20146
+    location_description: RESIDENCE
+    primary_type: THEFT
+    suspect_count: 2014
+  - crime_count: 20118
+    location_description: SIDEWALK
+    primary_type: THEFT
+    suspect_count: 2036
+  - crime_count: 20100
+    location_description: STREET
+    primary_type: NARCOTICS
+    suspect_count: 1968
+  - crime_count: 20073
+    location_description: BANK
+    primary_type: ASSAULT
+    suspect_count: 2005
+  - crime_count: 20066
+    location_description: APARTMENT
+    primary_type: ASSAULT
+    suspect_count: 1977
+  - crime_count: 20065
+    location_description: RESIDENCE
+    primary_type: BATTERY
+    suspect_count: 2014
+  - crime_count: 20049
+    location_description: STREET
+    primary_type: BATTERY
+    suspect_count: 1968
+  - crime_count: 20020
+    location_description: RESIDENCE
+    primary_type: ASSAULT
+    suspect_count: 2014
+  - crime_count: 20019
+    location_description: STREET
+    primary_type: THEFT
+    suspect_count: 1968
+  - crime_count: 19989
+    location_description: SIDEWALK
+    primary_type: ROBBERY
+    suspect_count: 2036
+  - crime_count: 19965
+    location_description: APARTMENT
+    primary_type: NARCOTICS
+    suspect_count: 1977
+  - crime_count: 19924
+    location_description: RESIDENCE
+    primary_type: ROBBERY
+    suspect_count: 2014
+  - crime_count: 19923
+    location_description: APARTMENT
+    primary_type: BATTERY
+    suspect_count: 1977
+  - crime_count: 19919
+    location_description: RESIDENCE
+    primary_type: NARCOTICS
+    suspect_count: 2014
+  - crime_count: 19916
+    location_description: APARTMENT
+    primary_type: ROBBERY
+    suspect_count: 1977
+  - crime_count: 19906
+    location_description: BANK
+    primary_type: THEFT
+    suspect_count: 2005
+  - crime_count: 19896
+    location_description: APARTMENT
+    primary_type: THEFT
+    suspect_count: 1977
+  - crime_count: 19890
+    location_description: BANK
+    primary_type: ROBBERY
+    suspect_count: 2005
+  - crime_count: 19885
+    location_description: SIDEWALK
+    primary_type: BATTERY
+    suspect_count: 2036
+  - crime_count: 19871
+    location_description: STREET
+    primary_type: ASSAULT
+    suspect_count: 1968
+  - crime_count: 19868
+    location_description: BANK
+    primary_type: NARCOTICS
+    suspect_count: 2005
+  - crime_count: 19834
+    location_description: SIDEWALK
+    primary_type: NARCOTICS
+    suspect_count: 2036
+type: standard
+tags:
+  - crime_chicago
+  - ctes
+  - joins
+  - aggregation
+category: Crime Chicago

@@ -1,0 +1,70 @@
+id: post_select
+name: Tweet Overview
+tier: 1
+domain: Social Twitter
+description: Retrieve popular tweets
+skills:
+  - select
+  - filter
+datasets:
+  - name: tweets
+    file: tweets.csv
+  - name: users
+    file: users.csv
+prereq_cases: []
+seedQuery: |-
+  -- TODO: write query for post_select
+  SELECT 1;
+solutionQuery: |-
+  SELECT tweet_id, created_at, text
+  FROM tweets
+  WHERE text LIKE '%#SQL%'
+  ORDER BY created_at DESC
+  LIMIT 5;
+instructions: Select top 5 tweets with specific hashtags, ordered by date
+hints:
+  - Review the select concept in the GuideBook
+  - Use WHERE to filter text
+  - Use ORDER BY to sort by created_at
+  - Use LIMIT to get 5 rows
+schema:
+  - name: tweets
+    columns:
+      - name: tweet_id
+        type: TEXT
+      - name: user_id
+        type: TEXT
+      - name: created_at
+        type: DATE
+      - name: text
+        type: TEXT
+  - name: users
+    columns:
+      - name: user_id
+        type: TEXT
+      - name: user_name
+        type: TEXT
+      - name: signup_date
+        type: DATE
+expected:
+  - created_at: '2024-01-01'
+    text: 'Sample tweet #SQL'
+    tweet_id: TW608
+  - created_at: '2024-01-01'
+    text: 'Sample tweet #SQL'
+    tweet_id: TW663
+  - created_at: '2024-01-01'
+    text: 'Sample tweet #SQL'
+    tweet_id: TW2190
+  - created_at: '2024-01-01'
+    text: 'Sample tweet #SQL'
+    tweet_id: TW6792
+  - created_at: '2024-01-01'
+    text: 'Sample tweet #SQL'
+    tweet_id: TW13352
+type: standard
+tags:
+  - social_twitter
+  - select
+  - filter
+category: Social Twitter

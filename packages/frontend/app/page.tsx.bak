@@ -1,0 +1,25 @@
+import Link from 'next/link';
+
+export default function HomePage() {
+  const domains = [
+    'business','crime','farming','finance',
+    'healthcare','social','space','sports'
+  ];
+  return (
+    <main className="p-8 max-w-2xl mx-auto space-y-6">
+      <h1 className="text-3xl font-bold">Business Economics SQL Academy</h1>
+      <div className="p-4 bg-yellow-50 border-l-4 border-yellow-500">
+        <p>First, choose a domain below to begin your step-by-step SQL training:</p>
+      </div>
+      <ul className="list-disc ml-6 space-y-1">
+        {domains.map((d) => (
+          <li key={d}>
+            <Link href={`/cases/${d}`} className="text-blue-600 hover:underline">
+              {d[0].toUpperCase() + d.slice(1)}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </main>
+  );
+}

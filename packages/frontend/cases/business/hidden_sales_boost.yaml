@@ -1,0 +1,233 @@
+id: hidden_sales_boost
+name: "How to Increase Sales"
+tier: 6
+domain: Business Retail
+description: A real-world business scenario — identify which product lines, branches, and customer segments to target for a sales growth campaign.
+hidden: true
+skills:
+  - select
+  - group
+  - order
+  - case
+  - cte
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+  - name: returns
+    file: returns.csv
+prereq_cases:
+  - basics_select
+  - agg_revenue
+  - joins_returns
+  - window_cumsum
+  - cte_profit
+  - capstone_root
+seedQuery: |-
+  -- BUSINESS SCENARIO: The VP of Sales asks you:
+  -- "Which product lines at which branches have the
+  --  highest revenue but lowest customer satisfaction?
+  --  Those are our growth opportunities — fix the
+  --  experience and sales will climb."
+  --
+  -- Write a query to find the answer!
+  SELECT 1;
+solutionQuery: |-
+  WITH BranchProduct AS (
+    SELECT
+      branch,
+      product_line,
+      SUM(total) AS total_revenue,
+      ROUND(AVG(rating), 2) AS avg_rating,
+      COUNT(*) AS transaction_count
+    FROM business_retail
+    GROUP BY branch, product_line
+  )
+  SELECT
+    branch,
+    product_line,
+    total_revenue,
+    avg_rating,
+    transaction_count,
+    CASE
+      WHEN total_revenue > 18000 AND avg_rating < 7.0 THEN 'High Priority'
+      WHEN total_revenue > 15000 AND avg_rating < 7.0 THEN 'Medium Priority'
+      ELSE 'Monitor'
+    END AS growth_opportunity
+  FROM BranchProduct
+  ORDER BY total_revenue DESC;
+instructions: |-
+  The VP of Sales wants to know: Which product lines at which branches generate
+  high revenue but have low customer satisfaction (avg rating < 7)?
+
+  Write a query that returns branch, product_line, total_revenue, avg_rating,
+  transaction_count, and a growth_opportunity label (High/Medium Priority or Monitor).
+
+  Order by total_revenue descending.
+hints:
+  - Use a CTE to pre-aggregate by branch and product_line
+  - Use CASE to classify growth opportunities
+  - AVG(rating) gives customer satisfaction
+  - SUM(total) gives revenue per segment
+  - Review the case concept in the GuideBook
+schema:
+  - name: business_retail
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: branch
+        type: TEXT
+      - name: city
+        type: TEXT
+      - name: customer_type
+        type: TEXT
+      - name: gender
+        type: TEXT
+      - name: product_line
+        type: TEXT
+      - name: unit_price
+        type: FLOAT
+      - name: quantity
+        type: INTEGER
+      - name: tax_5
+        type: FLOAT
+      - name: total
+        type: FLOAT
+      - name: date
+        type: DATE
+      - name: time
+        type: TEXT
+      - name: payment
+        type: TEXT
+      - name: cogs
+        type: FLOAT
+      - name: gross_margin_percentage
+        type: FLOAT
+      - name: gross_income
+        type: FLOAT
+      - name: rating
+        type: FLOAT
+  - name: returns
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: return_date
+        type: DATE
+      - name: return_reason
+        type: TEXT
+expected:
+  - branch: C
+    product_line: Food and beverages
+    total_revenue: 23766.855
+    avg_rating: 7.11
+    transaction_count: 66
+    growth_opportunity: Monitor
+  - branch: A
+    product_line: Home and lifestyle
+    total_revenue: 22417.1955
+    avg_rating: 6.84
+    transaction_count: 65
+    growth_opportunity: High Priority
+  - branch: C
+    product_line: Fashion accessories
+    total_revenue: 21560.07
+    avg_rating: 7.03
+    transaction_count: 62
+    growth_opportunity: Monitor
+  - branch: B
+    product_line: Sports and travel
+    total_revenue: 19988.199
+    avg_rating: 6.92
+    transaction_count: 59
+    growth_opportunity: High Priority
+  - branch: B
+    product_line: Health and beauty
+    total_revenue: 19980.66
+    avg_rating: 6.84
+    transaction_count: 58
+    growth_opportunity: High Priority
+  - branch: A
+    product_line: Sports and travel
+    total_revenue: 19372.6995
+    avg_rating: 6.92
+    transaction_count: 56
+    growth_opportunity: High Priority
+  - branch: C
+    product_line: Electronic accessories
+    total_revenue: 18968.9745
+    avg_rating: 6.85
+    transaction_count: 55
+    growth_opportunity: High Priority
+  - branch: A
+    product_line: Electronic accessories
+    total_revenue: 18317.1135
+    avg_rating: 6.98
+    transaction_count: 60
+    growth_opportunity: High Priority
+  - branch: B
+    product_line: Home and lifestyle
+    total_revenue: 17549.1645
+    avg_rating: 7.19
+    transaction_count: 50
+    growth_opportunity: Monitor
+  - branch: A
+    product_line: Food and beverages
+    total_revenue: 17163.1005
+    avg_rating: 7.07
+    transaction_count: 51
+    growth_opportunity: Monitor
+  - branch: B
+    product_line: Electronic accessories
+    total_revenue: 17051.4435
+    avg_rating: 7.08
+    transaction_count: 53
+    growth_opportunity: Monitor
+  - branch: C
+    product_line: Health and beauty
+    total_revenue: 16615.326
+    avg_rating: 6.61
+    transaction_count: 49
+    growth_opportunity: Medium Priority
+  - branch: B
+    product_line: Fashion accessories
+    total_revenue: 16413.3165
+    avg_rating: 7.07
+    transaction_count: 47
+    growth_opportunity: Monitor
+  - branch: A
+    product_line: Fashion accessories
+    total_revenue: 16332.5085
+    avg_rating: 7.28
+    transaction_count: 49
+    growth_opportunity: Monitor
+  - branch: C
+    product_line: Sports and travel
+    total_revenue: 15761.928
+    avg_rating: 6.87
+    transaction_count: 45
+    growth_opportunity: Medium Priority
+  - branch: B
+    product_line: Food and beverages
+    total_revenue: 15214.8885
+    avg_rating: 7.11
+    transaction_count: 49
+    growth_opportunity: Monitor
+  - branch: C
+    product_line: Home and lifestyle
+    total_revenue: 13895.553
+    avg_rating: 6.82
+    transaction_count: 46
+    growth_opportunity: Monitor
+  - branch: A
+    product_line: Health and beauty
+    total_revenue: 12597.753
+    avg_rating: 6.72
+    transaction_count: 47
+    growth_opportunity: Monitor
+type: hidden
+tags:
+  - business_retail
+  - real_world
+  - sales_strategy
+  - case
+  - cte
+category: Business Retail

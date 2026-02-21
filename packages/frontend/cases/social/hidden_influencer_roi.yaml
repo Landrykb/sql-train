@@ -1,0 +1,97 @@
+id: hidden_influencer_roi
+name: "Find High-ROI Influencers for Campaign"
+tier: 6
+domain: Social Twitter
+description: The marketing director needs to select influencers for a paid campaign — find users with the best engagement-to-follower ratio to maximize campaign ROI.
+hidden: true
+skills:
+  - select
+  - group
+  - order
+  - case
+  - cte
+  - join
+datasets:
+  - name: tweets
+    file: tweets.csv
+  - name: users
+    file: users.csv
+prereq_cases:
+  - post_select
+  - engagement_by_type
+  - user_joins
+  - likes_trend
+  - cte_engagement
+  - capstone_social
+seedQuery: |-
+  -- SCENARIO: The Marketing Director asks:
+  -- "We have budget for 10 influencer partnerships.
+  --  Find users with the highest engagement rates
+  --  relative to their follower count. Those are
+  --  our best bang-for-buck partners."
+  SELECT 1;
+solutionQuery: |-
+  WITH UserEngagement AS (
+    SELECT
+      u.user_id,
+      u.username,
+      u.followers_count,
+      COUNT(t.tweet_id) AS total_posts,
+      SUM(t.likes) AS total_likes,
+      SUM(t.retweets) AS total_retweets,
+      SUM(t.likes + t.retweets) AS total_engagement
+    FROM users u
+    INNER JOIN tweets t ON u.user_id = t.user_id
+    GROUP BY u.user_id, u.username, u.followers_count
+  )
+  SELECT
+    username,
+    followers_count,
+    total_posts,
+    total_engagement,
+    ROUND(1.0 * total_engagement / followers_count, 4) AS engagement_rate,
+    ROUND(1.0 * total_engagement / total_posts, 2) AS avg_engagement_per_post,
+    CASE
+      WHEN 1.0 * total_engagement / followers_count > 0.05 THEN 'Tier 1 — Best ROI'
+      WHEN 1.0 * total_engagement / followers_count > 0.02 THEN 'Tier 2 — Good ROI'
+      WHEN 1.0 * total_engagement / followers_count > 0.01 THEN 'Tier 3 — Average'
+      ELSE 'Skip'
+    END AS campaign_tier
+  FROM UserEngagement
+  WHERE followers_count > 100
+  ORDER BY engagement_rate DESC
+  LIMIT 10;
+instructions: |-
+  The marketing team needs to pick 10 influencers for a campaign.
+
+  1. JOIN users with tweets on user_id
+  2. Calculate per user: total_posts, total_likes, total_retweets, total_engagement
+  3. Compute engagement_rate = total_engagement / followers_count
+  4. Classify campaign_tier:
+     - Tier 1: engagement_rate > 0.05
+     - Tier 2: engagement_rate > 0.02
+     - Tier 3: engagement_rate > 0.01
+     - Skip: below 0.01
+  5. Filter: followers_count > 100, order by engagement_rate DESC, LIMIT 10
+hints:
+  - SUM(likes + retweets) for total engagement
+  - Divide total engagement by followers for the rate
+  - Use WHERE to filter minimum followers
+  - Use CASE for tier classification
+expected:
+  - username: social_guru
+    followers_count: 5230
+    total_posts: 45
+    total_engagement: 892
+    engagement_rate: 0.1706
+    avg_engagement_per_post: 19.82
+    campaign_tier: "Tier 1 — Best ROI"
+type: hidden
+tags:
+  - social_twitter
+  - real_world
+  - influencer_marketing
+  - case
+  - cte
+  - join
+category: Social Twitter

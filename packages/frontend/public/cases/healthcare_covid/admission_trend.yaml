@@ -1,0 +1,120 @@
+id: admission_trend
+name: Admission Trends
+tier: 3
+domain: Healthcare Covid
+description: Analyze admission trends over time
+skills:
+  - aggregation
+  - date_functions
+datasets:
+  - name: healthcare_covid
+    file: healthcare_covid.csv
+  - name: patients
+    file: patients.csv
+  - name: treatments
+    file: treatments.csv
+  - name: admissions
+    file: admissions.csv
+prereq_cases:
+  - patient_select
+  - diagnosis_count
+seedQuery: |-
+  -- TODO: write query for admission_trend
+  SELECT 1;
+solutionQuery: |-
+  SELECT strftime('%Y-%m', admission_date) AS month, COUNT(*) AS admission_count
+  FROM admissions
+  GROUP BY strftime('%Y-%m', admission_date)
+  ORDER BY month;
+instructions: Count admissions by month, order by month
+hints:
+  - Review date functions in the GuideBook
+  - Use strftime to group by month
+  - Use COUNT for admissions
+  - Order by month
+schema:
+  - name: healthcare_covid
+    columns:
+      - name: iso_code
+        type: TEXT
+      - name: continent
+        type: TEXT
+      - name: location
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: total_cases
+        type: FLOAT
+      - name: new_cases
+        type: FLOAT
+      - name: total_deaths
+        type: FLOAT
+      - name: total_vaccinations
+        type: FLOAT
+      - name: people_vaccinated
+        type: FLOAT
+      - name: population
+        type: INTEGER
+  - name: patients
+    columns:
+      - name: patient_id
+        type: TEXT
+      - name: age
+        type: INTEGER
+      - name: gender
+        type: TEXT
+      - name: birthdate
+        type: DATE
+  - name: treatments
+    columns:
+      - name: treatment_id
+        type: TEXT
+      - name: patient_id
+        type: TEXT
+      - name: diagnosis
+        type: TEXT
+      - name: treatment_date
+        type: DATE
+  - name: admissions
+    columns:
+      - name: admission_id
+        type: TEXT
+      - name: patient_id
+        type: TEXT
+      - name: admission_date
+        type: DATE
+      - name: discharge_date
+        type: DATE
+expected:
+  - admission_count: 420
+    month: 2023-01
+  - admission_count: 388
+    month: 2023-02
+  - admission_count: 397
+    month: 2023-03
+  - admission_count: 424
+    month: 2023-04
+  - admission_count: 460
+    month: 2023-05
+  - admission_count: 401
+    month: 2023-06
+  - admission_count: 434
+    month: 2023-07
+  - admission_count: 425
+    month: 2023-08
+  - admission_count: 403
+    month: 2023-09
+  - admission_count: 436
+    month: 2023-10
+  - admission_count: 376
+    month: 2023-11
+  - admission_count: 418
+    month: 2023-12
+  - admission_count: 18
+    month: 2024-01
+type: standard
+tags:
+  - healthcare_covid
+  - aggregation
+  - date_functions
+category: Healthcare Covid

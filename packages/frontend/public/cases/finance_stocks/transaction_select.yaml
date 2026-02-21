@@ -1,0 +1,74 @@
+id: transaction_select
+name: Stock Price Overview
+tier: 1
+domain: Finance Stocks
+description: Retrieve large transactions
+skills:
+  - select
+  - filter
+datasets:
+  - name: finance_stocks
+    file: finance_stocks.csv
+  - name: market_index
+    file: market_index.csv
+prereq_cases: []
+seedQuery: |-
+  -- TODO: write query for transaction_select
+  SELECT 1;
+solutionQuery: |-
+  SELECT ticker, date, close
+  FROM finance_stocks
+  WHERE close > 100
+  ORDER BY date DESC
+  LIMIT 5;
+instructions: Select top 5 stock prices with close > 100, ordered by date
+hints:
+  - Review the select concept in the GuideBook
+  - Use WHERE to filter close
+  - Use ORDER BY to sort by date
+  - Use LIMIT to get 5 rows
+schema:
+  - name: finance_stocks
+    columns:
+      - name: ticker
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: open
+        type: FLOAT
+      - name: high
+        type: FLOAT
+      - name: low
+        type: FLOAT
+      - name: close
+        type: FLOAT
+      - name: volume
+        type: INTEGER
+  - name: market_index
+    columns:
+      - name: date
+        type: DATE
+      - name: index_close
+        type: FLOAT
+expected:
+  - close: 134.23
+    date: '2024-12-31'
+    ticker: TICK461
+  - close: 189.8
+    date: '2024-12-31'
+    ticker: TICK1132
+  - close: 160.75
+    date: '2024-12-31'
+    ticker: TICK1491
+  - close: 150.02
+    date: '2024-12-31'
+    ticker: TICK2200
+  - close: 149.76
+    date: '2024-12-31'
+    ticker: TICK2345
+type: standard
+tags:
+  - finance_stocks
+  - select
+  - filter
+category: Finance Stocks

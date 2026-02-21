@@ -1,0 +1,46 @@
+import { AsyncDuckDB, ConsoleLogger } from '@duckdb/duckdb-wasm';
+
+let db: AsyncDuckDB | null = null;
+let conn: Awaited<ReturnType<AsyncDuckDB['connect']>> | null = null;
+
+/**
+ * Initialize the in-browser DuckDB instance, if not already done.
+ */
+export async function initDuckDB() {
+  if (db) return;
+  // Load the worker & WASM you put in public/duckdb
+  const workerURL = '/duckdb/duckdb-browser-mvp.worker.js';
+  const wasmURL   = '/duckdb/duckdb-mvp.wasm';
+
+  const worker = new Worker(workerURL, { type: 'module' });
+  const logger = new ConsoleLogger();
+  db = new AsyncDuckDB(logger, worker);
+  await db.instantiate(wasmURL);
+  conn = await db.connect();
+}
+
+/**
+ * Load a CSV from public/datasets into a DuckDB table.
+ */
+export async function loadCSV(tableName: string, fileName: string) {
+  await initDuckDB();
+  // registerFileURL(name, url, proto, directIO)
+  // - proto: null, directIO: false
+  await db!.registerFileURL(fileName, '/datasets/' + fileName, null, false);
+  const createSQL =
+    'CREATE OR REPLACE TABLE '
+    + tableName
+    + ' AS SELECT * FROM read_csv_auto(\''
+    + fileName
+    + '\', HEADER=TRUE)';
+  await conn!.query(createSQL);
+}
+
+/**
+ * Run any SQL text against the in-memory DB.
+ */
+export async function runQuery(sqlText: string) {
+  await initDuckDB();
+  const result = await conn!.query(sqlText);
+  return result.toArray();
+}

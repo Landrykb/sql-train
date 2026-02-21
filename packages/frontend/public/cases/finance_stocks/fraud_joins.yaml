@@ -1,0 +1,84 @@
+id: fraud_joins
+name: Fraud Detection
+tier: 3
+domain: Finance Stocks
+description: Identify suspicious stock transactions
+skills:
+  - joins
+  - aggregation
+datasets:
+  - name: finance_stocks
+    file: finance_stocks.csv
+  - name: market_index
+    file: market_index.csv
+prereq_cases:
+  - transaction_select
+  - balance_by_account
+seedQuery: |-
+  -- TODO: write query for fraud_joins
+  SELECT 1;
+solutionQuery: |-
+  SELECT s.ticker, s.date, s.close, ((s.high - s.low) / s.close) AS volatility
+  FROM finance_stocks s
+  LEFT JOIN market_index m ON s.date = m.date
+  WHERE ((s.high - s.low) / s.close) > 0.1
+  ORDER BY s.date DESC
+  LIMIT 5;
+instructions: |-
+  Join stocks and market index, flag transactions with high volatility, order by
+  date
+hints:
+  - Review joins in the GuideBook
+  - Calculate volatility as (high - low) / close
+  - Filter for high volatility
+  - Order by date
+schema:
+  - name: finance_stocks
+    columns:
+      - name: ticker
+        type: TEXT
+      - name: date
+        type: DATE
+      - name: open
+        type: FLOAT
+      - name: high
+        type: FLOAT
+      - name: low
+        type: FLOAT
+      - name: close
+        type: FLOAT
+      - name: volume
+        type: INTEGER
+  - name: market_index
+    columns:
+      - name: date
+        type: DATE
+      - name: index_close
+        type: FLOAT
+expected:
+  - close: 134.23
+    date: '2024-12-31'
+    ticker: TICK461
+    volatility: 0.2458466810698056
+  - close: 189.8
+    date: '2024-12-31'
+    ticker: TICK1132
+    volatility: 0.3354583772391991
+  - close: 160.75
+    date: '2024-12-31'
+    ticker: TICK1491
+    volatility: 0.5002177293934681
+  - close: 172.67
+    date: '2024-12-31'
+    ticker: TICK13136
+    volatility: 0.13835640238605426
+  - close: 115.26
+    date: '2024-12-31'
+    ticker: TICK14550
+    volatility: 0.20935276765573482
+type: standard
+tags:
+  - finance_stocks
+  - joins
+  - aggregation
+category: Finance Stocks

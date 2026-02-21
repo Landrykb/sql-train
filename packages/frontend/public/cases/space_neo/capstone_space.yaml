@@ -1,0 +1,64 @@
+id: capstone_space
+name: Space Capstone
+tier: 5
+domain: Space Neo
+description: Build a comprehensive NEO dashboard
+skills:
+  - ctes
+  - aggregation
+  - date_functions
+datasets:
+  - name: space_neo
+    file: space_neo.csv
+prereq_cases:
+  - orbit_select
+  - velocity_by_type
+  - mission_joins
+  - orbit_trend
+  - cte_payload
+seedQuery: |-
+  -- TODO: write query for capstone_space
+  SELECT 1;
+solutionQuery: "WITH NeoStats AS (\n SELECT strftime('%Y', close_approach_date) AS
+  year, \n is_potentially_hazardous, \n COUNT(*) AS neo_count\n FROM space_neo\n GROUP
+  BY strftime('%Y', close_approach_date), is_potentially_hazardous\n)\nSELECT year,
+  is_potentially_hazardous, neo_count\nFROM NeoStats\nORDER BY year, neo_count DESC;"
+instructions: Summarize NEO approaches and risks
+hints:
+  - Review all SQL concepts in the GuideBook
+  - Use multiple CTEs for clarity
+  - Group by year and hazard status
+  - Order by count
+schema:
+  - name: space_neo
+    columns:
+      - name: des
+        type: TEXT
+      - name: close_approach_date
+        type: DATE
+      - name: dist_km
+        type: INTEGER
+      - name: relative_velocity_km_s
+        type: FLOAT
+      - name: is_potentially_hazardous
+        type: BOOLEAN
+expected:
+  - is_potentially_hazardous: 0
+    neo_count: 2500
+    year: '2025'
+  - is_potentially_hazardous: 1
+    neo_count: 2492
+    year: '2025'
+  - is_potentially_hazardous: 1
+    neo_count: 5
+    year: '2026'
+  - is_potentially_hazardous: 0
+    neo_count: 3
+    year: '2026'
+type: standard
+tags:
+  - space_neo
+  - ctes
+  - aggregation
+  - date_functions
+category: Space Neo

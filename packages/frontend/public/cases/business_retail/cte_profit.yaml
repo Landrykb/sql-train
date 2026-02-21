@@ -1,0 +1,99 @@
+id: cte_profit
+name: Profit Analysis
+tier: 4
+domain: Business Retail
+description: Analyze profit margins using CTEs
+skills:
+  - ctes
+  - joins
+  - aggregation
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+  - name: returns
+    file: returns.csv
+prereq_cases:
+  - basics_select
+  - agg_revenue
+  - joins_returns
+seedQuery: |-
+  -- TODO: write query for cte_profit
+  SELECT 1;
+solutionQuery: |-
+  WITH ReturnTotals AS (
+   SELECT b.branch, SUM(b.total) AS return_total
+   FROM business_retail b
+   JOIN returns r ON b.invoice_id = r.invoice_id
+   GROUP BY b.branch
+  )
+  SELECT b.branch, SUM(b.total) - COALESCE(r.return_total, 0) AS net_profit
+  FROM business_retail b
+  LEFT JOIN ReturnTotals r ON b.branch = r.branch
+  GROUP BY b.branch
+  ORDER BY net_profit DESC;
+instructions: Calculate net profit by branch after accounting for returns, using a
+  CTE
+hints:
+  - Review CTEs in the GuideBook
+  - Use a CTE to compute returns
+  - Subtract return totals from sales
+  - Group by branch
+schema:
+  - name: business_retail
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: branch
+        type: TEXT
+      - name: city
+        type: TEXT
+      - name: customer_type
+        type: TEXT
+      - name: gender
+        type: TEXT
+      - name: product_line
+        type: TEXT
+      - name: unit_price
+        type: FLOAT
+      - name: quantity
+        type: INTEGER
+      - name: tax_5
+        type: FLOAT
+      - name: total
+        type: FLOAT
+      - name: date
+        type: DATE
+      - name: time
+        type: TEXT
+      - name: payment
+        type: TEXT
+      - name: cogs
+        type: FLOAT
+      - name: gross_margin_percentage
+        type: FLOAT
+      - name: gross_income
+        type: FLOAT
+      - name: rating
+        type: FLOAT
+  - name: returns
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: return_date
+        type: DATE
+      - name: return_reason
+        type: TEXT
+expected:
+  - branch: C
+    net_profit: 59385.98399999991
+  - branch: A
+    net_profit: 53353.23000000016
+  - branch: B
+    net_profit: 48674.29349999997
+type: standard
+tags:
+  - business_retail
+  - ctes
+  - joins
+  - aggregation
+category: Business Retail

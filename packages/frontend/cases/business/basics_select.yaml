@@ -1,0 +1,98 @@
+id: basics_select
+name: Inspect Sales Rows
+tier: 1
+domain: Business Retail
+description: Retrieve top sales rows for a specific branch
+skills:
+  - select
+  - filter
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+  - name: returns
+    file: returns.csv
+prereq_cases: []
+seedQuery: |-
+  -- TODO: write query for basics_select
+  SELECT 1;
+solutionQuery: |-
+  SELECT invoice_id, branch, total
+  FROM business_retail
+  WHERE branch = 'A'
+  ORDER BY total DESC
+  LIMIT 5;
+instructions: |-
+  Write a query to select the top 5 sales rows for branch A, ordered by total
+  amount
+hints:
+  - Review the select concept in the GuideBook
+  - Use WHERE to filter by branch
+  - Use ORDER BY to sort by total
+  - Use LIMIT to get 5 rows
+schema:
+  - name: business_retail
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: branch
+        type: TEXT
+      - name: city
+        type: TEXT
+      - name: customer_type
+        type: TEXT
+      - name: gender
+        type: TEXT
+      - name: product_line
+        type: TEXT
+      - name: unit_price
+        type: FLOAT
+      - name: quantity
+        type: INTEGER
+      - name: tax_5
+        type: FLOAT
+      - name: total
+        type: FLOAT
+      - name: date
+        type: DATE
+      - name: time
+        type: TEXT
+      - name: payment
+        type: TEXT
+      - name: cogs
+        type: FLOAT
+      - name: gross_margin_percentage
+        type: FLOAT
+      - name: gross_income
+        type: FLOAT
+      - name: rating
+        type: FLOAT
+  - name: returns
+    columns:
+      - name: invoice_id
+        type: TEXT
+      - name: return_date
+        type: DATE
+      - name: return_reason
+        type: TEXT
+expected:
+  - branch: A
+    invoice_id: 687-47-8271
+    total: 1039.29
+  - branch: A
+    invoice_id: 325-77-6186
+    total: 951.825
+  - branch: A
+    invoice_id: 384-59-6655
+    total: 932.337
+  - branch: A
+    invoice_id: 704-48-3927
+    total: 931.035
+  - branch: A
+    invoice_id: 827-77-7633
+    total: 926.9505
+type: standard
+tags:
+  - business_retail
+  - select
+  - filter
+category: Business Retail

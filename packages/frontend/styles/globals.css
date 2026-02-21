@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { scroll-behavior: smooth; }
+code { @apply px-1 py-0.5 bg-gray-100 rounded; }
+
+
