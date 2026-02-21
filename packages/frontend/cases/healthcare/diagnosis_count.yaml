@@ -30,6 +30,12 @@ hints:
   - Use GROUP BY for diagnosis
   - Use COUNT for occurrences
   - Order by count
+thoughtProcess:
+  - "'Count occurrences of each diagnosis' — 'each diagnosis' = GROUP BY diagnosis. 'Count occurrences' = COUNT(*)."
+  - "SELECT diagnosis, COUNT(*) AS diagnosis_count — name the aggregate with AS for clarity and so you can ORDER BY it."
+  - "FROM treatments GROUP BY diagnosis — every non-aggregated column in SELECT must be in GROUP BY."
+  - "ORDER BY diagnosis_count DESC — most common diagnoses first. No LIMIT means you see all diagnoses."
+  - "Aggregation pattern: SELECT category, COUNT/SUM/AVG(metric) FROM table GROUP BY category ORDER BY aggregate. This is the bread-and-butter of data analysis."
 schema:
   - name: healthcare_covid
     columns:

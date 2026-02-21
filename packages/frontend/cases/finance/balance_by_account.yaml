@@ -29,6 +29,12 @@ hints:
   - Use LEFT JOIN to include market data
   - Filter with WHERE for non-null index values
   - Use LIMIT to get 5 rows
+thoughtProcess:
+  - "You need stock prices AND market index values together. They're in two tables — finance_stocks and market_index — so you need a JOIN."
+  - "What connects them? Both have a date column. JOIN ON s.date = m.date matches each stock's daily price with the market index for that same day."
+  - "LEFT JOIN keeps all stock rows even if the market index is missing for that date. Then WHERE m.index_close IS NOT NULL filters to only days with market data available."
+  - "SELECT s.ticker, s.date, s.close, m.index_close — use aliases (s, m) to clearly specify which table each column belongs to."
+  - "ORDER BY s.date DESC LIMIT 5 — most recent data first. This is the standard JOIN pattern for combining related datasets on a shared key."
 schema:
   - name: finance_stocks
     columns:

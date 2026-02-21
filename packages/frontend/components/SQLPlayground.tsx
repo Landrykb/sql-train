@@ -11,6 +11,7 @@ import { useProgress } from '@/lib/useProgress';
 import { fullCaseOrder, caseOrder } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
 import { loadingMessages, queryMessages, getLockedMessage, getDomainCompleteMessage, getNextCaseMessage, getLoadError, pickRandom } from '@/lib/bleepxDialogue';
+import { playBleep } from '@/lib/audio';
 
 const Spinner = dynamic(() => import('./Spinner'), { ssr: false });
 
@@ -31,6 +32,7 @@ interface CaseData {
   description: string;
   instructions?: string;
   hints?: string[];
+  thoughtProcess?: string[];
   skills?: string[];
   datasets: Dataset[];
   seedQuery?: string;
@@ -69,7 +71,7 @@ const CodeMirror = dynamic(
 const Chip: React.FC<{ label: string; onClick(): void }> = ({ label, onClick }) => (
   <kbd
     onClick={() => {
-      new Audio('/bleep.mp3').play();
+      playBleep();
       onClick();
     }}
     className="cursor-pointer px-3 py-1 m-1 bg-bleepx-blue/10 text-bleepx-gray text-xs rounded-full hover:bg-bleepx-blue/20 transition-all duration-200"
@@ -83,7 +85,7 @@ const Chip: React.FC<{ label: string; onClick(): void }> = ({ label, onClick }) 
 const TabButton: React.FC<{ tab: Tab; current: Tab; onSelect(t: Tab): void }> = ({ tab, current, onSelect }) => (
   <button
     onClick={() => {
-      new Audio('/bleep.mp3').play();
+      playBleep();
       onSelect(tab);
     }}
     className={`py-2 px-4 font-medium text-sm transition-all duration-200 ${
@@ -111,7 +113,7 @@ interface VisualizationConfigs {
 }
 
 export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
-  const { id, name, description, instructions, hints = [], skills = [], datasets, seedQuery = '', templateQuery = '', expected = [], solutionQuery = '', domain: rawDomain, prerequisites = [], tier } = caseData;
+  const { id, name, description, instructions, hints = [], thoughtProcess = [], skills = [], datasets, seedQuery = '', templateQuery = '', expected = [], solutionQuery = '', domain: rawDomain, prerequisites = [], tier } = caseData;
   const domain = normalizeDomain(rawDomain) as ValidDomain;
   const { markComplete, completed, isUnlocked } = useProgress();
 
@@ -131,6 +133,8 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const [attempts, setAttempts] = useState(0);
   const [showSolution, setShowSolution] = useState(false);
   const [visibleHints, setVisibleHints] = useState(1);
+  const [visibleSteps, setVisibleSteps] = useState(1);
+  const [showThoughtProcess, setShowThoughtProcess] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
@@ -394,7 +398,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
             <div className="flex gap-1.5 sm:gap-2 flex-wrap">
               <button
                 onClick={() => {
-                  new Audio('/bleep.mp3').play();
+                  playBleep();
                   onRun();
                 }}
                 disabled={!canRun}
@@ -405,7 +409,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
               </button>
               <button
                 onClick={() => {
-                  new Audio('/bleep.mp3').play();
+                  playBleep();
                   setQuery('');
                   setMessage('');
                   setResultRows([]);
@@ -421,7 +425,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
               {(templateQuery || seedQuery) && (
                 <button
                   onClick={() => {
-                    new Audio('/bleep.mp3').play();
+                    playBleep();
                     tryExampleQuery();
                   }}
                   className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
@@ -432,7 +436,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
               {attempts >= 3 && !showSolution && (
                 <button
                   onClick={() => {
-                    new Audio('/bleep.mp3').play();
+                    playBleep();
                     setShowSolution(true);
                   }}
                   className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
@@ -505,13 +509,56 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
               {visibleHints < hints.length && attempts > 0 && (
                 <button
                   onClick={() => {
-                    new Audio('/bleep.mp3').play();
+                    playBleep();
                     setVisibleHints((v) => Math.min(v + 1, hints.length));
                   }}
                   className="mt-4 px-3 py-1 text-sm bg-bleepx-blue/10 hover:bg-bleepx-blue/20 rounded-full transition-all duration-200"
                 >
                   Show Next Hint
                 </button>
+              )}
+            </div>
+          )}
+
+          {thoughtProcess.length > 0 && (
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-3 sm:p-6 rounded-xl shadow-lg border border-amber-200/60">
+              <button
+                onClick={() => {
+                  playBleep();
+                  setShowThoughtProcess((v) => !v);
+                }}
+                className="w-full flex items-center justify-between text-left"
+              >
+                <h2 className="text-base sm:text-lg font-semibold text-amber-900 flex items-center gap-2">
+                  <span className="text-lg">💡</span> How to Think About This
+                </h2>
+                <span className="text-amber-700 text-sm font-medium">{showThoughtProcess ? 'Hide' : 'Show'} Guide</span>
+              </button>
+              {showThoughtProcess && (
+                <div className="mt-4 space-y-3">
+                  {thoughtProcess.slice(0, visibleSteps).map((step, i) => (
+                    <div key={i} className="flex gap-3 items-start">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-200 text-amber-900 text-xs font-bold flex items-center justify-center mt-0.5">
+                        {i + 1}
+                      </span>
+                      <p className="text-sm text-amber-900 leading-relaxed">{step}</p>
+                    </div>
+                  ))}
+                  {visibleSteps < thoughtProcess.length && (
+                    <button
+                      onClick={() => {
+                        playBleep();
+                        setVisibleSteps((v) => Math.min(v + 1, thoughtProcess.length));
+                      }}
+                      className="mt-2 px-4 py-1.5 text-sm font-medium bg-amber-200/60 hover:bg-amber-200 text-amber-900 rounded-full transition-all duration-200"
+                    >
+                      Next Step ({visibleSteps}/{thoughtProcess.length})
+                    </button>
+                  )}
+                  {visibleSteps >= thoughtProcess.length && (
+                    <p className="text-xs text-amber-700 mt-2 italic">You&apos;ve seen the full thought process. Now try writing the query!</p>
+                  )}
+                </div>
               )}
             </div>
           )}

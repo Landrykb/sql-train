@@ -92,6 +92,13 @@ hints:
   - Filter WHERE treatment_date >= admission_date to exclude data errors
   - Use a CTE for the timeline, then aggregate in a second CTE
   - RANK() in the final SELECT for ordering
+thoughtProcess:
+  - "Diagnosis delay = time between admission and first treatment. You need to compute days_to_treatment for each patient, then aggregate by diagnosis."
+  - "CTE 1 — PatientTimeline: JOIN admissions with treatments on patient_id. Compute JULIANDAY(treatment_date) - JULIANDAY(admission_date) AS days_to_treatment."
+  - "Filter WHERE t.treatment_date >= a.admission_date to exclude data errors where treatment appears before admission. Always validate date logic."
+  - "CTE 2 — DiagnosisStats: GROUP BY diagnosis to get AVG(days_to_treatment), COUNT(*) as patient_count. This shows average delay per diagnosis."
+  - "Final SELECT adds RANK() OVER (ORDER BY avg_delay DESC) to rank diagnoses by longest delays. Hospitals use this to prioritize process improvements."
+  - "Pattern: CTE1 for row-level computation (date math) → CTE2 for aggregation → final SELECT for ranking. Each layer adds one transformation."
 schema:
   - name: patients
     columns:

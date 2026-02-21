@@ -72,6 +72,13 @@ hints:
   - Use AVG for yield, NDVI, and soil pH
   - Use CASE for the recommendation
   - GROUP BY crop_type
+thoughtProcess:
+  - "The farm manager wants to know which crops to plant more of. Translate to SQL: compare crop types by yield efficiency, NDVI health, and soil compatibility."
+  - "CTE — CropPerformance: JOIN farming_yield with soil_data on field_id. GROUP BY crop_type to get AVG(yield_kg), AVG(ndvi), AVG(soil_ph), and COUNT(*) as harvests per crop."
+  - "ROUND your averages for clean output: ROUND(AVG(f.yield_kg), 2). Farm managers don't need 10 decimal places."
+  - "Use CASE to create a recommendation column: high yield + high NDVI = 'Expand Planting', low yield or low NDVI = 'Reduce or Investigate', otherwise 'Maintain Current'."
+  - "ORDER BY avg_yield DESC shows the best-performing crops first. The pattern: CTE for metrics → CASE for business recommendation → ORDER BY for prioritization."
+  - "This is a real-world decision support query. The output directly answers: 'Plant more of X, investigate Y, keep Z the same.' That's the power of SQL in agriculture."
 expected:
   - crop_type: Wheat
     harvests: 50

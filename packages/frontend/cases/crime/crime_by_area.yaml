@@ -27,6 +27,12 @@ hints:
   - Use GROUP BY for primary_type
   - Use COUNT for crime counts
   - Order by count
+thoughtProcess:
+  - "The goal is 'count crimes by type'. Whenever you see 'count by' or 'total per', that's aggregation with GROUP BY."
+  - "COUNT(*) counts all rows in each group. Pair it with GROUP BY primary_type to get one count per crime type."
+  - "Give the count a name: COUNT(*) AS crime_count. This alias lets you reference it in ORDER BY."
+  - "ORDER BY crime_count DESC shows the most frequent crime types first. LIMIT 10 keeps just the top 10."
+  - "Rule: every column in SELECT that isn't inside an aggregate function (COUNT, SUM, AVG, etc.) MUST appear in GROUP BY. Here, primary_type is in SELECT and GROUP BY — that's correct."
 schema:
   - name: crime_chicago
     columns:

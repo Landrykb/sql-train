@@ -69,6 +69,14 @@ hints:
   - AVG(rating) gives customer satisfaction
   - SUM(total) gives revenue per segment
   - Review the case concept in the GuideBook
+thoughtProcess:
+  - "Real-world scenario! The VP asks 'high revenue but low satisfaction'. Translate business language to SQL: high revenue = SUM(total), low satisfaction = AVG(rating) < 7."
+  - "You need metrics grouped by branch AND product_line. Build a CTE first: WITH BranchProduct AS (SELECT branch, product_line, SUM(total) AS total_revenue, ROUND(AVG(rating), 2) AS avg_rating, COUNT(*) AS transaction_count FROM business_retail GROUP BY branch, product_line)."
+  - "Now classify with CASE WHEN: this is SQL's if/else. CASE WHEN total_revenue > 18000 AND avg_rating < 7.0 THEN 'High Priority' WHEN total_revenue > 15000 AND avg_rating < 7.0 THEN 'Medium Priority' ELSE 'Monitor' END AS growth_opportunity."
+  - "CASE conditions are checked top-to-bottom — put the strictest condition first. If revenue > 18000 AND low rating, that's high priority. The ELSE catches everything that doesn't match."
+  - "ROUND(AVG(rating), 2) rounds to 2 decimal places for clean output. Always round aggregates in business reports."
+  - "The final SELECT pulls from the CTE and adds the CASE classification. ORDER BY total_revenue DESC shows the biggest revenue segments first — exactly what a VP wants to see."
+  - "Real-world pattern: CTE for metrics → CASE for business classification → ORDER BY for prioritization. This is how analysts build executive dashboards."
 schema:
   - name: business_retail
     columns:

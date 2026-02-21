@@ -25,6 +25,12 @@ hints:
   - Use WHERE to filter dist_km
   - Use ORDER BY to sort by close_approach_date
   - Use LIMIT to get 5 rows
+thoughtProcess:
+  - "Read the goal: 'top 5 NEOs with distance < 500000 km, ordered by date'. Identify columns, filter, sort, limit."
+  - "SELECT des, close_approach_date, dist_km — the NEO designation, when it came close, and how close. FROM space_neo is the data source."
+  - "WHERE dist_km < 500000 — filters to only dangerously close approaches. Numeric comparison, no quotes needed."
+  - "ORDER BY close_approach_date DESC — most recent approaches first. LIMIT 5 — cap at 5 results."
+  - "Foundational pattern: SELECT columns FROM table WHERE condition ORDER BY column LIMIT n. Every query builds on this skeleton."
 schema:
   - name: space_neo
     columns:

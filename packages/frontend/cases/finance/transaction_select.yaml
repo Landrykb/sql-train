@@ -27,6 +27,12 @@ hints:
   - Use WHERE to filter close
   - Use ORDER BY to sort by date
   - Use LIMIT to get 5 rows
+thoughtProcess:
+  - "Read the goal: 'top 5 stock prices with close > 100, ordered by date'. Break it down — what columns, what filter, what order, how many rows."
+  - "SELECT ticker, date, close — these are the columns relevant to the question. FROM finance_stocks is the data source."
+  - "WHERE close > 100 — filters to only stocks that closed above 100. This is a numeric comparison, no quotes needed."
+  - "ORDER BY date DESC — most recent prices first. LIMIT 5 — cap at 5 rows."
+  - "This is the fundamental SQL pattern: SELECT → FROM → WHERE → ORDER BY → LIMIT. Every query you write builds on this skeleton."
 schema:
   - name: finance_stocks
     columns:

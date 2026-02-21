@@ -84,7 +84,7 @@ export default async function DashboardPage({
   }
   const datasets: Dataset[] = Array.from(uniqueFiles).map((f) => ({
     file: f,
-    name: path.basename(f),
+    name: path.basename(f, '.csv'),
   }));
 
   // Dashboard plots are loaded client-side by the DomainDashboard component

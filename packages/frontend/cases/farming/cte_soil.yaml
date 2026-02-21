@@ -35,6 +35,12 @@ hints:
   - Use a CTE to bucket soil pH
   - Join yield and soil data
   - Group by pH range
+thoughtProcess:
+  - "The goal is 'average NDVI and yield by soil pH range'. Raw pH values (like 6.37, 6.42) are too precise to group — you need to bucket them into ranges first. That's the CTE's job."
+  - "CTE — SoilBuckets: JOIN farming_yield with soil_data on id. Use ROUND(s.soil_ph, 1) AS ph_bucket to create pH ranges like 6.0, 6.1, 6.2, etc. ROUND to 1 decimal place creates natural buckets."
+  - "Main query: SELECT ph_bucket, AVG(ndvi) AS avg_ndvi, AVG(yield) AS avg_yield FROM SoilBuckets GROUP BY ph_bucket. Now each bucket has an average NDVI and yield."
+  - "ORDER BY avg_yield DESC shows which pH range produces the best yields. Farmers can use this to target optimal soil conditions."
+  - "CTE pattern here: transform data first (bucketing), then aggregate. This two-step approach is cleaner than trying to do ROUND() inside GROUP BY directly."
 schema:
   - name: farming_yield
     columns:

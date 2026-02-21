@@ -86,6 +86,14 @@ hints:
   - RANK() OVER (PARTITION BY primary_type ORDER BY incident_count DESC) ranks within each crime type
   - Filter out NULL or empty location_descriptions
   - The WHERE hotspot_rank <= 5 goes in the outer query, not the CTE
+thoughtProcess:
+  - "Serial pattern detection = find locations where the same crime type repeats. You need to count incidents per location per crime type, then filter for repeats."
+  - "CTE 1 — LocationClusters: GROUP BY location_description, primary_type. COUNT(*) AS incident_count and COUNT(DISTINCT date) AS distinct_dates. Use HAVING COUNT(*) >= 3 to keep only repeat locations."
+  - "HAVING vs WHERE: WHERE filters individual rows BEFORE grouping; HAVING filters groups AFTER aggregation. Since you need 'groups with 3+ incidents', use HAVING."
+  - "Clean data first: WHERE location_description IS NOT NULL AND location_description != '' removes garbage rows before grouping."
+  - "CTE 2 — Ranked: Add RANK() OVER (PARTITION BY primary_type ORDER BY incident_count DESC). PARTITION BY primary_type means ranking restarts for each crime type — so you get top locations per crime type, not overall."
+  - "Classify risk with CASE: incident_count >= 10 = 'High Serial Risk', >= 5 = 'Medium Serial Risk', else 'Monitor'. The outer query filters WHERE hotspot_rank <= 5 to show only the top 5 per crime type."
+  - "Key insight: you can't use window function results in the same query's WHERE. That's why you need two CTEs — compute the rank in one, filter on it in the outer SELECT."
 schema:
   - name: crime_chicago
     columns:

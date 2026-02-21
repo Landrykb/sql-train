@@ -83,6 +83,13 @@ hints:
   - COALESCE(prev_ndvi, avg_ndvi) avoids NULL in the first row
   - GROUP BY region, soil_type, year, month before applying window functions
   - The WHERE prev_ndvi IS NOT NULL filter goes in the outer query
+thoughtProcess:
+  - "Drought risk = NDVI dropping month-over-month. You need to compare each month's NDVI to the previous month. The LAG() window function does exactly this."
+  - "CTE — MonthlyNDVI: First GROUP BY region, soil_type, year, month to get AVG(ndvi) per month per region. Then add LAG(AVG(ndvi)) OVER (PARTITION BY region ORDER BY year, month) to get the previous month's NDVI."
+  - "LAG(value) OVER (PARTITION BY group ORDER BY sort) looks at the previous row within each partition. PARTITION BY region means each region's history is tracked independently."
+  - "The first month in each region has no previous value, so LAG returns NULL. Use COALESCE(prev_ndvi, avg_ndvi) to handle this — or filter with WHERE prev_ndvi IS NOT NULL in the outer query."
+  - "In the outer SELECT, compute ndvi_change = avg_ndvi - prev_ndvi. Negative values indicate declining vegetation health. Use CASE to classify: large drop = 'High Drought Risk', small drop = 'Monitor', stable/increasing = 'Healthy'."
+  - "Key insight: window functions can't be used in WHERE of the same query. That's why you compute LAG in a CTE, then filter on its result in the outer query. This two-step pattern applies to all window function filtering."
 schema:
   - name: farming_yield
     columns:

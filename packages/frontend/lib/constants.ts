@@ -52,1140 +52,614 @@
   );
 
   // Visualization configurations for each domain and case
+  // CSV columns:
+  // business_retail: invoice_id, branch, city, customer_type, gender, product_line, unit_price, quantity, tax_5, total, date, time, payment, cogs, gross_margin_percentage, gross_income, rating
+  // returns: invoice_id, return_date, return_reason
+  // crime_chicago: id, date, primary_type, location_description, latitude, longitude
+  // suspects: suspect_id, crime_id, suspect_name
+  // farming_yield: id, region, ndvi, yield, year, month, soil_type
+  // soil_data: id, soil_ph, soil_type
+  // finance_stocks: ticker, date, open, high, low, close, volume
+  // market_index: date, index_close
+  // patients: patient_id, age, gender, birthdate
+  // treatments: treatment_id, patient_id, diagnosis, treatment_date
+  // admissions: admission_id, patient_id, admission_date, discharge_date
+  // tweets: tweet_id, user_id, created_at, text
+  // users: user_id, user_name, signup_date
+  // space_neo: des, close_approach_date, dist_km, relative_velocity_km_s, is_potentially_hazardous
+  // nba_games: game_id, player_id, points, assists, rebounds, game_date
+  // shot_zones: shot_id, player_id, shot_zone, made
   export const visualizationConfigs: Record<string, Record<string, VisualizationConfig[]>> = {
     business: {
+      dashboard: [
+        {
+          query: "SELECT product_line, ROUND(SUM(total),2) as revenue FROM business_retail GROUP BY product_line ORDER BY revenue DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.product_line), y: data.map(r => r.revenue), type: 'bar', name: 'Revenue', marker: { color: '#1f77b4' } }],
+          layout: { title: { text: 'Revenue by Product Line', font: { size: 16 } }, xaxis: { title: 'Product Line', tickangle: 45 }, yaxis: { title: 'Revenue ($)' }, margin: { b: 140 }, showlegend: false },
+        },
+        {
+          query: "SELECT return_reason, COUNT(*) as cnt FROM returns GROUP BY return_reason ORDER BY cnt DESC",
+          dataMapper: (data) => [{ labels: data.map(r => r.return_reason), values: data.map(r => r.cnt), type: 'pie', textinfo: 'percent+label' }],
+          layout: { title: { text: 'Return Reasons', font: { size: 16 } }, showlegend: true, margin: { t: 80, b: 60, l: 60, r: 60 } },
+        },
+      ],
       basics_select: [
         {
-          query: 'SELECT sale_date, SUM(amount) as total_sales FROM business_retail GROUP BY sale_date',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.sale_date),
-              y: data.map((row) => row.total_sales),
-              type: 'bar',
-              name: 'Total Sales',
-              marker: { color: '#1f77b4' },
-            },
-          ],
-          layout: {
-            title: { text: 'Total Sales by Date', font: { size: 18 } },
-            xaxis: { title: 'Sale Date', type: 'date' },
-            yaxis: { title: 'Total Sales ($)' },
-            margin: { b: 100 },
-            showlegend: false,
-          },
+          query: "SELECT date, ROUND(SUM(total),2) as total_sales FROM business_retail GROUP BY date ORDER BY date",
+          dataMapper: (data) => [{ x: data.map(r => r.date), y: data.map(r => r.total_sales), type: 'bar', name: 'Daily Sales', marker: { color: '#1f77b4' } }],
+          layout: { title: { text: 'Total Sales by Date', font: { size: 16 } }, xaxis: { title: 'Date', type: 'date' }, yaxis: { title: 'Total Sales ($)' }, margin: { b: 100 }, showlegend: false },
         },
       ],
       agg_revenue: [
         {
-          query: 'SELECT product_id, SUM(amount) as revenue FROM business_retail GROUP BY product_id',
-          dataMapper: (data) => [
-            {
-              labels: data.map((row) => row.product_id),
-              values: data.map((row) => row.revenue),
-              type: 'pie',
-              name: 'Revenue by Product',
-              textinfo: 'percent+label',
-              hoverinfo: 'label+percent',
-            },
-          ],
-          layout: {
-            title: { text: 'Revenue by Product', font: { size: 18 } },
-            showlegend: true,
-            margin: { t: 100, b: 100, l: 100, r: 100 },
-          },
+          query: "SELECT product_line, ROUND(SUM(total),2) as revenue FROM business_retail GROUP BY product_line ORDER BY revenue DESC",
+          dataMapper: (data) => [{ labels: data.map(r => r.product_line), values: data.map(r => r.revenue), type: 'pie', textinfo: 'percent+label', hoverinfo: 'label+percent' }],
+          layout: { title: { text: 'Revenue by Product Line', font: { size: 16 } }, showlegend: true, margin: { t: 80, b: 80, l: 80, r: 80 } },
         },
       ],
       joins_returns: [
         {
-          query: 'SELECT r.product_id, COUNT(r.return_id) as return_count FROM business_retail b JOIN returns r ON b.product_id = r.product_id GROUP BY r.product_id',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.product_id),
-              y: data.map((row) => row.return_count),
-              type: 'bar',
-              name: 'Returns by Product',
-              marker: { color: '#d62728' },
-            },
-          ],
-          layout: {
-            title: { text: 'Returns by Product', font: { size: 18 } },
-            xaxis: { title: 'Product ID', tickangle: 45 },
-            yaxis: { title: 'Return Count' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT return_reason, COUNT(*) as return_count FROM returns GROUP BY return_reason ORDER BY return_count DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.return_reason), y: data.map(r => r.return_count), type: 'bar', name: 'Returns', marker: { color: '#d62728' } }],
+          layout: { title: { text: 'Returns by Reason', font: { size: 16 } }, xaxis: { title: 'Return Reason', tickangle: 45 }, yaxis: { title: 'Count' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       window_cumsum: [
         {
-          query: 'SELECT sale_date, SUM(amount) OVER (ORDER BY sale_date) as cumulative_sales FROM business_retail',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.sale_date),
-              y: data.map((row) => row.cumulative_sales),
-              type: 'scatter',
-              mode: 'lines+markers',
-              name: 'Cumulative Sales',
-              line: { color: '#ff7f0e', width: 2 },
-              marker: { size: 8 },
-            },
-          ],
-          layout: {
-            title: { text: 'Cumulative Sales Over Time', font: { size: 18 } },
-            xaxis: { title: 'Sale Date', type: 'date' },
-            yaxis: { title: 'Cumulative Sales ($)' },
-            showlegend: true,
-          },
+          query: "SELECT date, SUM(total) OVER (ORDER BY date) as cumulative_sales FROM business_retail",
+          dataMapper: (data) => [{ x: data.map(r => r.date), y: data.map(r => r.cumulative_sales), type: 'scatter', mode: 'lines', name: 'Cumulative Sales', line: { color: '#ff7f0e', width: 2 } }],
+          layout: { title: { text: 'Cumulative Sales Over Time', font: { size: 16 } }, xaxis: { title: 'Date', type: 'date' }, yaxis: { title: 'Cumulative Sales ($)' }, showlegend: false },
         },
       ],
       cte_profit: [
         {
-          query: 'WITH Profit AS (SELECT product_id, SUM(amount) - SUM(return_amount) as profit FROM business_retail b JOIN returns r ON b.product_id = r.product_id GROUP BY product_id) SELECT product_id, profit FROM Profit',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.product_id),
-              y: data.map((row) => row.profit),
-              type: 'bar',
-              name: 'Profit by Product',
-              marker: { color: '#2ca02c' },
-            },
-          ],
-          layout: {
-            title: { text: 'Profit by Product', font: { size: 18 } },
-            xaxis: { title: 'Product ID', tickangle: 45 },
-            yaxis: { title: 'Profit ($)' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT product_line, ROUND(SUM(gross_income),2) as profit FROM business_retail GROUP BY product_line ORDER BY profit DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.product_line), y: data.map(r => r.profit), type: 'bar', name: 'Profit', marker: { color: '#2ca02c' } }],
+          layout: { title: { text: 'Gross Income by Product Line', font: { size: 16 } }, xaxis: { title: 'Product Line', tickangle: 45 }, yaxis: { title: 'Gross Income ($)' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       capstone_root: [
         {
-          query: 'SELECT b.sale_date, SUM(b.amount) as total_sales, COUNT(r.return_id) as return_count FROM business_retail b LEFT JOIN returns r ON b.product_id = r.product_id GROUP BY b.sale_date',
+          query: "SELECT product_line, ROUND(SUM(total),2) as revenue, ROUND(AVG(rating),2) as avg_rating FROM business_retail GROUP BY product_line ORDER BY revenue DESC",
           dataMapper: (data) => [
-            {
-              x: data.map((row) => row.sale_date),
-              y: data.map((row) => row.total_sales),
-              type: 'bar',
-              name: 'Total Sales',
-              marker: { color: '#1f77b4' },
-            },
-            {
-              x: data.map((row) => row.sale_date),
-              y: data.map((row) => row.return_count),
-              type: 'scatter',
-              mode: 'lines+markers',
-              yaxis: 'y2',
-              name: 'Return Count',
-              line: { color: '#d62728', width: 2 },
-              marker: { size: 8 },
-            },
+            { x: data.map(r => r.product_line), y: data.map(r => r.revenue), type: 'bar', name: 'Revenue', marker: { color: '#1f77b4' } },
+            { x: data.map(r => r.product_line), y: data.map(r => r.avg_rating), type: 'scatter', mode: 'lines+markers', yaxis: 'y2', name: 'Avg Rating', line: { color: '#d62728', width: 2 } },
           ],
-          layout: {
-            title: { text: 'Sales and Returns Over Time', font: { size: 18 } },
-            xaxis: { title: 'Sale Date', type: 'date' },
-            yaxis: { title: 'Total Sales ($)' },
-            yaxis2: { title: 'Return Count', overlaying: 'y', side: 'right' },
-            margin: { b: 100 },
-            showlegend: true,
-          },
+          layout: { title: { text: 'Revenue & Rating by Product Line', font: { size: 16 } }, xaxis: { title: 'Product Line', tickangle: 45 }, yaxis: { title: 'Revenue ($)' }, yaxis2: { title: 'Avg Rating', overlaying: 'y', side: 'right' }, margin: { b: 140 }, showlegend: true },
+        },
+      ],
+      hidden_sales_boost: [
+        {
+          query: "SELECT branch, ROUND(SUM(total),2) as revenue FROM business_retail GROUP BY branch ORDER BY revenue DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.branch), y: data.map(r => r.revenue), type: 'bar', name: 'Revenue by Branch', marker: { color: '#9467bd' } }],
+          layout: { title: { text: 'Revenue by Branch', font: { size: 16 } }, xaxis: { title: 'Branch' }, yaxis: { title: 'Revenue ($)' }, showlegend: false },
+        },
+      ],
+      hidden_credit_recommend: [
+        {
+          query: "SELECT payment, COUNT(*) as cnt, ROUND(AVG(total),2) as avg_total FROM business_retail GROUP BY payment ORDER BY avg_total DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.payment), y: data.map(r => r.avg_total), type: 'bar', name: 'Avg Transaction', marker: { color: '#e377c2' } }],
+          layout: { title: { text: 'Avg Transaction by Payment Method', font: { size: 16 } }, xaxis: { title: 'Payment' }, yaxis: { title: 'Avg Total ($)' }, showlegend: false },
+        },
+      ],
+      hidden_inventory_alert: [
+        {
+          query: "SELECT product_line, SUM(quantity) as total_qty FROM business_retail GROUP BY product_line ORDER BY total_qty DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.product_line), y: data.map(r => r.total_qty), type: 'bar', name: 'Units Sold', marker: { color: '#ff7f0e' } }],
+          layout: { title: { text: 'Units Sold by Product Line', font: { size: 16 } }, xaxis: { title: 'Product Line', tickangle: 45 }, yaxis: { title: 'Quantity' }, margin: { b: 140 }, showlegend: false },
         },
       ],
     },
     crime: {
+      dashboard: [
+        {
+          query: "SELECT primary_type, COUNT(*) as cnt FROM crime_chicago GROUP BY primary_type ORDER BY cnt DESC LIMIT 15",
+          dataMapper: (data) => [{ x: data.map(r => r.primary_type), y: data.map(r => r.cnt), type: 'bar', name: 'Crimes', marker: { color: '#9467bd' } }],
+          layout: { title: { text: 'Top 15 Crime Types', font: { size: 16 } }, xaxis: { title: 'Crime Type', tickangle: 45 }, yaxis: { title: 'Count' }, margin: { b: 160 }, showlegend: false },
+        },
+        {
+          query: "SELECT location_description, COUNT(*) as cnt FROM crime_chicago WHERE location_description IS NOT NULL GROUP BY location_description ORDER BY cnt DESC LIMIT 10",
+          dataMapper: (data) => [{ labels: data.map(r => r.location_description), values: data.map(r => r.cnt), type: 'pie', textinfo: 'percent+label' }],
+          layout: { title: { text: 'Top 10 Crime Locations', font: { size: 16 } }, showlegend: true, margin: { t: 80, b: 60, l: 60, r: 60 } },
+        },
+      ],
       crime_select: [
         {
-          query: 'SELECT crime_type, COUNT(*) as count FROM crime_chicago GROUP BY crime_type',
-          dataMapper: (data) => [
-            {
-              labels: data.map((row) => row.crime_type),
-              values: data.map((row) => row.count),
-              type: 'pie',
-              name: 'Crime Types',
-              textinfo: 'percent+label',
-              hoverinfo: 'label+percent',
-            },
-          ],
-          layout: {
-            title: { text: 'Crime Type Distribution', font: { size: 18 } },
-            showlegend: true,
-            margin: { t: 100, b: 100, l: 100, r: 100 },
-          },
+          query: "SELECT primary_type, COUNT(*) as cnt FROM crime_chicago GROUP BY primary_type ORDER BY cnt DESC LIMIT 10",
+          dataMapper: (data) => [{ labels: data.map(r => r.primary_type), values: data.map(r => r.cnt), type: 'pie', textinfo: 'percent+label' }],
+          layout: { title: { text: 'Crime Type Distribution (Top 10)', font: { size: 16 } }, showlegend: true, margin: { t: 80, b: 80, l: 80, r: 80 } },
         },
       ],
       crime_by_area: [
         {
-          query: 'SELECT area_name, COUNT(*) as crime_count FROM crime_chicago GROUP BY area_name',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.area_name),
-              y: data.map((row) => row.crime_count),
-              type: 'bar',
-              name: 'Crimes by Area',
-              marker: { color: '#9467bd' },
-            },
-          ],
-          layout: {
-            title: { text: 'Crimes by Area', font: { size: 18 } },
-            xaxis: { title: 'Area Name', tickangle: 45 },
-            yaxis: { title: 'Crime Count' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT location_description, COUNT(*) as crime_count FROM crime_chicago WHERE location_description IS NOT NULL GROUP BY location_description ORDER BY crime_count DESC LIMIT 15",
+          dataMapper: (data) => [{ x: data.map(r => r.location_description), y: data.map(r => r.crime_count), type: 'bar', name: 'Crimes by Location', marker: { color: '#9467bd' } }],
+          layout: { title: { text: 'Crimes by Location', font: { size: 16 } }, xaxis: { title: 'Location', tickangle: 45 }, yaxis: { title: 'Count' }, margin: { b: 160 }, showlegend: false },
         },
       ],
       suspect_joins: [
         {
-          query: 'SELECT c.crime_type, COUNT(s.suspect_id) as suspect_count FROM crime_chicago c JOIN suspects s ON c.case_id = s.case_id GROUP BY c.crime_type',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.crime_type),
-              y: data.map((row) => row.suspect_count),
-              type: 'bar',
-              name: 'Suspects by Crime Type',
-              marker: { color: '#e377c2' },
-            },
-          ],
-          layout: {
-            title: { text: 'Suspects by Crime Type', font: { size: 18 } },
-            xaxis: { title: 'Crime Type', tickangle: 45 },
-            yaxis: { title: 'Suspect Count' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT c.primary_type, COUNT(s.suspect_id) as suspect_count FROM crime_chicago c JOIN suspects s ON c.id = s.crime_id GROUP BY c.primary_type ORDER BY suspect_count DESC LIMIT 10",
+          dataMapper: (data) => [{ x: data.map(r => r.primary_type), y: data.map(r => r.suspect_count), type: 'bar', name: 'Suspects', marker: { color: '#e377c2' } }],
+          layout: { title: { text: 'Suspects by Crime Type', font: { size: 16 } }, xaxis: { title: 'Crime Type', tickangle: 45 }, yaxis: { title: 'Suspect Count' }, margin: { b: 160 }, showlegend: false },
         },
       ],
       crime_trend: [
         {
-          query: 'SELECT crime_date, COUNT(*) OVER (ORDER BY crime_date) as cumulative_crimes FROM crime_chicago',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.crime_date),
-              y: data.map((row) => row.cumulative_crimes),
-              type: 'scatter',
-              mode: 'lines+markers',
-              name: 'Cumulative Crimes',
-              line: { color: '#7f7f7f', width: 2 },
-              marker: { size: 8 },
-            },
-          ],
-          layout: {
-            title: { text: 'Cumulative Crimes Over Time', font: { size: 18 } },
-            xaxis: { title: 'Crime Date', type: 'date' },
-            yaxis: { title: 'Cumulative Crimes' },
-            showlegend: true,
-          },
+          query: "SELECT date, COUNT(*) OVER (ORDER BY date) as cumulative_crimes FROM crime_chicago",
+          dataMapper: (data) => [{ x: data.map(r => r.date), y: data.map(r => r.cumulative_crimes), type: 'scatter', mode: 'lines', name: 'Cumulative Crimes', line: { color: '#7f7f7f', width: 2 } }],
+          layout: { title: { text: 'Cumulative Crimes Over Time', font: { size: 16 } }, xaxis: { title: 'Date', type: 'date' }, yaxis: { title: 'Cumulative Crimes' }, showlegend: false },
         },
       ],
       cte_crime: [
         {
-          query: 'WITH CrimeStats AS (SELECT crime_type, COUNT(*) as count FROM crime_chicago GROUP BY crime_type) SELECT crime_type, count FROM CrimeStats',
-          dataMapper: (data) => [
-            {
-              labels: data.map((row) => row.crime_type),
-              values: data.map((row) => row.count),
-              type: 'pie',
-              name: 'Crime Stats',
-              textinfo: 'percent+label',
-              hoverinfo: 'label+percent',
-            },
-          ],
-          layout: {
-            title: { text: 'Crime Type Distribution with CTE', font: { size: 18 } },
-            showlegend: true,
-            margin: { t: 100, b: 100, l: 100, r: 100 },
-          },
+          query: "WITH CrimeStats AS (SELECT primary_type, COUNT(*) as cnt FROM crime_chicago GROUP BY primary_type) SELECT primary_type, cnt FROM CrimeStats ORDER BY cnt DESC LIMIT 10",
+          dataMapper: (data) => [{ labels: data.map(r => r.primary_type), values: data.map(r => r.cnt), type: 'pie', textinfo: 'percent+label' }],
+          layout: { title: { text: 'Crime Distribution (CTE)', font: { size: 16 } }, showlegend: true, margin: { t: 80, b: 80, l: 80, r: 80 } },
         },
       ],
       capstone_crime: [
         {
-          query: 'SELECT c.crime_date, COUNT(c.case_id) as crime_count, COUNT(s.suspect_id) as suspect_count FROM crime_chicago c LEFT JOIN suspects s ON c.case_id = s.case_id GROUP BY c.crime_date',
+          query: "SELECT c.primary_type, COUNT(DISTINCT c.id) as crime_count, COUNT(DISTINCT s.suspect_id) as suspect_count FROM crime_chicago c LEFT JOIN suspects s ON c.id = s.crime_id GROUP BY c.primary_type ORDER BY crime_count DESC LIMIT 10",
           dataMapper: (data) => [
-            {
-              x: data.map((row) => row.crime_date),
-              y: data.map((row) => row.crime_count),
-              type: 'bar',
-              name: 'Crime Count',
-              marker: { color: '#9467bd' },
-            },
-            {
-              x: data.map((row) => row.crime_date),
-              y: data.map((row) => row.suspect_count),
-              type: 'scatter',
-              mode: 'lines+markers',
-              yaxis: 'y2',
-              name: 'Suspect Count',
-              line: { color: '#e377c2', width: 2 },
-              marker: { size: 8 },
-            },
+            { x: data.map(r => r.primary_type), y: data.map(r => r.crime_count), type: 'bar', name: 'Crimes', marker: { color: '#9467bd' } },
+            { x: data.map(r => r.primary_type), y: data.map(r => r.suspect_count), type: 'bar', name: 'Suspects', marker: { color: '#e377c2' } },
           ],
-          layout: {
-            title: { text: 'Crimes and Suspects Over Time', font: { size: 18 } },
-            xaxis: { title: 'Crime Date', type: 'date' },
-            yaxis: { title: 'Crime Count' },
-            yaxis2: { title: 'Suspect Count', overlaying: 'y', side: 'right' },
-            margin: { b: 100 },
-            showlegend: true,
-          },
+          layout: { title: { text: 'Crimes vs Suspects by Type', font: { size: 16 } }, xaxis: { title: 'Crime Type', tickangle: 45 }, yaxis: { title: 'Count' }, barmode: 'group', margin: { b: 160 }, showlegend: true },
+        },
+      ],
+      hidden_crime_hotspot: [
+        {
+          query: "SELECT location_description, primary_type, COUNT(*) as cnt FROM crime_chicago WHERE location_description IS NOT NULL GROUP BY location_description, primary_type ORDER BY cnt DESC LIMIT 15",
+          dataMapper: (data) => [{ x: data.map(r => r.location_description + ' - ' + r.primary_type), y: data.map(r => r.cnt), type: 'bar', marker: { color: '#d62728' } }],
+          layout: { title: { text: 'Crime Hotspots', font: { size: 16 } }, xaxis: { title: 'Location — Type', tickangle: 60 }, yaxis: { title: 'Count' }, margin: { b: 200 }, showlegend: false },
+        },
+      ],
+      hidden_serial_pattern: [
+        {
+          query: "SELECT strftime('%Y-%m', date) as month, COUNT(*) as cnt FROM crime_chicago GROUP BY month ORDER BY month",
+          dataMapper: (data) => [{ x: data.map(r => r.month), y: data.map(r => r.cnt), type: 'scatter', mode: 'lines+markers', name: 'Monthly Crimes', line: { color: '#1f77b4', width: 2 } }],
+          layout: { title: { text: 'Crime Trend by Month', font: { size: 16 } }, xaxis: { title: 'Month' }, yaxis: { title: 'Crime Count' }, showlegend: false },
         },
       ],
     },
     farming: {
+      dashboard: [
+        {
+          query: "SELECT region, ROUND(AVG(ndvi),4) as avg_ndvi, ROUND(SUM(yield),2) as total_yield FROM farming_yield GROUP BY region ORDER BY total_yield DESC",
+          dataMapper: (data) => [
+            { x: data.map(r => r.region), y: data.map(r => r.total_yield), type: 'bar', name: 'Total Yield', marker: { color: '#2ca02c' } },
+            { x: data.map(r => r.region), y: data.map(r => r.avg_ndvi), type: 'scatter', mode: 'lines+markers', yaxis: 'y2', name: 'Avg NDVI', line: { color: '#ff7f0e', width: 2 } },
+          ],
+          layout: { title: { text: 'Yield & NDVI by Region', font: { size: 16 } }, xaxis: { title: 'Region', tickangle: 45 }, yaxis: { title: 'Total Yield' }, yaxis2: { title: 'Avg NDVI', overlaying: 'y', side: 'right' }, margin: { b: 140 }, showlegend: true },
+        },
+      ],
       ndvi_overview: [
         {
-          query: 'SELECT crop_type, AVG(ndvi) as avg_ndvi FROM farming_yield GROUP BY crop_type',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.crop_type),
-              y: data.map((row) => row.avg_ndvi),
-              type: 'bar',
-              name: 'Average NDVI',
-              marker: { color: '#bcbd22' },
-            },
-          ],
-          layout: {
-            title: { text: 'Average NDVI by Crop', font: { size: 18 } },
-            xaxis: { title: 'Crop Type', tickangle: 45 },
-            yaxis: { title: 'Average NDVI' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT region, ROUND(AVG(ndvi),4) as avg_ndvi FROM farming_yield GROUP BY region ORDER BY avg_ndvi DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.region), y: data.map(r => r.avg_ndvi), type: 'bar', name: 'Avg NDVI', marker: { color: '#bcbd22' } }],
+          layout: { title: { text: 'Average NDVI by Region', font: { size: 16 } }, xaxis: { title: 'Region', tickangle: 45 }, yaxis: { title: 'Average NDVI' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       yield_by_crop: [
         {
-          query: 'SELECT crop_type, SUM(yield) as total_yield FROM farming_yield GROUP BY crop_type',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.crop_type),
-              y: data.map((row) => row.total_yield),
-              type: 'bar',
-              name: 'Total Yield',
-              marker: { color: '#17becf' },
-            },
-          ],
-          layout: {
-            title: { text: 'Total Yield by Crop', font: { size: 18 } },
-            xaxis: { title: 'Crop Type', tickangle: 45 },
-            yaxis: { title: 'Total Yield (kg)' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT soil_type, ROUND(SUM(yield),2) as total_yield FROM farming_yield GROUP BY soil_type ORDER BY total_yield DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.soil_type), y: data.map(r => r.total_yield), type: 'bar', name: 'Total Yield', marker: { color: '#17becf' } }],
+          layout: { title: { text: 'Total Yield by Soil Type', font: { size: 16 } }, xaxis: { title: 'Soil Type', tickangle: 45 }, yaxis: { title: 'Total Yield' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       soil_joins: [
         {
-          query: 'SELECT f.crop_type, AVG(s.soil_ph) as avg_ph FROM farming_yield f JOIN soil_data s ON f.field_id = s.field_id GROUP BY f.crop_type',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.crop_type),
-              y: data.map((row) => row.avg_ph),
-              type: 'bar',
-              name: 'Average Soil pH',
-              marker: { color: '#1f77b4' },
-            },
-          ],
-          layout: {
-            title: { text: 'Average Soil pH by Crop', font: { size: 18 } },
-            xaxis: { title: 'Crop Type', tickangle: 45 },
-            yaxis: { title: 'Average Soil pH' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT f.soil_type, ROUND(AVG(s.soil_ph),2) as avg_ph FROM farming_yield f JOIN soil_data s ON f.id = s.id GROUP BY f.soil_type ORDER BY avg_ph DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.soil_type), y: data.map(r => r.avg_ph), type: 'bar', name: 'Avg Soil pH', marker: { color: '#1f77b4' } }],
+          layout: { title: { text: 'Average Soil pH by Soil Type', font: { size: 16 } }, xaxis: { title: 'Soil Type', tickangle: 45 }, yaxis: { title: 'Average pH' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       yield_trend: [
         {
-          query: 'SELECT harvest_date, SUM(yield) OVER (ORDER BY harvest_date) as cumulative_yield FROM farming_yield',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.harvest_date),
-              y: data.map((row) => row.cumulative_yield),
-              type: 'scatter',
-              mode: 'lines+markers',
-              name: 'Cumulative Yield',
-              line: { color: '#ff7f0e', width: 2 },
-              marker: { size: 8 },
-            },
-          ],
-          layout: {
-            title: { text: 'Cumulative Yield Over Time', font: { size: 18 } },
-            xaxis: { title: 'Harvest Date', type: 'date' },
-            yaxis: { title: 'Cumulative Yield (kg)' },
-            showlegend: true,
-          },
+          query: "SELECT year, ROUND(SUM(yield),2) as total_yield FROM farming_yield GROUP BY year ORDER BY year",
+          dataMapper: (data) => [{ x: data.map(r => r.year), y: data.map(r => r.total_yield), type: 'scatter', mode: 'lines+markers', name: 'Yield Trend', line: { color: '#ff7f0e', width: 2 } }],
+          layout: { title: { text: 'Yield Over Time', font: { size: 16 } }, xaxis: { title: 'Year' }, yaxis: { title: 'Total Yield' }, showlegend: false },
         },
       ],
       cte_soil: [
         {
-          query: 'WITH SoilStats AS (SELECT field_id, AVG(soil_ph) as avg_ph FROM soil_data GROUP BY field_id) SELECT s.field_id, s.avg_ph FROM SoilStats s JOIN farming_yield f ON s.field_id = f.field_id',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.field_id),
-              y: data.map((row) => row.avg_ph),
-              type: 'bar',
-              name: 'Average Soil pH',
-              marker: { color: '#2ca02c' },
-            },
-          ],
-          layout: {
-            title: { text: 'Soil pH by Field', font: { size: 18 } },
-            xaxis: { title: 'Field ID', tickangle: 45 },
-            yaxis: { title: 'Average Soil pH' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "WITH SoilStats AS (SELECT soil_type, ROUND(AVG(soil_ph),2) as avg_ph FROM soil_data GROUP BY soil_type) SELECT soil_type, avg_ph FROM SoilStats ORDER BY avg_ph DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.soil_type), y: data.map(r => r.avg_ph), type: 'bar', name: 'Avg pH', marker: { color: '#2ca02c' } }],
+          layout: { title: { text: 'Soil pH by Type (CTE)', font: { size: 16 } }, xaxis: { title: 'Soil Type', tickangle: 45 }, yaxis: { title: 'Avg pH' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       capstone_farm: [
         {
-          query: 'SELECT f.harvest_date, SUM(f.yield) as total_yield, AVG(s.soil_ph) as avg_ph FROM farming_yield f JOIN soil_data s ON f.field_id = s.field_id GROUP BY f.harvest_date',
+          query: "SELECT f.region, ROUND(SUM(f.yield),2) as total_yield, ROUND(AVG(s.soil_ph),2) as avg_ph FROM farming_yield f JOIN soil_data s ON f.id = s.id GROUP BY f.region ORDER BY total_yield DESC",
           dataMapper: (data) => [
-            {
-              x: data.map((row) => row.harvest_date),
-              y: data.map((row) => row.total_yield),
-              type: 'bar',
-              name: 'Total Yield',
-              marker: { color: '#bcbd22' },
-            },
-            {
-              x: data.map((row) => row.harvest_date),
-              y: data.map((row) => row.avg_ph),
-              type: 'scatter',
-              mode: 'lines+markers',
-              yaxis: 'y2',
-              name: 'Average Soil pH',
-              line: { color: '#17becf', width: 2 },
-              marker: { size: 8 },
-            },
+            { x: data.map(r => r.region), y: data.map(r => r.total_yield), type: 'bar', name: 'Total Yield', marker: { color: '#bcbd22' } },
+            { x: data.map(r => r.region), y: data.map(r => r.avg_ph), type: 'scatter', mode: 'lines+markers', yaxis: 'y2', name: 'Avg pH', line: { color: '#17becf', width: 2 } },
           ],
-          layout: {
-            title: { text: 'Yield and Soil pH Over Time', font: { size: 18 } },
-            xaxis: { title: 'Harvest Date', type: 'date' },
-            yaxis: { title: 'Total Yield (kg)' },
-            yaxis2: { title: 'Average Soil pH', overlaying: 'y', side: 'right' },
-            margin: { b: 100 },
-            showlegend: true,
-          },
+          layout: { title: { text: 'Yield & Soil pH by Region', font: { size: 16 } }, xaxis: { title: 'Region', tickangle: 45 }, yaxis: { title: 'Total Yield' }, yaxis2: { title: 'Avg pH', overlaying: 'y', side: 'right' }, margin: { b: 140 }, showlegend: true },
+        },
+      ],
+      hidden_crop_optimization: [
+        {
+          query: "SELECT soil_type, region, ROUND(AVG(yield),2) as avg_yield FROM farming_yield GROUP BY soil_type, region ORDER BY avg_yield DESC LIMIT 15",
+          dataMapper: (data) => [{ x: data.map(r => r.soil_type + ' — ' + r.region), y: data.map(r => r.avg_yield), type: 'bar', marker: { color: '#2ca02c' } }],
+          layout: { title: { text: 'Top Crop-Region Combinations', font: { size: 16 } }, xaxis: { title: 'Soil Type — Region', tickangle: 60 }, yaxis: { title: 'Avg Yield' }, margin: { b: 200 }, showlegend: false },
+        },
+      ],
+      hidden_drought_risk: [
+        {
+          query: "SELECT region, ROUND(AVG(ndvi),4) as avg_ndvi, ROUND(AVG(yield),2) as avg_yield FROM farming_yield GROUP BY region ORDER BY avg_ndvi ASC",
+          dataMapper: (data) => [{ x: data.map(r => r.avg_ndvi), y: data.map(r => r.avg_yield), text: data.map(r => r.region), type: 'scatter', mode: 'markers+text', textposition: 'top center', marker: { size: 12, color: '#d62728' } }],
+          layout: { title: { text: 'Drought Risk: NDVI vs Yield', font: { size: 16 } }, xaxis: { title: 'Avg NDVI' }, yaxis: { title: 'Avg Yield' }, showlegend: false },
         },
       ],
     },
     finance: {
+      dashboard: [
+        {
+          query: "SELECT ticker, ROUND(AVG(close),2) as avg_close, SUM(volume) as total_volume FROM finance_stocks GROUP BY ticker ORDER BY avg_close DESC",
+          dataMapper: (data) => [
+            { x: data.map(r => r.ticker), y: data.map(r => r.avg_close), type: 'bar', name: 'Avg Close', marker: { color: '#1f77b4' } },
+          ],
+          layout: { title: { text: 'Average Close Price by Ticker', font: { size: 16 } }, xaxis: { title: 'Ticker', tickangle: 45 }, yaxis: { title: 'Avg Close ($)' }, margin: { b: 140 }, showlegend: false },
+        },
+      ],
       transaction_select: [
         {
-          query: 'SELECT transaction_date, SUM(amount) as total FROM finance_stocks GROUP BY transaction_date',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.transaction_date),
-              y: data.map((row) => row.total),
-              type: 'bar',
-              name: 'Transaction Total',
-              marker: { color: '#d62728' },
-            },
-          ],
-          layout: {
-            title: { text: 'Transactions by Date', font: { size: 18 } },
-            xaxis: { title: 'Transaction Date', type: 'date' },
-            yaxis: { title: 'Total Amount ($)' },
-            margin: { b: 100 },
-            showlegend: false,
-          },
+          query: "SELECT date, ROUND(SUM(close),2) as total FROM finance_stocks GROUP BY date ORDER BY date",
+          dataMapper: (data) => [{ x: data.map(r => r.date), y: data.map(r => r.total), type: 'bar', name: 'Close Prices', marker: { color: '#d62728' } }],
+          layout: { title: { text: 'Total Close Price by Date', font: { size: 16 } }, xaxis: { title: 'Date', type: 'date' }, yaxis: { title: 'Sum Close ($)' }, margin: { b: 100 }, showlegend: false },
         },
       ],
       balance_by_account: [
         {
-          query: 'SELECT ticker, SUM(amount) as balance FROM finance_stocks GROUP BY ticker',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.ticker),
-              y: data.map((row) => row.balance),
-              type: 'bar',
-              name: 'Balance by Ticker',
-              marker: { color: '#9467bd' },
-            },
-          ],
-          layout: {
-            title: { text: 'Balance by Ticker', font: { size: 18 } },
-            xaxis: { title: 'Ticker', tickangle: 45 },
-            yaxis: { title: 'Balance ($)' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT ticker, ROUND(SUM(close),2) as balance FROM finance_stocks GROUP BY ticker ORDER BY balance DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.ticker), y: data.map(r => r.balance), type: 'bar', name: 'Balance', marker: { color: '#9467bd' } }],
+          layout: { title: { text: 'Cumulative Close by Ticker', font: { size: 16 } }, xaxis: { title: 'Ticker', tickangle: 45 }, yaxis: { title: 'Sum Close ($)' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       fraud_joins: [
         {
-          query: 'SELECT f.ticker, COUNT(m.index_id) as market_count FROM finance_stocks f JOIN market_index m ON f.transaction_date = m.index_date GROUP BY f.ticker',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.ticker),
-              y: data.map((row) => row.market_count),
-              type: 'bar',
-              name: 'Market Index Counts',
-              marker: { color: '#e377c2' },
-            },
-          ],
-          layout: {
-            title: { text: 'Market Index Counts by Ticker', font: { size: 18 } },
-            xaxis: { title: 'Ticker', tickangle: 45 },
-            yaxis: { title: 'Market Index Count' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT f.ticker, COUNT(*) as market_count FROM finance_stocks f JOIN market_index m ON f.date = m.date GROUP BY f.ticker ORDER BY market_count DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.ticker), y: data.map(r => r.market_count), type: 'bar', name: 'Matched Market Days', marker: { color: '#e377c2' } }],
+          layout: { title: { text: 'Stock-Market Index Matches by Ticker', font: { size: 16 } }, xaxis: { title: 'Ticker', tickangle: 45 }, yaxis: { title: 'Count' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       balance_trend: [
         {
-          query: 'SELECT transaction_date, SUM(amount) OVER (ORDER BY transaction_date) as cumulative_balance FROM finance_stocks',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.transaction_date),
-              y: data.map((row) => row.cumulative_balance),
-              type: 'scatter',
-              mode: 'lines+markers',
-              name: 'Cumulative Balance',
-              line: { color: '#7f7f7f', width: 2 },
-              marker: { size: 8 },
-            },
-          ],
-          layout: {
-            title: { text: 'Cumulative Balance Over Time', font: { size: 18 } },
-            xaxis: { title: 'Transaction Date', type: 'date' },
-            yaxis: { title: 'Cumulative Balance ($)' },
-            showlegend: true,
-          },
+          query: "SELECT date, SUM(close) OVER (ORDER BY date) as cumulative_close FROM finance_stocks",
+          dataMapper: (data) => [{ x: data.map(r => r.date), y: data.map(r => r.cumulative_close), type: 'scatter', mode: 'lines', name: 'Cumulative Close', line: { color: '#7f7f7f', width: 2 } }],
+          layout: { title: { text: 'Cumulative Close Over Time', font: { size: 16 } }, xaxis: { title: 'Date', type: 'date' }, yaxis: { title: 'Cumulative Close ($)' }, showlegend: false },
         },
       ],
       cte_fraud: [
         {
-          query: 'WITH FraudStats AS (SELECT ticker, COUNT(*) as fraud_count FROM finance_stocks WHERE suspicious = true GROUP BY ticker) SELECT ticker, fraud_count FROM FraudStats',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.ticker),
-              y: data.map((row) => row.fraud_count),
-              type: 'bar',
-              name: 'Fraud Counts',
-              marker: { color: '#ff7f0e' },
-            },
-          ],
-          layout: {
-            title: { text: 'Fraud Counts by Ticker', font: { size: 18 } },
-            xaxis: { title: 'Ticker', tickangle: 45 },
-            yaxis: { title: 'Fraud Count' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "WITH TickerStats AS (SELECT ticker, SUM(volume) as total_volume FROM finance_stocks GROUP BY ticker) SELECT ticker, total_volume FROM TickerStats ORDER BY total_volume DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.ticker), y: data.map(r => r.total_volume), type: 'bar', name: 'Volume', marker: { color: '#ff7f0e' } }],
+          layout: { title: { text: 'Total Volume by Ticker (CTE)', font: { size: 16 } }, xaxis: { title: 'Ticker', tickangle: 45 }, yaxis: { title: 'Total Volume' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       capstone_finance: [
         {
-          query: 'SELECT f.transaction_date, SUM(f.amount) as total_balance, COUNT(m.index_id) as market_count FROM finance_stocks f LEFT JOIN market_index m ON f.transaction_date = m.index_date GROUP BY f.transaction_date',
+          query: "SELECT f.date, ROUND(AVG(f.close),2) as avg_close, ROUND(AVG(m.index_close),2) as avg_index FROM finance_stocks f LEFT JOIN market_index m ON f.date = m.date GROUP BY f.date ORDER BY f.date",
           dataMapper: (data) => [
-            {
-              x: data.map((row) => row.transaction_date),
-              y: data.map((row) => row.total_balance),
-              type: 'bar',
-              name: 'Total Balance',
-              marker: { color: '#d62728' },
-            },
-            {
-              x: data.map((row) => row.transaction_date),
-              y: data.map((row) => row.market_count),
-              type: 'scatter',
-              mode: 'lines+markers',
-              yaxis: 'y2',
-              name: 'Market Count',
-              line: { color: '#9467bd', width: 2 },
-              marker: { size: 8 },
-            },
+            { x: data.map(r => r.date), y: data.map(r => r.avg_close), type: 'scatter', mode: 'lines', name: 'Avg Stock Close', line: { color: '#d62728', width: 2 } },
+            { x: data.map(r => r.date), y: data.map(r => r.avg_index), type: 'scatter', mode: 'lines', yaxis: 'y2', name: 'Market Index', line: { color: '#9467bd', width: 2 } },
           ],
-          layout: {
-            title: { text: 'Balance and Market Index Over Time', font: { size: 18 } },
-            xaxis: { title: 'Transaction Date', type: 'date' },
-            yaxis: { title: 'Total Balance ($)' },
-            yaxis2: { title: 'Market Index Count', overlaying: 'y', side: 'right' },
-            margin: { b: 100 },
-            showlegend: true,
-          },
+          layout: { title: { text: 'Stock vs Market Index', font: { size: 16 } }, xaxis: { title: 'Date', type: 'date' }, yaxis: { title: 'Avg Close ($)' }, yaxis2: { title: 'Index Close', overlaying: 'y', side: 'right' }, margin: { b: 100 }, showlegend: true },
+        },
+      ],
+      hidden_fraud_detection: [
+        {
+          query: "SELECT ticker, ROUND(AVG(high - low),2) as avg_spread, SUM(volume) as total_vol FROM finance_stocks GROUP BY ticker ORDER BY avg_spread DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.ticker), y: data.map(r => r.avg_spread), type: 'bar', name: 'Avg Daily Spread', marker: { color: '#d62728' } }],
+          layout: { title: { text: 'Average Daily Spread by Ticker', font: { size: 16 } }, xaxis: { title: 'Ticker', tickangle: 45 }, yaxis: { title: 'Avg Spread ($)' }, margin: { b: 140 }, showlegend: false },
+        },
+      ],
+      hidden_portfolio_optimize: [
+        {
+          query: "SELECT ticker, ROUND(AVG(close),2) as avg_close, ROUND(AVG(volume),0) as avg_volume FROM finance_stocks GROUP BY ticker ORDER BY avg_close DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.avg_volume), y: data.map(r => r.avg_close), text: data.map(r => r.ticker), type: 'scatter', mode: 'markers+text', textposition: 'top center', marker: { size: 12, color: '#2ca02c' } }],
+          layout: { title: { text: 'Portfolio: Close vs Volume', font: { size: 16 } }, xaxis: { title: 'Avg Volume' }, yaxis: { title: 'Avg Close ($)' }, showlegend: false },
         },
       ],
     },
     healthcare: {
+      dashboard: [
+        {
+          query: "SELECT diagnosis, COUNT(*) as cnt FROM treatments GROUP BY diagnosis ORDER BY cnt DESC LIMIT 10",
+          dataMapper: (data) => [{ labels: data.map(r => r.diagnosis), values: data.map(r => r.cnt), type: 'pie', textinfo: 'percent+label' }],
+          layout: { title: { text: 'Top Diagnoses', font: { size: 16 } }, showlegend: true, margin: { t: 80, b: 60, l: 60, r: 60 } },
+        },
+        {
+          query: "SELECT gender, COUNT(*) as cnt FROM patients GROUP BY gender ORDER BY cnt DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.gender), y: data.map(r => r.cnt), type: 'bar', name: 'Patients', marker: { color: '#2ca02c' } }],
+          layout: { title: { text: 'Patients by Gender', font: { size: 16 } }, xaxis: { title: 'Gender' }, yaxis: { title: 'Count' }, showlegend: false },
+        },
+      ],
       patient_select: [
         {
-          query: 'SELECT diagnosis, COUNT(*) as count FROM patients GROUP BY diagnosis',
-          dataMapper: (data) => [
-            {
-              labels: data.map((row) => row.diagnosis),
-              values: data.map((row) => row.count),
-              type: 'pie',
-              name: 'Diagnosis Distribution',
-              textinfo: 'percent+label',
-              hoverinfo: 'label+percent',
-            },
-          ],
-          layout: {
-            title: { text: 'Diagnosis Distribution', font: { size: 18 } },
-            showlegend: true,
-            margin: { t: 100, b: 100, l: 100, r: 100 },
-          },
+          query: "SELECT gender, COUNT(*) as cnt FROM patients GROUP BY gender ORDER BY cnt DESC",
+          dataMapper: (data) => [{ labels: data.map(r => r.gender), values: data.map(r => r.cnt), type: 'pie', textinfo: 'percent+label' }],
+          layout: { title: { text: 'Patient Gender Distribution', font: { size: 16 } }, showlegend: true, margin: { t: 80, b: 80, l: 80, r: 80 } },
         },
       ],
       diagnosis_count: [
         {
-          query: 'SELECT treatment_type, COUNT(*) as count FROM treatments GROUP BY treatment_type',
-          dataMapper: (data) => [
-            {
-              labels: data.map((row) => row.treatment_type),
-              values: data.map((row) => row.count),
-              type: 'pie',
-              name: 'Treatment Types',
-              textinfo: 'percent+label',
-              hoverinfo: 'label+percent',
-            },
-          ],
-          layout: {
-            title: { text: 'Treatment Type Distribution', font: { size: 18 } },
-            showlegend: true,
-            margin: { t: 100, b: 100, l: 100, r: 100 },
-          },
+          query: "SELECT diagnosis, COUNT(*) as cnt FROM treatments GROUP BY diagnosis ORDER BY cnt DESC LIMIT 15",
+          dataMapper: (data) => [{ x: data.map(r => r.diagnosis), y: data.map(r => r.cnt), type: 'bar', name: 'Count', marker: { color: '#17becf' } }],
+          layout: { title: { text: 'Diagnosis Counts', font: { size: 16 } }, xaxis: { title: 'Diagnosis', tickangle: 45 }, yaxis: { title: 'Count' }, margin: { b: 160 }, showlegend: false },
         },
       ],
       treatment_joins: [
         {
-          query: 'SELECT p.diagnosis, COUNT(t.treatment_id) as treatment_count FROM patients p JOIN treatments t ON p.patient_id = t.patient_id GROUP BY p.diagnosis',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.diagnosis),
-              y: data.map((row) => row.treatment_count),
-              type: 'bar',
-              name: 'Treatments by Diagnosis',
-              marker: { color: '#2ca02c' },
-            },
-          ],
-          layout: {
-            title: { text: 'Treatments by Diagnosis', font: { size: 18 } },
-            xaxis: { title: 'Diagnosis', tickangle: 45 },
-            yaxis: { title: 'Treatment Count' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT t.diagnosis, COUNT(t.treatment_id) as treatment_count FROM patients p JOIN treatments t ON p.patient_id = t.patient_id GROUP BY t.diagnosis ORDER BY treatment_count DESC LIMIT 10",
+          dataMapper: (data) => [{ x: data.map(r => r.diagnosis), y: data.map(r => r.treatment_count), type: 'bar', name: 'Treatments', marker: { color: '#2ca02c' } }],
+          layout: { title: { text: 'Treatments by Diagnosis', font: { size: 16 } }, xaxis: { title: 'Diagnosis', tickangle: 45 }, yaxis: { title: 'Treatment Count' }, margin: { b: 160 }, showlegend: false },
         },
       ],
       admission_trend: [
         {
-          query: 'SELECT admission_date, COUNT(*) OVER (ORDER BY admission_date) as cumulative_admissions FROM admissions',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.admission_date),
-              y: data.map((row) => row.cumulative_admissions),
-              type: 'scatter',
-              mode: 'lines+markers',
-              name: 'Cumulative Admissions',
-              line: { color: '#17becf', width: 2 },
-              marker: { size: 8 },
-            },
-          ],
-          layout: {
-            title: { text: 'Cumulative Admissions Over Time', font: { size: 18 } },
-            xaxis: { title: 'Admission Date', type: 'date' },
-            yaxis: { title: 'Cumulative Admissions' },
-            showlegend: true,
-          },
+          query: "SELECT admission_date, COUNT(*) OVER (ORDER BY admission_date) as cumulative_admissions FROM admissions",
+          dataMapper: (data) => [{ x: data.map(r => r.admission_date), y: data.map(r => r.cumulative_admissions), type: 'scatter', mode: 'lines', name: 'Cumulative', line: { color: '#17becf', width: 2 } }],
+          layout: { title: { text: 'Cumulative Admissions', font: { size: 16 } }, xaxis: { title: 'Date', type: 'date' }, yaxis: { title: 'Cumulative Admissions' }, showlegend: false },
         },
       ],
       cte_treatment: [
         {
-          query: 'WITH TreatmentStats AS (SELECT treatment_type, COUNT(*) as count FROM treatments GROUP BY treatment_type) SELECT treatment_type, count FROM TreatmentStats',
-          dataMapper: (data) => [
-            {
-              labels: data.map((row) => row.treatment_type),
-              values: data.map((row) => row.count),
-              type: 'pie',
-              name: 'Treatment Stats',
-              textinfo: 'percent+label',
-              hoverinfo: 'label+percent',
-            },
-          ],
-          layout: {
-            title: { text: 'Treatment Type Distribution with CTE', font: { size: 18 } },
-            showlegend: true,
-            margin: { t: 100, b: 100, l: 100, r: 100 },
-          },
+          query: "WITH DiagStats AS (SELECT diagnosis, COUNT(*) as cnt FROM treatments GROUP BY diagnosis) SELECT diagnosis, cnt FROM DiagStats ORDER BY cnt DESC LIMIT 10",
+          dataMapper: (data) => [{ labels: data.map(r => r.diagnosis), values: data.map(r => r.cnt), type: 'pie', textinfo: 'percent+label' }],
+          layout: { title: { text: 'Diagnosis Distribution (CTE)', font: { size: 16 } }, showlegend: true, margin: { t: 80, b: 80, l: 80, r: 80 } },
         },
       ],
       capstone_health: [
         {
-          query: 'SELECT a.admission_date, COUNT(p.patient_id) as patient_count, COUNT(t.treatment_id) as treatment_count FROM admissions a LEFT JOIN patients p ON a.patient_id = p.patient_id LEFT JOIN treatments t ON p.patient_id = t.patient_id GROUP BY a.admission_date',
+          query: "SELECT t.diagnosis, COUNT(DISTINCT p.patient_id) as patient_count, COUNT(t.treatment_id) as treatment_count FROM patients p JOIN treatments t ON p.patient_id = t.patient_id GROUP BY t.diagnosis ORDER BY patient_count DESC LIMIT 10",
           dataMapper: (data) => [
-            {
-              x: data.map((row) => row.admission_date),
-              y: data.map((row) => row.patient_count),
-              type: 'bar',
-              name: 'Patient Count',
-              marker: { color: '#2ca02c' },
-            },
-            {
-              x: data.map((row) => row.admission_date),
-              y: data.map((row) => row.treatment_count),
-              type: 'scatter',
-              mode: 'lines+markers',
-              yaxis: 'y2',
-              name: 'Treatment Count',
-              line: { color: '#17becf', width: 2 },
-              marker: { size: 8 },
-            },
+            { x: data.map(r => r.diagnosis), y: data.map(r => r.patient_count), type: 'bar', name: 'Patients', marker: { color: '#2ca02c' } },
+            { x: data.map(r => r.diagnosis), y: data.map(r => r.treatment_count), type: 'bar', name: 'Treatments', marker: { color: '#17becf' } },
           ],
-          layout: {
-            title: { text: 'Patients and Treatments Over Time', font: { size: 18 } },
-            xaxis: { title: 'Admission Date', type: 'date' },
-            yaxis: { title: 'Patient Count' },
-            yaxis2: { title: 'Treatment Count', overlaying: 'y', side: 'right' },
-            margin: { b: 100 },
-            showlegend: true,
-          },
+          layout: { title: { text: 'Patients & Treatments by Diagnosis', font: { size: 16 } }, xaxis: { title: 'Diagnosis', tickangle: 45 }, yaxis: { title: 'Count' }, barmode: 'group', margin: { b: 160 }, showlegend: true },
+        },
+      ],
+      hidden_readmission_risk: [
+        {
+          query: "SELECT p.gender, COUNT(a.admission_id) as admissions, COUNT(DISTINCT p.patient_id) as patients FROM patients p JOIN admissions a ON p.patient_id = a.patient_id GROUP BY p.gender",
+          dataMapper: (data) => [
+            { x: data.map(r => r.gender), y: data.map(r => r.admissions), type: 'bar', name: 'Admissions', marker: { color: '#d62728' } },
+            { x: data.map(r => r.gender), y: data.map(r => r.patients), type: 'bar', name: 'Patients', marker: { color: '#1f77b4' } },
+          ],
+          layout: { title: { text: 'Admissions vs Patients by Gender', font: { size: 16 } }, xaxis: { title: 'Gender' }, yaxis: { title: 'Count' }, barmode: 'group', showlegend: true },
+        },
+      ],
+      hidden_diagnosis_delay: [
+        {
+          query: "SELECT t.diagnosis, ROUND(AVG(JULIANDAY(t.treatment_date) - JULIANDAY(p.birthdate))/365,1) as avg_age_at_treatment FROM treatments t JOIN patients p ON t.patient_id = p.patient_id GROUP BY t.diagnosis ORDER BY avg_age_at_treatment DESC LIMIT 10",
+          dataMapper: (data) => [{ x: data.map(r => r.diagnosis), y: data.map(r => r.avg_age_at_treatment), type: 'bar', marker: { color: '#ff7f0e' } }],
+          layout: { title: { text: 'Avg Patient Age at Treatment by Diagnosis', font: { size: 16 } }, xaxis: { title: 'Diagnosis', tickangle: 45 }, yaxis: { title: 'Avg Age (years)' }, margin: { b: 160 }, showlegend: false },
         },
       ],
     },
     social: {
+      dashboard: [
+        {
+          query: "SELECT user_id, COUNT(*) as tweet_count FROM tweets GROUP BY user_id ORDER BY tweet_count DESC LIMIT 15",
+          dataMapper: (data) => [{ x: data.map(r => r.user_id), y: data.map(r => r.tweet_count), type: 'bar', name: 'Tweets', marker: { color: '#1f77b4' } }],
+          layout: { title: { text: 'Top 15 Users by Tweet Count', font: { size: 16 } }, xaxis: { title: 'User ID', tickangle: 45 }, yaxis: { title: 'Tweet Count' }, margin: { b: 140 }, showlegend: false },
+        },
+        {
+          query: "SELECT strftime('%Y-%m', created_at) as month, COUNT(*) as cnt FROM tweets GROUP BY month ORDER BY month",
+          dataMapper: (data) => [{ x: data.map(r => r.month), y: data.map(r => r.cnt), type: 'scatter', mode: 'lines+markers', name: 'Tweets/Month', line: { color: '#bcbd22', width: 2 } }],
+          layout: { title: { text: 'Tweet Volume Over Time', font: { size: 16 } }, xaxis: { title: 'Month' }, yaxis: { title: 'Tweets' }, showlegend: false },
+        },
+      ],
       post_select: [
         {
-          query: 'SELECT post_type, COUNT(*) as count FROM tweets GROUP BY post_type',
-          dataMapper: (data) => [
-            {
-              labels: data.map((row) => row.post_type),
-              values: data.map((row) => row.count),
-              type: 'pie',
-              name: 'Post Types',
-              textinfo: 'percent+label',
-              hoverinfo: 'label+percent',
-            },
-          ],
-          layout: {
-            title: { text: 'Post Type Distribution', font: { size: 18 } },
-            showlegend: true,
-            margin: { t: 100, b: 100, l: 100, r: 100 },
-          },
+          query: "SELECT user_id, COUNT(*) as cnt FROM tweets GROUP BY user_id ORDER BY cnt DESC LIMIT 10",
+          dataMapper: (data) => [{ labels: data.map(r => r.user_id), values: data.map(r => r.cnt), type: 'pie', textinfo: 'percent+label' }],
+          layout: { title: { text: 'Tweet Distribution by User (Top 10)', font: { size: 16 } }, showlegend: true, margin: { t: 80, b: 80, l: 80, r: 80 } },
         },
       ],
       engagement_by_type: [
         {
-          query: 'SELECT post_type, SUM(likes) as total_likes FROM tweets GROUP BY post_type',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.post_type),
-              y: data.map((row) => row.total_likes),
-              type: 'bar',
-              name: 'Total Likes',
-              marker: { color: '#bcbd22' },
-            },
-          ],
-          layout: {
-            title: { text: 'Total Likes by Post Type', font: { size: 18 } },
-            xaxis: { title: 'Post Type', tickangle: 45 },
-            yaxis: { title: 'Total Likes' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT user_id, COUNT(*) as tweet_count, ROUND(AVG(LENGTH(text)),1) as avg_length FROM tweets GROUP BY user_id ORDER BY tweet_count DESC LIMIT 15",
+          dataMapper: (data) => [{ x: data.map(r => r.user_id), y: data.map(r => r.tweet_count), type: 'bar', name: 'Tweets', marker: { color: '#bcbd22' } }],
+          layout: { title: { text: 'Engagement: Tweets per User', font: { size: 16 } }, xaxis: { title: 'User ID', tickangle: 45 }, yaxis: { title: 'Tweet Count' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       user_joins: [
         {
-          query: 'SELECT u.user_id, COUNT(t.tweet_id) as tweet_count FROM users u JOIN tweets t ON u.user_id = t.user_id GROUP BY u.user_id',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.user_id),
-              y: data.map((row) => row.tweet_count),
-              type: 'bar',
-              name: 'Tweets by User',
-              marker: { color: '#17becf' },
-            },
-          ],
-          layout: {
-            title: { text
-
-  : 'Tweets by User', font: { size: 18 } },
-            xaxis: { title: 'User ID', tickangle: 45 },
-            yaxis: { title: 'Tweet Count' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT u.user_name, COUNT(t.tweet_id) as tweet_count FROM users u JOIN tweets t ON u.user_id = t.user_id GROUP BY u.user_name ORDER BY tweet_count DESC LIMIT 15",
+          dataMapper: (data) => [{ x: data.map(r => r.user_name), y: data.map(r => r.tweet_count), type: 'bar', name: 'Tweets', marker: { color: '#17becf' } }],
+          layout: { title: { text: 'Tweets by User Name', font: { size: 16 } }, xaxis: { title: 'User', tickangle: 45 }, yaxis: { title: 'Tweet Count' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       likes_trend: [
         {
-          query: 'SELECT post_date, SUM(likes) OVER (ORDER BY post_date) as cumulative_likes FROM tweets',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.post_date),
-              y: data.map((row) => row.cumulative_likes),
-              type: 'scatter',
-              mode: 'lines+markers',
-              name: 'Cumulative Likes',
-              line: { color: '#1f77b4', width: 2 },
-              marker: { size: 8 },
-            },
-          ],
-          layout: {
-            title: { text: 'Cumulative Likes Over Time', font: { size: 18 } },
-            xaxis: { title: 'Post Date', type: 'date' },
-            yaxis: { title: 'Cumulative Likes' },
-            showlegend: true,
-          },
+          query: "SELECT created_at, COUNT(*) OVER (ORDER BY created_at) as cumulative_tweets FROM tweets",
+          dataMapper: (data) => [{ x: data.map(r => r.created_at), y: data.map(r => r.cumulative_tweets), type: 'scatter', mode: 'lines', name: 'Cumulative Tweets', line: { color: '#1f77b4', width: 2 } }],
+          layout: { title: { text: 'Cumulative Tweets Over Time', font: { size: 16 } }, xaxis: { title: 'Date', type: 'date' }, yaxis: { title: 'Cumulative Tweets' }, showlegend: false },
         },
       ],
       cte_engagement: [
         {
-          query: 'WITH EngagementStats AS (SELECT post_type, SUM(likes) as total_likes FROM tweets GROUP BY post_type) SELECT post_type, total_likes FROM EngagementStats',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.post_type),
-              y: data.map((row) => row.total_likes),
-              type: 'bar',
-              name: 'Total Likes',
-              marker: { color: '#d62728' },
-            },
-          ],
-          layout: {
-            title: { text: 'Engagement by Post Type with CTE', font: { size: 18 } },
-            xaxis: { title: 'Post Type', tickangle: 45 },
-            yaxis: { title: 'Total Likes' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "WITH UserStats AS (SELECT user_id, COUNT(*) as tweet_count FROM tweets GROUP BY user_id) SELECT user_id, tweet_count FROM UserStats ORDER BY tweet_count DESC LIMIT 10",
+          dataMapper: (data) => [{ x: data.map(r => r.user_id), y: data.map(r => r.tweet_count), type: 'bar', name: 'Tweets', marker: { color: '#d62728' } }],
+          layout: { title: { text: 'Top Users by Tweet Count (CTE)', font: { size: 16 } }, xaxis: { title: 'User ID', tickangle: 45 }, yaxis: { title: 'Tweets' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       capstone_social: [
         {
-          query: 'SELECT t.post_date, COUNT(t.tweet_id) as tweet_count, COUNT(u.user_id) as user_count FROM tweets t LEFT JOIN users u ON t.user_id = u.user_id GROUP BY t.post_date',
+          query: "SELECT u.user_name, COUNT(t.tweet_id) as tweet_count, ROUND(AVG(LENGTH(t.text)),1) as avg_text_len FROM tweets t JOIN users u ON t.user_id = u.user_id GROUP BY u.user_name ORDER BY tweet_count DESC LIMIT 10",
           dataMapper: (data) => [
-            {
-              x: data.map((row) => row.post_date),
-              y: data.map((row) => row.tweet_count),
-              type: 'bar',
-              name: 'Tweet Count',
-              marker: { color: '#bcbd22' },
-            },
-            {
-              x: data.map((row) => row.post_date),
-              y: data.map((row) => row.user_count),
-              type: 'scatter',
-              mode: 'lines+markers',
-              yaxis: 'y2',
-              name: 'User Count',
-              line: { color: '#17becf', width: 2 },
-              marker: { size: 8 },
-            },
+            { x: data.map(r => r.user_name), y: data.map(r => r.tweet_count), type: 'bar', name: 'Tweets', marker: { color: '#bcbd22' } },
+            { x: data.map(r => r.user_name), y: data.map(r => r.avg_text_len), type: 'scatter', mode: 'lines+markers', yaxis: 'y2', name: 'Avg Text Length', line: { color: '#17becf', width: 2 } },
           ],
-          layout: {
-            title: { text: 'Tweets and Users Over Time', font: { size: 18 } },
-            xaxis: { title: 'Post Date', type: 'date' },
-            yaxis: { title: 'Tweet Count' },
-            yaxis2: { title: 'User Count', overlaying: 'y', side: 'right' },
-            margin: { b: 100 },
-            showlegend: true,
-          },
+          layout: { title: { text: 'Tweets & Avg Length by User', font: { size: 16 } }, xaxis: { title: 'User', tickangle: 45 }, yaxis: { title: 'Tweet Count' }, yaxis2: { title: 'Avg Text Length', overlaying: 'y', side: 'right' }, margin: { b: 140 }, showlegend: true },
+        },
+      ],
+      hidden_influencer_roi: [
+        {
+          query: "SELECT u.user_name, COUNT(t.tweet_id) as tweets, ROUND(AVG(LENGTH(t.text)),1) as avg_len FROM users u JOIN tweets t ON u.user_id = t.user_id GROUP BY u.user_name ORDER BY tweets DESC LIMIT 10",
+          dataMapper: (data) => [{ x: data.map(r => r.user_name), y: data.map(r => r.tweets), type: 'bar', marker: { color: '#9467bd' } }],
+          layout: { title: { text: 'Top Influencers by Activity', font: { size: 16 } }, xaxis: { title: 'User', tickangle: 45 }, yaxis: { title: 'Tweets' }, margin: { b: 140 }, showlegend: false },
+        },
+      ],
+      hidden_viral_prediction: [
+        {
+          query: "SELECT strftime('%Y-%m', created_at) as month, COUNT(*) as tweet_count FROM tweets GROUP BY month ORDER BY month",
+          dataMapper: (data) => [{ x: data.map(r => r.month), y: data.map(r => r.tweet_count), type: 'scatter', mode: 'lines+markers', line: { color: '#ff7f0e', width: 2 } }],
+          layout: { title: { text: 'Tweet Volume Trend', font: { size: 16 } }, xaxis: { title: 'Month' }, yaxis: { title: 'Tweets' }, showlegend: false },
         },
       ],
     },
     space: {
+      dashboard: [
+        {
+          query: "SELECT is_potentially_hazardous, COUNT(*) as cnt FROM space_neo GROUP BY is_potentially_hazardous",
+          dataMapper: (data) => [{ labels: data.map(r => r.is_potentially_hazardous), values: data.map(r => r.cnt), type: 'pie', textinfo: 'percent+label' }],
+          layout: { title: { text: 'NEOs by Hazard Status', font: { size: 16 } }, showlegend: true, margin: { t: 80, b: 60, l: 60, r: 60 } },
+        },
+        {
+          query: "SELECT is_potentially_hazardous, ROUND(AVG(relative_velocity_km_s),2) as avg_vel, ROUND(AVG(dist_km),0) as avg_dist FROM space_neo GROUP BY is_potentially_hazardous",
+          dataMapper: (data) => [{ x: data.map(r => r.is_potentially_hazardous), y: data.map(r => r.avg_vel), type: 'bar', name: 'Avg Velocity', marker: { color: '#e377c2' } }],
+          layout: { title: { text: 'Avg Velocity by Hazard Status', font: { size: 16 } }, xaxis: { title: 'Hazardous' }, yaxis: { title: 'Avg Velocity (km/s)' }, showlegend: false },
+        },
+      ],
       orbit_select: [
         {
-          query: 'SELECT orbit_type, COUNT(*) as count FROM space_neo GROUP BY orbit_type',
-          dataMapper: (data) => [
-            {
-              labels: data.map((row) => row.orbit_type),
-              values: data.map((row) => row.count),
-              type: 'pie',
-              name: 'Orbit Types',
-              textinfo: 'percent+label',
-              hoverinfo: 'label+percent',
-            },
-          ],
-          layout: {
-            title: { text: 'Orbit Type Distribution', font: { size: 18 } },
-            showlegend: true,
-            margin: { t: 100, b: 100, l: 100, r: 100 },
-          },
+          query: "SELECT is_potentially_hazardous, COUNT(*) as cnt FROM space_neo GROUP BY is_potentially_hazardous",
+          dataMapper: (data) => [{ labels: data.map(r => r.is_potentially_hazardous), values: data.map(r => r.cnt), type: 'pie', textinfo: 'percent+label' }],
+          layout: { title: { text: 'NEO Hazard Distribution', font: { size: 16 } }, showlegend: true, margin: { t: 80, b: 80, l: 80, r: 80 } },
         },
       ],
       velocity_by_type: [
         {
-          query: 'SELECT orbit_type, AVG(velocity) as avg_velocity FROM space_neo GROUP BY orbit_type',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.orbit_type),
-              y: data.map((row) => row.avg_velocity),
-              type: 'bar',
-              name: 'Average Velocity',
-              marker: { color: '#9467bd' },
-            },
-          ],
-          layout: {
-            title: { text: 'Average Velocity by Orbit Type', font: { size: 18 } },
-            xaxis: { title: 'Orbit Type', tickangle: 45 },
-            yaxis: { title: 'Average Velocity (km/s)' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT is_potentially_hazardous, ROUND(AVG(relative_velocity_km_s),2) as avg_velocity FROM space_neo GROUP BY is_potentially_hazardous ORDER BY avg_velocity DESC",
+          dataMapper: (data) => [{ x: data.map(r => r.is_potentially_hazardous), y: data.map(r => r.avg_velocity), type: 'bar', name: 'Avg Velocity', marker: { color: '#9467bd' } }],
+          layout: { title: { text: 'Average Velocity by Hazard Status', font: { size: 16 } }, xaxis: { title: 'Potentially Hazardous' }, yaxis: { title: 'Avg Velocity (km/s)' }, showlegend: false },
         },
       ],
       mission_joins: [
         {
-          query: 'SELECT orbit_type, COUNT(*) as hazard_count FROM space_neo WHERE is_hazardous = true GROUP BY orbit_type',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.orbit_type),
-              y: data.map((row) => row.hazard_count),
-              type: 'bar',
-              name: 'Hazardous NEOs',
-              marker: { color: '#e377c2' },
-            },
-          ],
-          layout: {
-            title: { text: 'Hazardous NEOs by Orbit Type', font: { size: 18 } },
-            xaxis: { title: 'Orbit Type', tickangle: 45 },
-            yaxis: { title: 'Hazardous NEO Count' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT is_potentially_hazardous, COUNT(*) as cnt FROM space_neo WHERE dist_km < 1000000 GROUP BY is_potentially_hazardous",
+          dataMapper: (data) => [{ x: data.map(r => r.is_potentially_hazardous), y: data.map(r => r.cnt), type: 'bar', name: 'Close NEOs', marker: { color: '#e377c2' } }],
+          layout: { title: { text: 'Close Approaches (<1M km) by Hazard', font: { size: 16 } }, xaxis: { title: 'Hazardous' }, yaxis: { title: 'Count' }, showlegend: false },
         },
       ],
       orbit_trend: [
         {
-          query: 'SELECT observation_date, COUNT(*) OVER (ORDER BY observation_date) as cumulative_neos FROM space_neo',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.observation_date),
-              y: data.map((row) => row.cumulative_neos),
-              type: 'scatter',
-              mode: 'lines+markers',
-              name: 'Cumulative NEOs',
-              line: { color: '#7f7f7f', width: 2 },
-              marker: { size: 8 },
-            },
-          ],
-          layout: {
-            title: { text: 'Cumulative NEOs Over Time', font: { size: 18 } },
-            xaxis: { title: 'Observation Date', type: 'date' },
-            yaxis: { title: 'Cumulative NEOs' },
-            showlegend: true,
-          },
+          query: "SELECT strftime('%Y', close_approach_date) as year, COUNT(*) as neo_count FROM space_neo GROUP BY year ORDER BY year",
+          dataMapper: (data) => [{ x: data.map(r => r.year), y: data.map(r => r.neo_count), type: 'scatter', mode: 'lines+markers', name: 'NEOs per Year', line: { color: '#7f7f7f', width: 2 } }],
+          layout: { title: { text: 'NEO Approaches by Year', font: { size: 16 } }, xaxis: { title: 'Year' }, yaxis: { title: 'NEO Count' }, showlegend: false },
         },
       ],
       cte_payload: [
         {
-          query: 'WITH VelocityStats AS (SELECT orbit_type, AVG(velocity) as avg_velocity FROM space_neo GROUP BY orbit_type) SELECT orbit_type, avg_velocity FROM VelocityStats',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.orbit_type),
-              y: data.map((row) => row.avg_velocity),
-              type: 'bar',
-              name: 'Average Velocity',
-              marker: { color: '#ff7f0e' },
-            },
-          ],
-          layout: {
-            title: { text: 'Average Velocity by Orbit Type with CTE', font: { size: 18 } },
-            xaxis: { title: 'Orbit Type', tickangle: 45 },
-            yaxis: { title: 'Average Velocity (km/s)' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "WITH RiskScores AS (SELECT des, ROUND(dist_km * relative_velocity_km_s, 0) as risk_score FROM space_neo) SELECT des, risk_score FROM RiskScores ORDER BY risk_score DESC LIMIT 15",
+          dataMapper: (data) => [{ x: data.map(r => r.des), y: data.map(r => r.risk_score), type: 'bar', name: 'Risk Score', marker: { color: '#ff7f0e' } }],
+          layout: { title: { text: 'Top 15 NEO Risk Scores (CTE)', font: { size: 16 } }, xaxis: { title: 'NEO Designation', tickangle: 45 }, yaxis: { title: 'Risk Score' }, margin: { b: 160 }, showlegend: false },
         },
       ],
       capstone_space: [
         {
-          query: 'SELECT observation_date, COUNT(*) as neo_count, AVG(velocity) as avg_velocity FROM space_neo GROUP BY observation_date',
+          query: "SELECT strftime('%Y', close_approach_date) as year, COUNT(*) as neo_count, ROUND(AVG(relative_velocity_km_s),2) as avg_velocity FROM space_neo GROUP BY year ORDER BY year",
           dataMapper: (data) => [
-            {
-              x: data.map((row) => row.observation_date),
-              y: data.map((row) => row.neo_count),
-              type: 'bar',
-              name: 'NEO Count',
-              marker: { color: '#9467bd' },
-            },
-            {
-              x: data.map((row) => row.observation_date),
-              y: data.map((row) => row.avg_velocity),
-              type: 'scatter',
-              mode: 'lines+markers',
-              yaxis: 'y2',
-              name: 'Average Velocity',
-              line: { color: '#e377c2', width: 2 },
-              marker: { size: 8 },
-            },
+            { x: data.map(r => r.year), y: data.map(r => r.neo_count), type: 'bar', name: 'NEO Count', marker: { color: '#9467bd' } },
+            { x: data.map(r => r.year), y: data.map(r => r.avg_velocity), type: 'scatter', mode: 'lines+markers', yaxis: 'y2', name: 'Avg Velocity', line: { color: '#e377c2', width: 2 } },
           ],
-          layout: {
-            title: { text: 'NEOs and Velocity Over Time', font: { size: 18 } },
-            xaxis: { title: 'Observation Date', type: 'date' },
-            yaxis: { title: 'NEO Count' },
-            yaxis2: { title: 'Average Velocity (km/s)', overlaying: 'y', side: 'right' },
-            margin: { b: 100 },
-            showlegend: true,
-          },
+          layout: { title: { text: 'NEO Count & Velocity by Year', font: { size: 16 } }, xaxis: { title: 'Year' }, yaxis: { title: 'NEO Count' }, yaxis2: { title: 'Avg Velocity (km/s)', overlaying: 'y', side: 'right' }, showlegend: true },
+        },
+      ],
+      hidden_mission_risk: [
+        {
+          query: "SELECT des, ROUND(dist_km, 0) as distance, ROUND(relative_velocity_km_s, 2) as velocity FROM space_neo WHERE is_potentially_hazardous = 'True' ORDER BY dist_km ASC LIMIT 15",
+          dataMapper: (data) => [{ x: data.map(r => r.distance), y: data.map(r => r.velocity), text: data.map(r => r.des), type: 'scatter', mode: 'markers+text', textposition: 'top center', marker: { size: 10, color: '#d62728' } }],
+          layout: { title: { text: 'Hazardous NEOs: Distance vs Velocity', font: { size: 16 } }, xaxis: { title: 'Distance (km)' }, yaxis: { title: 'Velocity (km/s)' }, showlegend: false },
+        },
+      ],
+      hidden_collision_alert: [
+        {
+          query: "SELECT des, ROUND(MIN(dist_km),0) as closest_km, ROUND(MAX(relative_velocity_km_s),2) as max_velocity FROM space_neo GROUP BY des ORDER BY closest_km ASC LIMIT 15",
+          dataMapper: (data) => [
+            { x: data.map(r => r.des), y: data.map(r => r.closest_km), type: 'bar', name: 'Closest Approach (km)', marker: { color: '#d62728' } },
+          ],
+          layout: { title: { text: 'Closest NEO Approaches', font: { size: 16 } }, xaxis: { title: 'NEO', tickangle: 45 }, yaxis: { title: 'Distance (km)' }, margin: { b: 160 }, showlegend: false },
         },
       ],
     },
     sports: {
+      dashboard: [
+        {
+          query: "SELECT player_id, SUM(points) as total_points, SUM(assists) as total_assists FROM nba_games GROUP BY player_id ORDER BY total_points DESC LIMIT 15",
+          dataMapper: (data) => [
+            { x: data.map(r => r.player_id), y: data.map(r => r.total_points), type: 'bar', name: 'Points', marker: { color: '#1f77b4' } },
+            { x: data.map(r => r.player_id), y: data.map(r => r.total_assists), type: 'bar', name: 'Assists', marker: { color: '#ff7f0e' } },
+          ],
+          layout: { title: { text: 'Top 15 Players: Points & Assists', font: { size: 16 } }, xaxis: { title: 'Player', tickangle: 45 }, yaxis: { title: 'Total' }, barmode: 'group', margin: { b: 140 }, showlegend: true },
+        },
+      ],
       match_select: [
         {
-          query: 'SELECT game_date, SUM(points) as total_points FROM nba_games GROUP BY game_date',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.game_date),
-              y: data.map((row) => row.total_points),
-              type: 'bar',
-              name: 'Total Points',
-              marker: { color: '#1f77b4' },
-            },
-          ],
-          layout: {
-            title: { text: 'Points by Game Date', font: { size: 18 } },
-            xaxis: { title: 'Game Date', type: 'date' },
-            yaxis: { title: 'Total Points' },
-            margin: { b: 100 },
-            showlegend: false,
-          },
+          query: "SELECT game_date, SUM(points) as total_points FROM nba_games GROUP BY game_date ORDER BY game_date",
+          dataMapper: (data) => [{ x: data.map(r => r.game_date), y: data.map(r => r.total_points), type: 'bar', name: 'Points', marker: { color: '#1f77b4' } }],
+          layout: { title: { text: 'Points by Game Date', font: { size: 16 } }, xaxis: { title: 'Game Date', type: 'date' }, yaxis: { title: 'Total Points' }, margin: { b: 100 }, showlegend: false },
         },
       ],
       score_by_team: [
         {
-          query: 'SELECT player_id, SUM(points) as total_points FROM nba_games GROUP BY player_id',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.player_id),
-              y: data.map((row) => row.total_points),
-              type: 'bar',
-              name: 'Points by Player',
-              marker: { color: '#d62728' },
-            },
-          ],
-          layout: {
-            title: { text: 'Points by Player', font: { size: 18 } },
-            xaxis: { title: 'Player ID', tickangle: 45 },
-            yaxis: { title: 'Total Points' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT player_id, SUM(points) as total_points FROM nba_games GROUP BY player_id ORDER BY total_points DESC LIMIT 15",
+          dataMapper: (data) => [{ x: data.map(r => r.player_id), y: data.map(r => r.total_points), type: 'bar', name: 'Points', marker: { color: '#d62728' } }],
+          layout: { title: { text: 'Points by Player', font: { size: 16 } }, xaxis: { title: 'Player ID', tickangle: 45 }, yaxis: { title: 'Total Points' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       player_joins: [
         {
-          query: 'SELECT n.player_id, COUNT(s.shot_id) as shot_count FROM nba_games n JOIN shot_zones s ON n.player_id = s.player_id GROUP BY n.player_id',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.player_id),
-              y: data.map((row) => row.shot_count),
-              type: 'bar',
-              name: 'Shots by Player',
-              marker: { color: '#2ca02c' },
-            },
-          ],
-          layout: {
-            title: { text: 'Shots by Player', font: { size: 18 } },
-            xaxis: { title: 'Player ID', tickangle: 45 },
-            yaxis: { title: 'Shot Count' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "SELECT n.player_id, COUNT(s.shot_id) as shot_count FROM nba_games n JOIN shot_zones s ON n.player_id = s.player_id GROUP BY n.player_id ORDER BY shot_count DESC LIMIT 15",
+          dataMapper: (data) => [{ x: data.map(r => r.player_id), y: data.map(r => r.shot_count), type: 'bar', name: 'Shots', marker: { color: '#2ca02c' } }],
+          layout: { title: { text: 'Shots by Player', font: { size: 16 } }, xaxis: { title: 'Player ID', tickangle: 45 }, yaxis: { title: 'Shot Count' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       score_trend: [
         {
-          query: 'SELECT game_date, SUM(points) OVER (ORDER BY game_date) as cumulative_points FROM nba_games',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.game_date),
-              y: data.map((row) => row.cumulative_points),
-              type: 'scatter',
-              mode: 'lines+markers',
-              name: 'Cumulative Points',
-              line: { color: '#17becf', width: 2 },
-              marker: { size: 8 },
-            },
-          ],
-          layout: {
-            title: { text: 'Cumulative Points Over Time', font: { size: 18 } },
-            xaxis: { title: 'Game Date', type: 'date' },
-            yaxis: { title: 'Cumulative Points' },
-            showlegend: true,
-          },
+          query: "SELECT game_date, SUM(points) OVER (ORDER BY game_date) as cumulative_points FROM nba_games",
+          dataMapper: (data) => [{ x: data.map(r => r.game_date), y: data.map(r => r.cumulative_points), type: 'scatter', mode: 'lines', name: 'Cumulative Points', line: { color: '#17becf', width: 2 } }],
+          layout: { title: { text: 'Cumulative Points Over Time', font: { size: 16 } }, xaxis: { title: 'Game Date', type: 'date' }, yaxis: { title: 'Cumulative Points' }, showlegend: false },
         },
       ],
       cte_player: [
         {
-          query: 'WITH PlayerStats AS (SELECT player_id, SUM(points) as total_points FROM nba_games GROUP BY player_id) SELECT player_id, total_points FROM PlayerStats',
-          dataMapper: (data) => [
-            {
-              x: data.map((row) => row.player_id),
-              y: data.map((row) => row.total_points),
-              type: 'bar',
-              name: 'Total Points',
-              marker: { color: '#bcbd22' },
-            },
-          ],
-          layout: {
-            title: { text: 'Player Points with CTE', font: { size: 18 } },
-            xaxis: { title: 'Player ID', tickangle: 45 },
-            yaxis: { title: 'Total Points' },
-            margin: { b: 150 },
-            showlegend: false,
-          },
+          query: "WITH PlayerStats AS (SELECT player_id, SUM(points) as total_points FROM nba_games GROUP BY player_id) SELECT player_id, total_points FROM PlayerStats ORDER BY total_points DESC LIMIT 15",
+          dataMapper: (data) => [{ x: data.map(r => r.player_id), y: data.map(r => r.total_points), type: 'bar', name: 'Points', marker: { color: '#bcbd22' } }],
+          layout: { title: { text: 'Player Points (CTE)', font: { size: 16 } }, xaxis: { title: 'Player ID', tickangle: 45 }, yaxis: { title: 'Total Points' }, margin: { b: 140 }, showlegend: false },
         },
       ],
       capstone_sports: [
         {
-          query: 'SELECT n.game_date, SUM(n.points) as total_points, COUNT(s.shot_id) as shot_count FROM nba_games n LEFT JOIN shot_zones s ON n.player_id = s.player_id GROUP BY n.game_date',
+          query: "SELECT n.player_id, SUM(n.points) as total_points, COUNT(s.shot_id) as shot_count FROM nba_games n LEFT JOIN shot_zones s ON n.player_id = s.player_id GROUP BY n.player_id ORDER BY total_points DESC LIMIT 10",
           dataMapper: (data) => [
-            {
-              x: data.map((row) => row.game_date),
-              y: data.map((row) => row.total_points),
-              type: 'bar',
-              name: 'Total Points',
-              marker: { color: '#1f77b4' },
-            },
-            {
-              x: data.map((row) => row.game_date),
-              y: data.map((row) => row.shot_count),
-              type: 'scatter',
-              mode: 'lines+markers',
-              yaxis: 'y2',
-              name: 'Shot Count',
-              line: { color: '#d62728', width: 2 },
-              marker: { size: 8 },
-            },
+            { x: data.map(r => r.player_id), y: data.map(r => r.total_points), type: 'bar', name: 'Points', marker: { color: '#1f77b4' } },
+            { x: data.map(r => r.player_id), y: data.map(r => r.shot_count), type: 'bar', name: 'Shots', marker: { color: '#d62728' } },
           ],
-          layout: {
-            title: { text: 'Points and Shots Over Time', font: { size: 18 } },
-            xaxis: { title: 'Game Date', type: 'date' },
-            yaxis: { title: 'Total Points' },
-            yaxis2: { title: 'Shot Count', overlaying: 'y', side: 'right' },
-            margin: { b: 100 },
-            showlegend: true,
-          },
+          layout: { title: { text: 'Points & Shots by Player', font: { size: 16 } }, xaxis: { title: 'Player', tickangle: 45 }, yaxis: { title: 'Count' }, barmode: 'group', margin: { b: 140 }, showlegend: true },
         },
       ],
-    },
-    guide: {
-      guide: [
+      hidden_player_value: [
         {
-          query: 'SELECT topic, COUNT(*) as count FROM guides GROUP BY topic',
+          query: "SELECT player_id, SUM(points) as pts, SUM(assists) as ast, SUM(rebounds) as reb FROM nba_games GROUP BY player_id ORDER BY pts DESC LIMIT 10",
+          dataMapper: (data) => [{ x: data.map(r => r.player_id), y: data.map(r => r.pts + r.ast + r.reb), type: 'bar', name: 'Total Efficiency', marker: { color: '#9467bd' } }],
+          layout: { title: { text: 'Player Efficiency (Pts+Ast+Reb)', font: { size: 16 } }, xaxis: { title: 'Player', tickangle: 45 }, yaxis: { title: 'Efficiency' }, margin: { b: 140 }, showlegend: false },
+        },
+      ],
+      hidden_mvp_predictor: [
+        {
+          query: "SELECT player_id, ROUND(AVG(points),1) as avg_pts, ROUND(AVG(assists),1) as avg_ast, ROUND(AVG(rebounds),1) as avg_reb FROM nba_games GROUP BY player_id ORDER BY avg_pts DESC LIMIT 10",
           dataMapper: (data) => [
-            {
-              labels: data.map((row) => row.topic),
-              values: data.map((row) => row.count),
-              type: 'pie',
-              name: 'Guide Topics',
-              textinfo: 'percent+label',
-              hoverinfo: 'label+percent',
-            },
+            { x: data.map(r => r.player_id), y: data.map(r => r.avg_pts), type: 'bar', name: 'Avg Points', marker: { color: '#1f77b4' } },
+            { x: data.map(r => r.player_id), y: data.map(r => r.avg_ast), type: 'bar', name: 'Avg Assists', marker: { color: '#ff7f0e' } },
+            { x: data.map(r => r.player_id), y: data.map(r => r.avg_reb), type: 'bar', name: 'Avg Rebounds', marker: { color: '#2ca02c' } },
           ],
-          layout: {
-            title: { text: 'Guide Topic Distribution', font: { size: 18 } },
-            showlegend: true,
-            margin: { t: 100, b: 100, l: 100, r: 100 },
-          },
+          layout: { title: { text: 'MVP Candidates', font: { size: 16 } }, xaxis: { title: 'Player', tickangle: 45 }, yaxis: { title: 'Avg per Game' }, barmode: 'group', margin: { b: 140 }, showlegend: true },
         },
       ],
     },

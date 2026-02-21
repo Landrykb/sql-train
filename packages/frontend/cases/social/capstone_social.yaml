@@ -41,6 +41,12 @@ hints:
   - Use multiple CTEs for clarity
   - Join tweets and users
   - Group by user
+thoughtProcess:
+  - "Capstone: summarize tweet engagement and user activity. You need tweet counts per user, joined with user details. Two CTEs keep the logic organized."
+  - "CTE 1 — TweetStats: SELECT user_id, COUNT(*) AS tweet_count FROM tweets GROUP BY user_id. Pure tweet aggregation, no joins needed."
+  - "CTE 2 — UserStats: SELECT user_id, user_name FROM users. Simply pulls user details for the join."
+  - "Main query: JOIN TweetStats with UserStats on user_id. SELECT u.user_name, t.tweet_count. Now each user has their tweet count."
+  - "ORDER BY tweet_count DESC — most active users first. Capstone pattern: build independent CTEs → join them in the final SELECT → order by the key metric."
 schema:
   - name: tweets
     columns:

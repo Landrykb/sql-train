@@ -33,6 +33,12 @@ hints:
   - Use a CTE to compute efficiency
   - Group by player_id
   - Order by efficiency
+thoughtProcess:
+  - "Average efficiency by player — efficiency = points + assists + rebounds per game. A CTE computes this per-game value, then the main query averages it."
+  - "CTE — Efficiency: SELECT player_id, (points + assists + rebounds) AS efficiency FROM nba_games. This computes a per-row derived metric."
+  - "Main query: SELECT player_id, AVG(efficiency) AS avg_efficiency FROM Efficiency GROUP BY player_id. AVG across all games gives a per-player average."
+  - "ORDER BY avg_efficiency DESC — most efficient players first. The CTE makes the formula explicit and reusable."
+  - "CTE pattern: compute derived value in WITH → aggregate in main SELECT. Even simple CTEs build habits for complex multi-CTE problems."
 schema:
   - name: nba_games
     columns:

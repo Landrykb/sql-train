@@ -35,6 +35,12 @@ hints:
   - Use a CTE to compute text length
   - Join tweets and users
   - Group by user_name
+thoughtProcess:
+  - "Average tweet length by user — you need to compute text length per tweet first, then average by user. A CTE separates the computation from the aggregation."
+  - "CTE — TweetLengths: SELECT t.user_id, LENGTH(t.text) AS text_length FROM tweets t. LENGTH() returns the number of characters in a string."
+  - "Main query: JOIN TweetLengths with users on user_id. SELECT u.user_name, AVG(tl.text_length) AS avg_text_length GROUP BY u.user_name."
+  - "ORDER BY avg_text_length DESC — users who write the longest tweets first. This reveals content creation patterns."
+  - "CTE pattern: compute a derived value (text length) in the CTE → aggregate (AVG) in the main query. Keeps the logic clean and readable."
 schema:
   - name: tweets
     columns:

@@ -56,6 +56,14 @@ hints:
   - Use multiple CTEs for clarity
   - Join sales and returns
   - Group by branch and product_line
+thoughtProcess:
+  - "This is a capstone — it combines everything you've learned. Start by reading the goal: 'Summarize sales, returns, and profit by branch and product line'. Break it into sub-problems you already know how to solve."
+  - "Sub-problem 1 — Sales totals: You need SUM(total) grouped by branch AND product_line. Make this a CTE called Sales. You've done this in agg_revenue, just with two GROUP BY columns now."
+  - "Sub-problem 2 — Return counts: COUNT returns per branch and product_line. This requires JOINing returns to business_retail (to get branch/product_line from the sales table). Make this a CTE called ReturnCounts."
+  - "Now combine: SELECT from Sales LEFT JOIN ReturnCounts. Use LEFT JOIN because some branch/product_line combos may have zero returns — you still want to see them."
+  - "The JOIN condition needs BOTH columns: ON s.branch = rc.branch AND s.product_line = rc.product_line. A single-column join would incorrectly match across product lines."
+  - "Use COALESCE(rc.return_count, 0) to show 0 instead of NULL for products with no returns. Order by total_sales DESC to see the biggest segments first."
+  - "Capstone strategy: break complex questions into independent CTEs, then join them. Each CTE should be testable on its own — run it separately to verify before combining."
 schema:
   - name: business_retail
     columns:

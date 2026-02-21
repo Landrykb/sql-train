@@ -13,6 +13,7 @@ interface ClientSQLPlaygroundProps {
     description: string;
     instructions?: string;
     hints?: string[];
+    thoughtProcess?: string[];
     skills?: string[];
     datasets: { name: string; file: string }[];
     seedQuery?: string;

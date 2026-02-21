@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import axios from 'axios';
 import Papa from 'papaparse';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
@@ -61,15 +60,6 @@ export default function DomainDashboard({
   const [tables, setTables] = useState<TableData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [exportModalOpen, setExportModalOpen] = useState(false);
-  const [githubToken, setGithubToken] = useState<string | null>(null);
-  const [repoName, setRepoName] = useState('');
-  const [createRepo, setCreateRepo] = useState(false);
-  const [exportStatus, setExportStatus] = useState<{
-    loading: boolean;
-    message: string | null;
-    error: string | null;
-  }>({ loading: false, message: null, error: null });
 
   const progress = useProgress();
   const totalCases = caseOrder[domain]?.length || 0;
@@ -85,37 +75,6 @@ export default function DomainDashboard({
     skills: ['SQL'],
   })) || [];
 
-  useEffect(() => {
-    console.log('Plots prop:', plots);
-    if (plots.length === 0) {
-      console.warn('No plots received from backend. Check if backend is running at http://localhost:8000 and visualization_configs.py is set up correctly.');
-    }
-    plots.forEach((plot, index) => {
-      console.log(`Plot ${index}:`, {
-        caseId: plot.caseId,
-        title: plot.title,
-        dataLength: plot.plot.data?.length,
-        data: plot.plot.data,
-        queryRows: plot.queryResults.rows?.length,
-        columns: plot.queryResults.columns,
-        layout: plot.plot.layout,
-        hasMatplotlib: !!plot.matplotlibImage,
-      });
-      if (!plot.plot.data || plot.plot.data.length === 0) {
-        console.warn(`Plot ${plot.caseId} has no Plotly data. Falling back to Matplotlib if available.`);
-      }
-      if (!plot.queryResults.rows || plot.queryResults.rows.length === 0) {
-        console.warn(`Plot ${plot.caseId} has no query results. Check query execution in app.py.`);
-      }
-    });
-  }, [plots]);
-
-  useEffect(() => {
-    console.log('Datasets prop:', datasets);
-    if (datasets.length === 0) {
-      console.warn('No datasets provided. Check YAML case files in cases/{domain}/ and dataset files in public/datasets/.');
-    }
-  }, [datasets]);
 
   useEffect(() => {
     async function load() {
@@ -162,8 +121,8 @@ export default function DomainDashboard({
         console.log('Parsed tables:', allTables);
         setTables(allTables);
 
-        if (!allTables.length && !plots.length) {
-          setError('No visualizations or datasets available. Ensure the backend is running, datasets are accessible, and queries are returning data.');
+        if (!allTables.length) {
+          setError('No datasets available. Ensure dataset CSV files exist in public/datasets/.');
         }
       } catch (e: any) {
         console.error('Error loading datasets:', e);
@@ -175,54 +134,6 @@ export default function DomainDashboard({
     load();
   }, [datasets, plots]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('github_token');
-    if (token) {
-      setGithubToken(token);
-      setExportModalOpen(true);
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
-
-  const handleGitHubLogin = async () => {
-    try {
-      const res = await axios.get('/api/auth/github');
-      window.location.href = res.data.url;
-    } catch (err) {
-      setExportStatus({
-        loading: false,
-        message: null,
-        error: 'Failed to initiate GitHub login',
-      });
-    }
-  };
-
-  const handleExportToGitHub = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!githubToken) {
-      setExportStatus({ loading: false, message: null, error: 'Please log in to GitHub' });
-      return;
-    }
-    setExportStatus({ loading: true, message: null, error: null });
-    try {
-      const resp = await axios.post('/api/matplotlib/export', {
-        domain,
-        github_token: githubToken,
-        repo_name: repoName,
-        create_repo: createRepo,
-      });
-      setExportStatus({ loading: false, message: resp.data.message, error: null });
-      setExportModalOpen(false);
-      setTimeout(() => setExportStatus({ loading: false, message: null, error: null }), 5000);
-    } catch (err: any) {
-      setExportStatus({
-        loading: false,
-        message: null,
-        error: err.response?.data?.detail || 'Failed to export to GitHub',
-      });
-    }
-  };
 
   if (loading) {
     return (
@@ -312,105 +223,14 @@ export default function DomainDashboard({
       </section>
 
       <section className="bg-white p-6 rounded-xl shadow-lg">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Export Dashboard</h2>
-        <p className="mb-4 text-gray-600">
-          Download a PDF report or export your progress to GitHub.
-        </p>
         <div className="flex gap-4">
-          <a
-            href={`/api/export/pdf/${domain}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
-          >
-            Download PDF
-          </a>
-          <button
-            onClick={() => setExportModalOpen(true)}
-            className="px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
-          >
-            Export to GitHub
-          </button>
           <Link href={`/cases/${domain}`}>
             <button className="px-4 py-2 border rounded-full hover:bg-gray-100 transition-colors">
-              Back to Cases
+              ← Back to Cases
             </button>
           </Link>
         </div>
-        {exportStatus.message && (
-          <p className="mt-4 text-green-600" role="alert">
-            {exportStatus.message}
-          </p>
-        )}
-        {exportStatus.error && (
-          <p className="mt-4 text-red-600" role="alert">
-            {exportStatus.error}
-          </p>
-        )}
       </section>
-
-      {exportModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
-            <h3 className="text-xl font-semibold mb-4">Export to GitHub</h3>
-            <form onSubmit={handleExportToGitHub} className="space-y-4">
-              {!githubToken ? (
-                <button
-                  type="button"
-                  onClick={handleGitHubLogin}
-                  className="w-full px-4 py-2 bg-gray-800 text-white rounded-full hover:bg-gray-900 transition-colors"
-                >
-                  Log in with GitHub
-                </button>
-              ) : (
-                <>
-                  <div>
-                    <label htmlFor="repoName" className="block mb-1 font-medium">
-                      Repository Name
-                    </label>
-                    <input
-                      id="repoName"
-                      value={repoName}
-                      onChange={(e) => setRepoName(e.target.value)}
-                      placeholder="username/sql-progress"
-                      className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={createRepo}
-                      onChange={(e) => setCreateRepo(e.target.checked)}
-                      className="mr-2"
-                      id="createRepo"
-                    />
-                    <label htmlFor="createRepo" className="text-sm">
-                      Create repo if it doesn’t exist
-                    </label>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setExportModalOpen(false)}
-                      className="px-4 py-2 border rounded hover:bg-gray-100 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={exportStatus.loading}
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:bg-green-400"
-                    >
-                      {exportStatus.loading ? 'Exporting...' : 'Export'}
-                    </button>
-                  </div>
-                </>
-              )}
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

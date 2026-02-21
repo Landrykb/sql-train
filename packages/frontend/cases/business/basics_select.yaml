@@ -29,6 +29,13 @@ hints:
   - Use WHERE to filter by branch
   - Use ORDER BY to sort by total
   - Use LIMIT to get 5 rows
+thoughtProcess:
+  - "Read the question carefully: you need 'top 5 sales rows for branch A, ordered by total'. Break this into parts — what columns, what filter, what order, how many rows."
+  - "Start with SELECT: which columns does the output need? The instructions mention invoice_id, branch, and total. Write SELECT invoice_id, branch, total."
+  - "Next, FROM: you're querying the business_retail table. Write FROM business_retail."
+  - "Now the filter: 'for branch A' means WHERE branch = 'A'. String values in SQL need single quotes."
+  - "Ordering: 'top 5 by total' means highest totals first. Write ORDER BY total DESC (DESC = descending = largest first)."
+  - "Finally, LIMIT 5 caps the result to 5 rows. The pattern is always: SELECT → FROM → WHERE → ORDER BY → LIMIT."
 schema:
   - name: business_retail
     columns:

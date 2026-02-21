@@ -30,6 +30,12 @@ hints:
   - Use LEFT JOIN to include suspect data
   - Filter with WHERE for non-null suspects
   - Use LIMIT to get 5 rows
+thoughtProcess:
+  - "You need crime details AND suspect names together. Data lives in two tables — crime_chicago and suspects — so you need a JOIN."
+  - "Find the linking column: crime_chicago has id, suspects has crime_id. These represent the same crime. JOIN ON c.id = s.crime_id."
+  - "LEFT JOIN keeps all crime rows even if no suspect exists. Then WHERE s.suspect_name IS NOT NULL filters to only crimes that have a known suspect."
+  - "Use aliases: c for crime_chicago, s for suspects. SELECT c.id, c.date, s.suspect_name — pick columns from both tables using their alias prefix."
+  - "ORDER BY c.date DESC LIMIT 5 — most recent incidents with suspects first. This is the same SELECT → FROM → JOIN → WHERE → ORDER → LIMIT pattern from earlier, just with a JOIN added."
 schema:
   - name: crime_chicago
     columns:

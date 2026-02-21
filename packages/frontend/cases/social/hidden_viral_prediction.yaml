@@ -96,6 +96,13 @@ hints:
   - JULIANDAY(last_post) - JULIANDAY(first_post) gives active days
   - RANK() OVER (ORDER BY total_posts DESC) for ranking
   - Use a CTE for the base metrics, then classify in a second step
+thoughtProcess:
+  - "Viral prediction = identify users with high activity and sustained posting. You need total posts, posting timespan, and posting frequency per user."
+  - "CTE 1 — UserActivity: JOIN tweets with users on user_id. Compute COUNT(tweet_id) AS total_posts, MIN(created_at) AS first_post, MAX(created_at) AS last_post. GROUP BY user_id, user_name, signup_date."
+  - "Active days = JULIANDAY(last_post) - JULIANDAY(first_post). This shows how long a user has been actively posting. Divide total_posts by active_days for posting frequency."
+  - "CTE 2 — Ranked: Add RANK() OVER (ORDER BY total_posts DESC) to rank users by volume. Window functions don't need GROUP BY — they compute across the full result set."
+  - "Final SELECT uses CASE to classify viral potential based on posting frequency and total posts. High frequency + high volume = likely to go viral."
+  - "Pattern: CTE1 for raw metrics → CTE2 for ranking → final SELECT for classification. Each layer adds one insight dimension."
 schema:
   - name: tweets
     columns:

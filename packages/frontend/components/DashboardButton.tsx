@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { playBleep } from '@/lib/audio';
 
 /**
  * Client-side component for the "View Dashboard" button with Bleepx-themed loading messages.
@@ -27,7 +28,7 @@ export default function DashboardButton({ domainKey }: { domainKey: string }) {
 
   const handleClick = () => {
     setIsLoading(true);
-    new Audio('/bleep.mp3').play(); // Play bleep sound
+    playBleep();
     setTimeout(() => {
       window.location.href = `/cases/${domainKey}/Dashboard`;
     }, 500);

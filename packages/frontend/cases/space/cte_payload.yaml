@@ -31,6 +31,12 @@ hints:
   - Use a CTE to compute risk scores
   - Calculate risk as dist_km * relative_velocity_km_s
   - Order by risk score
+thoughtProcess:
+  - "Risk score = distance × velocity. A CTE keeps the computation separate from the final selection and ordering."
+  - "CTE — RiskScores: SELECT des, (dist_km * relative_velocity_km_s) AS risk_score FROM space_neo. This computes a derived metric for every NEO."
+  - "Main query: SELECT des, risk_score FROM RiskScores ORDER BY risk_score DESC LIMIT 10. The CTE made the computed column available by name."
+  - "Why a CTE here? You could do this in a single query, but the CTE makes the formula explicit and reusable. If you needed risk_score in multiple places, the CTE computes it once."
+  - "CTE pattern: compute derived values in WITH → use them cleanly in SELECT. Start simple — even one-CTE queries build good habits for complex multi-CTE problems later."
 schema:
   - name: space_neo
     columns:

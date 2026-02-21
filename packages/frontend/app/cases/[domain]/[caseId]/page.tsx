@@ -31,6 +31,7 @@ interface CaseData {
   description: string;
   instructions?: string;
   hints?: string[];
+  thoughtProcess?: string[];
   skills: string[];
   datasets: { name: string; file: string }[];
   seedQuery?: string;
@@ -88,6 +89,7 @@ export default async function CasePage({
       description: doc.description || '',
       instructions: doc.instructions,
       hints: doc.hints || [],
+      thoughtProcess: doc.thoughtProcess || [],
       skills: doc.skills || [],
       datasets: doc.datasets,
       seedQuery: doc.seedQuery,

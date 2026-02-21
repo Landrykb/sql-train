@@ -42,6 +42,14 @@ hints:
   - Use multiple CTEs for clarity
   - Join stocks and market index
   - Group by ticker
+thoughtProcess:
+  - "Capstone: build a stock analysis dashboard. You need average price AND volatility per ticker — two independent metrics. Use separate CTEs."
+  - "CTE 1 — StockStats: SELECT ticker, AVG(close) AS avg_close FROM finance_stocks GROUP BY ticker. Simple average closing price per stock."
+  - "CTE 2 — VolatilityStats: SELECT ticker, AVG((high - low) / close) AS avg_volatility FROM finance_stocks GROUP BY ticker. Average daily price range as a fraction of close."
+  - "Main query: JOIN StockStats with VolatilityStats on ticker. Now each ticker has both avg_close and avg_volatility side by side."
+  - "ORDER BY avg_close DESC — highest-priced stocks first. Capstone strategy: identify independent metrics, build a CTE for each, then join on the common key."
+  - "Main query: JOIN StockStats with VolatilityStats on ticker. Now each ticker has both metrics side by side."
+  - "ORDER BY avg_close DESC — highest-priced stocks first. Capstone strategy: sketch the output, identify independent metrics, build a CTE for each, then join."
 schema:
   - name: finance_stocks
     columns:

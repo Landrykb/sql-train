@@ -24,6 +24,12 @@ hints:
   - Use GROUP BY for is_potentially_hazardous
   - Use AVG for relative_velocity_km_s
   - Order by average velocity
+thoughtProcess:
+  - "'Average velocity by hazard status' — group NEOs into hazardous vs non-hazardous, then compute average speed for each group."
+  - "SELECT is_potentially_hazardous, AVG(relative_velocity_km_s) AS avg_velocity — AVG computes the mean within each group."
+  - "FROM space_neo GROUP BY is_potentially_hazardous — splits all NEOs into two groups based on hazard classification."
+  - "ORDER BY avg_velocity DESC — fastest group first. This reveals whether hazardous NEOs tend to move faster."
+  - "Aggregation pattern: SELECT category, AGG(metric) FROM table GROUP BY category ORDER BY aggregate. This is the universal pattern for comparing groups."
 schema:
   - name: space_neo
     columns:

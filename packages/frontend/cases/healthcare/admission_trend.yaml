@@ -32,6 +32,12 @@ hints:
   - Use strftime to group by month
   - Use COUNT for admissions
   - Order by month
+thoughtProcess:
+  - "'Count admissions by month' — you need to extract the month from admission_date, then count how many admissions fall in each month."
+  - "strftime('%Y-%m', admission_date) AS month — converts full dates into year-month format like '2020-03'. This groups all days in March 2020 together."
+  - "COUNT(*) AS admission_count — counts rows per group. GROUP BY strftime('%Y-%m', admission_date) — must match the SELECT expression exactly."
+  - "ORDER BY month — YYYY-MM format sorts chronologically by default. This creates a time series showing admission trends."
+  - "Time-series pattern: strftime for period extraction → COUNT/SUM/AVG → GROUP BY period → ORDER BY period. Use this for any trend analysis across dates."
 schema:
   - name: healthcare_covid
     columns:

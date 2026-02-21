@@ -28,6 +28,12 @@ hints:
   - Use SUM to aggregate totals
   - Use GROUP BY to group by product_line
   - Use ORDER BY to sort results
+thoughtProcess:
+  - "The question says 'total revenue for each product line'. The words 'for each' are the key — they tell you to GROUP BY that column."
+  - "What are you summing? The total column holds each transaction's amount. SUM(total) adds them all up within each group."
+  - "Give your sum a clear name with AS: SUM(total) AS total_revenue. This alias makes results readable and lets you reference it in ORDER BY."
+  - "SELECT product_line, SUM(total) AS total_revenue FROM business_retail GROUP BY product_line — every non-aggregated column in SELECT must appear in GROUP BY."
+  - "Finally, 'ordered by revenue' means ORDER BY total_revenue DESC. The general pattern for aggregation: SELECT group_col, AGG(value_col) FROM table GROUP BY group_col ORDER BY AGG(value_col)."
 schema:
   - name: business_retail
     columns:

@@ -68,6 +68,13 @@ hints:
   - Use CASE with compound conditions
   - Smaller miss_distance = closer = more dangerous
   - ROUND for clean output
+thoughtProcess:
+  - "Mission risk assessment = classify NEOs by size, speed, and proximity. You need to combine multiple metrics into a risk rating using CASE."
+  - "CTE — NeoStats: SELECT the key columns — name, estimated_diameter_max_km, relative_velocity_kmh, miss_distance_km, is_potentially_hazardous. This organizes the raw data."
+  - "ROUND for clean output: ROUND(estimated_diameter_max_km, 4) AS diameter_km, ROUND(relative_velocity_kmh, 2) AS velocity_kmh. Precision matters in space calculations."
+  - "CASE for risk classification: combine is_potentially_hazardous = 'True' with miss_distance and velocity thresholds. Smaller miss_distance AND higher velocity = more dangerous."
+  - "Use compound conditions: WHEN is_potentially_hazardous = 'True' AND miss_distance_km < threshold THEN 'CRITICAL'. Layer from most severe to least severe."
+  - "Pattern: organize raw data in CTE → compute derived metrics → classify with multi-condition CASE. This mirrors real planetary defense risk matrices."
 expected:
   - name: "(2020 FM)"
     diameter_km: 0.0253

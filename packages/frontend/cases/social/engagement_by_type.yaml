@@ -28,6 +28,12 @@ hints:
   - Use LEFT JOIN to include user data
   - Filter with WHERE for non-null user names
   - Use LIMIT to get 5 rows
+thoughtProcess:
+  - "You need tweets AND user names together. Tweets have user_id but not user_name — you must JOIN with users to get the name."
+  - "LEFT JOIN users u ON t.user_id = u.user_id — keeps all tweets even if no user match. WHERE u.user_name IS NOT NULL then filters to only matched tweets."
+  - "SELECT t.tweet_id, t.created_at, u.user_name — use table aliases to clarify which table each column comes from."
+  - "ORDER BY t.created_at DESC LIMIT 5 — most recent tweets first, top 5 only."
+  - "JOIN pattern: FROM primary_table LEFT JOIN secondary_table ON shared_key WHERE filter. This is how you enrich data from one table with details from another."
 schema:
   - name: tweets
     columns:

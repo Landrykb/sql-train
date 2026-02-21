@@ -33,6 +33,12 @@ hints:
   - Use a CTE to compute volatility
   - Group by ticker
   - Order by volatility
+thoughtProcess:
+  - "The goal: average volatility per ticker using a CTE. Why a CTE? Because you want to compute a per-row metric first (volatility), then aggregate it."
+  - "CTE — Volatility: SELECT ticker, ((high - low) / close) AS volatility FROM finance_stocks. This adds a volatility column to every row without grouping yet."
+  - "Main query: SELECT ticker, AVG(volatility) AS avg_volatility FROM Volatility GROUP BY ticker. Now you're averaging the pre-computed volatility per ticker."
+  - "ORDER BY avg_volatility DESC — most volatile tickers first. This identifies stocks with the widest price swings."
+  - "CTE pattern: compute a derived column first, then aggregate. You could do this without a CTE (using a subquery or inline expression), but CTEs make the logic explicit and readable."
 schema:
   - name: finance_stocks
     columns:

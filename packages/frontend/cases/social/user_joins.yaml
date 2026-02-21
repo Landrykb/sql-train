@@ -30,6 +30,12 @@ hints:
   - Use JOIN to link tweets and users
   - Group by user_name
   - Order by tweet count
+thoughtProcess:
+  - "'Count tweets per user' — you need tweet data grouped by user name. Since user_name is in the users table and tweets are in the tweets table, you need a JOIN + GROUP BY."
+  - "JOIN users u ON t.user_id = u.user_id — INNER JOIN keeps only tweets that have a matching user."
+  - "SELECT u.user_name, COUNT(t.tweet_id) AS tweet_count — count tweets per user. GROUP BY u.user_name groups all tweets by the same user together."
+  - "ORDER BY tweet_count DESC LIMIT 5 — most active users first, top 5. This combines JOIN and aggregation — a very common real-world pattern."
+  - "When you see 'metric per entity from another table', think: JOIN to connect tables → GROUP BY entity → aggregate the metric."
 schema:
   - name: tweets
     columns:

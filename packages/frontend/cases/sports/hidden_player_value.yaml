@@ -78,6 +78,13 @@ hints:
   - Two CTEs: one for records, one for scoring
   - JOIN them on team name
   - Use CASE for trade classification
+thoughtProcess:
+  - "Player trade value = combine team win records with scoring stats. Two CTEs: one for win/loss records, one for scoring averages — then JOIN on team."
+  - "CTE 1 — TeamRecords: SUM(CASE WHEN home_score > away_score THEN 1 ELSE 0 END) AS wins counts home wins. COUNT(*) gives total games. Win percentage = 100.0 * wins / games."
+  - "CTE 2 — TeamScoring: AVG(home_score) AS avg_score, MAX(home_score) AS max_score from nba_games GROUP BY home_team. This captures offensive output."
+  - "Main query: JOIN TeamRecords with TeamScoring on team. Now each team has wins, win%, avg score, and max score in one row."
+  - "CASE for trade_classification: high win% + high scoring = 'Contender', moderate = 'Playoff Team', low = 'Rebuilding'. Combine multiple metrics in WHEN conditions."
+  - "Pattern: independent CTEs for different aspects → JOIN for complete picture → CASE for business classification. This is how front offices evaluate trade targets."
 expected:
   - team: Golden State Warriors
     wins: 5

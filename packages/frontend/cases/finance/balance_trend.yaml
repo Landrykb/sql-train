@@ -28,6 +28,12 @@ hints:
   - Use strftime to group by month
   - Use AVG for closing prices
   - Order by month
+thoughtProcess:
+  - "'Monthly average stock price' means you need to extract the month from each date, then average closing prices within each month."
+  - "strftime('%Y-%m', date) converts dates like '2019-03-15' into '2019-03'. This groups all days in March 2019 together."
+  - "SELECT strftime('%Y-%m', date) AS month, AVG(close) AS avg_close — the strftime expression goes in both SELECT and GROUP BY."
+  - "ORDER BY month — since the format is YYYY-MM, alphabetical order is also chronological. This gives you a clean time series."
+  - "This is the standard time-series aggregation pattern: extract a time period with strftime → GROUP BY that period → aggregate the metric → ORDER BY the period."
 schema:
   - name: finance_stocks
     columns:

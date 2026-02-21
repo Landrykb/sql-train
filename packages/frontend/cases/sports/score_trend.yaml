@@ -28,6 +28,12 @@ hints:
   - Use strftime to group by month
   - Use AVG for points
   - Order by month
+thoughtProcess:
+  - "'Average points per game by month' — extract month from game_date, then compute AVG(points) per month."
+  - "strftime('%Y-%m', game_date) AS month — converts dates into year-month format like '2024-01'."
+  - "AVG(points) AS avg_points — average points scored across all games in that month. GROUP BY strftime('%Y-%m', game_date) must match."
+  - "ORDER BY month — YYYY-MM format sorts chronologically. This reveals scoring trends over the season."
+  - "Time-series pattern: strftime → aggregate → GROUP BY period → ORDER BY period. Same pattern across every domain."
 schema:
   - name: nba_games
     columns:

@@ -27,6 +27,12 @@ hints:
   - Use WHERE to filter text
   - Use ORDER BY to sort by created_at
   - Use LIMIT to get 5 rows
+thoughtProcess:
+  - "Read the goal: 'top 5 tweets with specific hashtags, ordered by date'. You need to search text content for a pattern."
+  - "SELECT tweet_id, created_at, text — the columns needed. FROM tweets is the data source."
+  - "WHERE text LIKE '%#SQL%' — LIKE with % wildcards searches for any text containing '#SQL'. The % means 'any characters before or after'."
+  - "ORDER BY created_at DESC — most recent tweets first. LIMIT 5 — cap at 5 results."
+  - "LIKE pattern tips: '%word%' = contains word, 'word%' = starts with word, '%word' = ends with word. LIKE is case-insensitive in some databases but case-sensitive in others."
 schema:
   - name: tweets
     columns:

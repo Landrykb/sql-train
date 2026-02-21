@@ -27,6 +27,12 @@ hints:
   - Use WHERE to filter NDVI
   - Use ORDER BY to sort by yield
   - Use LIMIT to get 5 rows
+thoughtProcess:
+  - "Read the goal: 'top 5 fields with NDVI > 0.5, ordered by yield'. NDVI is a vegetation health index — higher means healthier crops."
+  - "SELECT id, region, ndvi, yield — pick the columns relevant to the analysis. FROM farming_yield is the data source."
+  - "WHERE ndvi > 0.5 — filters to only healthy fields. Note: numeric comparisons don't need quotes (unlike string comparisons)."
+  - "ORDER BY yield DESC — highest-yielding fields first. LIMIT 5 — only show the top 5."
+  - "Pattern: SELECT columns → FROM table → WHERE numeric_filter → ORDER BY metric DESC → LIMIT n. This is the same basic query structure used in every domain."
 schema:
   - name: farming_yield
     columns:

@@ -43,6 +43,12 @@ hints:
   - Use multiple CTEs for clarity
   - Join yield and soil data
   - Group by region
+thoughtProcess:
+  - "Capstone: build a farming dashboard by region. You need yield stats, NDVI stats, AND soil stats together. Break into independent CTEs."
+  - "CTE 1 — YieldStats: SELECT region, AVG(yield) AS avg_yield, AVG(ndvi) AS avg_ndvi FROM farming_yield GROUP BY region. Pure farming_yield data, no joins needed."
+  - "CTE 2 — SoilStats: JOIN farming_yield with soil_data to get region + soil_ph. SELECT f.region, AVG(s.soil_ph) AS avg_soil_ph GROUP BY f.region. The join is needed because soil_data doesn't have region."
+  - "Main query: JOIN YieldStats with SoilStats on region. Now each region row has avg_yield, avg_ndvi, AND avg_soil_ph side by side."
+  - "ORDER BY avg_yield DESC highlights the best-performing regions. Capstone tip: always verify each CTE independently before combining — run them as standalone queries first."
 schema:
   - name: farming_yield
     columns:

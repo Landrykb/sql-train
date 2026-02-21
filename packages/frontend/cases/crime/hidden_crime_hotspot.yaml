@@ -70,6 +70,13 @@ hints:
   - Divide arrests by total to get arrest_rate
   - Use RANK() OVER for ranking
   - LIMIT 10 for top areas
+thoughtProcess:
+  - "The Police Chief wants patrol deployment priorities. Translate to SQL: count crimes per area, compute arrest rates, classify priority, and rank."
+  - "CTE — AreaStats: GROUP BY area_name. Use COUNT(*) for total_crimes. For arrests, use SUM(CASE WHEN arrest = 'true' THEN 1 ELSE 0 END) — this conditional sum counts only rows where an arrest was made."
+  - "Arrest rate = arrests / total crimes × 100. Write: ROUND(100.0 * SUM(CASE...) / COUNT(*), 2) AS arrest_rate. The 100.0 (not 100) forces decimal division — integer division would truncate."
+  - "Main query uses CASE for deployment_priority: strictest first (Critical = high crime AND low arrest rate), then High Priority, Monitor, Low Risk. This mirrors how police chiefs actually prioritize."
+  - "RANK() OVER (ORDER BY total_crimes DESC) assigns rank 1 to the highest-crime area. RANK allows ties (two areas with same count get same rank). Compare: ROW_NUMBER never ties."
+  - "LIMIT 10 gives the top 10 areas. The pattern: CTE for metrics → CASE for classification → RANK for ordering → LIMIT for focus. Real-world analysts use this exact pattern for priority dashboards."
 expected:
   - area_name: Austin
     total_crimes: 862

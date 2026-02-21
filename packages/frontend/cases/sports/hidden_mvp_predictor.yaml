@@ -107,6 +107,13 @@ hints:
   - COALESCE(fg_pct, 0) handles players with no shot records
   - Three CTEs: PlayerStats, ShootingStats, MVPScore
   - You can use RANK() inside CASE in the final SELECT
+thoughtProcess:
+  - "MVP prediction = combine multiple performance dimensions into a single score. Break it into three CTEs: game stats, shooting efficiency, and composite score."
+  - "CTE 1 — PlayerStats: GROUP BY player_id from nba_games. Compute AVG(points), AVG(assists), AVG(rebounds), SUM(points), COUNT(DISTINCT game_id). These are the raw per-player metrics."
+  - "CTE 2 — ShootingStats: SUM(CASE WHEN made = 'True' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS fg_pct FROM shot_zones GROUP BY player_id. The CASE-inside-SUM pattern counts made shots."
+  - "CTE 3 — MVPScore: LEFT JOIN PlayerStats with ShootingStats on player_id. LEFT JOIN ensures players without shot data are kept. COALESCE(fg_pct, 0) replaces NULL with 0."
+  - "Composite score formula: weighted sum of avg_points, avg_assists, avg_rebounds, fg_pct. Use RANK() OVER (ORDER BY mvp_score DESC) for final ranking."
+  - "CASE in final SELECT: RANK = 1 → 'MVP Favorite', top 5 → 'All-Star Candidate', etc. Pattern: independent CTEs → LEFT JOIN for completeness → weighted score → RANK → CASE classification."
 schema:
   - name: nba_games
     columns:

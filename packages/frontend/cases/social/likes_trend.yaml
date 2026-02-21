@@ -28,6 +28,12 @@ hints:
   - Use strftime to group by month
   - Use COUNT for tweets
   - Order by month
+thoughtProcess:
+  - "'Count tweets by month' — extract the month from created_at, then count how many tweets fall in each month."
+  - "strftime('%Y-%m', created_at) AS month — converts timestamps into year-month format. This groups all tweets in the same month together."
+  - "COUNT(*) AS tweet_count — counts rows per group. GROUP BY strftime('%Y-%m', created_at) must match the SELECT expression."
+  - "ORDER BY month — YYYY-MM format sorts chronologically by default. This reveals posting trends over time."
+  - "Time-series pattern: strftime for period → COUNT/SUM → GROUP BY period → ORDER BY period. Same pattern works across all domains."
 schema:
   - name: tweets
     columns:

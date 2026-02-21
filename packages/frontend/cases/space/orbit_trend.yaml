@@ -26,6 +26,12 @@ hints:
   - Use strftime to extract year
   - Use COUNT for NEO counts
   - Order by year
+thoughtProcess:
+  - "'Count NEO approaches by year' — extract the year from close_approach_date, then count approaches per year."
+  - "strftime('%Y', close_approach_date) AS year — extracts just the 4-digit year. This groups all approaches in the same year together."
+  - "COUNT(*) AS neo_count — counts how many NEO approaches occurred in each year. GROUP BY strftime('%Y', close_approach_date) must match the SELECT expression."
+  - "ORDER BY year — chronological order. This reveals whether NEO detection is increasing over time (spoiler: it usually is, due to better telescopes)."
+  - "Time-series pattern: strftime for period extraction → COUNT → GROUP BY period → ORDER BY period. Works identically across all domains."
 schema:
   - name: space_neo
     columns:

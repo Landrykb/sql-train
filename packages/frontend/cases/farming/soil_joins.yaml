@@ -29,6 +29,12 @@ hints:
   - Use LEFT JOIN to include soil data
   - Filter with WHERE for soil_type
   - Use LIMIT to get 5 rows
+thoughtProcess:
+  - "You need crop data (ndvi) AND soil data (soil_ph, soil_type) together. They live in different tables — farming_yield and soil_data — so you need a JOIN."
+  - "The linking column is id in both tables. LEFT JOIN soil_data s ON f.id = s.id ensures all farming rows are kept even if soil data is missing."
+  - "WHERE s.soil_type = 'sandy_loam' filters to a specific soil type after the join. String values need single quotes."
+  - "SELECT f.id, f.ndvi, s.soil_ph, s.soil_type — use table aliases (f, s) to specify which table each column comes from. This avoids ambiguity when both tables have columns with the same name."
+  - "ORDER BY f.ndvi DESC LIMIT 5 — healthiest crops in sandy loam soil first. The JOIN pattern: FROM table1 alias1 LEFT JOIN table2 alias2 ON alias1.key = alias2.key WHERE filter."
 schema:
   - name: farming_yield
     columns:

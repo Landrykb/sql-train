@@ -40,6 +40,12 @@ hints:
   - Use JOIN to combine patients and treatments on patient_id
   - Filter with WHERE for non-null diagnoses and treatment dates after 2020-04-01
   - Use ORDER BY to sort by treatment_date and LIMIT for the first 100 records
+thoughtProcess:
+  - "You need patient info (age) AND treatment info (diagnosis, date) together. They live in separate tables linked by patient_id — so you need a JOIN."
+  - "JOIN treatments t ON p.patient_id = t.patient_id — INNER JOIN keeps only patients who have treatments. Use aliases p and t for clarity."
+  - "WHERE t.diagnosis IS NOT NULL AND t.treatment_date >= '2020-04-01' — two filters combined with AND. Date comparisons use string format 'YYYY-MM-DD'."
+  - "strftime('%Y-%m-%d', t.treatment_date) AS treatment_date — formats the date cleanly. Use strftime when you want consistent date output."
+  - "ORDER BY t.treatment_date LIMIT 100 — chronological order, capped at 100 rows. The JOIN pattern: FROM table1 alias JOIN table2 alias ON key = key WHERE filters."
 schema:
   - name: healthcare_covid
     columns:

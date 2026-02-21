@@ -28,6 +28,12 @@ hints:
   - Use GROUP BY for year
   - Use AVG for yield
   - Order by year
+thoughtProcess:
+  - "'Average yield by year' is a time-series analysis — you're looking at how a metric changes over time. GROUP BY year gives one row per year."
+  - "AVG(yield) AS avg_yield computes the mean yield across all fields for each year. This smooths out field-level variation."
+  - "ORDER BY year (ascending, the default) arranges results chronologically — essential for spotting trends. Don't use DESC here; you want oldest to newest."
+  - "No LIMIT needed — you want every year to see the full trend. If the trend goes up, farming practices are improving; if down, investigate soil or weather."
+  - "Time-series pattern: GROUP BY time_period + AVG/SUM(metric) + ORDER BY time_period. This works for any trend analysis — yields, sales, crime rates, etc."
 schema:
   - name: farming_yield
     columns:

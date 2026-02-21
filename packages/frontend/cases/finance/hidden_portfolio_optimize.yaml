@@ -93,6 +93,13 @@ hints:
   - Filter WHERE prev_close IS NOT NULL to exclude first trading day
   - Use two CTEs: one for daily returns, one for aggregated stats
   - ROW_NUMBER() in the final SELECT for ranking
+thoughtProcess:
+  - "Portfolio optimization = compare stocks by return and risk. You need daily returns first, then aggregate stats per ticker. Two CTEs."
+  - "CTE 1 — DailyReturns: Use LAG(close) OVER (PARTITION BY ticker ORDER BY date) to get yesterday's closing price. Daily return = (close - prev_close) / prev_close * 100."
+  - "LAG looks at the previous row within each ticker's date-ordered partition. The first trading day for each ticker has no previous row, so prev_close is NULL."
+  - "CTE 2 — TickerStats: FROM DailyReturns WHERE prev_close IS NOT NULL (skip first day). GROUP BY ticker to get AVG(daily_return_pct), AVG(close), MIN(close), MAX(close), COUNT(*) as trading_days."
+  - "Final SELECT adds ROW_NUMBER() OVER (ORDER BY avg_daily_return DESC) AS performance_rank. Use CASE for investment recommendation based on return and volatility metrics."
+  - "Key pattern: LAG in CTE1 for row-to-row comparison → aggregate in CTE2 → rank + classify in final SELECT. This three-layer approach is standard for financial analytics."
 schema:
   - name: finance_stocks
     columns:

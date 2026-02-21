@@ -72,6 +72,13 @@ hints:
   - COUNT(DISTINCT patient_id) for unique patients
   - Divide total by unique for the ratio
   - Use CASE for risk classification
+thoughtProcess:
+  - "Readmission risk = patients being admitted multiple times. You need admissions per patient per diagnosis, then classify risk levels."
+  - "CTE — PatientAdmissions: JOIN patients with admissions on patient_id. GROUP BY diagnosis, gender. Compute COUNT(DISTINCT admission_id) AS total_admissions and COUNT(DISTINCT patient_id) AS unique_patients."
+  - "The ratio total_admissions / unique_patients tells you how often each patient is readmitted on average. Use 1.0 * to force decimal division: ROUND(1.0 * COUNT(DISTINCT a.admission_id) / COUNT(DISTINCT p.patient_id), 2)."
+  - "CASE for risk_level: ratio > 2 = 'High Readmission Risk', ratio > 1.5 = 'Moderate Risk', else 'Low Risk'. Higher ratios mean more repeat admissions per patient."
+  - "ORDER BY avg_admissions_per_patient DESC highlights the highest-risk diagnosis-gender segments. This is how hospitals prioritize follow-up care programs."
+  - "Pattern: aggregate with DISTINCT counts → compute ratios → classify with CASE. The DISTINCT keyword is crucial — without it, you'd count duplicate rows."
 expected:
   - diagnosis: Diabetes
     gender: Male

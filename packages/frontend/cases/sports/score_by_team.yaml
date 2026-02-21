@@ -37,6 +37,12 @@ hints:
   - Use JOIN on player_id
   - Calculate percentage with SUM(CASE ...) / COUNT(*)
   - Group by player_id and shot_zone
+thoughtProcess:
+  - "Field goal percentage by player and shot zone — you need shots from shot_zones joined with game data, then compute made/total ratio."
+  - "JOIN shot_zones s ON g.player_id = s.player_id — links game stats with shot details. GROUP BY g.player_id, s.shot_zone creates player-zone buckets."
+  - "SUM(CASE WHEN s.made = 'True' THEN 1 ELSE 0 END) counts made shots. Dividing by COUNT(*) gives the percentage. Multiply by 1.0 to force decimal division."
+  - "The CASE-inside-SUM pattern is essential: it converts boolean text into countable 1s and 0s. This is how you compute conditional percentages in SQL."
+  - "ORDER BY fg_percentage DESC — best shooters in each zone first. This reveals which players are most efficient from which areas of the court."
 schema:
   - name: nba_games
     columns:

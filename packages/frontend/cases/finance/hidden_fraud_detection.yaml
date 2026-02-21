@@ -77,6 +77,13 @@ hints:
   - JOIN the two CTEs on ticker
   - Use CASE for alert classification
   - Filter with WHERE after the join
+thoughtProcess:
+  - "Fraud detection = find abnormal trading volume. You need to compare each day's volume against the ticker's average. This requires two CTEs: one for daily totals, one for averages."
+  - "CTE 1 — DailyVolume: SELECT ticker, transaction_date, SUM(amount) AS daily_volume GROUP BY ticker, transaction_date. This gives the total traded amount per ticker per day."
+  - "CTE 2 — TickerAvg: SELECT ticker, ROUND(AVG(daily_volume), 2) AS avg_daily_volume FROM DailyVolume GROUP BY ticker. This computes each ticker's normal daily volume baseline."
+  - "Main query: JOIN DailyVolume with TickerAvg on ticker. Compute volume_ratio = daily_volume / avg_daily_volume. A ratio of 3 means 3x normal volume."
+  - "CASE classification: volume_ratio > 3 = 'RED FLAG', > 2 = 'WARNING', else 'NORMAL'. Strictest condition first. This is exactly how real fraud detection systems work."
+  - "Pattern: CTE for granular metrics → CTE for baseline averages → JOIN to compare → CASE for alerting. Each layer is independently testable."
 expected:
   - ticker: AAPL
     transaction_date: "2024-01-15"

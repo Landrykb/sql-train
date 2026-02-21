@@ -86,6 +86,13 @@ hints:
   - Use DISTINCT in the outer CTE to deduplicate after window functions
   - RANK() OVER (ORDER BY closest_approach_km ASC) ranks nearest first
   - Combine distance and velocity in CASE for realistic threat classification
+thoughtProcess:
+  - "Collision alert = find the most threatening NEOs based on their closest approach and maximum velocity. You need per-NEO extremes, not per-approach rows."
+  - "CTE 1 — NEOMetrics: Use window functions MIN(dist_km) OVER (PARTITION BY des) AS closest_approach_km and MAX(relative_velocity_km_s) OVER (PARTITION BY des) AS max_velocity. These compute per-NEO extremes across all approaches."
+  - "Window functions add columns without collapsing rows — so you'll have duplicates. That's why CTE 2 uses SELECT DISTINCT to get one row per NEO."
+  - "CTE 2 — ThreatAssessment: SELECT DISTINCT des, closest_approach_km, max_velocity, is_potentially_hazardous. Add RANK() OVER (ORDER BY closest_approach_km ASC) to rank by proximity."
+  - "CASE for threat_level: combine distance < threshold AND velocity > threshold for 'CRITICAL', distance-only for 'HIGH', hazardous flag for 'MODERATE', else 'LOW'."
+  - "Pattern: window functions in CTE1 for per-group extremes → DISTINCT in CTE2 for deduplication + ranking → CASE in final SELECT for classification."
 schema:
   - name: space_neo
     columns:

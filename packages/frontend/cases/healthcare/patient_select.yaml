@@ -31,6 +31,12 @@ hints:
   - Use WHERE to filter age
   - Use ORDER BY to sort by admission_date
   - Use LIMIT to get 5 rows
+thoughtProcess:
+  - "Read the goal: 'top 5 patients over 50, ordered by birthdate'. Identify — columns to show, filter condition, sort order, row limit."
+  - "SELECT patient_id, age, birthdate — the columns the output needs. FROM patients is the data source."
+  - "WHERE age > 50 — filters to patients older than 50. Numeric comparison, no quotes."
+  - "ORDER BY birthdate DESC — most recent birthdates first. LIMIT 5 — cap at 5 rows."
+  - "This is the foundational query pattern: SELECT → FROM → WHERE → ORDER BY → LIMIT. Every SQL query you write builds on this structure."
 schema:
   - name: healthcare_covid
     columns:

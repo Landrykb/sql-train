@@ -78,6 +78,13 @@ hints:
   - Divide total engagement by followers for the rate
   - Use WHERE to filter minimum followers
   - Use CASE for tier classification
+thoughtProcess:
+  - "Influencer ROI = total engagement relative to follower count. High followers with low engagement = poor ROI. You need engagement metrics per user, then divide by followers."
+  - "CTE — UserEngagement: JOIN users with tweets on user_id. Compute SUM(t.likes + t.retweets) AS total_engagement, COUNT(t.tweet_id) AS total_posts. GROUP BY user info."
+  - "Engagement rate = total_engagement / followers_count. Use ROUND for clean output. This normalizes engagement — a user with 100 likes and 50 followers has better ROI than 1000 likes with 100K followers."
+  - "Use CASE to classify tiers: engagement_rate > threshold = 'Top Influencer', moderate = 'Rising Star', low = 'Casual Poster'. Strictest condition first in CASE."
+  - "Filter WHERE followers_count > minimum to exclude inactive accounts. ORDER BY engagement_rate DESC to surface the best ROI influencers."
+  - "Pattern: JOIN for combined metrics → CTE for aggregation → ratio computation → CASE classification. This is how marketing teams evaluate influencer partnerships."
 expected:
   - username: social_guru
     followers_count: 5230

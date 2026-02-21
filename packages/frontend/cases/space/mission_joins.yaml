@@ -27,6 +27,12 @@ hints:
   - Use WHERE to filter by distance
   - Order by close_approach_date
   - Use LIMIT to get 5 rows
+thoughtProcess:
+  - "'NEOs with close approaches within 1M km' — filter by dist_km, then sort and limit. This is a straightforward SELECT with a WHERE condition."
+  - "SELECT des, close_approach_date — the NEO designation and when it passed close. FROM space_neo is the data source."
+  - "WHERE dist_km < 1000000 — keeps only NEOs that came within 1 million km. That's roughly 2.5x the Earth-Moon distance."
+  - "ORDER BY close_approach_date DESC — most recent approaches first. LIMIT 5 — top 5 results."
+  - "Filtering pattern: choose your threshold, apply WHERE, sort by the most relevant column. This is how NASA monitors close approaches."
 schema:
   - name: space_neo
     columns:

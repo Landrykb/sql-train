@@ -37,6 +37,12 @@ hints:
   - Use a CTE to count suspects
   - Join with crimes
   - Group by location_description
+thoughtProcess:
+  - "You need two metrics per location: crime count AND suspect count. These come from different operations — one is a simple COUNT on crimes, the other requires a JOIN with suspects. A CTE keeps them separate and clear."
+  - "CTE — SuspectCounts: LEFT JOIN crime_chicago with suspects on c.id = s.crime_id, then COUNT(s.suspect_name) GROUP BY c.location_description. LEFT JOIN ensures locations with no suspects still appear."
+  - "Main query: SELECT c.location_description, COUNT(*) AS crime_count from crime_chicago, then JOIN the CTE on location_description to bring in suspect_count."
+  - "GROUP BY c.location_description, s.suspect_count — you need both because suspect_count comes from the joined CTE and isn't being aggregated in the main query."
+  - "ORDER BY crime_count DESC puts the highest-crime locations at top. This is the CTE pattern: pre-compute a complex metric, then join it to a simpler aggregation."
 schema:
   - name: crime_chicago
     columns:

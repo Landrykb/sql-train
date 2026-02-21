@@ -97,6 +97,13 @@ hints:
   - LEFT JOIN returns through business_retail to get product_line for each return
   - A subquery inside CASE can compare against the overall average
   - COALESCE handles product lines with zero returns
+thoughtProcess:
+  - "The Operations Director wants a quality audit. Break the request into layers: (1) sales metrics per product, (2) return metrics per product, (3) combine them, (4) classify quality status."
+  - "CTE 1 — ProductSales: GROUP BY product_line to get COUNT(DISTINCT invoice_id) AS total_sales, SUM(total) AS total_revenue, AVG(rating). Use DISTINCT because one invoice = one sale."
+  - "CTE 2 — ProductReturns: JOIN returns to business_retail (to get product_line), then COUNT(DISTINCT r.invoice_id) GROUP BY product_line. Returns don't have product_line directly — you must join through sales."
+  - "CTE 3 — Combined: LEFT JOIN ProductSales with ProductReturns on product_line. Compute return_rate_pct = (total_returns * 100.0 / total_sales). Use COALESCE for products with zero returns."
+  - "The CASE classification compares each product's return rate against the overall average. Use a subquery: WHEN return_rate_pct > 1.2 * (SELECT AVG(return_rate_pct) FROM Combined) THEN 'URGENT AUDIT'."
+  - "Layered CTEs pattern: each CTE solves one piece, and the final SELECT combines and classifies. This is how real data analysts build audit reports — one verifiable step at a time."
 schema:
   - name: business_retail
     columns:

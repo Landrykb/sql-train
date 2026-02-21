@@ -26,6 +26,12 @@ hints:
   - Use SUM to aggregate metrics
   - Use GROUP BY for player_id
   - Use ORDER BY to sort results
+thoughtProcess:
+  - "'Sum points, assists, and rebounds for each player' — you need a composite metric (efficiency) per player. GROUP BY player_id."
+  - "SELECT player_id, SUM(points + assists + rebounds) AS total_efficiency — addition inside SUM combines the three stats per game, then SUM totals across all games."
+  - "FROM nba_games GROUP BY player_id — each player gets one row with their career total efficiency."
+  - "ORDER BY total_efficiency DESC — best performers first. No LIMIT means you see all players."
+  - "Pattern: SUM(expr1 + expr2) aggregates a computed expression. You can do math inside aggregate functions — SQL evaluates the expression per row, then aggregates."
 schema:
   - name: nba_games
     columns:

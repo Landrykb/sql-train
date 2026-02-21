@@ -29,6 +29,13 @@ hints:
   - Use strftime to group by week
   - Use COUNT for crime counts
   - Order by week
+thoughtProcess:
+  - "The goal is 'weekly crime trends by type'. You need to convert raw dates into weeks, then count crimes per week per type."
+  - "strftime('%Y-%W', date) extracts the year and week number from a date. '%Y' = year, '%W' = week number (00-53). This creates a week identifier like '2019-05'."
+  - "GROUP BY strftime('%Y-%W', date), primary_type — you're grouping by TWO columns: the week AND the crime type. This gives a count for each crime type in each week."
+  - "The same strftime expression must appear in both SELECT (aliased AS week) and GROUP BY. SQL requires the grouping expression to match exactly."
+  - "ORDER BY week, crime_count DESC — sort by week first (chronological), then within each week by count (most frequent crime type first). LIMIT 20 keeps the output manageable."
+  - "Date function pattern: use strftime to extract time periods (day, week, month, year), then GROUP BY that period for trend analysis. This works for any time-series data."
 schema:
   - name: crime_chicago
     columns:

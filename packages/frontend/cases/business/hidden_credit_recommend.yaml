@@ -90,6 +90,14 @@ hints:
   - Use CASE with multiple conditions for the program_tier
   - Use ROW_NUMBER() OVER (ORDER BY total_spent DESC) for ranking
   - Review the window concept in the GuideBook
+thoughtProcess:
+  - "Marketing wants customer segments ranked for a loyalty program. Break it down: (1) compute metrics per segment, (2) classify tiers, (3) rank by spending."
+  - "CTE 1 — CustomerMetrics: GROUP BY customer_type, gender, branch. Compute COUNT(DISTINCT invoice_id) AS total_purchases, SUM(total) AS total_spent, AVG(rating), and COUNT returns via LEFT JOIN."
+  - "Why LEFT JOIN returns? Because not every customer has returns. LEFT JOIN keeps all customers; COUNT(DISTINCT r.invoice_id) gives 0 for those with no returns."
+  - "CTE 2 — Scored: SELECT * from CustomerMetrics plus a CASE for program_tier. Put the strictest tier first: Platinum needs spent > 30000 AND rating >= 7.0 AND returns < 30."
+  - "Add ROW_NUMBER() OVER (ORDER BY total_spent DESC) AS spend_rank in the same CTE. ROW_NUMBER gives unique ranks (1, 2, 3...) — no ties. This is a window function that doesn't need PARTITION BY since you want a global rank."
+  - "Final SELECT picks the columns marketing needs. The pattern: CTE for metrics → CTE for classification + ranking → clean SELECT. Each layer is independently testable."
+  - "Pro tip: when combining CASE and window functions in the same SELECT, they both work on the same row set. CASE classifies, ROW_NUMBER ranks — they don't interfere with each other."
 schema:
   - name: business_retail
     columns:

@@ -32,6 +32,12 @@ hints:
   - Calculate volatility as (high - low) / close
   - Filter for high volatility
   - Order by date
+thoughtProcess:
+  - "The goal is finding high-volatility stocks. Volatility = (high - low) / close — the daily price range as a fraction of the closing price."
+  - "You can compute expressions directly in SELECT: ((s.high - s.low) / s.close) AS volatility. SQL lets you do math on columns."
+  - "LEFT JOIN market_index m ON s.date = m.date brings in market context. Even if you don't select market columns, the join is part of the exercise structure."
+  - "WHERE ((s.high - s.low) / s.close) > 0.1 filters for stocks with > 10% daily volatility. Note: you must repeat the full expression in WHERE — you can't use the alias 'volatility' in WHERE."
+  - "ORDER BY s.date DESC LIMIT 5 — most recent volatile days first. Key learning: computed columns (math expressions) can go in SELECT, WHERE, and ORDER BY."
 schema:
   - name: finance_stocks
     columns:

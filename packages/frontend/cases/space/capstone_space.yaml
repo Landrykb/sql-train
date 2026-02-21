@@ -29,6 +29,13 @@ hints:
   - Use multiple CTEs for clarity
   - Group by year and hazard status
   - Order by count
+thoughtProcess:
+  - "Capstone: summarize NEO approaches by year and hazard status. You need a time dimension (year) crossed with a category (hazardous or not)."
+  - "CTE — NeoStats: strftime('%Y', close_approach_date) AS year gives the year. GROUP BY year, is_potentially_hazardous creates year-hazard buckets."
+  - "COUNT(*) AS neo_count — counts approaches in each year-hazard combination. This creates a pivot-like view of NEO trends."
+  - "Main query: SELECT year, is_potentially_hazardous, neo_count FROM NeoStats ORDER BY year, neo_count DESC."
+  - "The dual GROUP BY reveals whether hazardous NEO detections are increasing over time — critical for planetary defense planning."
+  - "Capstone approach: identify the dimensions (year + category) → aggregate within those dimensions → order to reveal trends."
 schema:
   - name: space_neo
     columns:

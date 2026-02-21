@@ -43,6 +43,13 @@ hints:
   - Use multiple CTEs for clarity
   - Join crimes and suspects
   - Group by location and type
+thoughtProcess:
+  - "Capstone = combine everything. The goal: crimes, suspects, and trends by location and type. Break it into independent sub-problems."
+  - "CTE 1 — CrimeStats: COUNT crimes GROUP BY primary_type AND location_description. This gives you crime volume for each location-type combo."
+  - "CTE 2 — SuspectStats: LEFT JOIN crimes with suspects, then COUNT suspect names GROUP BY location_description. This tells you how many suspects are linked to each location."
+  - "Main query: JOIN CrimeStats with SuspectStats on location_description. Now each row has crime type, location, crime count, AND suspect count side by side."
+  - "ORDER BY crime_count DESC highlights the most problematic location-type combinations first."
+  - "Capstone mindset: sketch out the final output columns first, then work backwards to figure out which CTEs you need. Each CTE handles one dimension of the analysis."
 schema:
   - name: crime_chicago
     columns:

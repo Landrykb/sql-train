@@ -33,6 +33,12 @@ hints:
   - Use multiple CTEs for clarity
   - Join games and shot zones
   - Group by player
+thoughtProcess:
+  - "Capstone: combine game stats with shooting efficiency per player. Two CTEs — one for game averages, one for shooting percentages — then JOIN them."
+  - "CTE 1 — PlayerStats: SELECT player_id, AVG(points) AS avg_points FROM nba_games GROUP BY player_id. Pure game-level aggregation."
+  - "CTE 2 — ShootingStats: SUM(CASE WHEN s.made = 'True' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS fg_percentage FROM shot_zones GROUP BY player_id. The CASE-inside-SUM pattern converts text booleans to counts."
+  - "Main query: JOIN PlayerStats with ShootingStats on player_id. SELECT player_id, avg_points, fg_percentage. Now each player has both metrics."
+  - "ORDER BY avg_points DESC — best scorers first. Capstone pattern: build independent CTEs per data source → JOIN in the final SELECT."
 schema:
   - name: nba_games
     columns:

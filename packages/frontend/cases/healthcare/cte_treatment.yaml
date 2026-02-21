@@ -33,6 +33,13 @@ hints:
   - Use a CTE to join treatments and admissions
   - Calculate duration as discharge_date - admission_date
   - Group by diagnosis
+thoughtProcess:
+  - "Average treatment duration by diagnosis — you need to compute how long each patient stayed, then average by diagnosis. A CTE keeps the date math separate from the aggregation."
+  - "CTE — TreatmentDurations: JOIN treatments with admissions on patient_id. Use julianday(discharge_date) - julianday(admission_date) to get duration in days."
+  - "julianday() converts a date to a numeric day count. Subtracting two julianday values gives the number of days between them — this is SQLite's way of doing date arithmetic."
+  - "Main query: SELECT diagnosis, ROUND(avg_duration, 1) AS avg_duration_days FROM TreatmentDurations GROUP BY diagnosis. ROUND to 1 decimal for clean output."
+  - "ORDER BY avg_duration DESC — longest average stays first. This helps hospitals identify which diagnoses need the most resources."
+  - "CTE pattern: complex computation (date math + join) in CTE → simple aggregation in main query. Separation of concerns makes debugging easier."
 schema:
   - name: healthcare_covid
     columns:

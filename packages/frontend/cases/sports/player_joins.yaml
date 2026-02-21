@@ -29,6 +29,12 @@ hints:
   - Use JOIN on player_id
   - Count shots per player
   - Order by shot count
+thoughtProcess:
+  - "You need shot counts per player — shots live in shot_zones, player games in nba_games. JOIN on player_id links the two tables."
+  - "JOIN shot_zones s ON g.player_id = s.player_id — INNER JOIN keeps only players who have shot records."
+  - "SELECT g.player_id, COUNT(s.shot_id) AS shot_count — counts total shots per player. GROUP BY g.player_id collapses all rows for the same player."
+  - "ORDER BY shot_count DESC — most active shooters first. This combines JOIN + aggregation, the bread-and-butter of multi-table analytics."
+  - "Pattern: FROM table1 JOIN table2 ON key → SELECT key, COUNT(detail) → GROUP BY key → ORDER BY aggregate."
 schema:
   - name: nba_games
     columns:

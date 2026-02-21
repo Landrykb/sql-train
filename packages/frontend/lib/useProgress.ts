@@ -5,6 +5,7 @@ import {
   markCaseComplete as markCaseCompleteRaw,
   isUnlocked as isUnlockedRaw,
 } from './progress';
+import { playBleep } from './audio';
 
 export function useProgress() {
   const [completed, setCompleted] = useState<Set<string>>(new Set());
@@ -110,7 +111,7 @@ export function useProgress() {
           setAchievements(newAchievements);
           localStorage.setItem('bleepxAchievements', JSON.stringify(newAchievements));
           try {
-            new Audio('/bleep.mp3').play();
+            playBleep();
             window.dispatchEvent(new CustomEvent('achievement-unlocked', { detail: newAchievements[newAchievements.length - 1] }));
           } catch (err) {
             console.warn('Failed to play bleep sound:', err);

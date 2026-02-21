@@ -28,6 +28,13 @@ hints:
   - Use SUM OVER to calculate cumulative total
   - PARTITION BY branch
   - Order by date
+thoughtProcess:
+  - "The question says 'running total of sales per branch'. A running total means each row shows the sum of all rows up to that point — this is a window function pattern."
+  - "Window functions use the OVER() clause. Unlike GROUP BY which collapses rows, OVER() keeps every row and computes across a 'window' of related rows."
+  - "PARTITION BY branch means 'restart the calculation for each branch'. Without it, you'd get one running total across all branches mixed together."
+  - "ORDER BY date inside the OVER() tells SQL the order to accumulate: SUM(total) OVER (PARTITION BY branch ORDER BY date) adds up totals chronologically within each branch."
+  - "Your SELECT needs the raw columns too: branch, date, total — plus the window calculation AS cumulative_sales. This shows both the individual sale and the running total side by side."
+  - "The outer ORDER BY branch, date sorts the final output. Pattern: SELECT col, AGG(col) OVER (PARTITION BY group_col ORDER BY sort_col) FROM table ORDER BY group_col, sort_col."
 schema:
   - name: business_retail
     columns:

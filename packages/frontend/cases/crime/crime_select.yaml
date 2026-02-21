@@ -27,6 +27,13 @@ hints:
   - Use WHERE to filter primary_type
   - Use ORDER BY to sort by date
   - Use LIMIT to get 5 rows
+thoughtProcess:
+  - "Read the goal: 'top 5 theft incidents, ordered by date'. Identify the pieces — what columns, what filter, what sort, how many rows."
+  - "SELECT id, date, primary_type — pick the columns the output needs. Don't SELECT * when only specific columns are asked for."
+  - "FROM crime_chicago — this is the table containing incident records."
+  - "WHERE primary_type = 'THEFT' — filters to only theft incidents. String comparisons in SQL are case-sensitive here, so match the exact value in the data."
+  - "ORDER BY date DESC — most recent incidents first. DESC means descending (newest to oldest)."
+  - "LIMIT 5 — caps the output at 5 rows. The full pattern: SELECT → FROM → WHERE → ORDER BY → LIMIT. Master this sequence — it's the foundation of every SQL query."
 schema:
   - name: crime_chicago
     columns:

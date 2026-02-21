@@ -26,6 +26,12 @@ hints:
   - Use GROUP BY for soil_type
   - Use AVG for yield
   - Order by average yield
+thoughtProcess:
+  - "'Average yield by soil type' — the words 'by soil type' tell you to GROUP BY soil_type. 'Average yield' means AVG(yield)."
+  - "SELECT soil_type, AVG(yield) AS avg_yield — name the aggregate with AS so results are clear and you can ORDER BY it."
+  - "FROM farming_yield GROUP BY soil_type — every non-aggregated SELECT column must be in GROUP BY."
+  - "ORDER BY avg_yield DESC — highest-performing soil types first. No LIMIT here because you want all soil types."
+  - "Pattern: when comparing categories (soil types, regions, products), use GROUP BY category + aggregate function. This is the most common analytical query pattern."
 schema:
   - name: farming_yield
     columns:

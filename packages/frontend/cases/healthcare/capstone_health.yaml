@@ -57,6 +57,13 @@ hints:
   - Use multiple CTEs for clarity
   - Join patients, treatments, and admissions
   - Group by diagnosis
+thoughtProcess:
+  - "Capstone: combine patients, treatments, and admissions into one report by diagnosis. Break into sub-problems — each CTE handles one join."
+  - "CTE 1 — PatientTreatments: JOIN patients with treatments on patient_id. This gives you age + diagnosis per patient."
+  - "CTE 2 — AdmissionsStats: COUNT admissions per patient_id from the admissions table. This gives admission frequency per patient."
+  - "Main query: combine the CTEs to show diagnosis-level stats — count of patients, average age, total admissions per diagnosis."
+  - "ORDER BY a meaningful metric (e.g., admission count or patient count) to highlight the most impactful diagnoses first."
+  - "Capstone approach: identify the tables you need → build one CTE per table relationship → join CTEs in the final SELECT. Each CTE should be testable on its own."
 schema:
   - name: healthcare_covid
     columns:

@@ -30,6 +30,13 @@ hints:
   - Use LEFT JOIN to include return data
   - Filter for non-null return reasons with WHERE
   - Use LIMIT to get top 5
+thoughtProcess:
+  - "You need data from TWO tables (business_retail and returns). Whenever you need columns from multiple tables, think JOIN."
+  - "Which column connects them? Both tables have invoice_id. That's your join key: ON b.invoice_id = r.invoice_id."
+  - "Use LEFT JOIN so you keep all sales rows even if they have no matching return. This preserves the full sales picture."
+  - "The question asks for 'sales with return reasons' — that means you only want rows WHERE r.return_reason IS NOT NULL. This filters to only returned items."
+  - "Use table aliases (b for business_retail, r for returns) to keep your query short: SELECT b.invoice_id, b.total, r.return_reason."
+  - "Finally, ORDER BY b.total DESC LIMIT 5 gives the top 5 highest-value returned sales. Pattern: SELECT → FROM → JOIN ON → WHERE → ORDER BY → LIMIT."
 schema:
   - name: business_retail
     columns:
