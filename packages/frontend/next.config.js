@@ -60,7 +60,6 @@ module.exports = {
       '*': [
         './public/datasets/**/*',
         './public/static/wasm/**/*',
-        './cases/**/*',
       ],
     },
   },
