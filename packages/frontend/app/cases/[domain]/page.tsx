@@ -147,25 +147,22 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
   return (
     <div className="max-w-4xl mx-auto p-8 bg-bleepx-bg space-y-6">
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <BleepxLogo />
-          <h1 className="text-3xl font-bold text-bleepx-text capitalize">
-            BleepxQuery: {domainKey.charAt(0).toUpperCase() + domainKey.slice(1).replace('_', ' ')} Challenges
-          </h1>
+          <div>
+            <h1 className="text-2xl font-bold text-bleepx-text capitalize">
+              {domainKey.charAt(0).toUpperCase() + domainKey.slice(1).replace('_', ' ')} Division
+            </h1>
+            <p className="text-xs text-bleepx-text-secondary">SwiftLink Training Program</p>
+          </div>
         </div>
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-2 items-center">
           <DashboardButton domainKey={domainKey} />
-          <Link href="/" className="px-4 py-2 text-bleepx-blue hover:text-bleepx-blue-hover">
+          <Link href="/" className="px-3 py-1.5 text-sm text-bleepx-blue hover:text-bleepx-blue-hover rounded-lg hover:bg-bleepx-blue/5 transition-colors">
             Home
           </Link>
           <ResetProgressButton />
         </div>
-      </div>
-      <div
-        className="p-4 bg-bleepx-white text-bleepx-text-secondary rounded-lg shadow-sm border-l-4 border-bleepx-blue animate-fade-in"
-        role="alert"
-      >
-        Nice work, human! Bleepx says pick another SwiftLink Challenge!
       </div>
       <ProgressSummary caseIds={caseOrder[domainKey] || []} />
       <BleepxPointsTracker caseIds={currentOrder} />

@@ -11,6 +11,7 @@ import { compareResults } from '@/lib/compare';
 import { useProgress } from '@/lib/useProgress';
 import { fullCaseOrder, caseOrder } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
+import { loadingMessages, queryMessages, getLockedMessage, getDomainCompleteMessage, getNextCaseMessage, getLoadError, pickRandom } from '@/lib/bleepxDialogue';
 
 const Spinner = dynamic(() => import('./Spinner'), { ssr: false });
 
@@ -155,13 +156,6 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
           datasets.map(async (dataset) => {
             if (!/^[a-zA-Z0-9_]+$/.test(dataset.name)) throw new Error(`Invalid dataset name: ${dataset.name}`);
             console.log(`Loading dataset: ${dataset.file}`);
-            const response = await fetch(`/datasets/${dataset.file}`);
-            if (!response.ok) throw new Error(`Failed to load dataset: ${dataset.file} (Status: ${response.status})`);
-            const raw = await response.text();
-
-            const parsed = Papa.parse(raw, { header: true, preview: 5, transform: (value: string) => value === '' || value === null ? null : isNaN(Number(value)) ? value : Number(value) }) as ParseResult<Record<string, string | number | null>>;
-            const columns = parsed.meta.fields ?? [];
-            const previewRows = parsed.data;
 
             if (['returns', 'admissions', 'sales', 'stats'].includes(dataset.name.toLowerCase())) {
               console.warn(`Warning: Dataset name "${dataset.name}" may conflict with CTE names.`);
@@ -169,10 +163,10 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
 
             await loadCSV(dataset.name, dataset.file);
 
-            let sqlColumns = columns;
+            let sqlColumns: string[] = [];
             try {
               const colRes = await runQuery(`PRAGMA table_info("${dataset.name}");`);
-              sqlColumns = colRes.data.length ? colRes.data.map((row) => row[1] as string) : columns;
+              sqlColumns = colRes.data.length ? colRes.data.map((row) => row[1] as string) : [];
             } catch (err) {
               console.error(`PRAGMA table_info failed for ${dataset.name}:`, err);
             }
@@ -184,6 +178,14 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
             } catch (err) {
               console.error(`SELECT COUNT(*) failed for ${dataset.name}:`, err);
               throw err;
+            }
+
+            let previewRows: Record<string, string | number | null>[] = [];
+            try {
+              const prevRes = await runQuery(`SELECT * FROM "${dataset.name}" LIMIT 5`);
+              previewRows = prevRes.data.map((row: unknown[]) => Object.fromEntries(prevRes.columns.map((c, i) => [c, row[i] as string | number | null])));
+            } catch (err) {
+              console.error(`Preview query failed for ${dataset.name}:`, err);
             }
 
             return { name: dataset.name, file: dataset.file, columns: sqlColumns, previewRows, rowCount };
@@ -201,7 +203,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
         if (isMounted) {
           const msg = err instanceof Error ? err.message : String(err);
           console.error('Dataset loading error:', msg);
-          setLoadError(`Error loading datasets: ${msg}. Bleepx is disappointed, human!`);
+          setLoadError(getLoadError(msg));
         }
       }
     };
@@ -212,7 +214,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
 
   const onRun = useCallback(async () => {
     if (query.length > 1000) {
-      setMessage('Error: Query too long (max 1000 characters). Bleepx says keep it concise!');
+      setMessage(queryMessages.tooLong);
       return;
     }
     setBusy(true);
@@ -225,7 +227,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       setResultRows(grid);
 
       if (!expected.length) {
-        setMessage('Query executed, but no expected results defined. Bleepx demands better setup!');
+        setMessage(queryMessages.noExpected);
         return;
       }
 
@@ -244,21 +246,21 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
         console.log('Completion Check:', { currentOrder, completed: Array.from(completed), allCompleted, nextCaseId });
 
         if (allCompleted && currentOrder.length > 0) {
-          setMessage(`Impressive, human! You’ve conquered all SwiftLink Challenges in ${domain}!`);
+          setMessage(getDomainCompleteMessage(domain));
           setTimeout(() => {
             setShowSuccess(false);
             console.log('Redirecting to:', `/cases/${domain}/dashboard`);
             window.location.href = `/cases/${domain}/dashboard`;
           }, 800);
         } else if (nextCaseId) {
-          setMessage(`Nice one, human! Bleepx says tackle ${nextCaseId} next!`);
+          setMessage(getNextCaseMessage(nextCaseId));
           setTimeout(() => {
             setShowSuccess(false);
             console.log('Redirecting to:', `/cases/${domain}/${nextCaseId}`);
             window.location.href = `/cases/${domain}/${nextCaseId}`;
           }, 1200);
         } else {
-          setMessage('Correct! No next challenge available. Bleepx suggests checking the domain!');
+          setMessage('*bleep* Mission complete. Head back to the domain hub for your next assignment.');
           setTimeout(() => {
             setShowSuccess(false);
             console.log('Redirecting to:', `/cases/${domain}`);
@@ -272,7 +274,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('Query error:', msg);
       setResultRows([]);
-      setMessage(msg.includes('circular reference') ? `Error: ${msg}. Try renaming CTEs (e.g., "returns" to "return_data").` : `Error: ${msg}. Bleepx says try harder!`);
+      setMessage(msg.includes('circular reference') ? `*bleep* Circular reference detected: ${msg}. Rename your CTEs (e.g., "returns" → "return_data").` : `${pickRandom(queryMessages.error)} — ${msg}`);
       setAttempts((a) => a + 1);
       if (attempts + 1 < hints.length) setVisibleHints((v) => Math.min(v + 1, hints.length));
     } finally {
@@ -310,7 +312,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
         <div className="p-6 bg-yellow-100 text-yellow-800 rounded-xl shadow-lg" role="alert">
           <div className="flex items-center gap-2">
             <img src="/bleepx-logo.png" alt="Bleepx" className="h-5 w-5" />
-            <span>This challenge is locked. Bleepx says complete these first: {prerequisites.join(', ')}.</span>
+            <span>{getLockedMessage(prerequisites)}</span>
           </div>
           <div className="mt-4">
             <Link href={`/cases/${domain}`}>
@@ -335,7 +337,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       <Suspense fallback={<div className="flex items-center justify-center p-8"><Spinner /><span className="ml-2 text-bleepx-gray">Loading...</span></div>}>
         <div className="flex items-center justify-center p-8" aria-live="polite">
           <Spinner />
-          <span className="ml-2 text-bleepx-gray">Bleepx is loading datasets...</span>
+          <span className="ml-2 text-bleepx-gray">{pickRandom(loadingMessages)}</span>
         </div>
       </Suspense>
     );
@@ -347,7 +349,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
         <ol className="flex space-x-2 items-center">
           <li><Link href="/" className="hover:underline">Home</Link></li>
           <li className="text-gray-400">/</li>
-          <li><Link href="/cases" className="hover:underline">SwiftLink Challenges</Link></li>
+          <li><Link href="/cases" className="hover:underline">Challenges</Link></li>
           <li className="text-gray-400">/</li>
           <li><Link href={`/cases/${domain}`} className="hover:underline">{domain.charAt(0).toUpperCase() + domain.slice(1).replace('_', ' ')}</Link></li>
           <li className="text-gray-400">/</li>
@@ -361,7 +363,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
             <img src="/bleepx-logo.png" alt="Bleepx" className="h-6 w-6 animate-pulse-logo" />
             <h1 className="text-3xl font-bold text-bleepx-gray">{name}</h1>
           </div>
-          <span className="text-sm text-bleepx-gray">Challenge {currentIndex >= 0 ? currentIndex + 1 : 'N/A'} of {currentOrder.length || 'N/A'} (Tier {tier})</span>
+          <span className="text-sm text-bleepx-gray">Mission {currentIndex >= 0 ? currentIndex + 1 : '?'} of {currentOrder.length || '?'} — Tier {tier}</span>
         </div>
         <p className="mt-2 text-bleepx-gray">{instructions || description}</p>
         {skills.length > 0 && (
@@ -453,9 +455,9 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
             {message && (
               <div
                 className={`p-4 rounded-xl font-medium transition-all duration-500 ${
-                  message === 'Correct' || message.includes('Moving') || message.includes('Impressive')
+                  message.includes('Correct') || message.includes('Moving') || message.includes('cleared')
                     ? 'bg-bleepx-blue/20 text-bleepx-gray'
-                    : message.startsWith('Error') || message.includes('missing')
+                    : message.startsWith('*bleep* Syntax') || message.startsWith('*bleep* Circular') || message.includes('Error')
                     ? 'bg-yellow-100 text-yellow-800'
                     : 'bg-bleepx-blue/10 text-bleepx-gray'
                 } ${showSuccess ? 'animate-pulse' : ''}`}
@@ -465,10 +467,10 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                   <img src="/bleepx-logo.png" alt="Bleepx" className="h-5 w-5" />
                   <span>{message}</span>
                 </div>
-                {message.includes('Impressive') && (
+                {message.includes('cleared') && (
                   <div className="mt-4">
                     <Link href={`/cases/${domain}/dashboard`}>
-                      <button className="px-4 py-2 rounded-full bg-bleepx-blue text-white hover:bg-bleepx-pink transition-all duration-200">View Bleepx’s Dashboard</button>
+                      <button className="px-4 py-2 rounded-full bg-bleepx-blue text-white hover:bg-bleepx-pink transition-all duration-200">View Dashboard</button>
                     </Link>
                   </div>
                 )}
@@ -476,7 +478,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
             )}
             {showSolution && solutionQuery && (
               <div className="bg-bleepx-gray/5 p-4 rounded-xl shadow-sm">
-                <h3 className="text-sm font-semibold text-bleepx-gray mb-2">Bleepx’s Solution</h3>
+                <h3 className="text-sm font-semibold text-bleepx-gray mb-2">*bleep* Fine. Here's how I'd do it:</h3>
                 <pre className="text-sm text-bleepx-gray whitespace-pre-wrap" aria-label="Solution query">{solutionQuery}</pre>
               </div>
             )}
@@ -484,7 +486,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
 
           {hints.length > 0 && (
             <div className="bg-white p-6 rounded-xl shadow-lg">
-              <h2 className="text-lg font-semibold text-bleepx-gray mb-4">Bleepx’s Hints & Resources</h2>
+              <h2 className="text-lg font-semibold text-bleepx-gray mb-4">Intel from Bleepx</h2>
               <ul className="list-disc pl-5 text-sm text-bleepx-gray space-y-2">
                 {hints.slice(0, visibleHints).map((h, i) => {
                   const m = h.match(/Review the (\w+)/);
@@ -497,7 +499,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                           className="text-bleepx-blue hover:underline ml-1"
                           rel="noopener"
                         >
-                          (open Bleepx’s GuideBook)
+                          (open SwiftLink GuideBook)
                         </a>
                       )}
                     </li>
@@ -546,7 +548,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
               ) : busy ? (
                 <div className="flex items-center" aria-live="polite">
                   <Spinner />
-                  <span className="ml-2 text-bleepx-gray">Bleepx is processing...</span>
+                  <span className="ml-2 text-bleepx-gray">{queryMessages.processing}</span>
                 </div>
               ) : (
                 <DataGrid data={resultRows} />

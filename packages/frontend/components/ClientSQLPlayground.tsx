@@ -37,10 +37,10 @@ export default function ClientSQLPlayground({ caseData }: ClientSQLPlaygroundPro
       <p className="text-bleepx-gray mb-4">{caseData.description}</p>
       <SQLPlayground caseData={caseData} />
       {completed.has(caseData.id) && (
-        <div className="mt-4 p-4 bg-gradient-to-r from-bleepx-blue/20 to-bleepx-pink/20 text-bleepx-gray rounded-lg animate-fade-in" role="alert">
+        <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl animate-fade-in" role="alert">
           <div className="flex items-center gap-2">
-            <img src="/bleepx-icon.png" alt="Bleepx" className="h-5 w-5" />
-            <span>Nice work, human! Bleepx awards you {10 * caseData.tier} points! Total: {points}</span>
+            <span className="text-emerald-600 font-bold">✓</span>
+            <span className="text-sm">*bleep* Mission cleared — +{10 * caseData.tier} pts awarded. Total: {points}</span>
           </div>
         </div>
       )}

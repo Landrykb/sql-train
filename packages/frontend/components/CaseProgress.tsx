@@ -1,12 +1,13 @@
 'use client';
 import { useProgress } from '@/lib/useProgress';
 import { hiddenCaseOrder } from '@/lib/constants';
+import { getProgressMessage } from '@/lib/bleepxDialogue';
 import { useState, useEffect } from 'react';
 
 interface Props {
   caseIds: string[];
   domain: string;
-  cases: { id: string; prereq_cases?: string[]; tier?: number }[];
+  cases: { id: string; name?: string; prereq_cases?: string[]; tier?: number }[];
 }
 
 export default function CaseProgress({ caseIds, domain, cases }: Props) {
@@ -31,50 +32,65 @@ export default function CaseProgress({ caseIds, domain, cases }: Props) {
 
   const regularIds = caseIds.filter((id) => !hiddenIds.has(id));
   const bonusIds = caseIds.filter((id) => hiddenIds.has(id));
+  const completedCount = caseIds.filter((id) => completed.has(id)).length;
+
+  const getCaseName = (id: string) => {
+    const c = cases.find((c) => c.id === id);
+    return c?.name || id.replace(/_/g, ' ');
+  };
 
   return (
-    <div className="bg-gradient-to-r from-bleepx-blue/10 to-bleepx-pink/10 p-6 rounded-lg shadow-md">
-      <div className="flex items-center gap-2 mb-4">
-        <img src="/bleepx-icon.png" alt="Bleepx" className="h-6 w-6 animate-pulse-logo" />
-        <h2 className="text-xl font-semibold text-bleepx-gray">Bleepx Challenge Progress</h2>
+    <div className="bg-gradient-to-r from-bleepx-blue/5 to-bleepx-pink/5 p-6 rounded-xl shadow-sm border border-bleepx-border">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold text-bleepx-text">Mission Checklist</h2>
+        <span className="text-xs font-mono text-bleepx-text-secondary">{completedCount}/{caseIds.length}</span>
       </div>
-      <ul className="space-y-2">
+      <ul className="space-y-1.5">
         {regularIds.map((id) => {
           const tier = cases.find((c) => c.id === id)?.tier || 1;
+          const done = progress.get(id);
+          const open = unlocked.get(id);
           return (
-            <li key={id} className="flex items-center">
-              <span className="w-6 text-bleepx-gray">
-                {progress.get(id) ? '✓' : unlocked.get(id) ? '○' : '🔒'}
+            <li key={id} className={`flex items-center py-1.5 px-3 rounded-lg transition-colors ${done ? 'bg-emerald-50' : open ? 'bg-blue-50/50' : 'bg-gray-50'}`}>
+              <span className={`w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold flex-shrink-0 ${done ? 'bg-emerald-500 text-white' : open ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-400'}`}>
+                {done ? '✓' : open ? '→' : '·'}
               </span>
-              <span className="ml-2 text-bleepx-gray">{id}</span>
-              {progress.get(id) && <span className="ml-2 text-sm text-bleepx-blue">+{10 * tier} Points</span>}
+              <span className={`ml-3 text-sm ${done ? 'text-emerald-700 line-through' : open ? 'text-bleepx-text font-medium' : 'text-gray-400'}`}>
+                {getCaseName(id)}
+              </span>
+              {done && <span className="ml-auto text-xs text-emerald-600 font-mono">+{10 * tier}pts</span>}
             </li>
           );
         })}
       </ul>
       {bonusIds.length > 0 && (
         <>
-          <div className="my-4 border-t border-amber-300/50" />
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-amber-500 text-xs font-bold px-2 py-1 bg-amber-100 rounded-full">BONUS</span>
-            <span className="text-sm text-bleepx-gray">Real-World Business Scenarios</span>
+          <div className="my-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-amber-200" />
+            <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Classified Missions</span>
+            <div className="h-px flex-1 bg-amber-200" />
           </div>
-          <ul className="space-y-2">
+          <ul className="space-y-1.5">
             {bonusIds.map((id) => {
               const tier = cases.find((c) => c.id === id)?.tier || 6;
+              const done = progress.get(id);
+              const open = unlocked.get(id);
               return (
-                <li key={id} className="flex items-center">
-                  <span className="w-6 text-amber-500">
-                    {progress.get(id) ? '★' : unlocked.get(id) ? '☆' : '🔒'}
+                <li key={id} className={`flex items-center py-1.5 px-3 rounded-lg transition-colors ${done ? 'bg-amber-50' : open ? 'bg-purple-50/50' : 'bg-gray-50'}`}>
+                  <span className={`w-5 h-5 flex items-center justify-center rounded text-xs font-bold flex-shrink-0 rotate-45 ${done ? 'bg-amber-500 text-white' : open ? 'bg-purple-100 text-purple-600' : 'bg-gray-200 text-gray-400'}`}>
+                    <span className="-rotate-45">{done ? '★' : open ? '◆' : '?'}</span>
                   </span>
-                  <span className="ml-2 text-bleepx-gray">{id.replace('hidden_', '').replace(/_/g, ' ')}</span>
-                  {progress.get(id) && <span className="ml-2 text-sm text-amber-500">+{10 * tier} Points</span>}
+                  <span className={`ml-3 text-sm ${done ? 'text-amber-700' : open ? 'text-purple-700 font-medium' : 'text-gray-400 italic'}`}>
+                    {open || done ? getCaseName(id) : '■■■ Classified ■■■'}
+                  </span>
+                  {done && <span className="ml-auto text-xs text-amber-600 font-mono">+{10 * tier}pts</span>}
                 </li>
               );
             })}
           </ul>
         </>
       )}
+      <p className="mt-4 text-xs text-bleepx-text-secondary italic">{getProgressMessage(completedCount, caseIds.length)}</p>
     </div>
   );
 }
