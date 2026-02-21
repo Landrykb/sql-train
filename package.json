@@ -12,11 +12,11 @@
     "packages/*"
   ],
   "devDependencies": {
-    "turbo": "^2.5.0"
+    "turbo": "^2.8.10"
   },
   "dependencies": {
-    "@duckdb/duckdb-wasm": "^1.29.0",
-    "copy-webpack-plugin": "^13.0.0"
+    "@duckdb/duckdb-wasm": "1.33.1-dev18.0",
+    "copy-webpack-plugin": "^13.0.1"
   },
   "pnpm": {
     "overrides": {
