@@ -222,7 +222,9 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
 
     try {
       console.log('Running query:', query);
-      const { columns: cols, data } = await runQuery(query);
+      const result = await runQuery(query);
+      const cols = result?.columns ?? [];
+      const data = result?.data ?? [];
       const grid = data.map((row: unknown[]) => Object.fromEntries(cols.map((c, i) => [c, row[i]]))) as Record<string, string | number | null>[];
       setResultRows(grid);
 
@@ -376,236 +378,236 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
         )}
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        <div className="space-y-4 sm:space-y-6">
-          <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
-            <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray mb-3 sm:mb-4">Write Your Query</h2>
-            <CodeMirror
-              value={query}
-              height="200px"
-              onChange={setQuery}
-              aria-label="SQL query editor"
-              className="border border-bleepx-gray/20 rounded-lg"
-            />
-            <div className="mt-4 flex flex-wrap gap-2">
-              {tables.map((table) => table.columns.map((c) => (
-                <Chip key={`${table.name}.${c}`} label={`${table.name}.${c}`} onClick={() => setQuery((q) => `${q.replace(/;?\s*$/, '')} ${table.name}.${c} `)} />
-              )))}
-            </div>
+      <div className="space-y-4 sm:space-y-6">
+        {/* 1. Write Your Query — always on top */}
+        <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
+          <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray mb-3 sm:mb-4">Write Your Query</h2>
+          <CodeMirror
+            value={query}
+            height="200px"
+            onChange={setQuery}
+            aria-label="SQL query editor"
+            className="border border-bleepx-gray/20 rounded-lg"
+          />
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {tables.map((table) => table.columns.map((c) => (
+              <Chip key={`${table.name}.${c}`} label={`${table.name}.${c}`} onClick={() => setQuery((q) => `${q.replace(/;?\s*$/, '')} ${table.name}.${c} `)} />
+            )))}
           </div>
-
-          <div className="space-y-3 sm:space-y-4">
-            <div className="flex gap-1.5 sm:gap-2 flex-wrap">
+          <div className="mt-4 flex gap-1.5 sm:gap-2 flex-wrap">
+            <button
+              onClick={() => {
+                playBleep();
+                onRun();
+              }}
+              disabled={!canRun}
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-white text-sm sm:text-base font-medium transition-all duration-200 ${canRun ? 'bg-bleepx-blue hover:bg-bleepx-pink' : 'bg-gray-400 cursor-not-allowed'}`}
+              aria-disabled={!canRun}
+            >
+              Run Query
+            </button>
+            <button
+              onClick={() => {
+                playBleep();
+                setQuery('');
+                setMessage('');
+                setResultRows([]);
+                setTab('preview');
+                setAttempts(0);
+                setShowSolution(false);
+                setVisibleHints(1);
+              }}
+              className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
+            >
+              Clear
+            </button>
+            {(templateQuery || seedQuery) && (
               <button
                 onClick={() => {
                   playBleep();
-                  onRun();
-                }}
-                disabled={!canRun}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-white text-sm sm:text-base font-medium transition-all duration-200 ${canRun ? 'bg-bleepx-blue hover:bg-bleepx-pink' : 'bg-gray-400 cursor-not-allowed'}`}
-                aria-disabled={!canRun}
-              >
-                Run Query
-              </button>
-              <button
-                onClick={() => {
-                  playBleep();
-                  setQuery('');
-                  setMessage('');
-                  setResultRows([]);
-                  setTab('preview');
-                  setAttempts(0);
-                  setShowSolution(false);
-                  setVisibleHints(1);
+                  tryExampleQuery();
                 }}
                 className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
               >
-                Clear
+                Example
               </button>
-              {(templateQuery || seedQuery) && (
-                <button
-                  onClick={() => {
-                    playBleep();
-                    tryExampleQuery();
-                  }}
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
-                >
-                  Example
-                </button>
-              )}
-              {attempts >= 3 && !showSolution && (
-                <button
-                  onClick={() => {
-                    playBleep();
-                    setShowSolution(true);
-                  }}
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
-                >
-                  Solution
-                </button>
-              )}
-              {hasVisualizations && (
-                <Link href={`/cases/${domain}/${id}/visualizations`}>
-                  <button className="px-4 py-2 rounded-full bg-bleepx-pink text-white hover:bg-bleepx-blue transition-all duration-200">
-                    View Visualizations
-                  </button>
-                </Link>
-              )}
-            </div>
-            {message && (
-              <div
-                className={`p-4 rounded-xl font-medium transition-all duration-500 ${
-                  message.includes('Correct') || message.includes('Moving') || message.includes('cleared')
-                    ? 'bg-bleepx-blue/20 text-bleepx-gray'
-                    : message.startsWith('*bleep* Syntax') || message.startsWith('*bleep* Circular') || message.includes('Error')
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-bleepx-blue/10 text-bleepx-gray'
-                } ${showSuccess ? 'animate-pulse' : ''}`}
-                role="status"
-              >
-                <div className="flex items-center gap-2">
-                  <img src="/bleepx-logo.png" alt="Bleepx" className="h-5 w-5" />
-                  <span>{message}</span>
-                </div>
-                {message.includes('cleared') && (
-                  <div className="mt-4">
-                    <Link href={`/cases/${domain}/dashboard`}>
-                      <button className="px-4 py-2 rounded-full bg-bleepx-blue text-white hover:bg-bleepx-pink transition-all duration-200">View Dashboard</button>
-                    </Link>
-                  </div>
-                )}
-              </div>
             )}
-            {showSolution && solutionQuery && (
-              <div className="bg-bleepx-gray/5 p-4 rounded-xl shadow-sm">
-                <h3 className="text-sm font-semibold text-bleepx-gray mb-2">*bleep* Fine. Here's how I'd do it:</h3>
-                <pre className="text-sm text-bleepx-gray whitespace-pre-wrap" aria-label="Solution query">{solutionQuery}</pre>
-              </div>
-            )}
-          </div>
-
-          {hints.length > 0 && (
-            <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
-              <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray mb-3 sm:mb-4">Intel from Bleepx</h2>
-              <ul className="list-disc pl-5 text-sm text-bleepx-gray space-y-2">
-                {hints.slice(0, visibleHints).map((h, i) => {
-                  const m = h.match(/Review the (\w+)/);
-                  return (
-                    <li key={i}>
-                      {h}{' '}
-                      {m && (
-                        <a
-                          href={`/cases/guide?fromDomain=${domain}&fromCase=${id}#${m[1].toLowerCase()}`}
-                          className="text-bleepx-blue hover:underline ml-1"
-                          rel="noopener"
-                        >
-                          (open SwiftLink GuideBook)
-                        </a>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-              {visibleHints < hints.length && attempts > 0 && (
-                <button
-                  onClick={() => {
-                    playBleep();
-                    setVisibleHints((v) => Math.min(v + 1, hints.length));
-                  }}
-                  className="mt-4 px-3 py-1 text-sm bg-bleepx-blue/10 hover:bg-bleepx-blue/20 rounded-full transition-all duration-200"
-                >
-                  Show Next Hint
-                </button>
-              )}
-            </div>
-          )}
-
-          {thoughtProcess.length > 0 && (
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-3 sm:p-6 rounded-xl shadow-lg border border-amber-200/60">
+            {attempts >= 3 && !showSolution && (
               <button
                 onClick={() => {
                   playBleep();
-                  setShowThoughtProcess((v) => !v);
+                  setShowSolution(true);
                 }}
-                className="w-full flex items-center justify-between text-left"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
               >
-                <h2 className="text-base sm:text-lg font-semibold text-amber-900 flex items-center gap-2">
-                  <span className="text-lg">💡</span> How to Think About This
-                </h2>
-                <span className="text-amber-700 text-sm font-medium">{showThoughtProcess ? 'Hide' : 'Show'} Guide</span>
+                Solution
               </button>
-              {showThoughtProcess && (
-                <div className="mt-4 space-y-3">
-                  {thoughtProcess.slice(0, visibleSteps).map((step, i) => (
-                    <div key={i} className="flex gap-3 items-start">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-200 text-amber-900 text-xs font-bold flex items-center justify-center mt-0.5">
-                        {i + 1}
-                      </span>
-                      <p className="text-sm text-amber-900 leading-relaxed">{step}</p>
-                    </div>
-                  ))}
-                  {visibleSteps < thoughtProcess.length && (
-                    <button
-                      onClick={() => {
-                        playBleep();
-                        setVisibleSteps((v) => Math.min(v + 1, thoughtProcess.length));
-                      }}
-                      className="mt-2 px-4 py-1.5 text-sm font-medium bg-amber-200/60 hover:bg-amber-200 text-amber-900 rounded-full transition-all duration-200"
-                    >
-                      Next Step ({visibleSteps}/{thoughtProcess.length})
-                    </button>
-                  )}
-                  {visibleSteps >= thoughtProcess.length && (
-                    <p className="text-xs text-amber-700 mt-2 italic">You&apos;ve seen the full thought process. Now try writing the query!</p>
-                  )}
+            )}
+            {hasVisualizations && (
+              <Link href={`/cases/${domain}/${id}/visualizations`}>
+                <button className="px-4 py-2 rounded-full bg-bleepx-pink text-white hover:bg-bleepx-blue transition-all duration-200">
+                  View Visualizations
+                </button>
+              </Link>
+            )}
+          </div>
+          {message && (
+            <div
+              className={`mt-4 p-4 rounded-xl font-medium transition-all duration-500 ${
+                message.includes('Correct') || message.includes('Moving') || message.includes('cleared')
+                  ? 'bg-bleepx-blue/20 text-bleepx-gray'
+                  : message.startsWith('*bleep* Syntax') || message.startsWith('*bleep* Circular') || message.includes('Error')
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : 'bg-bleepx-blue/10 text-bleepx-gray'
+              } ${showSuccess ? 'animate-pulse' : ''}`}
+              role="status"
+            >
+              <div className="flex items-center gap-2">
+                <img src="/bleepx-logo.png" alt="Bleepx" className="h-5 w-5" />
+                <span>{message}</span>
+              </div>
+              {message.includes('cleared') && (
+                <div className="mt-4">
+                  <Link href={`/cases/${domain}/dashboard`}>
+                    <button className="px-4 py-2 rounded-full bg-bleepx-blue text-white hover:bg-bleepx-pink transition-all duration-200">View Dashboard</button>
+                  </Link>
                 </div>
               )}
+            </div>
+          )}
+          {showSolution && solutionQuery && (
+            <div className="mt-4 bg-bleepx-gray/5 p-4 rounded-xl shadow-sm">
+              <h3 className="text-sm font-semibold text-bleepx-gray mb-2">*bleep* Fine. Here's how I'd do it:</h3>
+              <pre className="text-sm text-bleepx-gray whitespace-pre-wrap" aria-label="Solution query">{solutionQuery}</pre>
             </div>
           )}
         </div>
 
-        <div className="space-y-4 sm:space-y-6">
-          <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
-            <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray mb-3 sm:mb-4">Dataset & Results</h2>
-            <div className="flex border-b border-bleepx-gray/20">
-              <TabButton tab="preview" current={tab} onSelect={setTab} />
-              <TabButton tab="results" current={tab} onSelect={setTab} />
-            </div>
-            {tab === 'preview' && datasets.length > 1 && (
-              <div className="mt-4">
-                <select
-                  value={selectedTable || ''}
-                  onChange={(e) => setSelectedTable(e.target.value)}
-                  className="mb-4 p-2 border border-bleepx-gray/20 rounded-lg text-sm text-bleepx-gray"
-                  aria-label="Select dataset to preview"
-                >
-                  {tables.map((table) => (
-                    <option key={table.name} value={table.name}>{table.name}</option>
-                  ))}
-                </select>
+        {/* 2. Hints & Thought Process — right below the query editor */}
+        {(hints.length > 0 || thoughtProcess.length > 0) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {hints.length > 0 && (
+              <div className="bg-white p-3 sm:p-5 rounded-xl shadow-lg">
+                <h2 className="text-base font-semibold text-bleepx-gray mb-2">Intel from Bleepx</h2>
+                <ul className="list-disc pl-5 text-sm text-bleepx-gray space-y-2">
+                  {hints.slice(0, visibleHints).map((h, i) => {
+                    const m = h.match(/Review the (\w+)/);
+                    return (
+                      <li key={i}>
+                        {h}{' '}
+                        {m && (
+                          <a
+                            href={`/cases/guide?fromDomain=${domain}&fromCase=${id}#${m[1].toLowerCase()}`}
+                            className="text-bleepx-blue hover:underline ml-1"
+                            rel="noopener"
+                          >
+                            (open SwiftLink GuideBook)
+                          </a>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+                {visibleHints < hints.length && attempts > 0 && (
+                  <button
+                    onClick={() => {
+                      playBleep();
+                      setVisibleHints((v) => Math.min(v + 1, hints.length));
+                    }}
+                    className="mt-3 px-3 py-1 text-sm bg-bleepx-blue/10 hover:bg-bleepx-blue/20 rounded-full transition-all duration-200"
+                  >
+                    Show Next Hint
+                  </button>
+                )}
               </div>
             )}
-            <div className="mt-3 sm:mt-4 min-h-[200px] sm:min-h-[300px] overflow-x-auto">
-              {tab === 'preview' ? (
-                <DataGrid data={tables.find((t) => t.name === selectedTable)?.previewRows || []} />
-              ) : busy ? (
-                <div className="flex items-center" aria-live="polite">
-                  <Spinner />
-                  <span className="ml-2 text-bleepx-gray">{queryMessages.processing}</span>
-                </div>
-              ) : (
-                <DataGrid data={resultRows} />
-              )}
+
+            {thoughtProcess.length > 0 && (
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-3 sm:p-5 rounded-xl shadow-lg border border-amber-200/60">
+                <button
+                  onClick={() => {
+                    playBleep();
+                    setShowThoughtProcess((v) => !v);
+                  }}
+                  className="w-full flex items-center justify-between text-left"
+                >
+                  <h2 className="text-base font-semibold text-amber-900 flex items-center gap-2">
+                    <span className="text-lg">💡</span> How to Think About This
+                  </h2>
+                  <span className="text-amber-700 text-sm font-medium">{showThoughtProcess ? 'Hide' : 'Show'} Guide</span>
+                </button>
+                {showThoughtProcess && (
+                  <div className="mt-4 space-y-3">
+                    {thoughtProcess.slice(0, visibleSteps).map((step, i) => (
+                      <div key={i} className="flex gap-3 items-start">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-200 text-amber-900 text-xs font-bold flex items-center justify-center mt-0.5">
+                          {i + 1}
+                        </span>
+                        <p className="text-sm text-amber-900 leading-relaxed">{step}</p>
+                      </div>
+                    ))}
+                    {visibleSteps < thoughtProcess.length && (
+                      <button
+                        onClick={() => {
+                          playBleep();
+                          setVisibleSteps((v) => Math.min(v + 1, thoughtProcess.length));
+                        }}
+                        className="mt-2 px-4 py-1.5 text-sm font-medium bg-amber-200/60 hover:bg-amber-200 text-amber-900 rounded-full transition-all duration-200"
+                      >
+                        Next Step ({visibleSteps}/{thoughtProcess.length})
+                      </button>
+                    )}
+                    {visibleSteps >= thoughtProcess.length && (
+                      <p className="text-xs text-amber-700 mt-2 italic">You&apos;ve seen the full thought process. Now try writing the query!</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 3. Dataset & Results — at the bottom */}
+        <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
+          <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray mb-3 sm:mb-4">Dataset & Results</h2>
+          <div className="flex border-b border-bleepx-gray/20">
+            <TabButton tab="preview" current={tab} onSelect={setTab} />
+            <TabButton tab="results" current={tab} onSelect={setTab} />
+          </div>
+          {tab === 'preview' && datasets.length > 1 && (
+            <div className="mt-4">
+              <select
+                value={selectedTable || ''}
+                onChange={(e) => setSelectedTable(e.target.value)}
+                className="mb-4 p-2 border border-bleepx-gray/20 rounded-lg text-sm text-bleepx-gray"
+                aria-label="Select dataset to preview"
+              >
+                {tables.map((table) => (
+                  <option key={table.name} value={table.name}>{table.name}</option>
+                ))}
+              </select>
             </div>
-            <div className="mt-4 text-sm text-bleepx-gray">
-              {tables.map((table) => (
-                <div key={table.name} className="mb-2">
-                  <p><strong>Dataset:</strong> <code>{table.file}</code></p>
-                  <p><strong>Table:</strong> <code>{table.name}</code></p>
-                  {table.rowCount !== null && <p><strong>Rows:</strong> {table.rowCount}</p>}
-                </div>
-              ))}
-            </div>
+          )}
+          <div className="mt-3 sm:mt-4 min-h-[200px] sm:min-h-[300px] overflow-x-auto">
+            {tab === 'preview' ? (
+              <DataGrid data={tables.find((t) => t.name === selectedTable)?.previewRows || []} />
+            ) : busy ? (
+              <div className="flex items-center" aria-live="polite">
+                <Spinner />
+                <span className="ml-2 text-bleepx-gray">{queryMessages.processing}</span>
+              </div>
+            ) : (
+              <DataGrid data={resultRows} />
+            )}
+          </div>
+          <div className="mt-4 text-sm text-bleepx-gray">
+            {tables.map((table) => (
+              <div key={table.name} className="mb-2">
+                <p><strong>Dataset:</strong> <code>{table.file}</code></p>
+                <p><strong>Table:</strong> <code>{table.name}</code></p>
+                {table.rowCount !== null && <p><strong>Rows:</strong> {table.rowCount}</p>}
+              </div>
+            ))}
           </div>
         </div>
       </div>

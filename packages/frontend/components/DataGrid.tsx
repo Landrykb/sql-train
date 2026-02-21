@@ -2,7 +2,7 @@
 import React from 'react'
 
 export function DataGrid({ data }: { data: Record<string, any>[] }) {
-  if (!data.length) {
+  if (!data || !Array.isArray(data) || data.length === 0) {
     return <p className="text-sm text-gray-500">No rows to display.</p>
   }
   const cols = Object.keys(data[0])

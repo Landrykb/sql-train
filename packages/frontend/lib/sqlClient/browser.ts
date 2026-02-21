@@ -101,8 +101,9 @@ export async function loadCSV(tableName: string, fileName: string): Promise<void
 
   const promise = (async () => {
     try {
-      console.log(`[SQL] fetching ${fileName}...`);
-      const resp = await fetch(`/datasets/${fileName}`);
+      const url = fileName.startsWith('/datasets/') ? fileName : `/datasets/${fileName}`;
+      console.log(`[SQL] fetching ${url}...`);
+      const resp = await fetch(url);
       if (!resp.ok) {
         throw new Error(`Failed to fetch "${fileName}": ${resp.status} ${resp.statusText}`);
       }
