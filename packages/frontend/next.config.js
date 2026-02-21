@@ -12,6 +12,21 @@ module.exports = {
       };
     }
     config.resolve.alias['@cases'] = path.join(__dirname, 'cases');
+
+    // Force single copies of CodeMirror packages to prevent
+    // "multiple instances of @codemirror/state" runtime crash
+    const cmPkgs = ['state', 'view', 'language', 'commands', 'autocomplete', 'lint', 'search'];
+    for (const pkg of cmPkgs) {
+      try {
+        const resolved = require.resolve(`@codemirror/${pkg}`);
+        // resolved is e.g. .../node_modules/@codemirror/state/dist/index.cjs
+        // We need the package dir: .../node_modules/@codemirror/state
+        const idx = resolved.lastIndexOf(`@codemirror/${pkg}`);
+        if (idx !== -1) {
+          config.resolve.alias[`@codemirror/${pkg}`] = resolved.slice(0, idx + `@codemirror/${pkg}`.length);
+        }
+      } catch { /* skip */ }
+    }
     config.module.rules.push({
       test: /\.ya?ml$/,
       type: 'asset/source',
