@@ -31,7 +31,7 @@ export async function initSQL(): Promise<void> {
   initPromise = (async () => {
     try {
       SQL = await initSqlJs({
-        locateFile: (file: string) => `/static/wasm/${file}`,
+        locateFile: () => '/static/wasm/sql-wasm.wasm',
       } as any);
 
       db = new SQL.Database();
