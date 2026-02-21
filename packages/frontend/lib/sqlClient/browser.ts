@@ -126,16 +126,22 @@ export async function loadCSV(tableName: string, fileName: string): Promise<void
     const insertSQL = `INSERT INTO "${tableName}" (${meta.fields.map(f => `"${sanitizeColumnName(f)}"`).join(', ')}) VALUES (${placeholders});`;
 
     const stmt = db.prepare(insertSQL);
-    db.run('BEGIN TRANSACTION;');
-    for (const row of data as Record<string, unknown>[]) {
-      const vals = meta.fields!.map((f) => {
-        const v = row[f];
-        return v === undefined ? null : v;
-      });
-      stmt.run(vals);
+    try {
+      db.run('BEGIN TRANSACTION;');
+      for (const row of data as Record<string, unknown>[]) {
+        const vals = meta.fields!.map((f) => {
+          const v = row[f];
+          return v === undefined ? null : v;
+        });
+        stmt.run(vals);
+      }
+      db.run('COMMIT;');
+    } catch (insertErr) {
+      try { db.run('ROLLBACK;'); } catch { /* ignore */ }
+      throw insertErr;
+    } finally {
+      stmt.free();
     }
-    db.run('COMMIT;');
-    stmt.free();
 
     loadedTables.add(tableName);
   } catch (error: unknown) {

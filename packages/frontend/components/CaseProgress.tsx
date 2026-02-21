@@ -40,7 +40,7 @@ export default function CaseProgress({ caseIds, domain, cases }: Props) {
   };
 
   return (
-    <div className="bg-gradient-to-r from-bleepx-blue/5 to-bleepx-pink/5 p-4 sm:p-6 rounded-xl shadow-sm border border-bleepx-border">
+    <div className="bg-gradient-to-r from-bleepx-blue/5 to-bleepx-pink/5 p-4 sm:p-6 rounded-xl shadow-sm border border-bleepx-border h-full max-h-[500px] lg:max-h-none overflow-y-auto">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base sm:text-lg font-bold text-bleepx-text">Mission Checklist</h2>
         <span className="text-xs font-mono text-bleepx-text-secondary">{completedCount}/{caseIds.length}</span>

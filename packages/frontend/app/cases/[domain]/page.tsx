@@ -166,8 +166,10 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
       </div>
       <ProgressSummary caseIds={caseOrder[domainKey] || []} />
       <BleepxPointsTracker caseIds={currentOrder} />
-      <CaseProgress caseIds={currentOrder} domain={domainKey} cases={orderedCases} />
-      <PathMap domain={domainKey} cases={orderedCases} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <PathMap domain={domainKey} cases={orderedCases} />
+        <CaseProgress caseIds={currentOrder} domain={domainKey} cases={orderedCases} />
+      </div>
       <ClientCaseGrid cases={orderedCases} domain={domainKey} nextCaseId={orderedCases[0]?.id} />
       <AchievementNotification />
     </div>

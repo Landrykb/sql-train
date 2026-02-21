@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import Papa from 'papaparse';
@@ -139,44 +139,40 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
     console.log('Navigation Debug:', { id, rawDomain, normalizedDomain: domain, completed: Array.from(completed), currentIndex, currentOrder, nextCaseId, prerequisites, isUnlocked: isUnlocked(prerequisites) });
   }, [id, rawDomain, domain, completed, currentIndex, currentOrder, nextCaseId, prerequisites, isUnlocked]);
 
+  // Stable key so the effect doesn't restart on every parent re-render
+  const datasetsKey = useMemo(() => JSON.stringify(datasets.map(d => `${d.name}:${d.file}`)), [datasets]);
+  const loadedRef = useRef(false);
+
   useEffect(() => {
     if (!datasets.length) {
       setLoadError('No datasets specified for this case.');
       return;
     }
+    if (loadedRef.current) return;
 
     let isMounted = true;
     const loadDatasets = async () => {
       try {
-        console.log('Initializing SQL:', datasets.map((d) => d.name));
         await initSQL('/static/wasm/sql-wasm.wasm');
-        await resetDatabase();
+
+        for (const dataset of datasets) {
+          if (!/^[a-zA-Z0-9_]+$/.test(dataset.name)) throw new Error(`Invalid dataset name: ${dataset.name}`);
+          await loadCSV(dataset.name, dataset.file);
+        }
 
         const tableData = await Promise.all(
           datasets.map(async (dataset) => {
-            if (!/^[a-zA-Z0-9_]+$/.test(dataset.name)) throw new Error(`Invalid dataset name: ${dataset.name}`);
-            console.log(`Loading dataset: ${dataset.file}`);
-
-            if (['returns', 'admissions', 'sales', 'stats'].includes(dataset.name.toLowerCase())) {
-              console.warn(`Warning: Dataset name "${dataset.name}" may conflict with CTE names.`);
-            }
-
-            await loadCSV(dataset.name, dataset.file);
-
             let sqlColumns: string[] = [];
             try {
               const colRes = await runQuery(`PRAGMA table_info("${dataset.name}");`);
               sqlColumns = colRes.data.length ? colRes.data.map((row) => row[1] as string) : [];
-            } catch (err) {
-              console.error(`PRAGMA table_info failed for ${dataset.name}:`, err);
-            }
+            } catch { /* ignore */ }
 
             let rowCount = 0;
             try {
               const cntRes = await runQuery(`SELECT COUNT(*) FROM "${dataset.name}"`);
               rowCount = cntRes.data[0]?.[0] as number;
             } catch (err) {
-              console.error(`SELECT COUNT(*) failed for ${dataset.name}:`, err);
               throw err;
             }
 
@@ -184,25 +180,22 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
             try {
               const prevRes = await runQuery(`SELECT * FROM "${dataset.name}" LIMIT 5`);
               previewRows = prevRes.data.map((row: unknown[]) => Object.fromEntries(prevRes.columns.map((c, i) => [c, row[i] as string | number | null])));
-            } catch (err) {
-              console.error(`Preview query failed for ${dataset.name}:`, err);
-            }
+            } catch { /* ignore */ }
 
             return { name: dataset.name, file: dataset.file, columns: sqlColumns, previewRows, rowCount };
           })
         );
 
         if (isMounted) {
-          console.log('Datasets loaded:', tableData);
           setTables(tableData);
           setSelectedTable(tableData[0]?.name || null);
           setDbReady(true);
           setLoadError(null);
+          loadedRef.current = true;
         }
       } catch (err) {
         if (isMounted) {
           const msg = err instanceof Error ? err.message : String(err);
-          console.error('Dataset loading error:', msg);
           setLoadError(getLoadError(msg));
         }
       }
@@ -210,7 +203,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
 
     loadDatasets();
     return () => { isMounted = false; };
-  }, [datasets]);
+  }, [datasetsKey]);
 
   const onRun = useCallback(async () => {
     if (query.length > 1000) {
