@@ -1,1 +1,12 @@
-node_modules
+node_modules/
+.next/
+.netlify/
+.env
+*.env.local
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+packages/backend/data/
+packages/backend/output/
+packages/backend/visualizations/

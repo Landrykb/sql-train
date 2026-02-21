@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: besa-sqlverse-api
+    runtime: python
+    rootDir: packages/backend
+    buildCommand: bash prepare_deploy.sh && pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATASETS_DIR
+        value: /opt/render/project/src/packages/backend/data/datasets
+      - key: CASES_DIR
+        value: /opt/render/project/src/packages/backend/data/cases
+      - key: OUTPUT_DIR
+        value: /opt/render/project/src/packages/backend/output
+      - key: FRONTEND_URL
+        value: https://bleepxverse.netlify.app
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
