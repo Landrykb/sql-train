@@ -24,19 +24,14 @@ const loadingTables = new Map<string, Promise<void>>();
  * Initialize the in-memory SQL.js database.
  * Uses a singleton promise to prevent parallel init races.
  */
-export async function initSQL(wasmPath: string = '/static/wasm/sql-wasm.wasm'): Promise<void> {
+export async function initSQL(): Promise<void> {
   if (db) return;
   if (initPromise) return initPromise;
 
   initPromise = (async () => {
     try {
       SQL = await initSqlJs({
-        locateFile: (file: string) => {
-          if (file !== 'sql-wasm.wasm') {
-            throw new Error(`Unexpected WASM file requested: ${file}`);
-          }
-          return wasmPath;
-        },
+        locateFile: (file: string) => `/static/wasm/${file}`,
       } as any);
 
       db = new SQL.Database();

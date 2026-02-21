@@ -37,7 +37,7 @@ export default function Visualizations({ domain, caseId, datasets }: Visualizati
     let mounted = true;
     async function buildCharts() {
       try {
-        await initSQL('/static/wasm/sql-wasm.wasm');
+        await initSQL();
         for (const ds of datasets) {
           try { await loadCSV(ds.name, ds.file); } catch { /* already loaded */ }
         }

@@ -22,13 +22,10 @@ let db: any = null;
 /**
  * Initialize the in-memory SQL.js database.
  */
-export async function initSQL(
-  wasmPath: string = '/static/wasm/sql-wasm.wasm'
-): Promise<void> {
+export async function initSQL(): Promise<void> {
   if (db) return;
   SQL = await initSqlJs({
-    locateFile: (file: string) =>
-      file === 'sql-wasm.wasm' ? wasmPath : file,
+    locateFile: (file: string) => `/static/wasm/${file}`,
   } as any);
   db = new SQL.Database();
 }

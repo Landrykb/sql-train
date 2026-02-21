@@ -153,7 +153,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
     (async () => {
       try {
         console.log('[SQL] init WASM...');
-        await initSQL('/static/wasm/sql-wasm.wasm');
+        await initSQL();
         if (attempt !== loadAttemptRef.current) return;
         console.log('[SQL] WASM ready');
 
