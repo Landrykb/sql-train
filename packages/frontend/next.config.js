@@ -29,10 +29,7 @@ module.exports = {
         patterns: [
           {
             from: path.join(
-              __dirname,
-              'node_modules',
-              'sql.js',
-              'dist',
+              path.dirname(require.resolve('sql.js')),
               'sql-wasm.wasm'
             ),
             to: path.join(__dirname, 'public', 'static', 'wasm', 'sql-wasm.wasm'),
