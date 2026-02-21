@@ -6,6 +6,18 @@ import Visualizations from '@/components/Visualizations';
 import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
 import BleepxLogo from '@/components/BleepxLogo';
+import { fullCaseOrder, domainFolderMap } from '@/lib/constants';
+
+export async function generateStaticParams() {
+  const params: { domain: string; caseId: string }[] = [];
+  for (const [domain, cases] of Object.entries(fullCaseOrder)) {
+    if (domain === 'guide') continue;
+    for (const caseId of cases) {
+      params.push({ domain, caseId });
+    }
+  }
+  return params;
+}
 
 interface CaseYaml {
   id: string;
@@ -77,23 +89,7 @@ export default async function VisualizationsPage({
     notFound();
   }
 
-  try {
-    const res = await fetch(`/api/visualizations/${normalizedDomain}/${caseId}`, {
-      cache: 'no-store',
-    });
-    if (res.ok) {
-      const json = await res.json();
-      plots = (json.visualizations || []).map((v: any) => ({
-        caseId: v.case_id,
-        title: v.title,
-        plot: v.plot,
-        queryResults: v.query_results,
-        matplotlibImage: v.matplotlib_image,
-      }));
-    }
-  } catch (err) {
-    console.error(`Failed to fetch visualizations: ${err}`);
-  }
+  // Visualizations are loaded client-side by the Visualizations component
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-6 bg-bleepx-bg">

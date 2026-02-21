@@ -13,6 +13,12 @@ import BleepxLogo from '@/components/BleepxLogo';
 import { domainFolderMap, caseOrder, fullCaseOrder, hiddenCaseOrder } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
 
+export async function generateStaticParams() {
+  return Object.keys(domainFolderMap)
+    .filter((d) => d !== 'guide')
+    .map((domain) => ({ domain }));
+}
+
 interface CaseData {
   id: string;
   name: string;

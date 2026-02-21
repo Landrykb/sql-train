@@ -14,6 +14,17 @@ import { caseOrder, fullCaseOrder, domainFolderMap } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
 import { visualizationConfigs } from '@/lib/visualizationConfigs';
 
+export async function generateStaticParams() {
+  const params: { domain: string; caseId: string }[] = [];
+  for (const [domain, cases] of Object.entries(fullCaseOrder)) {
+    if (domain === 'guide') continue;
+    for (const caseId of cases) {
+      params.push({ domain, caseId });
+    }
+  }
+  return params;
+}
+
 interface CaseData {
   id: string;
   name: string;

@@ -7,6 +7,12 @@ import AchievementNotification from '@/components/AchievementNotification';
 import BleepxLogo from '@/components/BleepxLogo';
 import { domainFolderMap } from '@/lib/constants';
 
+export async function generateStaticParams() {
+  return Object.keys(domainFolderMap)
+    .filter((d) => d !== 'guide')
+    .map((domain) => ({ domain }));
+}
+
 interface PlotData {
   caseId: string;
   title: string;
@@ -81,30 +87,8 @@ export default async function DashboardPage({
     name: path.basename(f),
   }));
 
+  // Dashboard plots are loaded client-side by the DomainDashboard component
   const plots: PlotData[] = [];
-  for (const caseId of validCaseIds) {
-    const url = `${API_BASE_URL}/api/visualizations/${normalizedDomain}/${caseId}`;
-    try {
-      const res = await fetch(url, { cache: 'no-store' });
-      if (!res.ok) {
-        continue;
-      }
-      const { visualizations } = await res.json();
-      if (Array.isArray(visualizations)) {
-        for (const v of visualizations) {
-          plots.push({
-            caseId: v.case_id,
-            title: v.title,
-            plot: v.plot,
-            queryResults: v.query_results,
-            matplotlibImage: v.matplotlib_image,
-          });
-        }
-      }
-    } catch (err) {
-      console.error(`Fetch error for case "${caseId}" at ${url}:`, err);
-    }
-  }
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-6 bg-bleepx-bg">

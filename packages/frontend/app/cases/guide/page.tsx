@@ -9,6 +9,8 @@ import AchievementNotification from '@/components/AchievementNotification';
 import BleepxLogo from '@/components/BleepxLogo';
 import { caseOrder } from '@/lib/constants';
 
+export const dynamic = 'force-static';
+
 interface QueryVariant {
   name: string;
   description: string;
@@ -29,16 +31,7 @@ interface GuideYaml {
   query_types: QueryType[];
 }
 
-export default async function GuidePage({
-  searchParams: searchParamsPromise,
-}: {
-  searchParams: Promise<{
-    fromDomain?: string;
-    fromCase?: string;
-  }>;
-}) {
-  const { fromDomain, fromCase } = await searchParamsPromise;
-
+export default async function GuidePage() {
   let guideData: GuideYaml;
   try {
     const guidePath = path.join(process.cwd(), 'cases', 'guide', 'guide.yaml');
@@ -52,8 +45,8 @@ export default async function GuidePage({
     notFound();
   }
 
-  const backLink = fromDomain && fromCase ? `/cases/${fromDomain}/${fromCase}` : '/cases';
-  const backText = fromDomain && fromCase ? '← Back to Case' : '← Back to Challenges';
+  const backLink = '/cases';
+  const backText = '← Back to Challenges';
   const allCaseIds = Object.values(caseOrder).flat();
 
   return (

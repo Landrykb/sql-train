@@ -46,21 +46,4 @@ module.exports = {
 
     return config;
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*',
-      },
-    ];
-  },
-  outputFileTracingRoot: __dirname,
-  experimental: {
-    outputFileTracingExcludes: {
-      '*': [
-        './public/datasets/**/*',
-        './public/static/wasm/**/*',
-      ],
-    },
-  },
 };
