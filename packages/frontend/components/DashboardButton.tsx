@@ -36,18 +36,18 @@ export default function DashboardButton({ domainKey }: { domainKey: string }) {
   return (
     <>
       <button
-        className={`px-4 py-2 rounded bg-bleepx-blue text-white hover:bg-bleepx-pink transition-colors duration-200 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`px-2 sm:px-4 py-1 sm:py-2 rounded text-xs sm:text-sm bg-bleepx-blue text-white hover:bg-bleepx-pink transition-colors duration-200 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
         onClick={handleClick}
         disabled={isLoading}
         title="View BleepxQuery Dashboard"
       >
-        {isLoading ? 'Loading...' : 'Bleepx’s Dashboard'}
+        {isLoading ? '...' : 'Dashboard'}
       </button>
       {isLoading && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-gradient-to-r from-bleepx-blue/10 to-bleepx-pink/10 text-bleepx-gray px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 animate-fade-in transition-opacity duration-300">
+        <div className="fixed top-14 sm:top-4 left-1/2 transform -translate-x-1/2 z-50 bg-gradient-to-r from-bleepx-blue/10 to-bleepx-pink/10 text-bleepx-gray px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg flex items-center space-x-2 sm:space-x-3 animate-fade-in transition-opacity duration-300 max-w-[90vw]">
           <img src="/bleepx-icon.png" alt="Bleepx" className="h-5 w-5" />
           <div className="w-5 h-5 border-2 border-bleepx-blue border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm font-medium">{messages[messageIndex]}</span>
+          <span className="text-xs sm:text-sm font-medium">{messages[messageIndex]}</span>
         </div>
       )}
     </>

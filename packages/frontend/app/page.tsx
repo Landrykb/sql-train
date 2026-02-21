@@ -26,14 +26,14 @@ export default function HomePage() {
   const allCaseIds = Object.values(fullCaseOrder).flat();
 
   return (
-    <main className="max-w-5xl mx-auto p-6 space-y-8 bg-bleepx-bg min-h-screen">
+    <main className="max-w-5xl mx-auto space-y-6 sm:space-y-8 bg-bleepx-bg min-h-screen">
       {/* Header */}
-      <div className="text-center space-y-3 pt-4">
-        <div className="flex items-center justify-center gap-3">
+      <div className="text-center space-y-2 sm:space-y-3 pt-2 sm:pt-4">
+        <div className="flex items-center justify-center gap-2 sm:gap-3">
           <BleepxLogo />
-          <h1 className="text-4xl font-extrabold text-bleepx-text tracking-tight">BleepxQuery</h1>
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-bleepx-text tracking-tight">BleepxQuery</h1>
         </div>
-        <p className="text-bleepx-text-secondary text-lg max-w-xl mx-auto">
+        <p className="text-bleepx-text-secondary text-sm sm:text-lg max-w-xl mx-auto px-2">
           Master SQL through real-world challenges. Pick a domain, solve progressively harder queries, and unlock hidden bonus missions.
         </p>
       </div>
@@ -41,23 +41,23 @@ export default function HomePage() {
       <BleepxPointsTracker caseIds={allCaseIds} />
 
       {/* Quick stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-bleepx-white rounded-xl p-4 text-center shadow-sm border border-bleepx-border">
-          <div className="text-2xl font-bold text-bleepx-text">{domains.length}</div>
-          <div className="text-xs text-bleepx-text-secondary uppercase tracking-wide">Domains</div>
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="bg-bleepx-white rounded-xl p-2.5 sm:p-4 text-center shadow-sm border border-bleepx-border">
+          <div className="text-lg sm:text-2xl font-bold text-bleepx-text">{domains.length}</div>
+          <div className="text-[10px] sm:text-xs text-bleepx-text-secondary uppercase tracking-wide">Domains</div>
         </div>
-        <div className="bg-bleepx-white rounded-xl p-4 text-center shadow-sm border border-bleepx-border">
-          <div className="text-2xl font-bold text-emerald-600">{completed?.size || 0}</div>
-          <div className="text-xs text-bleepx-text-secondary uppercase tracking-wide">Completed</div>
+        <div className="bg-bleepx-white rounded-xl p-2.5 sm:p-4 text-center shadow-sm border border-bleepx-border">
+          <div className="text-lg sm:text-2xl font-bold text-emerald-600">{completed?.size || 0}</div>
+          <div className="text-[10px] sm:text-xs text-bleepx-text-secondary uppercase tracking-wide">Completed</div>
         </div>
-        <div className="bg-bleepx-white rounded-xl p-4 text-center shadow-sm border border-bleepx-border">
-          <div className="text-2xl font-bold text-amber-600">{allCaseIds.length}</div>
-          <div className="text-xs text-bleepx-text-secondary uppercase tracking-wide">Total Challenges</div>
+        <div className="bg-bleepx-white rounded-xl p-2.5 sm:p-4 text-center shadow-sm border border-bleepx-border">
+          <div className="text-lg sm:text-2xl font-bold text-amber-600">{allCaseIds.length}</div>
+          <div className="text-[10px] sm:text-xs text-bleepx-text-secondary uppercase tracking-wide">Challenges</div>
         </div>
       </div>
 
       {/* Domain cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         {domains.map((d) => {
           const meta = domainMeta[d];
           const total = fullCaseOrder[d]?.length || 0;
@@ -71,10 +71,10 @@ export default function HomePage() {
               className="group relative overflow-hidden bg-bleepx-white border border-bleepx-border rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${meta.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-              <div className="p-5 flex items-start gap-4">
-                <div className="text-3xl flex-shrink-0 pt-0.5">{meta.icon}</div>
+              <div className="p-3.5 sm:p-5 flex items-start gap-3 sm:gap-4">
+                <div className="text-2xl sm:text-3xl flex-shrink-0 pt-0.5">{meta.icon}</div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-bleepx-text capitalize text-lg group-hover:text-bleepx-blue transition-colors">
+                  <h3 className="font-bold text-bleepx-text capitalize text-base sm:text-lg group-hover:text-bleepx-blue transition-colors">
                     {d}
                   </h3>
                   <p className="text-sm text-bleepx-text-secondary mt-0.5 line-clamp-1">{meta.desc}</p>
@@ -90,7 +90,7 @@ export default function HomePage() {
                     </span>
                   </div>
                 </div>
-                <svg className="w-5 h-5 text-gray-300 group-hover:text-bleepx-blue group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 group-hover:text-bleepx-blue group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-1 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
               </div>

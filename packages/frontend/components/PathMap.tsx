@@ -131,22 +131,22 @@ export default function PathMap({ domain, cases }: PathMapProps) {
   const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl p-6 shadow-xl border border-gray-700/50">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl border border-gray-700/50">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h3 className="text-sm sm:text-lg font-bold text-white flex items-center gap-1.5 sm:gap-2">
           <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
           </svg>
           Learning Path
         </h3>
-        <div className="flex items-center gap-2">
-          <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="w-20 sm:w-32 h-1.5 sm:h-2 bg-gray-700 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full transition-all duration-700"
               style={{ width: `${progressPct}%` }}
             />
           </div>
-          <span className="text-xs text-gray-400 font-mono">{progressPct}%</span>
+          <span className="text-[10px] sm:text-xs text-gray-400 font-mono">{progressPct}%</span>
         </div>
       </div>
 
@@ -159,13 +159,13 @@ export default function PathMap({ domain, cases }: PathMapProps) {
           const label = tierLabels[i] || '';
 
           return (
-            <div key={node.id} className="flex items-start gap-4 group">
+            <div key={node.id} className="flex items-start gap-2.5 sm:gap-4 group">
               {/* Vertical line + node circle */}
-              <div className="flex flex-col items-center flex-shrink-0" style={{ width: 40 }}>
+              <div className="flex flex-col items-center flex-shrink-0" style={{ width: 32 }}>
                 <Link
                   href={status !== 'locked' ? `/cases/${domain}/${node.id}` : '#'}
                   className={`
-                    relative z-10 w-10 h-10 rounded-full flex items-center justify-center border-2
+                    relative z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border-2
                     ${colors.bg} ${colors.border} ${colors.text}
                     ${colors.glow ? `shadow-lg ${colors.glow}` : ''}
                     ${status !== 'locked' ? 'hover:scale-110 cursor-pointer' : 'cursor-not-allowed'}
@@ -175,12 +175,12 @@ export default function PathMap({ domain, cases }: PathMapProps) {
                   <StatusIcon status={status} isHidden={false} />
                 </Link>
                 {!isLast && (
-                  <div className={`w-0.5 h-8 ${status === 'completed' ? 'bg-emerald-500/60' : 'bg-gray-600'} transition-colors duration-500`} />
+                  <div className={`w-0.5 h-6 sm:h-8 ${status === 'completed' ? 'bg-emerald-500/60' : 'bg-gray-600'} transition-colors duration-500`} />
                 )}
               </div>
 
               {/* Label */}
-              <div className="pt-2 pb-4 min-w-0 flex-1">
+              <div className="pt-1.5 sm:pt-2 pb-2 sm:pb-4 min-w-0 flex-1">
                 <Link
                   href={status !== 'locked' ? `/cases/${domain}/${node.id}` : '#'}
                   className={`
@@ -235,11 +235,11 @@ export default function PathMap({ domain, cases }: PathMapProps) {
 
               return (
                 <div key={node.id} className="flex items-start gap-4 group">
-                  <div className="flex flex-col items-center flex-shrink-0" style={{ width: 40 }}>
+                  <div className="flex flex-col items-center flex-shrink-0" style={{ width: 32 }}>
                     <Link
                       href={status !== 'locked' ? `/cases/${domain}/${node.id}` : '#'}
                       className={`
-                        relative z-10 w-10 h-10 rounded-lg rotate-45 flex items-center justify-center border-2
+                        relative z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-lg rotate-45 flex items-center justify-center border-2
                         ${colors.bg} ${colors.border} ${colors.text}
                         ${colors.glow ? `shadow-lg ${colors.glow}` : ''}
                         ${status !== 'locked' ? 'hover:scale-110 cursor-pointer' : 'cursor-not-allowed'}
@@ -251,11 +251,11 @@ export default function PathMap({ domain, cases }: PathMapProps) {
                       </span>
                     </Link>
                     {!isLast && (
-                      <div className={`w-0.5 h-8 ${status === 'completed' ? 'bg-amber-500/60' : 'bg-gray-700'}`} />
+                      <div className={`w-0.5 h-6 sm:h-8 ${status === 'completed' ? 'bg-amber-500/60' : 'bg-gray-700'}`} />
                     )}
                   </div>
 
-                  <div className="pt-2 pb-4 min-w-0 flex-1">
+                  <div className="pt-1.5 sm:pt-2 pb-2 sm:pb-4 min-w-0 flex-1">
                     <Link
                       href={status !== 'locked' ? `/cases/${domain}/${node.id}` : '#'}
                       className={`
@@ -280,7 +280,7 @@ export default function PathMap({ domain, cases }: PathMapProps) {
       )}
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 mt-6 pt-4 border-t border-gray-700/50">
+      <div className="flex flex-wrap gap-3 sm:gap-4 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-700/50">
         <div className="flex items-center gap-1.5 text-xs text-gray-400">
           <span className="w-3 h-3 rounded-full bg-emerald-500" /> Completed
         </div>

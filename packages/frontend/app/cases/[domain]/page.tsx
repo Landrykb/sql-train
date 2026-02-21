@@ -145,18 +145,18 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-8 bg-bleepx-bg space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
+    <div className="max-w-4xl mx-auto bg-bleepx-bg space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <BleepxLogo />
           <div>
-            <h1 className="text-2xl font-bold text-bleepx-text capitalize">
+            <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text capitalize">
               {domainKey.charAt(0).toUpperCase() + domainKey.slice(1).replace('_', ' ')} Division
             </h1>
-            <p className="text-xs text-bleepx-text-secondary">SwiftLink Training Program</p>
+            <p className="text-[10px] sm:text-xs text-bleepx-text-secondary">SwiftLink Training Program</p>
           </div>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center flex-wrap">
           <DashboardButton domainKey={domainKey} />
           <Link href="/" className="px-3 py-1.5 text-sm text-bleepx-blue hover:text-bleepx-blue-hover rounded-lg hover:bg-bleepx-blue/5 transition-colors">
             Home

@@ -11,7 +11,7 @@ export default function ResetProgressButton() {
           window.location.reload();
         }
       }}
-      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+      className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm bg-red-600 text-white rounded hover:bg-red-700"
     >
       Reset Progress
     </button>

@@ -43,33 +43,33 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-4 mb-6">
+      <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-1 -mx-1 px-1">
         <button
           onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded ${filter === 'all' ? 'bg-bleepx-blue text-white' : 'bg-gray-200'}`}
+          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm whitespace-nowrap flex-shrink-0 ${filter === 'all' ? 'bg-bleepx-blue text-white' : 'bg-gray-200'}`}
         >
           All
         </button>
         <button
           onClick={() => setFilter('completed')}
-          className={`px-4 py-2 rounded ${filter === 'completed' ? 'bg-bleepx-blue text-white' : 'bg-gray-200'}`}
+          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm whitespace-nowrap flex-shrink-0 ${filter === 'completed' ? 'bg-bleepx-blue text-white' : 'bg-gray-200'}`}
         >
-          Completed
+          Done
         </button>
         <button
           onClick={() => setFilter('locked')}
-          className={`px-4 py-2 rounded ${filter === 'locked' ? 'bg-bleepx-blue text-white' : 'bg-gray-200'}`}
+          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm whitespace-nowrap flex-shrink-0 ${filter === 'locked' ? 'bg-bleepx-blue text-white' : 'bg-gray-200'}`}
         >
           Locked
         </button>
         <button
           onClick={() => setFilter('hidden')}
-          className={`px-4 py-2 rounded ${filter === 'hidden' ? 'bg-amber-500 text-white' : 'bg-gray-200'}`}
+          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm whitespace-nowrap flex-shrink-0 ${filter === 'hidden' ? 'bg-amber-500 text-white' : 'bg-gray-200'}`}
         >
           Bonus
         </button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
         {filteredCases.map((c, index) => {
           const isHidden = hiddenIds.has(c.id) || c.hidden;
           const isFirstCase = index === 0 && !isHidden;
@@ -82,12 +82,12 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
             return (
               <div
                 key={c.id}
-                className="block p-6 rounded-lg shadow-md bg-gradient-to-br from-gray-800 to-gray-900 text-gray-400 border border-gray-700 relative overflow-hidden"
+                className="block p-4 sm:p-6 rounded-lg shadow-md bg-gradient-to-br from-gray-800 to-gray-900 text-gray-400 border border-gray-700 relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-[url('/bleepx-logo.png')] bg-center bg-no-repeat opacity-5 bg-contain" />
                 <div className="relative">
                   <div className="flex justify-between items-start">
-                    <h3 className="text-lg font-semibold text-gray-300">??? Hidden Challenge</h3>
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-300">??? Hidden Challenge</h3>
                     <span className="text-amber-400 text-xs font-bold px-2 py-1 bg-amber-400/10 rounded-full">BONUS</span>
                   </div>
                   <p className="text-sm text-gray-500 mt-2 italic">
@@ -114,7 +114,7 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
               key={c.id}
               href={isEffectivelyLocked ? '#' : `/cases/${domain}/${c.id}`}
               className={`
-                block p-6 rounded-lg shadow-md transition-all duration-200
+                block p-4 sm:p-6 rounded-lg shadow-md transition-all duration-200
                 ${
                   isEffectivelyLocked
                     ? 'bg-gray-100 text-gray-500 cursor-not-allowed opacity-75'
@@ -132,7 +132,7 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
               aria-disabled={isEffectivelyLocked}
             >
               <div className="flex justify-between items-start">
-                <h3 className="text-lg font-semibold text-bleepx-gray">{c.name}</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-bleepx-gray">{c.name}</h3>
                 <div className="flex items-center gap-2">
                   {isHidden && (
                     <span className="text-amber-500 text-xs font-bold px-2 py-1 bg-amber-100 rounded-full">BONUS</span>
@@ -163,7 +163,7 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
                 ))}
               </div>
               {isNext && (
-                <p className="text-sm text-bleepx-blue mt-2">Bleepx says: Tackle this next, human!</p>
+                <p className="text-xs sm:text-sm text-bleepx-blue mt-2">*bleep* Tackle this next.</p>
               )}
               {isEffectivelyLocked && c.prereq_cases && c.prereq_cases.length > 0 && (
                 <div className="text-xs text-bleepx-gray mt-2">

@@ -344,26 +344,26 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-8 space-y-6 bg-gradient-to-b from-gray-50 to-bleepx-blue/10 min-h-screen">
-      <nav className="text-sm font-medium text-bleepx-blue" aria-label="Breadcrumb">
-        <ol className="flex space-x-2 items-center">
+    <div className="max-w-6xl mx-auto px-3 sm:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6 bg-gradient-to-b from-gray-50 to-bleepx-blue/10 min-h-screen">
+      <nav className="text-xs sm:text-sm font-medium text-bleepx-blue overflow-x-auto" aria-label="Breadcrumb">
+        <ol className="flex space-x-1.5 sm:space-x-2 items-center whitespace-nowrap">
           <li><Link href="/" className="hover:underline">Home</Link></li>
           <li className="text-gray-400">/</li>
-          <li><Link href="/cases" className="hover:underline">Challenges</Link></li>
-          <li className="text-gray-400">/</li>
+          <li className="hidden sm:block"><Link href="/cases" className="hover:underline">Challenges</Link></li>
+          <li className="hidden sm:block text-gray-400">/</li>
           <li><Link href={`/cases/${domain}`} className="hover:underline">{domain.charAt(0).toUpperCase() + domain.slice(1).replace('_', ' ')}</Link></li>
           <li className="text-gray-400">/</li>
-          <li className="text-bleepx-gray font-semibold">{name}</li>
+          <li className="text-bleepx-gray font-semibold truncate max-w-[120px] sm:max-w-none">{name}</li>
         </ol>
       </nav>
 
-      <header className="bg-gradient-to-r from-bleepx-blue/10 to-bleepx-pink/10 p-6 rounded-xl shadow-lg">
-        <div className="flex justify-between items-center">
+      <header className="bg-gradient-to-r from-bleepx-blue/10 to-bleepx-pink/10 p-4 sm:p-6 rounded-xl shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
           <div className="flex items-center gap-2">
-            <img src="/bleepx-logo.png" alt="Bleepx" className="h-6 w-6 animate-pulse-logo" />
-            <h1 className="text-3xl font-bold text-bleepx-gray">{name}</h1>
+            <img src="/bleepx-logo.png" alt="Bleepx" className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse-logo" />
+            <h1 className="text-xl sm:text-3xl font-bold text-bleepx-gray">{name}</h1>
           </div>
-          <span className="text-sm text-bleepx-gray">Mission {currentIndex >= 0 ? currentIndex + 1 : '?'} of {currentOrder.length || '?'} — Tier {tier}</span>
+          <span className="text-xs sm:text-sm text-bleepx-gray">Mission {currentIndex >= 0 ? currentIndex + 1 : '?'} of {currentOrder.length || '?'} — Tier {tier}</span>
         </div>
         <p className="mt-2 text-bleepx-gray">{instructions || description}</p>
         {skills.length > 0 && (
@@ -376,13 +376,13 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
         )}
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-xl shadow-lg">
-            <h2 className="text-lg font-semibold text-bleepx-gray mb-4">Write Your Query</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
+            <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray mb-3 sm:mb-4">Write Your Query</h2>
             <CodeMirror
               value={query}
-              height="300px"
+              height="200px"
               onChange={setQuery}
               aria-label="SQL query editor"
               className="border border-bleepx-gray/20 rounded-lg"
@@ -394,15 +394,15 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex gap-2 flex-wrap">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex gap-1.5 sm:gap-2 flex-wrap">
               <button
                 onClick={() => {
                   new Audio('/bleep.mp3').play();
                   onRun();
                 }}
                 disabled={!canRun}
-                className={`px-4 py-2 rounded-full text-white font-medium transition-all duration-200 ${canRun ? 'bg-bleepx-blue hover:bg-bleepx-pink' : 'bg-gray-400 cursor-not-allowed'}`}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-white text-sm sm:text-base font-medium transition-all duration-200 ${canRun ? 'bg-bleepx-blue hover:bg-bleepx-pink' : 'bg-gray-400 cursor-not-allowed'}`}
                 aria-disabled={!canRun}
               >
                 Run Query
@@ -418,7 +418,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                   setShowSolution(false);
                   setVisibleHints(1);
                 }}
-                className="px-4 py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray hover:bg-bleepx-blue/5 transition-all duration-200"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
               >
                 Clear
               </button>
@@ -428,9 +428,9 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                     new Audio('/bleep.mp3').play();
                     tryExampleQuery();
                   }}
-                  className="px-4 py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray hover:bg-bleepx-blue/5 transition-all duration-200"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
                 >
-                  Try Example Query
+                  Example
                 </button>
               )}
               {attempts >= 3 && !showSolution && (
@@ -439,9 +439,9 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                     new Audio('/bleep.mp3').play();
                     setShowSolution(true);
                   }}
-                  className="px-4 py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray hover:bg-bleepx-blue/5 transition-all duration-200"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
                 >
-                  Show Solution
+                  Solution
                 </button>
               )}
               {hasVisualizations && (
@@ -485,8 +485,8 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
           </div>
 
           {hints.length > 0 && (
-            <div className="bg-white p-6 rounded-xl shadow-lg">
-              <h2 className="text-lg font-semibold text-bleepx-gray mb-4">Intel from Bleepx</h2>
+            <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
+              <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray mb-3 sm:mb-4">Intel from Bleepx</h2>
               <ul className="list-disc pl-5 text-sm text-bleepx-gray space-y-2">
                 {hints.slice(0, visibleHints).map((h, i) => {
                   const m = h.match(/Review the (\w+)/);
@@ -521,9 +521,9 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
           )}
         </div>
 
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-xl shadow-lg">
-            <h2 className="text-lg font-semibold text-bleepx-gray mb-4">Dataset & Results</h2>
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
+            <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray mb-3 sm:mb-4">Dataset & Results</h2>
             <div className="flex border-b border-bleepx-gray/20">
               <TabButton tab="preview" current={tab} onSelect={setTab} />
               <TabButton tab="results" current={tab} onSelect={setTab} />
@@ -542,7 +542,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                 </select>
               </div>
             )}
-            <div className="mt-4 min-h-[300px]">
+            <div className="mt-3 sm:mt-4 min-h-[200px] sm:min-h-[300px] overflow-x-auto">
               {tab === 'preview' ? (
                 <DataGrid data={tables.find((t) => t.name === selectedTable)?.previewRows || []} />
               ) : busy ? (

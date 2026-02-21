@@ -1,6 +1,13 @@
 import './globals.css';
 import { ReactNode } from 'react';
 import Link from 'next/link';
+import type { Viewport } from 'next';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata = {
   title: 'BleepxQuery - SQL Challenges',
@@ -10,31 +17,31 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-bleepx-bg min-h-screen font-sans" suppressHydrationWarning>
-        <header className="bg-bleepx-white shadow-sm">
-          <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+      <body className="bg-bleepx-bg min-h-screen font-sans overflow-x-hidden" suppressHydrationWarning>
+        <header className="bg-bleepx-white shadow-sm sticky top-0 z-40">
+          <div className="max-w-5xl mx-auto px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2 sm:gap-3">
               <picture>
                 <source srcSet="/bleepx-logo.png" type="image/svg+xml" />
                 <span className="text-bleepx-blue font-bold inline-block h-6 leading-6">
                   Bleepx
                 </span>
               </picture>
-              <h1 className="text-xl font-semibold text-bleepx-text">BleepxQuery</h1>
-            </div>
+              <h1 className="text-base sm:text-xl font-semibold text-bleepx-text">BleepxQuery</h1>
+            </Link>
             <nav>
-              <Link href="/" className="text-bleepx-blue hover:underline font-medium">
+              <Link href="/" className="text-bleepx-blue hover:underline font-medium text-sm sm:text-base">
                 Home
               </Link>
             </nav>
           </div>
         </header>
-        <main className="max-w-5xl mx-auto px-6 py-8 text-bleepx-text">
+        <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-8 text-bleepx-text">
           {children}
         </main>
-        <footer className="bg-bleepx-white text-bleepx-text-secondary py-4 border-t border-bleepx-border">
-          <div className="max-w-5xl mx-auto px-6 text-center">
-            <p>© 2025 BleepxQuery</p>
+        <footer className="bg-bleepx-white text-bleepx-text-secondary py-3 sm:py-4 border-t border-bleepx-border">
+          <div className="max-w-5xl mx-auto px-3 sm:px-6 text-center text-xs sm:text-sm">
+            <p>&copy; 2025 BleepxQuery</p>
           </div>
         </footer>
       </body>
