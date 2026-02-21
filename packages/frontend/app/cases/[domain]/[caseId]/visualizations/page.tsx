@@ -1,11 +1,10 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import yaml from 'yaml';
+import yamlLib from 'js-yaml';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import Visualizations from '@/components/Visualizations';
-import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
-import BleepxLogo from '@/components/BleepxLogo';
 import { fullCaseOrder, domainFolderMap } from '@/lib/constants';
 
 export async function generateStaticParams() {
@@ -22,31 +21,7 @@ export async function generateStaticParams() {
 interface CaseYaml {
   id: string;
   name: string;
-  description: string;
-  instructions: string;
-  hints: string[];
-  skills: string[];
   datasets: { name: string; file: string }[];
-  seedQuery: string;
-  solutionQuery: string;
-  domain: string;
-  prerequisites: string[];
-  tier: number;
-}
-
-interface PlotData {
-  caseId: string;
-  title: string;
-  plot: {
-    data: any[];
-    layout: any;
-    config: { responsive: boolean; displayModeBar: boolean };
-  };
-  queryResults: {
-    columns: string[];
-    rows: any[][];
-  };
-  matplotlibImage?: string;
 }
 
 export default async function VisualizationsPage({
@@ -57,48 +32,43 @@ export default async function VisualizationsPage({
   const params = await paramsPromise;
   const { domain, caseId } = params;
 
-  const domainFolderMap: Record<string, string> = {
-    business: 'business',
-    healthcare: 'healthcare',
-    crime: 'crime',
-    farming: 'farming',
-    finance: 'finance',
-    sports: 'sports',
-    social: 'social',
-    space: 'space',
-  };
-
   const normalizedDomain = domainFolderMap[domain.toLowerCase()] || domain.toLowerCase();
   const casesDir = path.join(process.cwd(), 'cases', normalizedDomain);
 
-  let caseData: CaseYaml | null = null;
+  let caseName = caseId;
   let datasets: { name: string; file: string }[] = [];
-  let plots: PlotData[] = [];
 
   try {
     const caseFilePath = path.join(casesDir, `${caseId}.yaml`);
-    await fs.access(caseFilePath);
     const caseContent = await fs.readFile(caseFilePath, 'utf-8');
-    caseData = yaml.parse(caseContent) as CaseYaml;
-    datasets = caseData.datasets.map((d) => ({
-      name: d.name,
-      file: d.file,
-    }));
+    const caseData = yamlLib.load(caseContent) as CaseYaml;
+    caseName = caseData.name || caseId;
+    datasets = caseData.datasets.map((d) => ({ name: d.name, file: d.file }));
   } catch (err) {
     console.error(`Failed to load case ${caseId} for domain ${normalizedDomain}: ${err}`);
     notFound();
   }
 
-  // Visualizations are loaded client-side by the Visualizations component
-
   return (
-    <main className="max-w-4xl mx-auto px-4 py-6 bg-bleepx-bg">
-      <div className="flex items-center gap-2 mb-6">
-        <BleepxLogo />
-        <h1 className="text-3xl font-bold text-bleepx-text">BleepxQuery: {caseId} Visualizations</h1>
-      </div>
-      <BleepxPointsTracker caseIds={[caseId]} />
-      <Visualizations domain={normalizedDomain} caseId={caseId} datasets={datasets} plots={plots} />
+    <main className="max-w-4xl mx-auto space-y-4 sm:space-y-6 bg-bleepx-bg">
+      <nav className="text-xs sm:text-sm text-bleepx-text-secondary overflow-x-auto" aria-label="Breadcrumb">
+        <ol className="flex space-x-1.5 sm:space-x-2 items-center whitespace-nowrap">
+          <li><Link href="/" className="hover:text-bleepx-blue">Home</Link></li>
+          <li>/</li>
+          <li><Link href={`/cases/${domain}`} className="hover:text-bleepx-blue capitalize">{domain}</Link></li>
+          <li>/</li>
+          <li><Link href={`/cases/${domain}/${caseId}`} className="hover:text-bleepx-blue">{caseName}</Link></li>
+          <li>/</li>
+          <li className="font-semibold text-bleepx-text">Visualizations</li>
+        </ol>
+      </nav>
+
+      <header className="bg-gradient-to-r from-bleepx-blue/10 to-bleepx-pink/10 p-4 sm:p-6 rounded-xl">
+        <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text">{caseName} — Visualizations</h1>
+        <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-1">*bleep* Charts generated from your SQL query results. View code, learn, and export.</p>
+      </header>
+
+      <Visualizations domain={normalizedDomain} caseId={caseId} datasets={datasets} />
       <AchievementNotification />
     </main>
   );

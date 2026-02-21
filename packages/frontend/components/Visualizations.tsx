@@ -1,282 +1,362 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
 import DataGrid from './DataGrid';
-import axios, { AxiosError } from 'axios';
-import Image from 'next/image';
+import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
+import { visualizationConfigs } from '@/lib/constants';
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 const Spinner = dynamic(() => import('./Spinner'), { ssr: false });
 
-interface PlotData {
-  caseId: string;
+interface ChartData {
   title: string;
-  plot: {
-    data: any[];
-    layout: any;
-    config: { responsive: boolean; displayModeBar: boolean };
-  };
-  queryResults: {
-    columns: string[];
-    rows: any[][];
-  };
-  matplotlibImage?: string;
+  query: string;
+  plotData: any[];
+  layout: any;
+  rows: Record<string, any>[];
+  columns: string[];
 }
 
 interface VisualizationProps {
   domain: string;
   caseId: string;
   datasets: { name: string; file: string }[];
-  plots?: PlotData[];
+  plots?: any[];
 }
 
-export default function Visualizations({ domain, caseId, datasets, plots: initialPlots }: VisualizationProps) {
-  const [selectedViz, setSelectedViz] = useState(0);
+export default function Visualizations({ domain, caseId, datasets }: VisualizationProps) {
+  const [charts, setCharts] = useState<ChartData[]>([]);
+  const [selectedChart, setSelectedChart] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [exportLoading, setExportLoading] = useState(false);
-  const [exportError, setExportError] = useState<string | null>(null);
-  const [plots, setPlots] = useState<PlotData[]>(initialPlots || []);
+  const [tab, setTab] = useState<'chart' | 'data' | 'code'>('chart');
 
   useEffect(() => {
-    async function fetchPlots() {
-      if (initialPlots?.length) {
-        setPlots(initialPlots);
-        setLoading(false);
-        return;
-      }
+    let mounted = true;
+    async function buildCharts() {
       try {
-        const response = await axios.get(`/api/visualizations/${domain}/${caseId}`);
-        const fetchedPlots = response.data.visualizations.map((v: any) => ({
-          caseId: v.case_id,
-          title: v.title,
-          plot: v.plot,
-          queryResults: v.query_results,
-          matplotlibImage: v.matplotlib_image,
-        }));
-        setPlots(fetchedPlots);
-        setLoading(false);
+        await initSQL('/static/wasm/sql-wasm.wasm');
+        for (const ds of datasets) {
+          try { await loadCSV(ds.name, ds.file); } catch { /* already loaded */ }
+        }
+
+        const configs = visualizationConfigs[domain]?.[caseId];
+        if (!configs || configs.length === 0) {
+          if (mounted) { setError(null); setCharts([]); setLoading(false); }
+          return;
+        }
+
+        const built: ChartData[] = [];
+        for (const cfg of configs) {
+          try {
+            const { columns, data } = await runQuery(cfg.query);
+            const rows = data.map((row: unknown[]) =>
+              Object.fromEntries(columns.map((c, i) => [c, row[i]]))
+            );
+            const plotData = cfg.dataMapper(rows);
+            built.push({
+              title: cfg.layout?.title?.text || `Chart ${built.length + 1}`,
+              query: cfg.query,
+              plotData,
+              layout: cfg.layout || {},
+              rows,
+              columns,
+            });
+          } catch (err) {
+            console.warn(`Viz query failed for ${caseId}:`, err);
+          }
+        }
+
+        if (mounted) { setCharts(built); setLoading(false); }
       } catch (err: any) {
-        const errorMessage = err instanceof AxiosError && err.response
-          ? `Failed to fetch visualizations: ${err.response.status} - ${JSON.stringify(err.response.data)}`
-          : `Failed to fetch visualizations: ${err.message}`;
-        setError(errorMessage);
-        setLoading(false);
+        if (mounted) { setError(err.message || 'Failed to build visualizations'); setLoading(false); }
       }
     }
-    fetchPlots();
-  }, [domain, caseId, initialPlots]);
+    buildCharts();
+    return () => { mounted = false; };
+  }, [domain, caseId, datasets]);
 
-  useEffect(() => {
-    console.log(`Visualizations props: domain=${domain}, caseId=${caseId}, plots=`, plots);
-    if (plots.length === 0) {
-      console.warn('No plots provided. Check backend response and visualization_configs.py.');
-    }
-    plots.forEach((plot, index) => {
-      console.log(`Plot ${index}:`, {
-        caseId: plot.caseId,
-        title: plot.title,
-        dataLength: plot.plot.data?.length,
-        queryRows: plot.queryResults.rows?.length,
-        hasMatplotlib: !!plot.matplotlibImage,
-      });
+  const currentChart = charts[selectedChart];
+
+  const getJSCode = useCallback(() => {
+    if (!currentChart) return '';
+    return `// Plotly.js visualization for: ${currentChart.title}
+// SQL Query: ${currentChart.query}
+
+const data = ${JSON.stringify(currentChart.plotData, null, 2)};
+
+const layout = ${JSON.stringify({ ...currentChart.layout, autosize: true }, null, 2)};
+
+Plotly.newPlot('chart', data, layout, { responsive: true });`;
+  }, [currentChart]);
+
+  const getPythonCode = useCallback(() => {
+    if (!currentChart) return '';
+    const dsFile = datasets[0]?.file || 'data.csv';
+    const chartType = currentChart.plotData[0]?.type || 'bar';
+    const xCol = currentChart.columns[0] || 'x';
+    const yCol = currentChart.columns[1] || 'y';
+
+    return `"""
+${currentChart.title}
+SQL: ${currentChart.query}
+"""
+import pandas as pd
+import plotly.express as px
+
+# Load data
+df = pd.read_csv('${dsFile}')
+
+# Run equivalent query and plot
+# (Adapt the SQL logic in pandas as needed)
+${chartType === 'pie'
+  ? `fig = px.pie(df, names='${xCol}', values='${yCol}', title='${currentChart.title}')`
+  : chartType === 'scatter'
+  ? `fig = px.scatter(df, x='${xCol}', y='${yCol}', title='${currentChart.title}')`
+  : `fig = px.bar(df, x='${xCol}', y='${yCol}', title='${currentChart.title}')`
+}
+fig.show()
+fig.write_html('${caseId}_chart.html')
+print("Chart saved to ${caseId}_chart.html")`;
+  }, [currentChart, datasets, caseId]);
+
+  const handleDownloadProject = useCallback(() => {
+    if (!currentChart) return;
+
+    const readme = `# ${domain.charAt(0).toUpperCase() + domain.slice(1)} — ${currentChart.title}
+
+## SwiftLink Training Program — BleepxQuery
+
+**Domain:** ${domain}
+**Case:** ${caseId}
+**Skills:** SQL, Data Visualization, ${currentChart.plotData[0]?.type === 'pie' ? 'Pie Charts' : currentChart.plotData[0]?.type === 'scatter' ? 'Line Charts' : 'Bar Charts'}
+
+### SQL Query
+\`\`\`sql
+${currentChart.query}
+\`\`\`
+
+### How to Run
+1. Install dependencies: \`pip install pandas plotly\`
+2. Run: \`python visualize.py\`
+3. Open \`${caseId}_chart.html\` in your browser
+
+### Results
+${currentChart.rows.length} rows returned from the query.
+
+---
+*Generated by [BleepxQuery](https://bleepxacademy.vercel.app) — SwiftLink Training Program*
+`;
+
+    const csvContent = [
+      currentChart.columns.join(','),
+      ...currentChart.rows.map(row => currentChart.columns.map(c => JSON.stringify(row[c] ?? '')).join(','))
+    ].join('\n');
+
+    const htmlPage = `<!DOCTYPE html>
+<html><head>
+<title>${currentChart.title}</title>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head><body>
+<h1>${currentChart.title}</h1>
+<p>Domain: ${domain} | Case: ${caseId}</p>
+<div id="chart"></div>
+<script>
+${getJSCode()}
+</script>
+<h2>Data</h2>
+<pre>${JSON.stringify(currentChart.rows.slice(0, 10), null, 2)}</pre>
+</body></html>`;
+
+    // Create downloadable files
+    const files: Record<string, string> = {
+      'README.md': readme,
+      'visualize.py': getPythonCode(),
+      'chart.html': htmlPage,
+      'chart.js': getJSCode(),
+      [`${caseId}_data.csv`]: csvContent,
+      'query.sql': currentChart.query,
+    };
+
+    // Download as individual files bundled in a simple HTML download
+    Object.entries(files).forEach(([name, content]) => {
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${domain}-${caseId}/${name}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     });
-  }, [domain, caseId, plots]);
-
-  const handleExportToGitHub = async () => {
-    setExportLoading(true);
-    setExportError(null);
-    try {
-      const githubToken = prompt('Enter your GitHub Personal Access Token:');
-      if (!githubToken) {
-        throw new Error('GitHub token is required');
-      }
-
-      const response = await axios.post('/api/matplotlib/export', {
-        domain,
-        github_token: githubToken,
-        repo_name: `sqlverse-${domain}-${caseId}`,
-        create_repo: true,
-      });
-      alert(`Export successful! Repository URL: ${response.data.message}`);
-    } catch (err: any) {
-      const errorMessage =
-        err instanceof AxiosError && err.response
-          ? `Export failed: ${err.response.status} - ${JSON.stringify(err.response.data)}`
-          : `Export failed: ${err.message}`;
-      setExportError(errorMessage);
-    } finally {
-      setExportLoading(false);
-    }
-  };
+  }, [currentChart, domain, caseId, datasets, getJSCode, getPythonCode]);
 
   if (loading) {
     return (
-      <Suspense
-        fallback={
-          <div className="flex items-center justify-center p-8">
-            <Spinner />
-            <span className="ml-2 text-gray-600">Loading...</span>
-          </div>
-        }
-      >
-        <div className="flex items-center justify-center p-8" aria-live="polite">
-          <Spinner />
-          <span className="ml-2 text-gray-600">Loading visualizations...</span>
-        </div>
-      </Suspense>
+      <div className="flex items-center justify-center p-6 sm:p-8" aria-live="polite">
+        <Spinner />
+        <span className="ml-2 text-bleepx-gray text-sm">*bleep* Generating visualizations...</span>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto p-8 bg-gray-50 min-h-screen">
-        <div className="p-6 bg-yellow-100 text-yellow-800 rounded-xl shadow-lg" role="alert">
-          {error}
-        </div>
+      <div className="p-4 sm:p-6 bg-yellow-100 text-yellow-800 rounded-xl shadow-lg text-sm" role="alert">
+        *bleep* Visualization error: {error}
+      </div>
+    );
+  }
+
+  if (charts.length === 0) {
+    return (
+      <div className="p-4 sm:p-6 bg-bleepx-white rounded-xl shadow-sm border border-bleepx-border text-center">
+        <p className="text-bleepx-text-secondary text-sm">*bleep* No visualization configs found for this case.</p>
+        <Link href={`/cases/${domain}/${caseId}`} className="text-bleepx-blue text-sm hover:underline mt-2 inline-block">
+          ← Back to challenge
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-8 space-y-6 bg-gray-50 min-h-screen">
-      <nav className="text-sm font-medium text-blue-600" aria-label="Breadcrumb">
-        <ol className="flex space-x-2 items-center">
-          <li>
-            <Link href="/" className="hover:underline">
-              Home
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link href="/cases" className="hover:underline">
-              Exercises
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link href={`/cases/${domain}`} className="hover:underline">
-              {domain.charAt(0).toUpperCase() + domain.slice(1)}
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li>
-            <Link href={`/cases/${domain}/${caseId}`} className="hover:underline">
-              {caseId}
-            </Link>
-          </li>
-          <li className="text-gray-400">/</li>
-          <li className="text-gray-800 font-semibold">Visualizations</li>
-        </ol>
-      </nav>
-
-      <header className="bg-white p-6 rounded-xl shadow-lg">
-        <h1 className="text-3xl font-bold text-gray-900">Visualizations for {caseId}</h1>
-        <p className="mt-2 text-gray-600">Explore interactive dashboards for the {domain} domain.</p>
-      </header>
-
-      <div className="bg-white p-6 rounded-xl shadow-lg">
-        <div className="flex items-center mb-4">
-          <label htmlFor="viz-select" className="text-gray-900 font-medium mr-3">
-            Select Visualization:
-          </label>
-          <select
-            id="viz-select"
-            value={selectedViz}
-            onChange={(e) => setSelectedViz(Number(e.target.value))}
-            className="p-2 border border-gray-300 rounded-lg text-sm text-gray-700"
-            aria-label="Select visualization"
-          >
-            {plots.map((plot, index) => (
-              <option key={index} value={index}>
-                {plot.title || `Visualization ${index + 1}`}
-              </option>
-            ))}
-          </select>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Chart selector */}
+      {charts.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {charts.map((c, i) => (
+            <button
+              key={i}
+              onClick={() => { setSelectedChart(i); setTab('chart'); }}
+              className={`px-3 py-1.5 rounded-full text-xs sm:text-sm whitespace-nowrap flex-shrink-0 transition-colors ${
+                i === selectedChart ? 'bg-bleepx-blue text-white' : 'bg-gray-100 text-bleepx-gray hover:bg-gray-200'
+              }`}
+            >
+              {c.title}
+            </button>
+          ))}
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Plotly Visualization</h3>
-        {plots[selectedViz]?.plot.data.length ? (
-          <Plot
-            data={plots[selectedViz].plot.data}
-            layout={{
-              ...plots[selectedViz].plot.layout,
-              autosize: true,
-              margin: { t: 50, b: 100, l: 80, r: 50 },
-              title: plots[selectedViz].title,
-            }}
-            config={plots[selectedViz].plot.config || { responsive: true, displayModeBar: true }}
-            className="w-full h-[500px]"
-          />
-        ) : plots[selectedViz]?.matplotlibImage ? (
-          <div>
-            <p className="text-yellow-600 mb-2">Plotly visualization unavailable, displaying Matplotlib fallback.</p>
-            <Image
-              src={plots[selectedViz].matplotlibImage}
-              alt={plots[selectedViz].title}
-              width={800}
-              height={500}
-              className="w-full max-h-[500px] object-contain"
-            />
-          </div>
-        ) : (
-          <p className="text-gray-600">No visualization available.</p>
-        )}
-        <h3 className="text-lg font-semibold text-gray-900 mt-6 mb-2">Query Results</h3>
-        {plots[selectedViz]?.queryResults.rows.length ? (
-          <DataGrid
-            data={plots[selectedViz].queryResults.rows.map((row) =>
-              Object.fromEntries(
-                plots[selectedViz].queryResults.columns.map((col, i) => [col, row[i]])
-              )
-            )}
-          />
-        ) : (
-          <p className="text-gray-600">No query results available for this visualization.</p>
-        )}
+      )}
+
+      {/* Tabs */}
+      <div className="bg-bleepx-white rounded-xl shadow-sm border border-bleepx-border overflow-hidden">
+        <div className="flex border-b border-bleepx-border">
+          {(['chart', 'data', 'code'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`flex-1 py-2.5 text-xs sm:text-sm font-medium transition-colors ${
+                tab === t ? 'text-bleepx-blue border-b-2 border-bleepx-blue bg-blue-50/50' : 'text-bleepx-gray hover:bg-gray-50'
+              }`}
+            >
+              {t === 'chart' ? '📊 Chart' : t === 'data' ? '📋 Data' : '💻 Code'}
+            </button>
+          ))}
+        </div>
+
+        <div className="p-3 sm:p-6">
+          {tab === 'chart' && currentChart && (
+            <div>
+              <h3 className="text-base sm:text-lg font-bold text-bleepx-text mb-3">{currentChart.title}</h3>
+              <div className="w-full overflow-x-auto" style={{ minHeight: 300 }}>
+                <Plot
+                  data={currentChart.plotData}
+                  layout={{
+                    ...currentChart.layout,
+                    autosize: true,
+                    margin: { t: 50, b: 80, l: 60, r: 30 },
+                    font: { size: 11 },
+                  }}
+                  config={{ responsive: true, displayModeBar: true }}
+                  className="w-full"
+                  style={{ width: '100%', minHeight: 300, maxHeight: 500 }}
+                />
+              </div>
+              <p className="text-xs text-bleepx-text-secondary mt-2">
+                <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-[10px]">SQL</span>{' '}
+                {currentChart.query}
+              </p>
+            </div>
+          )}
+
+          {tab === 'data' && currentChart && (
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-base font-bold text-bleepx-text">Query Results</h3>
+                <span className="text-xs text-bleepx-text-secondary">{currentChart.rows.length} rows</span>
+              </div>
+              <div className="overflow-x-auto">
+                <DataGrid data={currentChart.rows} />
+              </div>
+            </div>
+          )}
+
+          {tab === 'code' && currentChart && (
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-bold text-bleepx-text">SQL Query</h4>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(currentChart.query)}
+                    className="text-[10px] text-bleepx-blue hover:underline"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <pre className="bg-gray-900 text-green-400 p-3 rounded-lg text-xs overflow-x-auto">{currentChart.query}</pre>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-bold text-bleepx-text">JavaScript (Plotly.js)</h4>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(getJSCode())}
+                    className="text-[10px] text-bleepx-blue hover:underline"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <pre className="bg-gray-900 text-blue-300 p-3 rounded-lg text-xs overflow-x-auto max-h-[300px]">{getJSCode()}</pre>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-bold text-bleepx-text">Python (Plotly Express)</h4>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(getPythonCode())}
+                    className="text-[10px] text-bleepx-blue hover:underline"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <pre className="bg-gray-900 text-yellow-300 p-3 rounded-lg text-xs overflow-x-auto max-h-[300px]">{getPythonCode()}</pre>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="bg-white p-6 rounded-xl shadow-lg">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Export Options</h2>
-        <p className="text-gray-600">Export datasets or visualizations for advanced analysis:</p>
-        <ol className="list-decimal pl-5 mt-2 text-gray-600">
-          <li>Download the dataset from the case page.</li>
-          <li>For Power BI/Tableau: Import the CSV and create custom dashboards.</li>
-          <li>
-            For Matplotlib: Use Python to generate plots. Example:
-            <pre className="bg-gray-50 p-3 mt-2 rounded-lg text-sm text-gray-700">
-              {`import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-# Example: Bar plot for business_retail
-data = pd.read_csv('business_retail.csv')
-sns.barplot(x='product_line', y='total', data=data)
-plt.xlabel('Product Line')
-plt.ylabel('Total Sales')
-plt.title('Sales by Product Line')
-plt.tight_layout()
-plt.savefig('bar_plot.png')
-plt.show()`}
-            </pre>
-          </li>
-        </ol>
-        <div className="mt-4 space-x-4">
+      {/* Export section */}
+      <div className="bg-bleepx-white rounded-xl shadow-sm border border-bleepx-border p-4 sm:p-6">
+        <h3 className="text-base font-bold text-bleepx-text mb-2">Export as Portfolio Project</h3>
+        <p className="text-xs text-bleepx-text-secondary mb-3">
+          *bleep* Download a complete project with README, SQL, Python, JS, and data — ready to push to your GitHub profile.
+        </p>
+        <div className="flex flex-wrap gap-2">
           <button
-            onClick={handleExportToGitHub}
-            disabled={exportLoading}
-            className={`px-4 py-2 rounded-full text-white transition-all duration-200 ${
-              exportLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-            }`}
+            onClick={handleDownloadProject}
+            className="px-4 py-2 rounded-full bg-bleepx-blue text-white text-sm hover:bg-bleepx-pink transition-colors"
           >
-            {exportLoading ? 'Exporting...' : 'Export to GitHub (PDF, PNGs & JSON)'}
+            📦 Download Project Files
           </button>
+          <Link
+            href={`/cases/${domain}/${caseId}`}
+            className="px-4 py-2 rounded-full border border-bleepx-border text-bleepx-gray text-sm hover:bg-gray-50 transition-colors"
+          >
+            ← Back to Challenge
+          </Link>
         </div>
-        {exportError && (
-          <div className="mt-4 p-4 bg-red-100 text-red-800 rounded-lg">{exportError}</div>
-        )}
       </div>
     </div>
   );
