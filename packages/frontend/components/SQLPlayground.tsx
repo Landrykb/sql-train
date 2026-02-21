@@ -3,10 +3,9 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
-import Papa from 'papaparse';
 import Link from 'next/link';
 import DataGrid from './DataGrid';
-import { initSQL, loadCSV, resetDatabase, runQuery } from '@/lib/sqlClient/browser';
+import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { compareResults } from '@/lib/compare';
 import { useProgress } from '@/lib/useProgress';
 import { fullCaseOrder, caseOrder } from '@/lib/constants';
