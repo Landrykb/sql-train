@@ -135,7 +135,7 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
                 <h3 className="text-base sm:text-lg font-semibold text-bleepx-gray">{c.name}</h3>
                 <div className="flex items-center gap-2">
                   {isHidden && (
-                    <span className="text-amber-500 text-xs font-bold px-2 py-1 bg-amber-100 rounded-full">BONUS</span>
+                    <span className="text-amber-500 text-xs font-bold px-2 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-full">BONUS</span>
                   )}
                   {completed.has(c.id) && (
                     <span className="text-bleepx-blue text-sm" aria-label="Completed">
@@ -161,7 +161,7 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
                     key={skill}
                     className={`inline-block text-xs px-2 py-1 rounded mr-1 ${
                       isHidden
-                        ? 'bg-amber-100 text-amber-800'
+                        ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
                         : 'bg-bleepx-blue/10 text-bleepx-gray'
                     }`}
                   >

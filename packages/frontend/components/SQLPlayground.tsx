@@ -284,15 +284,24 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const onRun = useCallback(async () => {
     if (query.length > 1000) {
       setMessage(queryMessages.tooLong);
+      setAttempts((a) => a + 1);
+      addHistory(query, false);
+      setHasRun(true);
       return;
     }
     const trimmed = query.trim().toUpperCase();
     if (trimmed && !trimmed.startsWith('SELECT') && !trimmed.startsWith('WITH') && !trimmed.startsWith('PRAGMA')) {
       setMessage('*bleep* Only SELECT / WITH queries are allowed here, human.');
+      setAttempts((a) => a + 1);
+      addHistory(query, false);
+      setHasRun(true);
       return;
     }
     if (trimmed && (/(^|\s)(DROP|DELETE|INSERT|UPDATE|ALTER|CREATE)\s/i.test(query))) {
       setMessage('*bleep* Nice try. Destructive statements are blocked.');
+      setAttempts((a) => a + 1);
+      addHistory(query, false);
+      setHasRun(true);
       return;
     }
     setBusy(true);
@@ -367,10 +376,18 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   }, [query, expected, solutionQuery, id, markComplete, attempts, hints.length, completed, skills, domain, currentOrder, nextCaseId, tier, addHistory, timerSeconds]);
 
   const tryExampleQuery = useCallback(() => {
-    setQuery(templateQuery || seedQuery);
+    const example = templateQuery || seedQuery;
+    setQuery(example);
     setMessage('');
     setResultRows([]);
-  }, [templateQuery, seedQuery]);
+    // Auto-run the example query after filling
+    if (example && example.trim() && dbReady) {
+      setTimeout(() => {
+        const btn = document.querySelector('[data-run-btn]') as HTMLButtonElement;
+        btn?.click();
+      }, 100);
+    }
+  }, [templateQuery, seedQuery, dbReady]);
 
   const canRun = useMemo(() => dbReady && query.trim() !== '' && !busy, [dbReady, query, busy]);
 
@@ -559,6 +576,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                 playBleep();
                 onRun();
               }}
+              data-run-btn
               disabled={!canRun}
               className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-white text-sm sm:text-base font-medium transition-all duration-200 ${canRun ? 'bg-bleepx-blue hover:bg-bleepx-pink' : 'bg-gray-400 cursor-not-allowed'}`}
               aria-disabled={!canRun}
@@ -590,7 +608,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                 Example
               </button>
             )}
-            {attempts >= 3 && !showSolution && solutionQuery && (
+            {attempts >= 3 && !showSolution && (
               <button
                 onClick={() => {
                   playBleep();
@@ -624,10 +642,14 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
               </div>
             </div>
           )}
-          {showSolution && solutionQuery && (
+          {showSolution && (
             <div className="mt-4 bg-bleepx-gray/5 p-4 rounded-xl shadow-sm">
               <h3 className="text-sm font-semibold text-bleepx-gray mb-2">*bleep* Fine. Here's how I'd do it:</h3>
-              <pre className="text-sm text-bleepx-gray whitespace-pre-wrap" aria-label="Solution query">{solutionQuery}</pre>
+              {solutionQuery ? (
+                <pre className="text-sm text-bleepx-gray whitespace-pre-wrap" aria-label="Solution query">{solutionQuery}</pre>
+              ) : (
+                <p className="text-sm text-bleepx-gray italic">*bleep* No solution available for this challenge. You're on your own, human.</p>
+              )}
             </div>
           )}
         </div>
@@ -754,36 +776,40 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
           </div>
         )}
 
-        {/* 4. Query Results — shows after any query has been run */}
-        {(hasRun || busy) && (
-          <div ref={resultsRef} className={`p-3 sm:p-6 rounded-xl shadow-lg ${dark ? 'bg-gray-800' : 'bg-white'}`}>
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h2 className={`text-base sm:text-lg font-semibold ${dark ? 'text-gray-100' : 'text-bleepx-gray'}`}>
-                Query Results
-                {!busy && resultRows.length > 0 && <span className={`text-xs font-normal ml-2 ${dark ? 'text-gray-400' : 'text-gray-500'}`}>({resultRows.length} row{resultRows.length !== 1 ? 's' : ''})</span>}
-              </h2>
-              {diffData && (
-                <button onClick={() => setShowDiff((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showDiff ? 'bg-red-600 text-white border-red-600' : dark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-red-300 text-red-600 hover:bg-red-50'}`}>
-                  {showDiff ? '✕ Hide Diff' : '🔍 Show Diff'}
-                </button>
-              )}
-            </div>
-            <div className="min-h-[80px] sm:min-h-[120px] overflow-x-auto">
-              {busy ? (
-                <div className="flex items-center" aria-live="polite">
-                  <Spinner />
-                  <span className="ml-2 text-bleepx-gray">{queryMessages.processing}</span>
-                </div>
-              ) : showDiff && diffData ? (
-                <DiffGrid actual={diffData.actual} expected={diffData.expected} expectedColumns={diffData.cols} />
-              ) : resultRows.length > 0 ? (
-                <DataGrid data={resultRows} />
-              ) : (
-                <p className={`text-sm ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Query returned 0 rows.</p>
-              )}
-            </div>
+        {/* 4. Query Results — always visible */}
+        <div ref={resultsRef} className={`p-3 sm:p-6 rounded-xl shadow-lg transition-all ${dark ? 'bg-gray-800' : 'bg-white'} ${!hasRun && !busy ? 'opacity-60' : ''}`}>
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className={`text-base sm:text-lg font-semibold ${dark ? 'text-gray-100' : 'text-bleepx-gray'}`}>
+              Query Results
+              {!busy && resultRows.length > 0 && <span className={`text-xs font-normal ml-2 ${dark ? 'text-gray-400' : 'text-gray-500'}`}>({resultRows.length} row{resultRows.length !== 1 ? 's' : ''})</span>}
+            </h2>
+            {diffData && (
+              <button onClick={() => setShowDiff((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showDiff ? 'bg-red-600 text-white border-red-600' : dark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-red-300 text-red-600 hover:bg-red-50'}`}>
+                {showDiff ? '✕ Hide Diff' : '🔍 Show Diff'}
+              </button>
+            )}
           </div>
-        )}
+          <div className="min-h-[80px] sm:min-h-[120px] overflow-x-auto">
+            {busy ? (
+              <div className="flex items-center" aria-live="polite">
+                <Spinner />
+                <span className="ml-2 text-bleepx-gray">{queryMessages.processing}</span>
+              </div>
+            ) : !hasRun ? (
+              <div className={`flex flex-col items-center justify-center py-6 ${dark ? 'text-gray-500' : 'text-gray-400'}`}>
+                <span className="text-3xl mb-2">📊</span>
+                <p className="text-sm font-medium">Run a query to see results here</p>
+                <p className="text-xs mt-1">Press ⌘/Ctrl+Enter or click Run Query</p>
+              </div>
+            ) : showDiff && diffData ? (
+              <DiffGrid actual={diffData.actual} expected={diffData.expected} expectedColumns={diffData.cols} />
+            ) : resultRows.length > 0 ? (
+              <DataGrid data={resultRows} />
+            ) : (
+              <p className={`text-sm ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Query returned 0 rows.</p>
+            )}
+          </div>
+        </div>
 
         {/* 5. Dataset Preview — always visible */}
         <div className={`p-3 sm:p-6 rounded-xl shadow-lg ${dark ? 'bg-gray-800' : 'bg-white'}`}>
