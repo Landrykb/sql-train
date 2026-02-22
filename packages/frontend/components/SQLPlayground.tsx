@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import DataGrid from './DataGrid';
+import DiffGrid from './DiffGrid';
 import Papa from 'papaparse';
 import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { compareResults } from '@/lib/compare';
@@ -13,6 +14,7 @@ import { fullCaseOrder, caseOrder, visualizationConfigs } from '@/lib/constants'
 import { normalizeDomain } from '@/lib/utils';
 import { loadingMessages, queryMessages, getLockedMessage, getDomainCompleteMessage, getNextCaseMessage, getLoadError, pickRandom } from '@/lib/bleepxDialogue';
 import { playBleep } from '@/lib/audio';
+import { useTheme } from '@/lib/useTheme';
 
 const Spinner = dynamic(() => import('./Spinner'), { ssr: false });
 
@@ -107,13 +109,23 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const [showThoughtProcess, setShowThoughtProcess] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [savedQuery, setSavedQuery] = useState<string | null>(null);
+  const [queryHistory, setQueryHistory] = useState<{ query: string; ts: number; success: boolean | null }[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showSchema, setShowSchema] = useState(false);
+  const [showExpected, setShowExpected] = useState(false);
+  const [diffData, setDiffData] = useState<{ actual: Record<string, any>[]; expected: Record<string, any>[]; cols: string[] } | null>(null);
+  const [showDiff, setShowDiff] = useState(false);
+  const [timerEnabled, setTimerEnabled] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const { dark, toggle: toggleDark } = useTheme();
 
   useEffect(() => {
     if (!caseOrder[domain]) console.error(`Invalid domain: ${domain}`, { rawDomain, availableDomains: Object.keys(caseOrder) });
     console.log('Navigation Debug:', { id, rawDomain, normalizedDomain: domain, completed: Array.from(completed), currentIndex, currentOrder, nextCaseId, prerequisites, isUnlocked: isUnlocked(prerequisites) });
   }, [id, rawDomain, domain, completed, currentIndex, currentOrder, nextCaseId, prerequisites, isUnlocked]);
 
-  // Load saved query from localStorage on mount
+  // Load saved query + history from localStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem(`bleepx_solved_${domain}_${id}`);
@@ -123,7 +135,19 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
         if (!seedQuery && parsed.query) setQuery(parsed.query);
       }
     } catch { /* ignore */ }
+    try {
+      const hist = localStorage.getItem(`bleepx_history_${domain}_${id}`);
+      if (hist) setQueryHistory(JSON.parse(hist));
+    } catch { /* ignore */ }
   }, [domain, id]);
+
+  // Timer
+  useEffect(() => {
+    if (timerEnabled && dbReady) {
+      timerRef.current = setInterval(() => setTimerSeconds((s) => s + 1), 1000);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [timerEnabled, dbReady]);
 
   // Replay saved query once DB is ready
   useEffect(() => {
@@ -223,12 +247,30 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
     })();
   }, [id, datasets]);
 
+  const addHistory = useCallback((q: string, success: boolean | null) => {
+    setQueryHistory((prev) => {
+      const next = [{ query: q, ts: Date.now(), success }, ...prev].slice(0, 50);
+      try { localStorage.setItem(`bleepx_history_${domain}_${id}`, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }, [domain, id]);
+
   const onRun = useCallback(async () => {
     if (query.length > 1000) {
       setMessage(queryMessages.tooLong);
       return;
     }
+    const trimmed = query.trim().toUpperCase();
+    if (trimmed && !trimmed.startsWith('SELECT') && !trimmed.startsWith('WITH') && !trimmed.startsWith('PRAGMA')) {
+      setMessage('*bleep* Only SELECT / WITH queries are allowed here, human.');
+      return;
+    }
+    if (trimmed && (/(^|\s)(DROP|DELETE|INSERT|UPDATE|ALTER|CREATE)\s/i.test(query))) {
+      setMessage('*bleep* Nice try. Destructive statements are blocked.');
+      return;
+    }
     setBusy(true);
+    setDiffData(null);
 
     try {
       console.log('Running query:', query);
@@ -239,6 +281,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       setResultRows(grid);
 
       if (!expected.length) {
+        addHistory(query, null);
         setMessage(queryMessages.noExpected);
         return;
       }
@@ -247,13 +290,23 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       const { correct, feedback } = await compareResults(grid, expectedArray, solutionQuery, query, skills);
       setMessage(feedback);
       setAttempts((a) => a + 1);
+      addHistory(query, correct);
+
+      if (!correct && expected.length > 0) {
+        const expGrid = (expected as Record<string, any>[]);
+        const expCols = expGrid.length > 0 ? Object.keys(expGrid[0]) : cols;
+        setDiffData({ actual: grid, expected: expGrid, cols: expCols });
+      } else {
+        setDiffData(null);
+      }
 
       if (correct && !completed.has(id)) {
         console.log('Correct answer! Marking complete:', id);
         markComplete(id, tier);
         setShowSuccess(true);
         setVisibleHints(hints.length);
-        try { localStorage.setItem(`bleepx_solved_${domain}_${id}`, JSON.stringify({ query, ts: Date.now() })); } catch { /* ignore */ }
+        if (timerRef.current) clearInterval(timerRef.current);
+        try { localStorage.setItem(`bleepx_solved_${domain}_${id}`, JSON.stringify({ query, ts: Date.now(), time: timerSeconds, attempts: attempts + 1 })); } catch { /* ignore */ }
 
         const allCompleted = currentOrder.length > 0 && currentOrder.every((caseId) => completed.has(caseId) || caseId === id);
         console.log('Completion Check:', { currentOrder, completed: Array.from(completed), allCompleted, nextCaseId });
@@ -287,13 +340,14 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('Query error:', msg);
       setResultRows([]);
+      addHistory(query, false);
       setMessage(msg.includes('circular reference') ? `*bleep* Circular reference detected: ${msg}. Rename your CTEs (e.g., "returns" → "return_data").` : `${pickRandom(queryMessages.error)} — ${msg}`);
       setAttempts((a) => a + 1);
       if (attempts + 1 < hints.length) setVisibleHints((v) => Math.min(v + 1, hints.length));
     } finally {
       setBusy(false);
     }
-  }, [query, expected, solutionQuery, id, markComplete, attempts, hints.length, completed, skills, domain, currentOrder, nextCaseId, tier]);
+  }, [query, expected, solutionQuery, id, markComplete, attempts, hints.length, completed, skills, domain, currentOrder, nextCaseId, tier, addHistory, timerSeconds]);
 
   const tryExampleQuery = useCallback(() => {
     setQuery(templateQuery || seedQuery);
@@ -306,6 +360,22 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const hasVisualizations = useMemo(() => {
     return (visualizationConfigs[domain]?.[id]?.length ?? 0) > 0;
   }, [domain, id]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (canRun) onRun();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        setQuery(''); setMessage(''); setResultRows([]); setAttempts(0); setShowSolution(false); setVisibleHints(1); setDiffData(null);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [canRun, onRun]);
 
   if (!isUnlocked(prerequisites)) {
     return (
@@ -344,8 +414,21 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
     );
   }
 
+  const fmtTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6 bg-gradient-to-b from-gray-50 to-bleepx-blue/10 min-h-screen">
+    <div className={`max-w-6xl mx-auto px-3 sm:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6 min-h-screen transition-colors ${dark ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-b from-gray-50 to-bleepx-blue/10'}`}>
+      {/* Toolbar */}
+      <div className="flex items-center justify-end gap-2 text-xs">
+        <button onClick={toggleDark} className={`px-2 py-1 rounded-full border transition-colors ${dark ? 'border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700' : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-100'}`}>
+          {dark ? '☀️ Light' : '🌙 Dark'}
+        </button>
+        <button onClick={() => { setTimerEnabled((v) => !v); if (!timerEnabled) setTimerSeconds(0); }} className={`px-2 py-1 rounded-full border transition-colors ${dark ? 'border-gray-600 bg-gray-800 text-gray-200' : 'border-gray-300 bg-white text-gray-700'} ${timerEnabled ? 'ring-2 ring-bleepx-blue' : ''}`}>
+          ⏱️ {timerEnabled ? fmtTime(timerSeconds) : 'Timer'}
+        </button>
+        <span className={`hidden sm:inline px-2 py-1 rounded ${dark ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>⌘/Ctrl+Enter = Run · ⌘/Ctrl+Shift+C = Clear</span>
+      </div>
+
       <nav className="text-xs sm:text-sm font-medium text-bleepx-blue overflow-x-auto" aria-label="Breadcrumb">
         <ol className="flex space-x-1.5 sm:space-x-2 items-center whitespace-nowrap">
           <li><Link href="/" className="hover:underline">Home</Link></li>
@@ -388,11 +471,70 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
             aria-label="SQL query editor"
             className="border border-bleepx-gray/20 rounded-lg"
           />
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {tables.map((table) => table.columns.map((c) => (
-              <Chip key={`${table.name}.${c}`} label={`${table.name}.${c}`} onClick={() => setQuery((q) => `${q.replace(/;?\s*$/, '')} ${table.name}.${c} `)} />
-            )))}
+          <div className="mt-3 flex gap-2">
+            <button onClick={() => setShowSchema((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showSchema ? 'bg-bleepx-blue text-white border-bleepx-blue' : dark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
+              {showSchema ? '✕ Hide Schema' : '📋 Schema Explorer'}
+            </button>
+            {expected.length > 0 && (
+              <button onClick={() => setShowExpected((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showExpected ? 'bg-green-600 text-white border-green-600' : dark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
+                {showExpected ? '✕ Hide Expected' : '🎯 Expected Output'}
+              </button>
+            )}
+            <button onClick={() => setShowHistory((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showHistory ? 'bg-purple-600 text-white border-purple-600' : dark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
+              {showHistory ? '✕ Hide History' : `📜 History (${queryHistory.length})`}
+            </button>
           </div>
+          {/* Schema Explorer */}
+          {showSchema && tables.length > 0 && (
+            <div className={`mt-3 rounded-lg border p-3 text-xs ${dark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+              {tables.map((table) => (
+                <div key={table.name} className="mb-3 last:mb-0">
+                  <div className="font-semibold text-sm mb-1 flex items-center gap-1">
+                    <span>🗂️</span>
+                    <button onClick={() => setQuery((q) => `${q.replace(/;?\s*$/, '')} ${table.name} `)} className="hover:text-bleepx-blue cursor-pointer">
+                      {table.name}
+                    </button>
+                    <span className={`text-[10px] ml-1 ${dark ? 'text-gray-500' : 'text-gray-400'}`}>({table.rowCount} rows)</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1 ml-5">
+                    {table.columns.map((c) => (
+                      <button key={c} onClick={() => { playBleep(); setQuery((q) => `${q.replace(/;?\s*$/, '')} ${c} `); }} className={`px-2 py-0.5 rounded text-[11px] cursor-pointer transition-colors ${dark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-white hover:bg-bleepx-blue/10 text-gray-700 border border-gray-200'}`}>
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Expected Output Preview */}
+          {showExpected && expected.length > 0 && (
+            <div className={`mt-3 rounded-lg border p-3 text-xs ${dark ? 'bg-gray-800 border-gray-700' : 'bg-green-50 border-green-200'}`}>
+              <p className="font-semibold text-sm mb-2">🎯 Expected Output Shape</p>
+              <p><strong>Columns:</strong> {expected.length > 0 ? Object.keys((expected as Record<string, any>[])[0]).join(', ') : '—'}</p>
+              <p><strong>Rows:</strong> {expected.length}</p>
+              <p className={`mt-1 italic ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Match these columns and row count to pass.</p>
+            </div>
+          )}
+          {/* Query History */}
+          {showHistory && (
+            <div className={`mt-3 rounded-lg border p-3 text-xs max-h-[200px] overflow-y-auto ${dark ? 'bg-gray-800 border-gray-700' : 'bg-purple-50 border-purple-200'}`}>
+              <p className="font-semibold text-sm mb-2">📜 Query History</p>
+              {queryHistory.length === 0 ? (
+                <p className={dark ? 'text-gray-400' : 'text-gray-500'}>No queries yet.</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {queryHistory.map((h, i) => (
+                    <div key={i} className={`flex items-start gap-2 p-1.5 rounded cursor-pointer hover:bg-opacity-50 ${dark ? 'hover:bg-gray-700' : 'hover:bg-purple-100'}`} onClick={() => { setQuery(h.query); setShowHistory(false); }}>
+                      <span className="flex-shrink-0 mt-0.5">{h.success === true ? '✅' : h.success === false ? '❌' : '⚪'}</span>
+                      <pre className="truncate flex-1 font-mono">{h.query}</pre>
+                      <span className={`flex-shrink-0 text-[10px] ${dark ? 'text-gray-500' : 'text-gray-400'}`}>{new Date(h.ts).toLocaleTimeString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           <div className="mt-4 flex gap-1.5 sm:gap-2 flex-wrap">
             <button
               onClick={() => {
@@ -567,14 +709,23 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
 
         {/* 3. Query Results — shows after running a query */}
         {(resultRows.length > 0 || busy) && (
-          <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
-            <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray mb-3 sm:mb-4">Query Results</h2>
+          <div className={`p-3 sm:p-6 rounded-xl shadow-lg ${dark ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className={`text-base sm:text-lg font-semibold ${dark ? 'text-gray-100' : 'text-bleepx-gray'}`}>Query Results</h2>
+              {diffData && (
+                <button onClick={() => setShowDiff((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showDiff ? 'bg-red-600 text-white border-red-600' : dark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-red-300 text-red-600 hover:bg-red-50'}`}>
+                  {showDiff ? '✕ Hide Diff' : '🔍 Show Diff'}
+                </button>
+              )}
+            </div>
             <div className="min-h-[120px] sm:min-h-[200px] overflow-x-auto">
               {busy ? (
                 <div className="flex items-center" aria-live="polite">
                   <Spinner />
                   <span className="ml-2 text-bleepx-gray">{queryMessages.processing}</span>
                 </div>
+              ) : showDiff && diffData ? (
+                <DiffGrid actual={diffData.actual} expected={diffData.expected} expectedColumns={diffData.cols} />
               ) : (
                 <DataGrid data={resultRows} />
               )}
