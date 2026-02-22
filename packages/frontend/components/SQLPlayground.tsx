@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import DataGrid from './DataGrid';
+import Papa from 'papaparse';
 import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { compareResults } from '@/lib/compare';
 import { useProgress } from '@/lib/useProgress';
@@ -175,7 +176,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
             try {
               const colRes = await runQuery(`PRAGMA table_info("${dataset.name}");`);
               sqlColumns = colRes.data.length ? colRes.data.map((row) => row[1] as string) : [];
-            } catch { /* ignore */ }
+            } catch (err) { console.error(`[SQL] PRAGMA failed for ${dataset.name}:`, err); }
 
             let rowCount = 0;
             try {
@@ -187,9 +188,22 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
 
             let previewRows: Record<string, string | number | null>[] = [];
             try {
-              const prevRes = await runQuery(`SELECT * FROM "${dataset.name}" LIMIT 5`);
-              previewRows = prevRes.data.map((row: unknown[]) => Object.fromEntries(prevRes.columns.map((c, i) => [c, row[i] as string | number | null])));
-            } catch { /* ignore */ }
+              const url = dataset.file.startsWith('/datasets/') ? dataset.file : `/datasets/${dataset.file}`;
+              const csvResp = await fetch(url);
+              if (csvResp.ok) {
+                const csvText = await csvResp.text();
+                const parsed = Papa.parse(csvText.trim().replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true, preview: 5 });
+                previewRows = (parsed.data as Record<string, any>[]).map((row) => {
+                  const out: Record<string, string | number | null> = {};
+                  for (const key of Object.keys(row)) {
+                    const v = row[key];
+                    out[key] = v === '' || v === undefined ? null : v;
+                  }
+                  return out;
+                });
+                console.log(`[SQL] preview for ${dataset.name}: ${previewRows.length} rows from CSV`);
+              }
+            } catch (err) { console.error(`[SQL] preview failed for ${dataset.name}:`, err); }
 
             return { name: dataset.name, file: dataset.file, columns: sqlColumns, previewRows, rowCount };
           })

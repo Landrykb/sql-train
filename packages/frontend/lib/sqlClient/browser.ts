@@ -179,7 +179,7 @@ export async function runQuery(sql: string, params: any[] = []): Promise<{ colum
   const cleanedSql = sql.replace(/\)\s*;*$/, ');').replace(/;;+/g, ';');
 
   try {
-    const result = db.exec(cleanedSql, params);
+    const result = params.length > 0 ? db.exec(cleanedSql, params) : db.exec(cleanedSql);
     if (result.length === 0) {
       return { columns: [], data: [] };
     }
