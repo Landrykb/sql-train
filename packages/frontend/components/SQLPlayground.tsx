@@ -149,6 +149,13 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       const hist = localStorage.getItem(`bleepx_history_${domain}_${id}`);
       if (hist) setQueryHistory(JSON.parse(hist));
     } catch { /* ignore */ }
+    // Test mode: auto-start timer for capstone/hidden cases
+    try {
+      const profile = JSON.parse(localStorage.getItem('bleepx_profile') || '{}');
+      if (profile.testModeEnabled && (id.startsWith('capstone') || id.startsWith('hidden_'))) {
+        setTimerEnabled(true);
+      }
+    } catch { /* ignore */ }
   }, [domain, id]);
 
   // Timer
@@ -460,6 +467,11 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
         <button onClick={() => { setTimerEnabled((v) => !v); if (!timerEnabled) setTimerSeconds(0); }} className={`px-2 py-1 rounded-full border transition-colors ${dark ? 'border-gray-600 bg-gray-800 text-gray-200' : 'border-gray-300 bg-white text-gray-700'} ${timerEnabled ? 'ring-2 ring-bleepx-blue' : ''}`}>
           ⏱️ {timerEnabled ? fmtTime(timerSeconds) : 'Timer'}
         </button>
+        {(id.startsWith('capstone') || id.startsWith('hidden_')) && timerEnabled && (
+          <span className={`px-2 py-1 rounded-full text-xs font-bold ${dark ? 'bg-amber-900/30 text-amber-300' : 'bg-amber-100 text-amber-700'}`}>
+            🧪 TEST MODE
+          </span>
+        )}
         <span className={`hidden sm:inline px-2 py-1 rounded ${dark ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>⌘/Ctrl+Enter = Run · ⌘/Ctrl+Shift+C = Clear</span>
       </div>
 
@@ -562,7 +574,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                   {queryHistory.map((h, i) => (
                     <div key={i} className={`flex items-start gap-2 p-1.5 rounded cursor-pointer hover:bg-opacity-50 ${dark ? 'hover:bg-gray-700' : 'hover:bg-purple-100'}`} onClick={() => { setQuery(h.query); setShowHistory(false); }}>
                       <span className="flex-shrink-0 mt-0.5">{h.success === true ? '✅' : h.success === false ? '❌' : '⚪'}</span>
-                      <pre className="truncate flex-1 font-mono">{h.query}</pre>
+                      <pre className={`truncate flex-1 font-mono ${dark ? 'text-gray-200' : 'text-gray-800'}`}>{h.query}</pre>
                       <span className={`flex-shrink-0 text-[10px] ${dark ? 'text-gray-500' : 'text-gray-400'}`}>{new Date(h.ts).toLocaleTimeString()}</span>
                     </div>
                   ))}
