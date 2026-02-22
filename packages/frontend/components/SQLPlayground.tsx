@@ -310,6 +310,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       setResultRows(grid);
       // Scroll to results after a short delay for React to render
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+      setAttempts((a) => a + 1);
 
       if (!expected.length) {
         addHistory(query, null);
@@ -320,7 +321,6 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       const expectedArray = (expected as Record<string, any>[]).map((obj) => cols.map((colName) => obj[colName] as string | number | null));
       const { correct, feedback } = await compareResults(grid, expectedArray, solutionQuery, query, skills);
       setMessage(feedback);
-      setAttempts((a) => a + 1);
       addHistory(query, correct);
 
       if (!correct && expected.length > 0) {
@@ -590,7 +590,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                 Example
               </button>
             )}
-            {attempts >= 3 && !showSolution && (
+            {attempts >= 3 && !showSolution && solutionQuery && (
               <button
                 onClick={() => {
                   playBleep();
