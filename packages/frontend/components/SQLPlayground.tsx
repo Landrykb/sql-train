@@ -108,6 +108,10 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const [visibleSteps, setVisibleSteps] = useState(1);
   const [showThoughtProcess, setShowThoughtProcess] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [hasRun, setHasRun] = useState(false);
+  const [nextDestination, setNextDestination] = useState<{ url: string; label: string } | null>(null);
+  const [countdown, setCountdown] = useState(0);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
   const [savedQuery, setSavedQuery] = useState<string | null>(null);
   const [queryHistory, setQueryHistory] = useState<{ query: string; ts: number; success: boolean | null }[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -148,6 +152,22 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [timerEnabled, dbReady]);
+
+  // Countdown for auto-navigation after success
+  useEffect(() => {
+    if (nextDestination && countdown > 0) {
+      countdownRef.current = setInterval(() => {
+        setCountdown((c) => {
+          if (c <= 1) {
+            window.location.href = nextDestination.url;
+            return 0;
+          }
+          return c - 1;
+        });
+      }, 1000);
+    }
+    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
+  }, [nextDestination, countdown > 0]);
 
   // Replay saved query once DB is ready
   useEffect(() => {
@@ -273,8 +293,10 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
     setDiffData(null);
 
     try {
-      console.log('Running query:', query);
+      console.log('[SQL] Running query:', query);
+      setHasRun(true);
       const result = await runQuery(query);
+      console.log('[SQL] Query result:', { columns: result?.columns?.length, rows: result?.data?.length });
       const cols = result?.columns ?? [];
       const data = result?.data ?? [];
       const grid = data.map((row: unknown[]) => Object.fromEntries(cols.map((c, i) => [c, row[i]]))) as Record<string, string | number | null>[];
@@ -309,30 +331,16 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
         try { localStorage.setItem(`bleepx_solved_${domain}_${id}`, JSON.stringify({ query, ts: Date.now(), time: timerSeconds, attempts: attempts + 1 })); } catch { /* ignore */ }
 
         const allCompleted = currentOrder.length > 0 && currentOrder.every((caseId) => completed.has(caseId) || caseId === id);
-        console.log('Completion Check:', { currentOrder, completed: Array.from(completed), allCompleted, nextCaseId });
 
         if (allCompleted && currentOrder.length > 0) {
-          setMessage(getDomainCompleteMessage(domain));
-          setTimeout(() => {
-            setShowSuccess(false);
-            console.log('Redirecting to:', `/cases/${domain}/dashboard`);
-            window.location.href = `/cases/${domain}/dashboard`;
-          }, 800);
+          setNextDestination({ url: `/cases/${domain}/dashboard`, label: 'View Dashboard' });
         } else if (nextCaseId) {
-          setMessage(getNextCaseMessage(nextCaseId));
-          setTimeout(() => {
-            setShowSuccess(false);
-            console.log('Redirecting to:', `/cases/${domain}/${nextCaseId}`);
-            window.location.href = `/cases/${domain}/${nextCaseId}`;
-          }, 1200);
+          const nextName = nextCaseId.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+          setNextDestination({ url: `/cases/${domain}/${nextCaseId}`, label: `Next: ${nextName}` });
         } else {
-          setMessage('*bleep* Mission complete. Head back to the domain hub for your next assignment.');
-          setTimeout(() => {
-            setShowSuccess(false);
-            console.log('Redirecting to:', `/cases/${domain}`);
-            window.location.href = `/cases/${domain}`;
-          }, 1200);
+          setNextDestination({ url: `/cases/${domain}`, label: 'Back to Domain' });
         }
+        setCountdown(30);
       } else if (attempts + 1 < hints.length) {
         setVisibleHints((v) => Math.min(v + 1, hints.length));
       }
@@ -606,13 +614,6 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                 <img src="/bleepx-logo.png" alt="Bleepx" className="h-5 w-5" />
                 <span>{message}</span>
               </div>
-              {message.includes('cleared') && (
-                <div className="mt-4">
-                  <Link href={`/cases/${domain}/dashboard`}>
-                    <button className="px-4 py-2 rounded-full bg-bleepx-blue text-white hover:bg-bleepx-pink transition-all duration-200">View Dashboard</button>
-                  </Link>
-                </div>
-              )}
             </div>
           )}
           {showSolution && solutionQuery && (
@@ -707,18 +708,59 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
           </div>
         )}
 
-        {/* 3. Query Results — shows after running a query */}
-        {(resultRows.length > 0 || busy) && (
+        {/* 3. Success / Transition Panel */}
+        {showSuccess && nextDestination && (
+          <div className="p-4 sm:p-6 rounded-xl shadow-lg bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 animate-fade-in">
+            <div className="flex items-start gap-3">
+              <span className="text-3xl flex-shrink-0">🎉</span>
+              <div className="flex-1">
+                <h2 className="text-lg sm:text-xl font-bold text-green-800 mb-1">*bleep* Outstanding work, human!</h2>
+                <p className="text-sm text-green-700 mb-1">You cracked it{timerEnabled && timerSeconds > 0 ? ` in ${Math.floor(timerSeconds / 60)}m ${timerSeconds % 60}s` : ''}{attempts > 0 ? ` with ${attempts} attempt${attempts !== 1 ? 's' : ''}` : ''}. Your query results are below — take a moment to review them.</p>
+                <p className="text-xs text-green-600 mt-2">Moving to <strong>{nextDestination.label}</strong> in <strong>{countdown}s</strong>. You can stay here to review, or head there now.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => { if (countdownRef.current) clearInterval(countdownRef.current); window.location.href = nextDestination.url; }}
+                    className="px-4 py-2 rounded-full bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-colors"
+                  >
+                    {nextDestination.label} →
+                  </button>
+                  <button
+                    onClick={() => { if (countdownRef.current) clearInterval(countdownRef.current); setNextDestination(null); setCountdown(0); setShowSuccess(false); }}
+                    className="px-4 py-2 rounded-full border border-green-400 text-green-700 text-sm font-medium hover:bg-green-100 transition-colors"
+                  >
+                    Stay & Review
+                  </button>
+                  {hasVisualizations && (
+                    <Link href={`/cases/${domain}/${id}/visualizations`}>
+                      <button className="px-4 py-2 rounded-full border border-green-400 text-green-700 text-sm font-medium hover:bg-green-100 transition-colors">
+                        View Visualizations
+                      </button>
+                    </Link>
+                  )}
+                </div>
+                <div className="mt-3 w-full bg-green-200 rounded-full h-1.5 overflow-hidden">
+                  <div className="bg-green-600 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${(countdown / 30) * 100}%` }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 4. Query Results — shows after any query has been run */}
+        {(hasRun || busy) && (
           <div className={`p-3 sm:p-6 rounded-xl shadow-lg ${dark ? 'bg-gray-800' : 'bg-white'}`}>
             <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h2 className={`text-base sm:text-lg font-semibold ${dark ? 'text-gray-100' : 'text-bleepx-gray'}`}>Query Results</h2>
+              <h2 className={`text-base sm:text-lg font-semibold ${dark ? 'text-gray-100' : 'text-bleepx-gray'}`}>
+                Query Results
+                {!busy && resultRows.length > 0 && <span className={`text-xs font-normal ml-2 ${dark ? 'text-gray-400' : 'text-gray-500'}`}>({resultRows.length} row{resultRows.length !== 1 ? 's' : ''})</span>}
+              </h2>
               {diffData && (
                 <button onClick={() => setShowDiff((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showDiff ? 'bg-red-600 text-white border-red-600' : dark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-red-300 text-red-600 hover:bg-red-50'}`}>
                   {showDiff ? '✕ Hide Diff' : '🔍 Show Diff'}
                 </button>
               )}
             </div>
-            <div className="min-h-[120px] sm:min-h-[200px] overflow-x-auto">
+            <div className="min-h-[80px] sm:min-h-[120px] overflow-x-auto">
               {busy ? (
                 <div className="flex items-center" aria-live="polite">
                   <Spinner />
@@ -726,22 +768,24 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                 </div>
               ) : showDiff && diffData ? (
                 <DiffGrid actual={diffData.actual} expected={diffData.expected} expectedColumns={diffData.cols} />
-              ) : (
+              ) : resultRows.length > 0 ? (
                 <DataGrid data={resultRows} />
+              ) : (
+                <p className={`text-sm ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Query returned 0 rows.</p>
               )}
             </div>
           </div>
         )}
 
-        {/* 4. Dataset Preview — always visible */}
-        <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
-          <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray mb-3 sm:mb-4">Dataset Preview</h2>
+        {/* 5. Dataset Preview — always visible */}
+        <div className={`p-3 sm:p-6 rounded-xl shadow-lg ${dark ? 'bg-gray-800' : 'bg-white'}`}>
+          <h2 className={`text-base sm:text-lg font-semibold mb-3 sm:mb-4 ${dark ? 'text-gray-100' : 'text-bleepx-gray'}`}>Dataset Preview</h2>
           {datasets.length > 1 && (
             <div className="mb-4">
               <select
                 value={selectedTable || ''}
                 onChange={(e) => setSelectedTable(e.target.value)}
-                className="p-2 border border-bleepx-gray/20 rounded-lg text-sm text-bleepx-gray"
+                className={`p-2 border rounded-lg text-sm ${dark ? 'border-gray-600 bg-gray-700 text-gray-200' : 'border-bleepx-gray/20 text-bleepx-gray'}`}
                 aria-label="Select dataset to preview"
               >
                 {tables.map((table) => (
@@ -753,7 +797,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
           <div className="min-h-[120px] sm:min-h-[200px] overflow-x-auto">
             <DataGrid data={tables.find((t) => t.name === selectedTable)?.previewRows || []} />
           </div>
-          <div className="mt-4 text-sm text-bleepx-gray">
+          <div className={`mt-4 text-sm ${dark ? 'text-gray-400' : 'text-bleepx-gray'}`}>
             {tables.map((table) => (
               <div key={table.name} className="mb-2">
                 <p><strong>Dataset:</strong> <code>{table.file}</code></p>
