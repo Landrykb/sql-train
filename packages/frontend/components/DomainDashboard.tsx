@@ -212,7 +212,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
     return (
       <div className="flex items-center justify-center p-8">
         <Spinner />
-        <span className="ml-2 text-gray-600">*bleep* Loading your dashboard...</span>
+        <span className="ml-2 text-bleepx-text-secondary">*bleep* Loading your dashboard...</span>
       </div>
     );
   }
@@ -220,26 +220,26 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
   return (
     <div className="space-y-6">
       {/* Progress Overview */}
-      <section className="bg-white p-6 rounded-xl shadow-lg">
+      <section className="bg-bleepx-white p-6 rounded-xl shadow-lg">
         <div className="flex flex-col sm:flex-row items-center gap-6">
           {/* Progress Ring */}
           <div className="relative w-32 h-32 flex-shrink-0">
             <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-              <circle cx="50" cy="50" r="42" fill="none" stroke="#e5e7eb" strokeWidth="8" />
-              <circle cx="50" cy="50" r="42" fill="none" stroke="#2563eb" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${pct * 2.64} 264`} className="transition-all duration-1000" />
+              <circle cx="50" cy="50" r="42" fill="none" className="stroke-bleepx-border" strokeWidth="8" />
+              <circle cx="50" cy="50" r="42" fill="none" className="stroke-bleepx-blue" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${pct * 2.64} 264`} style={{transition: 'all 1s'}} />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-2xl font-bold text-gray-900">{pct}%</span>
+              <span className="text-2xl font-bold text-bleepx-text">{pct}%</span>
             </div>
           </div>
           <div className="flex-1 text-center sm:text-left">
-            <h2 className="text-2xl font-bold text-gray-900">{domain.charAt(0).toUpperCase() + domain.slice(1)} Progress</h2>
-            <p className="text-gray-600 mt-1">{completedCount} of {totalCases} challenges completed</p>
+            <h2 className="text-2xl font-bold text-bleepx-text">{domain.charAt(0).toUpperCase() + domain.slice(1)} Progress</h2>
+            <p className="text-bleepx-text-secondary mt-1">{completedCount} of {totalCases} challenges completed</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">{solvedEntries.length} solved</span>
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">{totalCases - completedCount} remaining</span>
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium">{solvedEntries.length} solved</span>
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-medium">{totalCases - completedCount} remaining</span>
               {solvedEntries.some((e) => e.time) && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-medium">
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs font-medium">
                   Avg time: {Math.round(solvedEntries.filter((e) => e.time).reduce((s, e) => s + (e.time || 0), 0) / solvedEntries.filter((e) => e.time).length)}s
                 </span>
               )}
@@ -249,22 +249,22 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
       </section>
 
       {/* Case Grid */}
-      <section className="bg-white p-6 rounded-xl shadow-lg">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Challenge Map</h2>
+      <section className="bg-bleepx-white p-6 rounded-xl shadow-lg">
+        <h2 className="text-xl font-semibold text-bleepx-text mb-4">Challenge Map</h2>
         <ClientCaseGrid domain={domain} cases={cases} />
       </section>
 
       {/* Domain Charts — built from CSV data, no SQL needed */}
       {domainCharts.length > 0 && (
-        <section className="bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Data Insights</h2>
-          <p className="text-sm text-gray-500 mb-4">Visualizations built from the {domain} datasets.</p>
+        <section className="bg-bleepx-white p-6 rounded-xl shadow-lg">
+          <h2 className="text-xl font-semibold text-bleepx-text mb-4">Data Insights</h2>
+          <p className="text-sm text-bleepx-text-secondary mb-4">Visualizations built from the {domain} datasets.</p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {domainCharts.map((chart, i) => (
-              <div key={i} className="border border-gray-200 rounded-lg p-3 overflow-hidden">
+              <div key={i} className="border border-bleepx-border rounded-lg p-3 overflow-hidden">
                 <Plot
                   data={chart.data}
-                  layout={{ ...chart.layout, autosize: true, margin: { t: 50, b: 70, l: 60, r: 30 }, font: { size: 11 }, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent' }}
+                  layout={{ ...chart.layout, autosize: true, margin: { t: 50, b: 70, l: 60, r: 30 }, font: { size: 11, color: 'var(--bleepx-text)' }, paper_bgcolor: 'var(--bleepx-white)', plot_bgcolor: 'var(--bleepx-white)' }}
                   config={{ responsive: true, displayModeBar: false }}
                   className="w-full"
                   style={{ width: '100%', height: 320 }}
@@ -277,26 +277,26 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
 
       {/* Per-Case Performance */}
       {solvedEntries.length > 0 && (
-        <section className="bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Performance by Challenge</h2>
+        <section className="bg-bleepx-white p-6 rounded-xl shadow-lg">
+          <h2 className="text-xl font-semibold text-bleepx-text mb-4">Performance by Challenge</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-3 font-medium text-gray-700">Challenge</th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-700">Attempts</th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-700">Time</th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-700">Rating</th>
+                <tr className="border-b border-bleepx-border">
+                  <th className="text-left py-2 px-3 font-medium text-bleepx-text">Challenge</th>
+                  <th className="text-left py-2 px-3 font-medium text-bleepx-text">Attempts</th>
+                  <th className="text-left py-2 px-3 font-medium text-bleepx-text">Time</th>
+                  <th className="text-left py-2 px-3 font-medium text-bleepx-text">Rating</th>
                 </tr>
               </thead>
               <tbody>
                 {solvedEntries.map((e) => {
                   const rating = (e.attempts || 1) <= 1 ? '⭐⭐⭐' : (e.attempts || 1) <= 3 ? '⭐⭐' : '⭐';
                   return (
-                    <tr key={e.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-2 px-3 font-medium">{e.name}</td>
-                      <td className="py-2 px-3">{e.attempts || '—'}</td>
-                      <td className="py-2 px-3">{e.time ? `${Math.floor(e.time / 60)}m ${e.time % 60}s` : '—'}</td>
+                    <tr key={e.id} className="border-b border-bleepx-border hover:bg-bleepx-blue/5">
+                      <td className="py-2 px-3 font-medium text-bleepx-text">{e.name}</td>
+                      <td className="py-2 px-3 text-bleepx-text-secondary">{e.attempts || '—'}</td>
+                      <td className="py-2 px-3 text-bleepx-text-secondary">{e.time ? `${Math.floor(e.time / 60)}m ${e.time % 60}s` : '—'}</td>
                       <td className="py-2 px-3">{rating}</td>
                     </tr>
                   );
@@ -308,34 +308,34 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
       )}
 
       {/* Solved Queries */}
-      <section className="bg-white p-6 rounded-xl shadow-lg">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Solved Queries</h2>
+      <section className="bg-bleepx-white p-6 rounded-xl shadow-lg">
+        <h2 className="text-xl font-semibold text-bleepx-text mb-4">Your Solved Queries</h2>
         {solvedEntries.length > 0 ? (
           <div className="space-y-3">
             {solvedEntries.map((e) => (
-              <div key={e.id} className="border border-gray-200 rounded-lg p-3">
+              <div key={e.id} className="border border-bleepx-border rounded-lg p-3">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm font-medium text-gray-800">{e.name}</span>
-                  <span className="text-xs text-green-600 font-semibold">✓ Solved</span>
+                  <span className="text-sm font-medium text-bleepx-text">{e.name}</span>
+                  <span className="text-xs text-green-600 dark:text-green-400 font-semibold">✓ Solved</span>
                 </div>
-                <pre className="text-xs text-gray-600 bg-gray-50 p-2 rounded overflow-x-auto whitespace-pre-wrap">{e.query}</pre>
+                <pre className="text-xs text-bleepx-text-secondary bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded overflow-x-auto whitespace-pre-wrap">{e.query}</pre>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 text-sm">No solved queries yet. Complete cases to see your solutions here.</p>
+          <p className="text-bleepx-text-secondary text-sm">No solved queries yet. Complete cases to see your solutions here.</p>
         )}
       </section>
 
       {/* Dataset Preview */}
       {tables.length > 0 && (
-        <section className="bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Datasets</h2>
+        <section className="bg-bleepx-white p-6 rounded-xl shadow-lg">
+          <h2 className="text-xl font-semibold text-bleepx-text mb-4">Datasets</h2>
           {tables.map((table) => (
             <div key={table.name} className="mb-6">
               <div className="flex items-center gap-2 mb-2">
                 <h3 className="font-medium text-lg">{table.name}</h3>
-                <span className="text-xs text-gray-500">({table.rowCount} rows, {table.columns.length} columns)</span>
+                <span className="text-xs text-bleepx-text-secondary">({table.rowCount} rows, {table.columns.length} columns)</span>
               </div>
               <DataGrid data={table.previewRows} />
             </div>
@@ -343,32 +343,61 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
         </section>
       )}
 
-      {/* Export */}
-      <section className="bg-white p-6 rounded-xl shadow-lg">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Export</h2>
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => {
-              const report = `# ${domain.charAt(0).toUpperCase() + domain.slice(1)} — Progress Report\n## BleepxQuery SwiftLink Training Program\n\n**Completed:** ${completedCount} of ${totalCases} (${pct}%)\n**Date:** ${new Date().toLocaleDateString()}\n\n---\n\n${solvedEntries.length > 0 ? solvedEntries.map((e) => `### ${e.name}${e.attempts ? ` (${e.attempts} attempts)` : ''}${e.time ? ` — ${Math.floor(e.time / 60)}m ${e.time % 60}s` : ''}\n\`\`\`sql\n${e.query}\n\`\`\`\n`).join('\n') : 'No solved queries yet.'}\n\n---\n*Generated by [BleepxQuery](https://bleepxacademy.vercel.app)*\n`;
-              const blob = new Blob([report], { type: 'text/markdown' });
-              const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${domain}_progress.md`; a.click();
-            }}
-            className="px-4 py-2 rounded-full bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors"
-          >
-            📄 Download Report
-          </button>
-          <button
-            onClick={() => {
-              const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${domain} Report</title><style>body{font-family:system-ui;max-width:800px;margin:40px auto;padding:20px}h1{color:#2563eb}pre{background:#f3f4f6;padding:12px;border-radius:8px;font-size:13px}.g{color:#16a34a;font-weight:600}@media print{body{margin:0}}</style></head><body><h1>${domain.charAt(0).toUpperCase() + domain.slice(1)} Progress — ${pct}%</h1><p>${completedCount}/${totalCases} completed | ${new Date().toLocaleDateString()}</p><hr>${solvedEntries.map((e) => `<h3>${e.name} <span class="g">✓</span></h3><pre>${e.query.replace(/</g,'&lt;')}</pre>`).join('')}<hr><p style="font-size:12px;color:#999">Generated by BleepxQuery</p></body></html>`;
-              const w = window.open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
-              if (w) setTimeout(() => w.print(), 800);
-            }}
-            className="px-4 py-2 rounded-full bg-gray-800 text-white text-sm hover:bg-gray-900 transition-colors"
-          >
-            🖨️ Print / PDF
-          </button>
+      {/* Portfolio Export — GitHub-ready projects */}
+      <section className="bg-bleepx-white p-6 rounded-xl shadow-lg">
+        <h2 className="text-xl font-semibold text-bleepx-text mb-2">Portfolio & Export</h2>
+        <p className="text-sm text-bleepx-text-secondary mb-4">Download your work as GitHub-ready project files. Capstone and bonus challenges make great portfolio pieces.</p>
+
+        {solvedEntries.length > 0 ? (
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-3">
+              {/* Full portfolio download */}
+              <button
+                onClick={() => {
+                  const domainTitle = domain.charAt(0).toUpperCase() + domain.slice(1);
+                  const readme = `# ${domainTitle} SQL Analytics Portfolio\n\n## About\nSQL data analysis projects completed through the **BleepxQuery SwiftLink Training Program**.\nDomain: **${domainTitle}** | Challenges Solved: **${solvedEntries.length}/${totalCases}** | Completion: **${pct}%**\n\n## Skills Demonstrated\n- SQL (SELECT, JOIN, GROUP BY, Window Functions, CTEs, Subqueries)\n- Data Analysis & Aggregation\n- Real-world problem solving with industry datasets\n\n## Projects\n\n${solvedEntries.map((e, i) => `### ${i + 1}. ${e.name}\n${e.attempts ? `- **Attempts:** ${e.attempts}` : ''}\n${e.time ? `- **Solve Time:** ${Math.floor(e.time / 60)}m ${e.time % 60}s` : ''}\n\n\`\`\`sql\n${e.query}\n\`\`\`\n`).join('\n')}\n## How to Run\n1. Load the CSV datasets into any SQL database (SQLite, PostgreSQL, etc.)\n2. Run each query against the loaded tables\n3. See \`queries/\` folder for individual .sql files\n\n## Datasets\n${tables.map((t) => `- **${t.name}** — ${t.rowCount} rows, ${t.columns.length} columns (${t.columns.slice(0, 5).join(', ')}${t.columns.length > 5 ? '...' : ''})`).join('\n')}\n\n---\n*Generated by [BleepxQuery](https://bleepxacademy.vercel.app) — SwiftLink Training Program*\n`;
+                  const blob = new Blob([readme], { type: 'text/markdown' });
+                  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${domain}-sql-portfolio/README.md`; a.click();
+                  // Also download individual SQL files
+                  solvedEntries.forEach((e) => {
+                    const sqlBlob = new Blob([`-- ${e.name}\n-- Domain: ${domainTitle}\n-- BleepxQuery SwiftLink Training Program\n\n${e.query}\n`], { type: 'text/sql' });
+                    const sa = document.createElement('a'); sa.href = URL.createObjectURL(sqlBlob); sa.download = `${domain}-sql-portfolio/queries/${e.id}.sql`; sa.click();
+                  });
+                }}
+                className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm hover:bg-gray-800 transition-colors flex items-center gap-1.5"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                Download GitHub Portfolio
+              </button>
+              <button
+                onClick={() => {
+                  const report = `# ${domain.charAt(0).toUpperCase() + domain.slice(1)} — Progress Report\n## BleepxQuery SwiftLink Training Program\n\n**Completed:** ${completedCount} of ${totalCases} (${pct}%)\n**Date:** ${new Date().toLocaleDateString()}\n\n---\n\n${solvedEntries.map((e) => `### ${e.name}${e.attempts ? ` (${e.attempts} attempts)` : ''}${e.time ? ` — ${Math.floor(e.time / 60)}m ${e.time % 60}s` : ''}\n\`\`\`sql\n${e.query}\n\`\`\`\n`).join('\n')}\n\n---\n*Generated by [BleepxQuery](https://bleepxacademy.vercel.app)*\n`;
+                  const blob = new Blob([report], { type: 'text/markdown' });
+                  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${domain}_progress.md`; a.click();
+                }}
+                className="px-4 py-2 rounded-full bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors"
+              >
+                📄 Progress Report
+              </button>
+              <button
+                onClick={() => {
+                  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${domain} Portfolio</title><style>body{font-family:system-ui;max-width:800px;margin:40px auto;padding:20px;color:#1f2937}h1{color:#2563eb;border-bottom:3px solid #2563eb;padding-bottom:8px}h2{margin-top:32px;color:#374151}pre{background:#1e293b;color:#a5f3fc;padding:16px;border-radius:12px;overflow-x:auto;font-size:13px;line-height:1.5}.meta{display:flex;gap:16px;color:#6b7280;font-size:13px;margin:8px 0}.badge{display:inline-block;background:#dcfce7;color:#166534;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600}@media print{body{margin:0}pre{background:#f1f5f9;color:#0f172a}}</style></head><body><h1>${domain.charAt(0).toUpperCase() + domain.slice(1)} SQL Analytics Portfolio</h1><p><strong>BleepxQuery SwiftLink Training</strong> | ${completedCount}/${totalCases} challenges (${pct}%) | ${new Date().toLocaleDateString()}</p><hr>${solvedEntries.map((e) => `<h2>${e.name} <span class="badge">Solved</span></h2><div class="meta">${e.attempts ? `<span>Attempts: ${e.attempts}</span>` : ''}${e.time ? `<span>Time: ${Math.floor(e.time / 60)}m ${e.time % 60}s</span>` : ''}</div><pre>${e.query.replace(/</g,'&lt;')}</pre>`).join('')}<hr><p style="font-size:12px;color:#9ca3af;margin-top:24px">Generated by <a href="https://bleepxacademy.vercel.app" style="color:#2563eb">BleepxQuery</a></p></body></html>`;
+                  const w = window.open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
+                  if (w) setTimeout(() => w.print(), 800);
+                }}
+                className="px-4 py-2 rounded-full bg-gray-700 text-white text-sm hover:bg-gray-600 transition-colors"
+              >
+                🖨️ Print / PDF
+              </button>
+            </div>
+            <p className="text-xs text-bleepx-text-secondary">Tip: The GitHub portfolio includes a README.md and individual .sql files — perfect for showcasing your SQL skills to employers.</p>
+          </div>
+        ) : (
+          <p className="text-bleepx-text-secondary text-sm">Complete challenges to unlock portfolio export. Capstone and bonus missions make the strongest portfolio pieces!</p>
+        )}
+        <div className="mt-4 pt-4 border-t border-bleepx-border">
           <Link href={`/cases/${domain}`}>
-            <button className="px-4 py-2 border rounded-full hover:bg-gray-100 transition-colors text-sm">← Back to Cases</button>
+            <button className="px-4 py-2 border border-bleepx-border rounded-full hover:bg-bleepx-blue/5 transition-colors text-sm text-bleepx-text-secondary">← Back to Cases</button>
           </Link>
         </div>
       </section>

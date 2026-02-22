@@ -117,6 +117,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const [nextDestination, setNextDestination] = useState<{ url: string; label: string } | null>(null);
   const [countdown, setCountdown] = useState(0);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
   const [savedQuery, setSavedQuery] = useState<string | null>(null);
   const [queryHistory, setQueryHistory] = useState<{ query: string; ts: number; success: boolean | null }[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -301,11 +302,14 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       console.log('[SQL] Running query:', query);
       setHasRun(true);
       const result = await runQuery(query);
-      console.log('[SQL] Query result:', { columns: result?.columns?.length, rows: result?.data?.length });
+      console.log('[SQL] Query result:', { columns: result?.columns, rowCount: result?.data?.length });
       const cols = result?.columns ?? [];
       const data = result?.data ?? [];
       const grid = data.map((row: unknown[]) => Object.fromEntries(cols.map((c, i) => [c, row[i]]))) as Record<string, string | number | null>[];
+      console.log('[SQL] Grid built:', { gridLength: grid.length, firstRow: grid[0] });
       setResultRows(grid);
+      // Scroll to results after a short delay for React to render
+      setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
 
       if (!expected.length) {
         addHistory(query, null);
@@ -460,7 +464,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
             <img src="/bleepx-logo.png" alt="Bleepx" className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse-logo" />
             <h1 className="text-xl sm:text-3xl font-bold text-bleepx-gray">{name}</h1>
           </div>
-          <span className="text-xs sm:text-sm text-bleepx-gray">Mission {currentIndex >= 0 ? currentIndex + 1 : '?'} of {currentOrder.length || '?'} — Tier {tier}</span>
+          <span className="text-xs sm:text-sm text-bleepx-gray">Mission {currentIndex >= 0 ? currentIndex + 1 : '?'} of {currentOrder.length || '?'} — {tier <= 1 ? 'Beginner' : tier === 2 ? 'Intermediate' : tier === 3 ? 'Advanced' : tier === 4 ? 'Expert' : 'Master'} {'⭐'.repeat(Math.min(tier || 1, 5))}</span>
         </div>
         <p className="mt-2 text-bleepx-gray">{instructions || description}</p>
         {skills.length > 0 && (
@@ -597,13 +601,11 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                 Solution
               </button>
             )}
-            {hasVisualizations && (
-              <Link href={`/cases/${domain}/${id}/visualizations`}>
-                <button className="px-4 py-2 rounded-full bg-bleepx-pink text-white hover:bg-bleepx-blue transition-all duration-200">
-                  View Visualizations
-                </button>
-              </Link>
-            )}
+            <Link href={`/cases/${domain}/${id}/visualizations`}>
+              <button className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-bleepx-pink text-white text-sm sm:text-base hover:bg-bleepx-blue transition-all duration-200">
+                📊 Visualizations
+              </button>
+            </Link>
           </div>
           {message && (
             <div
@@ -611,7 +613,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                 message.includes('Correct') || message.includes('Moving') || message.includes('cleared')
                   ? 'bg-bleepx-blue/20 text-bleepx-gray'
                   : message.startsWith('*bleep* Syntax') || message.startsWith('*bleep* Circular') || message.includes('Error')
-                  ? 'bg-yellow-100 text-yellow-800'
+                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
                   : 'bg-bleepx-blue/10 text-bleepx-gray'
               } ${showSuccess ? 'animate-pulse' : ''}`}
               role="status"
@@ -634,7 +636,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
         {(hints.length > 0 || thoughtProcess.length > 0) && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {hints.length > 0 && (
-              <div className="bg-white p-3 sm:p-5 rounded-xl shadow-lg">
+              <div className="bg-bleepx-white p-3 sm:p-5 rounded-xl shadow-lg">
                 <h2 className="text-base font-semibold text-bleepx-gray mb-2">Intel from Bleepx</h2>
                 <ul className="list-disc pl-5 text-sm text-bleepx-gray space-y-2">
                   {hints.slice(0, visibleHints).map((h, i) => {
@@ -670,7 +672,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
             )}
 
             {thoughtProcess.length > 0 && (
-              <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-3 sm:p-5 rounded-xl shadow-lg border border-amber-200/60">
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-3 sm:p-5 rounded-xl shadow-lg border border-amber-200/60 dark:border-amber-700/40">
                 <button
                   onClick={() => {
                     playBleep();
@@ -678,19 +680,19 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                   }}
                   className="w-full flex items-center justify-between text-left"
                 >
-                  <h2 className="text-base font-semibold text-amber-900 flex items-center gap-2">
+                  <h2 className="text-base font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-2">
                     <span className="text-lg">💡</span> How to Think About This
                   </h2>
-                  <span className="text-amber-700 text-sm font-medium">{showThoughtProcess ? 'Hide' : 'Show'} Guide</span>
+                  <span className="text-amber-700 dark:text-amber-300 text-sm font-medium">{showThoughtProcess ? 'Hide' : 'Show'} Guide</span>
                 </button>
                 {showThoughtProcess && (
                   <div className="mt-4 space-y-3">
                     {thoughtProcess.slice(0, visibleSteps).map((step, i) => (
                       <div key={i} className="flex gap-3 items-start">
-                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-200 text-amber-900 text-xs font-bold flex items-center justify-center mt-0.5">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-200 text-xs font-bold flex items-center justify-center mt-0.5">
                           {i + 1}
                         </span>
-                        <p className="text-sm text-amber-900 leading-relaxed">{step}</p>
+                        <p className="text-sm text-amber-900 dark:text-amber-200 leading-relaxed">{step}</p>
                       </div>
                     ))}
                     {visibleSteps < thoughtProcess.length && (
@@ -699,13 +701,13 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                           playBleep();
                           setVisibleSteps((v) => Math.min(v + 1, thoughtProcess.length));
                         }}
-                        className="mt-2 px-4 py-1.5 text-sm font-medium bg-amber-200/60 hover:bg-amber-200 text-amber-900 rounded-full transition-all duration-200"
+                        className="mt-2 px-4 py-1.5 text-sm font-medium bg-amber-200/60 hover:bg-amber-200 dark:bg-amber-800/60 dark:hover:bg-amber-800 text-amber-900 dark:text-amber-200 rounded-full transition-all duration-200"
                       >
                         Next Step ({visibleSteps}/{thoughtProcess.length})
                       </button>
                     )}
                     {visibleSteps >= thoughtProcess.length && (
-                      <p className="text-xs text-amber-700 mt-2 italic">You&apos;ve seen the full thought process. Now try writing the query!</p>
+                      <p className="text-xs text-amber-700 dark:text-amber-400 mt-2 italic">You&apos;ve seen the full thought process. Now try writing the query!</p>
                     )}
                   </div>
                 )}
@@ -716,13 +718,13 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
 
         {/* 3. Success / Transition Panel */}
         {showSuccess && nextDestination && (
-          <div className="p-4 sm:p-6 rounded-xl shadow-lg bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 animate-fade-in">
+          <div className="p-4 sm:p-6 rounded-xl shadow-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-300 dark:border-green-700 animate-fade-in">
             <div className="flex items-start gap-3">
               <span className="text-3xl flex-shrink-0">🎉</span>
               <div className="flex-1">
-                <h2 className="text-lg sm:text-xl font-bold text-green-800 mb-1">*bleep* Outstanding work, human!</h2>
-                <p className="text-sm text-green-700 mb-1">You cracked it{timerEnabled && timerSeconds > 0 ? ` in ${Math.floor(timerSeconds / 60)}m ${timerSeconds % 60}s` : ''}{attempts > 0 ? ` with ${attempts} attempt${attempts !== 1 ? 's' : ''}` : ''}. Your query results are below — take a moment to review them.</p>
-                <p className="text-xs text-green-600 mt-2">Moving to <strong>{nextDestination.label}</strong> in <strong>{countdown}s</strong>. You can stay here to review, or head there now.</p>
+                <h2 className="text-lg sm:text-xl font-bold text-green-800 dark:text-green-300 mb-1">*bleep* Outstanding work, human!</h2>
+                <p className="text-sm text-green-700 dark:text-green-400 mb-1">You cracked it{timerEnabled && timerSeconds > 0 ? ` in ${Math.floor(timerSeconds / 60)}m ${timerSeconds % 60}s` : ''}{attempts > 0 ? ` with ${attempts} attempt${attempts !== 1 ? 's' : ''}` : ''}. Your query results are below — take a moment to review them.</p>
+                <p className="text-xs text-green-600 dark:text-green-500 mt-2">Moving to <strong>{nextDestination.label}</strong> in <strong>{countdown}s</strong>. You can stay here to review, or head there now.</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     onClick={() => { if (countdownRef.current) clearInterval(countdownRef.current); window.location.href = nextDestination.url; }}
@@ -732,7 +734,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                   </button>
                   <button
                     onClick={() => { if (countdownRef.current) clearInterval(countdownRef.current); setNextDestination(null); setCountdown(0); setShowSuccess(false); }}
-                    className="px-4 py-2 rounded-full border border-green-400 text-green-700 text-sm font-medium hover:bg-green-100 transition-colors"
+                    className="px-4 py-2 rounded-full border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 text-sm font-medium hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
                   >
                     Stay & Review
                   </button>
@@ -754,7 +756,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
 
         {/* 4. Query Results — shows after any query has been run */}
         {(hasRun || busy) && (
-          <div className={`p-3 sm:p-6 rounded-xl shadow-lg ${dark ? 'bg-gray-800' : 'bg-white'}`}>
+          <div ref={resultsRef} className={`p-3 sm:p-6 rounded-xl shadow-lg ${dark ? 'bg-gray-800' : 'bg-white'}`}>
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <h2 className={`text-base sm:text-lg font-semibold ${dark ? 'text-gray-100' : 'text-bleepx-gray'}`}>
                 Query Results

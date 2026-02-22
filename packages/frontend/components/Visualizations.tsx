@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import DataGrid from './DataGrid';
 import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { visualizationConfigs } from '@/lib/constants';
+import { useTheme } from '@/lib/useTheme';
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 const Spinner = dynamic(() => import('./Spinner'), { ssr: false });
@@ -32,6 +33,7 @@ export default function Visualizations({ domain, caseId, datasets }: Visualizati
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<'chart' | 'data' | 'code'>('chart');
+  const { dark } = useTheme();
 
   useEffect(() => {
     let mounted = true;
@@ -170,7 +172,6 @@ ${getJSCode()}
 <pre>${JSON.stringify(currentChart.rows.slice(0, 10), null, 2)}</pre>
 </body></html>`;
 
-    // Create downloadable files
     const files: Record<string, string> = {
       'README.md': readme,
       'visualize.py': getPythonCode(),
@@ -180,7 +181,6 @@ ${getJSCode()}
       'query.sql': currentChart.query,
     };
 
-    // Download as individual files bundled in a simple HTML download
     Object.entries(files).forEach(([name, content]) => {
       const blob = new Blob([content], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
@@ -198,14 +198,14 @@ ${getJSCode()}
     return (
       <div className="flex items-center justify-center p-6 sm:p-8" aria-live="polite">
         <Spinner />
-        <span className="ml-2 text-bleepx-gray text-sm">*bleep* Generating visualizations...</span>
+        <span className={`ml-2 text-sm ${dark ? 'text-gray-300' : 'text-bleepx-gray'}`}>*bleep* Generating visualizations...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4 sm:p-6 bg-yellow-100 text-yellow-800 rounded-xl shadow-lg text-sm" role="alert">
+      <div className={`p-4 sm:p-6 rounded-xl shadow-lg text-sm ${dark ? 'bg-yellow-900/30 text-yellow-200' : 'bg-yellow-100 text-yellow-800'}`} role="alert">
         *bleep* Visualization error: {error}
       </div>
     );
@@ -213,14 +213,19 @@ ${getJSCode()}
 
   if (charts.length === 0) {
     return (
-      <div className="p-4 sm:p-6 bg-bleepx-white rounded-xl shadow-sm border border-bleepx-border text-center">
-        <p className="text-bleepx-text-secondary text-sm">*bleep* No visualization configs found for this case.</p>
-        <Link href={`/cases/${domain}/${caseId}`} className="text-bleepx-blue text-sm hover:underline mt-2 inline-block">
+      <div className={`p-6 sm:p-8 rounded-xl shadow-sm border text-center ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className="text-4xl mb-3">📊</div>
+        <p className={`text-sm font-medium ${dark ? 'text-gray-300' : 'text-gray-600'}`}>No visualizations configured for this challenge yet.</p>
+        <p className={`text-xs mt-1 ${dark ? 'text-gray-500' : 'text-gray-400'}`}>Visualizations are available for most challenges — try another one!</p>
+        <Link href={`/cases/${domain}/${caseId}`} className="text-bleepx-blue text-sm hover:underline mt-3 inline-block">
           ← Back to challenge
         </Link>
       </div>
     );
   }
+
+  const plotBg = dark ? '#1f2937' : 'transparent';
+  const plotFont = dark ? '#e5e7eb' : undefined;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -232,7 +237,9 @@ ${getJSCode()}
               key={i}
               onClick={() => { setSelectedChart(i); setTab('chart'); }}
               className={`px-3 py-1.5 rounded-full text-xs sm:text-sm whitespace-nowrap flex-shrink-0 transition-colors ${
-                i === selectedChart ? 'bg-bleepx-blue text-white' : 'bg-gray-100 text-bleepx-gray hover:bg-gray-200'
+                i === selectedChart
+                  ? 'bg-bleepx-blue text-white'
+                  : dark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-bleepx-gray hover:bg-gray-200'
               }`}
             >
               {c.title}
@@ -242,14 +249,16 @@ ${getJSCode()}
       )}
 
       {/* Tabs */}
-      <div className="bg-bleepx-white rounded-xl shadow-sm border border-bleepx-border overflow-hidden">
-        <div className="flex border-b border-bleepx-border">
+      <div className={`rounded-xl shadow-sm border overflow-hidden ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`flex border-b ${dark ? 'border-gray-700' : 'border-gray-200'}`}>
           {(['chart', 'data', 'code'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`flex-1 py-2.5 text-xs sm:text-sm font-medium transition-colors ${
-                tab === t ? 'text-bleepx-blue border-b-2 border-bleepx-blue bg-blue-50/50' : 'text-bleepx-gray hover:bg-gray-50'
+                tab === t
+                  ? `text-bleepx-blue border-b-2 border-bleepx-blue ${dark ? 'bg-gray-700/50' : 'bg-blue-50/50'}`
+                  : dark ? 'text-gray-400 hover:bg-gray-700' : 'text-bleepx-gray hover:bg-gray-50'
               }`}
             >
               {t === 'chart' ? '📊 Chart' : t === 'data' ? '📋 Data' : '💻 Code'}
@@ -260,7 +269,7 @@ ${getJSCode()}
         <div className="p-3 sm:p-6">
           {tab === 'chart' && currentChart && (
             <div>
-              <h3 className="text-base sm:text-lg font-bold text-bleepx-text mb-3">{currentChart.title}</h3>
+              <h3 className={`text-base sm:text-lg font-bold mb-3 ${dark ? 'text-gray-100' : 'text-bleepx-text'}`}>{currentChart.title}</h3>
               <div className="w-full overflow-x-auto" style={{ minHeight: 300 }}>
                 <Plot
                   data={currentChart.plotData}
@@ -268,15 +277,17 @@ ${getJSCode()}
                     ...currentChart.layout,
                     autosize: true,
                     margin: { t: 50, b: 80, l: 60, r: 30 },
-                    font: { size: 11 },
+                    font: { size: 11, color: plotFont },
+                    paper_bgcolor: plotBg,
+                    plot_bgcolor: plotBg,
                   }}
                   config={{ responsive: true, displayModeBar: true }}
                   className="w-full"
                   style={{ width: '100%', minHeight: 300, maxHeight: 500 }}
                 />
               </div>
-              <p className="text-xs text-bleepx-text-secondary mt-2">
-                <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-[10px]">SQL</span>{' '}
+              <p className={`text-xs mt-2 ${dark ? 'text-gray-400' : 'text-bleepx-text-secondary'}`}>
+                <span className={`font-mono px-1.5 py-0.5 rounded text-[10px] ${dark ? 'bg-gray-700' : 'bg-gray-100'}`}>SQL</span>{' '}
                 {currentChart.query}
               </p>
             </div>
@@ -285,8 +296,8 @@ ${getJSCode()}
           {tab === 'data' && currentChart && (
             <div>
               <div className="flex justify-between items-center mb-3">
-                <h3 className="text-base font-bold text-bleepx-text">Query Results</h3>
-                <span className="text-xs text-bleepx-text-secondary">{currentChart.rows.length} rows</span>
+                <h3 className={`text-base font-bold ${dark ? 'text-gray-100' : 'text-bleepx-text'}`}>Query Results</h3>
+                <span className={`text-xs ${dark ? 'text-gray-400' : 'text-bleepx-text-secondary'}`}>{currentChart.rows.length} rows</span>
               </div>
               <div className="overflow-x-auto">
                 <DataGrid data={currentChart.rows} />
@@ -298,37 +309,22 @@ ${getJSCode()}
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-bold text-bleepx-text">SQL Query</h4>
-                  <button
-                    onClick={() => navigator.clipboard.writeText(currentChart.query)}
-                    className="text-[10px] text-bleepx-blue hover:underline"
-                  >
-                    Copy
-                  </button>
+                  <h4 className={`text-sm font-bold ${dark ? 'text-gray-100' : 'text-bleepx-text'}`}>SQL Query</h4>
+                  <button onClick={() => navigator.clipboard.writeText(currentChart.query)} className="text-[10px] text-bleepx-blue hover:underline">Copy</button>
                 </div>
                 <pre className="bg-gray-900 text-green-400 p-3 rounded-lg text-xs overflow-x-auto">{currentChart.query}</pre>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-bold text-bleepx-text">JavaScript (Plotly.js)</h4>
-                  <button
-                    onClick={() => navigator.clipboard.writeText(getJSCode())}
-                    className="text-[10px] text-bleepx-blue hover:underline"
-                  >
-                    Copy
-                  </button>
+                  <h4 className={`text-sm font-bold ${dark ? 'text-gray-100' : 'text-bleepx-text'}`}>JavaScript (Plotly.js)</h4>
+                  <button onClick={() => navigator.clipboard.writeText(getJSCode())} className="text-[10px] text-bleepx-blue hover:underline">Copy</button>
                 </div>
                 <pre className="bg-gray-900 text-blue-300 p-3 rounded-lg text-xs overflow-x-auto max-h-[300px]">{getJSCode()}</pre>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-bold text-bleepx-text">Python (Plotly Express)</h4>
-                  <button
-                    onClick={() => navigator.clipboard.writeText(getPythonCode())}
-                    className="text-[10px] text-bleepx-blue hover:underline"
-                  >
-                    Copy
-                  </button>
+                  <h4 className={`text-sm font-bold ${dark ? 'text-gray-100' : 'text-bleepx-text'}`}>Python (Plotly Express)</h4>
+                  <button onClick={() => navigator.clipboard.writeText(getPythonCode())} className="text-[10px] text-bleepx-blue hover:underline">Copy</button>
                 </div>
                 <pre className="bg-gray-900 text-yellow-300 p-3 rounded-lg text-xs overflow-x-auto max-h-[300px]">{getPythonCode()}</pre>
               </div>
@@ -338,9 +334,9 @@ ${getJSCode()}
       </div>
 
       {/* Export section */}
-      <div className="bg-bleepx-white rounded-xl shadow-sm border border-bleepx-border p-4 sm:p-6">
-        <h3 className="text-base font-bold text-bleepx-text mb-2">Export as Portfolio Project</h3>
-        <p className="text-xs text-bleepx-text-secondary mb-3">
+      <div className={`rounded-xl shadow-sm border p-4 sm:p-6 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <h3 className={`text-base font-bold mb-2 ${dark ? 'text-gray-100' : 'text-bleepx-text'}`}>Export as Portfolio Project</h3>
+        <p className={`text-xs mb-3 ${dark ? 'text-gray-400' : 'text-bleepx-text-secondary'}`}>
           *bleep* Download a complete project with README, SQL, Python, JS, and data — ready to push to your GitHub profile.
         </p>
         <div className="flex flex-wrap gap-2">
@@ -352,7 +348,7 @@ ${getJSCode()}
           </button>
           <Link
             href={`/cases/${domain}/${caseId}`}
-            className="px-4 py-2 rounded-full border border-bleepx-border text-bleepx-gray text-sm hover:bg-gray-50 transition-colors"
+            className={`px-4 py-2 rounded-full border text-sm transition-colors ${dark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-bleepx-gray hover:bg-gray-50'}`}
           >
             ← Back to Challenge
           </Link>

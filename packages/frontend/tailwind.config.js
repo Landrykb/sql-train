@@ -9,13 +9,15 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'bleepx-bg': '#F5F7FA', // Light Gray-Blue (background)
-        'bleepx-white': '#FFFFFF', // White (cards/sections)
-        'bleepx-blue': '#2563EB', // Blue 600 (primary accent)
-        'bleepx-blue-hover': '#3B82F6', // Blue 500 (hover accent)
-        'bleepx-text': '#111827', // Gray 900 (primary text)
-        'bleepx-text-secondary': '#6B7280', // Gray 500 (secondary text)
-        'bleepx-border': '#E5E7EB', // Gray 200 (borders/shadows)
+        'bleepx-bg': 'var(--bleepx-bg)',
+        'bleepx-white': 'var(--bleepx-white)',
+        'bleepx-blue': 'var(--bleepx-blue)',
+        'bleepx-blue-hover': 'var(--bleepx-blue-hover)',
+        'bleepx-text': 'var(--bleepx-text)',
+        'bleepx-text-secondary': 'var(--bleepx-text-secondary)',
+        'bleepx-border': 'var(--bleepx-border)',
+        'bleepx-gray': 'var(--bleepx-gray)',
+        'bleepx-pink': 'var(--bleepx-pink)',
       },
       animation: {
         'bleepx-logo': 'bleepxLogo 2s ease-in-out infinite',

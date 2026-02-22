@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --bleepx-bg: #F5F7FA;
+    --bleepx-white: #FFFFFF;
+    --bleepx-blue: #2563EB;
+    --bleepx-blue-hover: #3B82F6;
+    --bleepx-text: #111827;
+    --bleepx-text-secondary: #6B7280;
+    --bleepx-border: #E5E7EB;
+    --bleepx-gray: #374151;
+    --bleepx-pink: #EC4899;
+  }
+  .dark {
+    --bleepx-bg: #111827;
+    --bleepx-white: #1F2937;
+    --bleepx-blue: #3B82F6;
+    --bleepx-blue-hover: #60A5FA;
+    --bleepx-text: #F3F4F6;
+    --bleepx-text-secondary: #9CA3AF;
+    --bleepx-border: #374151;
+    --bleepx-gray: #D1D5DB;
+    --bleepx-pink: #F472B6;
+  }
+}

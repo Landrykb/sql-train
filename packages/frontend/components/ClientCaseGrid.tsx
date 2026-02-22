@@ -46,25 +46,25 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
       <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-1 -mx-1 px-1">
         <button
           onClick={() => setFilter('all')}
-          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm whitespace-nowrap flex-shrink-0 ${filter === 'all' ? 'bg-bleepx-blue text-white' : 'bg-gray-200'}`}
+          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm whitespace-nowrap flex-shrink-0 ${filter === 'all' ? 'bg-bleepx-blue text-white' : 'bg-gray-200 dark:bg-gray-700 text-bleepx-text'}`}
         >
           All
         </button>
         <button
           onClick={() => setFilter('completed')}
-          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm whitespace-nowrap flex-shrink-0 ${filter === 'completed' ? 'bg-bleepx-blue text-white' : 'bg-gray-200'}`}
+          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm whitespace-nowrap flex-shrink-0 ${filter === 'completed' ? 'bg-bleepx-blue text-white' : 'bg-gray-200 dark:bg-gray-700 text-bleepx-text'}`}
         >
           Done
         </button>
         <button
           onClick={() => setFilter('locked')}
-          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm whitespace-nowrap flex-shrink-0 ${filter === 'locked' ? 'bg-bleepx-blue text-white' : 'bg-gray-200'}`}
+          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm whitespace-nowrap flex-shrink-0 ${filter === 'locked' ? 'bg-bleepx-blue text-white' : 'bg-gray-200 dark:bg-gray-700 text-bleepx-text'}`}
         >
           Locked
         </button>
         <button
           onClick={() => setFilter('hidden')}
-          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm whitespace-nowrap flex-shrink-0 ${filter === 'hidden' ? 'bg-amber-500 text-white' : 'bg-gray-200'}`}
+          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm whitespace-nowrap flex-shrink-0 ${filter === 'hidden' ? 'bg-amber-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-bleepx-text'}`}
         >
           Bonus
         </button>
@@ -117,16 +117,16 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
                 block p-4 sm:p-6 rounded-lg shadow-md transition-all duration-200
                 ${
                   isEffectivelyLocked
-                    ? 'bg-gray-100 text-gray-500 cursor-not-allowed opacity-75'
+                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 cursor-not-allowed opacity-75'
                     : isHidden && !completed.has(c.id)
-                    ? 'bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-400 shadow-amber-200/50 shadow-lg hover:shadow-amber-300/50'
+                    ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-2 border-amber-400 shadow-amber-200/50 shadow-lg hover:shadow-amber-300/50'
                     : isHidden && completed.has(c.id)
-                    ? 'bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-amber-500'
+                    ? 'bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 border-2 border-amber-500'
                     : isNext
                     ? 'bg-bleepx-blue/10 border-l-4 border-bleepx-blue'
                     : completed.has(c.id)
                     ? 'bg-bleepx-pink/10 border-l-4 border-bleepx-pink'
-                    : 'bg-white hover:bg-bleepx-blue/5'
+                    : 'bg-bleepx-white hover:bg-bleepx-blue/5'
                 }
               `}
               aria-disabled={isEffectivelyLocked}
@@ -144,8 +144,15 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
                   )}
                 </div>
               </div>
-              <div className="text-sm text-bleepx-gray mt-1">
-                {isHidden ? 'Real-World Scenario' : `Tier ${c.tier}`}
+              <div className="text-sm text-bleepx-gray mt-1 flex items-center gap-1.5">
+                {isHidden ? (
+                  <span className="text-amber-600 font-medium">Real-World Scenario</span>
+                ) : (
+                  <>
+                    <span>{c.tier <= 1 ? 'Beginner' : c.tier === 2 ? 'Intermediate' : c.tier === 3 ? 'Advanced' : c.tier === 4 ? 'Expert' : 'Master'}</span>
+                    <span className="text-amber-400 text-xs">{'⭐'.repeat(Math.min(c.tier || 1, 5))}</span>
+                  </>
+                )}
               </div>
               <div className="text-sm text-bleepx-gray mt-2">
                 <strong>Skills:</strong>{' '}

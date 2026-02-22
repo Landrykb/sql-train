@@ -5,7 +5,7 @@ import Link from 'next/link';
 import ClientCaseGrid from '@/components/ClientCaseGrid';
 import ProgressSummary from '@/components/ProgressSummary';
 import CaseProgress from '@/components/CaseProgress';
-import ResetProgressButton from '@/components/ResetProgressButton';
+// ResetProgressButton removed — users should not accidentally lose progress
 import DashboardButton from '@/components/DashboardButton';
 import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
@@ -161,7 +161,7 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
           <Link href="/" className="px-3 py-1.5 text-sm text-bleepx-blue hover:text-bleepx-blue-hover rounded-lg hover:bg-bleepx-blue/5 transition-colors">
             Home
           </Link>
-          <ResetProgressButton />
+          {/* Reset button removed to prevent accidental progress loss */}
         </div>
       </div>
       <ProgressSummary caseIds={caseOrder[domainKey] || []} />
