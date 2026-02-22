@@ -3,7 +3,7 @@ import React from 'react'
 
 export function DataGrid({ data }: { data: Record<string, any>[] }) {
   if (!data || !Array.isArray(data) || data.length === 0) {
-    return <p className="text-sm text-gray-500">No rows to display.</p>
+    return <p className="text-sm text-gray-500 dark:text-gray-400">No rows to display.</p>
   }
   const cols = Object.keys(data[0])
   return (
@@ -12,7 +12,7 @@ export function DataGrid({ data }: { data: Record<string, any>[] }) {
         <thead>
           <tr>
             {cols.map(c => (
-              <th key={c} className="border px-2 py-1 bg-gray-100 text-left text-xs">
+              <th key={c} className="border border-gray-200 dark:border-gray-600 px-2 py-1 bg-gray-100 dark:bg-gray-700 text-left text-xs text-gray-700 dark:text-gray-200">
                 {c}
               </th>
             ))}
@@ -20,9 +20,9 @@ export function DataGrid({ data }: { data: Record<string, any>[] }) {
         </thead>
         <tbody>
           {data.map((row, i) => (
-            <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+            <tr key={i} className={i % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-750 dark:bg-gray-800/50'}>
               {cols.map(c => (
-                <td key={c} className="border px-2 py-1 text-xs">
+                <td key={c} className="border border-gray-200 dark:border-gray-600 px-2 py-1 text-xs text-gray-800 dark:text-gray-200">
                   {row[c]?.toString() ?? ''}
                 </td>
               ))}

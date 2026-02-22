@@ -30,7 +30,7 @@ export default function DashboardButton({ domainKey }: { domainKey: string }) {
     setIsLoading(true);
     playBleep();
     setTimeout(() => {
-      window.location.href = `/cases/${domainKey}/Dashboard`;
+      window.location.href = `/cases/${domainKey}/dashboard`;
     }, 500);
   };
 

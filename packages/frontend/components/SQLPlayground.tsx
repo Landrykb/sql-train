@@ -60,7 +60,12 @@ const CodeMirror = dynamic(
     try {
       const { default: CM } = await import('@uiw/react-codemirror');
       const { sql } = await import('@codemirror/lang-sql');
-      return (props: any) => <CM {...props} basicSetup extensions={[sql()]} />;
+      const { oneDark } = await import('@codemirror/theme-one-dark');
+      return (props: any & { isDark?: boolean }) => {
+        const { isDark, ...rest } = props;
+        const exts = isDark ? [sql(), oneDark] : [sql()];
+        return <CM {...rest} basicSetup extensions={exts} theme={isDark ? 'dark' : 'light'} />;
+      };
     } catch (err) {
       console.error('Failed to load CodeMirror:', err);
       return CodeMirrorFallback;
@@ -470,14 +475,15 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
 
       <div className="space-y-4 sm:space-y-6">
         {/* 1. Write Your Query — always on top */}
-        <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
-          <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray mb-3 sm:mb-4">Write Your Query</h2>
+        <div className={`p-3 sm:p-6 rounded-xl shadow-lg ${dark ? 'bg-gray-800' : 'bg-white'}`}>
+          <h2 className={`text-base sm:text-lg font-semibold mb-3 sm:mb-4 ${dark ? 'text-gray-100' : 'text-bleepx-gray'}`}>Write Your Query</h2>
           <CodeMirror
             value={query}
             height="200px"
             onChange={setQuery}
+            isDark={dark}
             aria-label="SQL query editor"
-            className="border border-bleepx-gray/20 rounded-lg"
+            className={`border rounded-lg ${dark ? 'border-gray-600' : 'border-bleepx-gray/20'}`}
           />
           <div className="mt-3 flex gap-2">
             <button onClick={() => setShowSchema((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showSchema ? 'bg-bleepx-blue text-white border-bleepx-blue' : dark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
