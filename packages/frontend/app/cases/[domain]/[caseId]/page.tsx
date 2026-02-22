@@ -10,9 +10,8 @@ import ClientSQLPlayground from '@/components/ClientSQLPlayground';
 import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
 import BleepxLogo from '@/components/BleepxLogo';
-import { caseOrder, fullCaseOrder, domainFolderMap } from '@/lib/constants';
+import { caseOrder, fullCaseOrder, domainFolderMap, visualizationConfigs } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
-import { visualizationConfigs } from '@/lib/visualizationConfigs';
 
 export async function generateStaticParams() {
   const params: { domain: string; caseId: string }[] = [];

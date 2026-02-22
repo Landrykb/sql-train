@@ -9,7 +9,7 @@ import Papa from 'papaparse';
 import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { compareResults } from '@/lib/compare';
 import { useProgress } from '@/lib/useProgress';
-import { fullCaseOrder, caseOrder } from '@/lib/constants';
+import { fullCaseOrder, caseOrder, visualizationConfigs } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
 import { loadingMessages, queryMessages, getLockedMessage, getDomainCompleteMessage, getNextCaseMessage, getLoadError, pickRandom } from '@/lib/bleepxDialogue';
 import { playBleep } from '@/lib/audio';
@@ -44,8 +44,6 @@ interface CaseData {
   prerequisites?: string[];
   tier: number;
 }
-
-type Tab = 'preview' | 'results';
 
 const CodeMirrorFallback: React.FC = () => (
   <textarea
@@ -83,35 +81,7 @@ const Chip: React.FC<{ label: string; onClick(): void }> = ({ label, onClick }) 
   </kbd>
 );
 
-const TabButton: React.FC<{ tab: Tab; current: Tab; onSelect(t: Tab): void }> = ({ tab, current, onSelect }) => (
-  <button
-    onClick={() => {
-      playBleep();
-      onSelect(tab);
-    }}
-    className={`py-2 px-4 font-medium text-sm transition-all duration-200 ${
-      tab === current ? 'border-b-2 border-bleepx-blue text-bleepx-blue' : 'text-bleepx-gray hover:text-bleepx-blue hover:bg-bleepx-blue/5'
-    }`}
-    aria-selected={tab === current}
-    role="tab"
-  >
-    {tab === 'preview' ? 'Dataset Preview' : 'Query Results'}
-  </button>
-);
-
 type ValidDomain = 'business' | 'crime' | 'healthcare' | 'farming' | 'space' | 'finance' | 'sports' | 'social';
-
-interface VisualizationConfigs {
-  [key: string]: string[];
-  business: string[];
-  crime: string[];
-  healthcare: string[];
-  farming: string[];
-  space: string[];
-  finance: string[];
-  sports: string[];
-  social: string[];
-}
 
 export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const { id, name, description, instructions, hints = [], thoughtProcess = [], skills = [], datasets, seedQuery = '', templateQuery = '', expected = [], solutionQuery = '', domain: rawDomain, prerequisites = [], tier } = caseData;
@@ -127,7 +97,6 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState(seedQuery);
   const [resultRows, setResultRows] = useState<Record<string, unknown>[]>([]);
-  const [tab, setTab] = useState<Tab>('preview');
   const [selectedTable, setSelectedTable] = useState<string | null>(datasets[0]?.name || null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -137,11 +106,39 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const [visibleSteps, setVisibleSteps] = useState(1);
   const [showThoughtProcess, setShowThoughtProcess] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [savedQuery, setSavedQuery] = useState<string | null>(null);
 
   useEffect(() => {
     if (!caseOrder[domain]) console.error(`Invalid domain: ${domain}`, { rawDomain, availableDomains: Object.keys(caseOrder) });
     console.log('Navigation Debug:', { id, rawDomain, normalizedDomain: domain, completed: Array.from(completed), currentIndex, currentOrder, nextCaseId, prerequisites, isUnlocked: isUnlocked(prerequisites) });
   }, [id, rawDomain, domain, completed, currentIndex, currentOrder, nextCaseId, prerequisites, isUnlocked]);
+
+  // Load saved query from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`bleepx_solved_${domain}_${id}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setSavedQuery(parsed.query);
+        if (!seedQuery && parsed.query) setQuery(parsed.query);
+      }
+    } catch { /* ignore */ }
+  }, [domain, id]);
+
+  // Replay saved query once DB is ready
+  useEffect(() => {
+    if (dbReady && savedQuery && resultRows.length === 0) {
+      (async () => {
+        try {
+          const result = await runQuery(savedQuery);
+          const cols = result?.columns ?? [];
+          const data = result?.data ?? [];
+          const grid = data.map((row: unknown[]) => Object.fromEntries(cols.map((c, i) => [c, row[i]]))) as Record<string, string | number | null>[];
+          setResultRows(grid);
+        } catch { /* ignore replay errors */ }
+      })();
+    }
+  }, [dbReady, savedQuery]);
 
   const loadAttemptRef = useRef(0);
 
@@ -232,7 +229,6 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       return;
     }
     setBusy(true);
-    setTab('results');
 
     try {
       console.log('Running query:', query);
@@ -257,6 +253,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
         markComplete(id, tier);
         setShowSuccess(true);
         setVisibleHints(hints.length);
+        try { localStorage.setItem(`bleepx_solved_${domain}_${id}`, JSON.stringify({ query, ts: Date.now() })); } catch { /* ignore */ }
 
         const allCompleted = currentOrder.length > 0 && currentOrder.every((caseId) => completed.has(caseId) || caseId === id);
         console.log('Completion Check:', { currentOrder, completed: Array.from(completed), allCompleted, nextCaseId });
@@ -302,24 +299,12 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
     setQuery(templateQuery || seedQuery);
     setMessage('');
     setResultRows([]);
-    setTab('preview');
   }, [templateQuery, seedQuery]);
 
   const canRun = useMemo(() => dbReady && query.trim() !== '' && !busy, [dbReady, query, busy]);
 
-  const visualizationConfigs: VisualizationConfigs = {
-    business: ['agg_revenue', 'joins_returns'],
-    crime: ['crime_by_area'],
-    healthcare: ['diagnosis_count'],
-    farming: ['yield_by_crop'],
-    space: ['velocity_by_type'],
-    finance: ['balance_trend'],
-    sports: ['score_by_team'],
-    social: ['engagement_by_type'],
-  };
-
   const hasVisualizations = useMemo(() => {
-    return visualizationConfigs[domain]?.includes(id);
+    return (visualizationConfigs[domain]?.[id]?.length ?? 0) > 0;
   }, [domain, id]);
 
   if (!isUnlocked(prerequisites)) {
@@ -426,7 +411,6 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                 setQuery('');
                 setMessage('');
                 setResultRows([]);
-                setTab('preview');
                 setAttempts(0);
                 setShowSolution(false);
                 setVisibleHints(1);
@@ -581,19 +565,32 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
           </div>
         )}
 
-        {/* 3. Dataset & Results — at the bottom */}
-        <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
-          <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray mb-3 sm:mb-4">Dataset & Results</h2>
-          <div className="flex border-b border-bleepx-gray/20">
-            <TabButton tab="preview" current={tab} onSelect={setTab} />
-            <TabButton tab="results" current={tab} onSelect={setTab} />
+        {/* 3. Query Results — shows after running a query */}
+        {(resultRows.length > 0 || busy) && (
+          <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
+            <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray mb-3 sm:mb-4">Query Results</h2>
+            <div className="min-h-[120px] sm:min-h-[200px] overflow-x-auto">
+              {busy ? (
+                <div className="flex items-center" aria-live="polite">
+                  <Spinner />
+                  <span className="ml-2 text-bleepx-gray">{queryMessages.processing}</span>
+                </div>
+              ) : (
+                <DataGrid data={resultRows} />
+              )}
+            </div>
           </div>
-          {tab === 'preview' && datasets.length > 1 && (
-            <div className="mt-4">
+        )}
+
+        {/* 4. Dataset Preview — always visible */}
+        <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
+          <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray mb-3 sm:mb-4">Dataset Preview</h2>
+          {datasets.length > 1 && (
+            <div className="mb-4">
               <select
                 value={selectedTable || ''}
                 onChange={(e) => setSelectedTable(e.target.value)}
-                className="mb-4 p-2 border border-bleepx-gray/20 rounded-lg text-sm text-bleepx-gray"
+                className="p-2 border border-bleepx-gray/20 rounded-lg text-sm text-bleepx-gray"
                 aria-label="Select dataset to preview"
               >
                 {tables.map((table) => (
@@ -602,17 +599,8 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
               </select>
             </div>
           )}
-          <div className="mt-3 sm:mt-4 min-h-[200px] sm:min-h-[300px] overflow-x-auto">
-            {tab === 'preview' ? (
-              <DataGrid data={tables.find((t) => t.name === selectedTable)?.previewRows || []} />
-            ) : busy ? (
-              <div className="flex items-center" aria-live="polite">
-                <Spinner />
-                <span className="ml-2 text-bleepx-gray">{queryMessages.processing}</span>
-              </div>
-            ) : (
-              <DataGrid data={resultRows} />
-            )}
+          <div className="min-h-[120px] sm:min-h-[200px] overflow-x-auto">
+            <DataGrid data={tables.find((t) => t.name === selectedTable)?.previewRows || []} />
           </div>
           <div className="mt-4 text-sm text-bleepx-gray">
             {tables.map((table) => (
