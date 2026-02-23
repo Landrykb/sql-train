@@ -176,15 +176,28 @@ export async function runQuery(sql: string, params: any[] = []): Promise<{ colum
     throw new Error('SQL not initialized. Call initSQL() first.');
   }
 
-  const cleanedSql = sql.replace(/\)\s*;*$/, ');').replace(/;;+/g, ';');
+  // Strip comment-only lines and clean up semicolons
+  const cleanedSql = sql
+    .split('\n')
+    .filter(line => !/^\s*--/.test(line))
+    .join('\n')
+    .replace(/\)\s*;*$/, ');')
+    .replace(/;;+/g, ';')
+    .trim();
+
+  if (!cleanedSql) {
+    return { columns: [], data: [] };
+  }
 
   try {
     const result = params.length > 0 ? db.exec(cleanedSql, params) : db.exec(cleanedSql);
     if (result.length === 0) {
       return { columns: [], data: [] };
     }
-    const { columns, values } = result[0];
-    return { columns, data: values };
+    // Return the last result set — when multiple statements exist,
+    // the user's actual query is typically the last one
+    const last = result[result.length - 1];
+    return { columns: last.columns, data: last.values };
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
     throw new Error(`Query failed: ${msg}`);

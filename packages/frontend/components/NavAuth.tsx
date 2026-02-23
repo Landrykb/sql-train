@@ -1,20 +1,32 @@
 'use client';
 
-import { useSession, signIn } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { getGitHubUser, startGitHubLogin } from '@/lib/authClient';
 
 export default function NavAuth() {
-  const { data: session, status } = useSession();
-  const isSignedIn = status === 'authenticated' && !!session?.user;
+  const [user, setUser] = useState<{ login: string; avatar: string } | null>(null);
 
-  if (isSignedIn) {
+  useEffect(() => {
+    const gh = getGitHubUser();
+    if (gh) setUser({ login: gh.login, avatar: gh.avatar });
+
+    const onStorage = () => {
+      const gh = getGitHubUser();
+      setUser(gh ? { login: gh.login, avatar: gh.avatar } : null);
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  if (user) {
     return (
       <Link
         href="/profile"
         className="flex items-center gap-1.5 text-bleepx-blue hover:text-blue-700 dark:hover:text-blue-400 font-medium text-sm sm:text-base transition-colors"
       >
-        {session.user?.image ? (
-          <img src={session.user.image} alt="" className="w-5 h-5 rounded-full" />
+        {user.avatar ? (
+          <img src={user.avatar} alt="" className="w-5 h-5 rounded-full" />
         ) : (
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -27,7 +39,7 @@ export default function NavAuth() {
 
   return (
     <button
-      onClick={() => signIn('github')}
+      onClick={() => startGitHubLogin()}
       className="flex items-center gap-1.5 text-bleepx-blue hover:text-blue-700 dark:hover:text-blue-400 font-medium text-sm sm:text-base transition-colors"
     >
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

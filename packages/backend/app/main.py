@@ -20,7 +20,7 @@ GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
 app = FastAPI(title="BESA SQL API", version="1.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL, "http://localhost:3000"],
+    allow_origins=[FRONTEND_URL, "http://localhost:3000", "https://bleepxacademy.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -97,8 +97,10 @@ async def github_login():
 
 @app.get("/github-callback")
 async def github_callback(code: str):
-    """Handle GitHub OAuth callback."""
+    """Handle GitHub OAuth callback — exchange code, fetch user, redirect to frontend."""
     import requests
+    from fastapi.responses import RedirectResponse
+    from urllib.parse import urlencode
     try:
         response = requests.post(
             "https://github.com/login/oauth/access_token",
@@ -112,9 +114,23 @@ async def github_callback(code: str):
         data = response.json()
         access_token = data.get("access_token")
         if not access_token:
-            raise HTTPException(status_code=400, detail="Failed to obtain access token")
-        return {"access_token": access_token}
-    except HTTPException:
-        raise
+            logger.error(f"GitHub token exchange failed: {data}")
+            return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error=token_failed")
+
+        # Fetch GitHub user profile
+        user_resp = requests.get(
+            "https://api.github.com/user",
+            headers={"Authorization": f"token {access_token}", "Accept": "application/json"}
+        )
+        user = user_resp.json()
+        params = urlencode({
+            "login": user.get("login", ""),
+            "name": user.get("name", "") or user.get("login", ""),
+            "avatar": user.get("avatar_url", ""),
+            "email": user.get("email", "") or "",
+            "token": access_token,
+        })
+        return RedirectResponse(f"{FRONTEND_URL}/auth/callback?{params}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"GitHub callback error: {e}")
+        return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error={str(e)}")

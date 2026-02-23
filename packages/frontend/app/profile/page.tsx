@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { useSession, signIn, signOut } from 'next-auth/react';
+import { getGitHubUser, clearGitHubUser, startGitHubLogin, GitHubUser } from '@/lib/authClient';
 import { useProgress } from '@/lib/useProgress';
 import { useTheme } from '@/lib/useTheme';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
@@ -44,7 +44,7 @@ export default function ProfilePage() {
   const { dark, toggle: toggleDark } = useTheme();
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [tab, setTab] = useState<'overview' | 'settings' | 'achievements'>('overview');
-  const { data: session, status } = useSession();
+  const [ghUser, setGhUser] = useState<GitHubUser | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
@@ -117,22 +117,14 @@ export default function ProfilePage() {
     return { totalTime, avgTime: count > 0 ? Math.round(totalTime / count) : 0, totalAttempts, solvedWithTimer: count };
   }, [completed]);
 
-  // Sync NextAuth session data to localStorage profile
+  // Load GitHub user from authClient
   useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      const ghUser = (session.user as any).githubUsername;
-      saveProfile({
-        authProvider: 'github',
-        githubUsername: ghUser || session.user.name || null,
-        displayName: session.user.name || ghUser || profile.displayName,
-        email: session.user.email || '',
-      });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, session]);
+    const gh = getGitHubUser();
+    if (gh) setGhUser(gh);
+  }, []);
 
-  const isSignedIn = status === 'authenticated' && !!session?.user;
-  const githubUsername = (session?.user as any)?.githubUsername || session?.user?.name || profile.githubUsername;
+  const isSignedIn = !!ghUser;
+  const githubUsername = ghUser?.login || profile.githubUsername;
 
   const fmtTime = (s: number) => {
     if (s < 60) return `${s}s`;
@@ -148,9 +140,9 @@ export default function ProfilePage() {
         <div className="px-4 sm:px-6 pb-4 sm:pb-6 -mt-10 sm:-mt-12">
           <div className="flex items-end gap-4">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 overflow-hidden flex items-center justify-center text-3xl sm:text-4xl bg-gray-100 dark:bg-gray-700 border-white dark:border-gray-800">
-              {session?.user?.image ? (
-                <img src={session.user.image} alt="" className="w-full h-full object-cover" />
-              ) : isSignedIn ? '�' : '🤖'}
+              {ghUser?.avatar ? (
+                <img src={ghUser.avatar} alt="" className="w-full h-full object-cover" />
+              ) : isSignedIn ? '🐙' : '🤖'}
             </div>
             <div className="flex-1 mb-1">
               <div className="flex items-center gap-2">
@@ -167,7 +159,7 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <h1 className="text-lg sm:text-xl font-bold text-bleepx-text">
-                    {isSignedIn ? (session.user?.name || profile.displayName) : profile.displayName}
+                    {isSignedIn ? (ghUser?.name || profile.displayName) : profile.displayName}
                     <button onClick={() => { setNameInput(profile.displayName); setEditingName(true); }} className="ml-2 text-xs text-bleepx-text-secondary hover:text-bleepx-blue">✏️</button>
                   </h1>
                 )}
@@ -179,12 +171,12 @@ export default function ProfilePage() {
             </div>
             <div className="flex gap-2">
               {!isSignedIn ? (
-                <button onClick={() => { playBleep(); signIn('github'); }} className="px-3 py-1.5 rounded-full bg-bleepx-blue text-white text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-1.5">
+                <button onClick={() => { playBleep(); startGitHubLogin(); }} className="px-3 py-1.5 rounded-full bg-bleepx-blue text-white text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-1.5">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                   Sign In with GitHub
                 </button>
               ) : (
-                <button onClick={() => { playBleep(); signOut(); }} className="px-3 py-1.5 rounded-full border border-red-300 text-red-500 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <button onClick={() => { playBleep(); clearGitHubUser(); setGhUser(null); saveProfile({ authProvider: null, githubUsername: null }); }} className="px-3 py-1.5 rounded-full border border-red-300 text-red-500 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                   Log Out
                 </button>
               )}
@@ -202,7 +194,7 @@ export default function ProfilePage() {
               <h3 className="font-bold text-white">Connect with GitHub</h3>
               <p className="text-sm text-gray-400 mt-0.5">*bleep* Sign in with your real GitHub account. Redirects to GitHub for authentication — no passwords stored here.</p>
             </div>
-            <button onClick={() => { playBleep(); signIn('github'); }} className="px-4 py-2 rounded-full bg-white text-gray-900 text-sm font-bold hover:bg-gray-100 transition-colors flex items-center gap-2 flex-shrink-0">
+            <button onClick={() => { playBleep(); startGitHubLogin(); }} className="px-4 py-2 rounded-full bg-white text-gray-900 text-sm font-bold hover:bg-gray-100 transition-colors flex items-center gap-2 flex-shrink-0">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
               Sign In
             </button>
@@ -284,7 +276,7 @@ export default function ProfilePage() {
                   <p className="text-sm text-bleepx-text-secondary mt-1">
                     *bleep* Link your GitHub account to export your SQL portfolio directly. Show off your query skills to the world, human.
                   </p>
-                  <button onClick={() => { playBleep(); signIn('github'); }} className="mt-3 px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-2">
+                  <button onClick={() => { playBleep(); startGitHubLogin(); }} className="mt-3 px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-2">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                     Sign In with GitHub
                   </button>
@@ -359,18 +351,18 @@ export default function ProfilePage() {
             {isSignedIn && githubUsername ? (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  {session?.user?.image && <img src={session.user.image} alt="" className="w-8 h-8 rounded-full" />}
+                  {ghUser?.avatar && <img src={ghUser.avatar} alt="" className="w-8 h-8 rounded-full" />}
                   <div>
                     <p className="text-sm font-medium text-bleepx-text">Connected as <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noopener noreferrer" className="text-bleepx-blue hover:underline">@{githubUsername}</a></p>
                     <p className="text-xs text-bleepx-text-secondary">*bleep* Good. Your portfolio exports will use this account.</p>
                   </div>
                 </div>
-                <button onClick={() => { playBleep(); signOut(); }} className="text-xs text-red-500 hover:underline">Sign Out</button>
+                <button onClick={() => { playBleep(); clearGitHubUser(); setGhUser(null); saveProfile({ authProvider: null, githubUsername: null }); }} className="text-xs text-red-500 hover:underline">Sign Out</button>
               </div>
             ) : (
               <div>
                 <p className="text-sm text-bleepx-text-secondary mb-3">*bleep* Connect your GitHub to push portfolio projects directly.</p>
-                <button onClick={() => { playBleep(); signIn('github'); }} className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-2">
+                <button onClick={() => { playBleep(); startGitHubLogin(); }} className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-2">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                   Sign In with GitHub
                 </button>

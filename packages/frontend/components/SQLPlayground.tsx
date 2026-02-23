@@ -102,7 +102,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const [tables, setTables] = useState<{ name: string; file: string; columns: string[]; previewRows: Record<string, string | number | null>[]; rowCount: number | null }[]>([]);
   const [dbReady, setDbReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [query, setQuery] = useState(seedQuery);
+  const [query, setQuery] = useState('');
   const [resultRows, setResultRows] = useState<Record<string, unknown>[]>([]);
   const [selectedTable, setSelectedTable] = useState<string | null>(datasets[0]?.name || null);
   const [message, setMessage] = useState('');
