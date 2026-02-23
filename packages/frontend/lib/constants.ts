@@ -56,11 +56,11 @@
   }
 
   export const trialDifficulties: TrialDifficulty[] = [
-    { id: 'intermediate', label: 'Intermediate', emoji: '🟢', timeLimitSeconds: 60 * 60, description: '1 hour — standard SELECT, WHERE, ORDER BY queries', color: 'green' },
-    { id: 'advanced', label: 'Advanced', emoji: '🟡', timeLimitSeconds: 45 * 60, description: '45 minutes — JOINs, GROUP BY, and aggregation queries', color: 'yellow' },
-    { id: 'elite', label: 'Elite', emoji: '🔴', timeLimitSeconds: 30 * 60, description: '30 minutes — subqueries, window functions, and CTEs', color: 'red' },
-    { id: 'legendary', label: 'Legendary', emoji: '💀', timeLimitSeconds: 20 * 60, description: '20 minutes — complex multi-step analytical queries', color: 'purple' },
-    { id: 'senior_pro', label: 'Senior Data Pro', emoji: '👑', timeLimitSeconds: 20 * 60, description: '20 minutes — real-world business problems, no hints', color: 'amber' },
+    { id: 'intermediate', label: 'Intermediate', emoji: '🟢', timeLimitSeconds: 60 * 60, description: '1 hour — relaxed pace, take your time and think it through', color: 'green' },
+    { id: 'advanced', label: 'Advanced', emoji: '🟡', timeLimitSeconds: 45 * 60, description: '45 minutes — confident and focused, you know your way around SQL', color: 'yellow' },
+    { id: 'elite', label: 'Elite', emoji: '🔴', timeLimitSeconds: 30 * 60, description: '30 minutes — sharp under pressure, no second-guessing', color: 'red' },
+    { id: 'legendary', label: 'Legendary', emoji: '💀', timeLimitSeconds: 20 * 60, description: '20 minutes — fearless problem solver, thrives on challenge', color: 'purple' },
+    { id: 'senior_pro', label: 'Senior Data Pro', emoji: '👑', timeLimitSeconds: 20 * 60, description: '20 minutes — battle-tested expert, nothing phases you', color: 'amber' },
   ];
 
   // Default time limits for test mode on regular challenges (in seconds)
