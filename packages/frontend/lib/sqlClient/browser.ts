@@ -190,16 +190,31 @@ export async function runQuery(sql: string, params: any[] = []): Promise<{ colum
   }
 
   try {
-    const result = params.length > 0 ? db.exec(cleanedSql, params) : db.exec(cleanedSql);
-    console.log('[runQuery] result sets:', result.length, 'cleanedSql:', cleanedSql.substring(0, 100));
-    if (result.length === 0) {
-      return { columns: [], data: [] };
+    // Split on semicolons to handle multi-statement SQL — run all, return last result
+    const statements = cleanedSql
+      .split(';')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+
+    let columns: string[] = [];
+    let data: any[][] = [];
+
+    for (const stmtSql of statements) {
+      const stmt = db.prepare(stmtSql);
+      const cols = stmt.getColumnNames();
+      const rows: any[][] = [];
+      while (stmt.step()) {
+        rows.push(stmt.get());
+      }
+      stmt.free();
+      if (cols.length > 0 || rows.length > 0) {
+        columns = cols;
+        data = rows;
+      }
     }
-    // Return the last result set — when multiple statements exist,
-    // the user's actual query is typically the last one
-    const last = result[result.length - 1];
-    console.log('[runQuery] columns:', last.columns, 'rows:', last.values?.length, 'first row:', last.values?.[0]);
-    return { columns: last.columns, data: last.values };
+
+    console.log('[runQuery] columns:', columns, 'rows:', data.length, 'first row:', data[0]);
+    return { columns, data };
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
     throw new Error(`Query failed: ${msg}`);

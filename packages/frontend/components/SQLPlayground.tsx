@@ -646,18 +646,18 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
             </Link>
           </div>
           {message && (
-            <div
-              className={`mt-4 p-4 rounded-xl font-medium transition-all duration-500 ${
-                message.includes('Correct') || message.includes('Moving') || message.includes('cleared')
-                  ? 'bg-bleepx-blue/20 text-bleepx-gray'
-                  : message.startsWith('*bleep* Syntax') || message.startsWith('*bleep* Circular') || message.includes('Error')
-                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
-                  : 'bg-bleepx-blue/10 text-bleepx-gray'
-              } ${showSuccess ? 'animate-pulse' : ''}`}
-              role="status"
-            >
-              <div className="flex items-center gap-2">
-                <img src="/bleepx-logo.png" alt="Bleepx" className="h-5 w-5" />
+            <div className="mt-4 flex items-start gap-2.5" role="status">
+              <img src="/bleepx-logo.png" alt="Bleepx" className="h-7 w-7 rounded-full ring-2 ring-bleepx-blue/30 flex-shrink-0 mt-0.5" />
+              <div
+                className={`relative px-4 py-3 rounded-2xl rounded-tl-sm shadow-md max-w-[90%] text-sm font-medium transition-all duration-500 ${
+                  message.includes('Correct') || message.includes('Moving') || message.includes('cleared')
+                    ? 'bg-gradient-to-r from-blue-100 to-sky-100 dark:from-blue-900/40 dark:to-sky-900/40 text-blue-900 dark:text-blue-100 border border-blue-200 dark:border-blue-700'
+                    : message.startsWith('*bleep* Syntax') || message.startsWith('*bleep* Circular') || message.includes('Error')
+                    ? 'bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/30 dark:to-amber-900/30 text-yellow-900 dark:text-yellow-100 border border-yellow-200 dark:border-yellow-700'
+                    : 'bg-gradient-to-r from-slate-100 to-blue-50 dark:from-slate-800/60 dark:to-blue-900/30 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-600'
+                } ${showSuccess ? 'animate-pulse' : ''}`}
+              >
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-bleepx-blue/70 mb-1">Bleepx</span>
                 <span>{message}</span>
               </div>
             </div>
