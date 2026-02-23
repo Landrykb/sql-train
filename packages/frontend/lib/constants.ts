@@ -45,6 +45,31 @@
     sports: ['hidden_player_value', 'hidden_mvp_predictor'],
   };
 
+  // Trial difficulty levels with time limits (in seconds)
+  export interface TrialDifficulty {
+    id: string;
+    label: string;
+    emoji: string;
+    timeLimitSeconds: number;
+    description: string;
+    color: string;
+  }
+
+  export const trialDifficulties: TrialDifficulty[] = [
+    { id: 'intermediate', label: 'Intermediate', emoji: '🟢', timeLimitSeconds: 15 * 60, description: '15 minutes — comfortable pace for learning', color: 'green' },
+    { id: 'advanced', label: 'Advanced', emoji: '🟡', timeLimitSeconds: 10 * 60, description: '10 minutes — solid pace for experienced analysts', color: 'yellow' },
+    { id: 'elite', label: 'Elite', emoji: '🔴', timeLimitSeconds: 5 * 60, description: '5 minutes — speed and precision required', color: 'red' },
+    { id: 'legendary', label: 'Legendary', emoji: '💀', timeLimitSeconds: 3 * 60, description: '3 minutes — only the fastest survive', color: 'purple' },
+    { id: 'senior_pro', label: 'Senior Data Pro', emoji: '👑', timeLimitSeconds: 90, description: '90 seconds — prove you belong at the top', color: 'amber' },
+  ];
+
+  // Default time limits for test mode on regular challenges (in seconds)
+  export const testModeTimeLimits: Record<string, number> = {
+    capstone: 10 * 60,   // 10 min for capstone
+    hidden: 7 * 60,      // 7 min for hidden/bonus
+    regular: 15 * 60,    // 15 min for regular cases
+  };
+
   // Full case order including hidden levels
   export const fullCaseOrder: { [domain: string]: string[] } = Object.fromEntries(
     Object.keys(caseOrder).map((domain) => [

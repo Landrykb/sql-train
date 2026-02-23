@@ -10,7 +10,8 @@ import Papa from 'papaparse';
 import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { compareResults } from '@/lib/compare';
 import { useProgress } from '@/lib/useProgress';
-import { fullCaseOrder, caseOrder, visualizationConfigs } from '@/lib/constants';
+import { fullCaseOrder, caseOrder, visualizationConfigs, trialDifficulties, testModeTimeLimits } from '@/lib/constants';
+import type { TrialDifficulty } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
 import { loadingMessages, queryMessages, getLockedMessage, getDomainCompleteMessage, getNextCaseMessage, getLoadError, pickRandom, alternativeMessages } from '@/lib/bleepxDialogue';
 import { playBleep } from '@/lib/audio';
@@ -129,7 +130,14 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const [timerEnabled, setTimerEnabled] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [trialBriefing, setTrialBriefing] = useState(false); // show start screen for trials
+  const [selectedDifficulty, setSelectedDifficulty] = useState<TrialDifficulty | null>(null);
+  const [timeLimit, setTimeLimit] = useState(0); // countdown from this value (seconds)
+  const [timeExpired, setTimeExpired] = useState(false);
   const { dark } = useTheme();
+
+  const isTrial = domain === 'trials' || id.startsWith('trial_');
+  const prevCaseId = currentIndex > 0 ? currentOrder[currentIndex - 1] : null;
 
   useEffect(() => {
     if (!caseOrder[domain]) console.error(`Invalid domain: ${domain}`, { rawDomain, availableDomains: Object.keys(caseOrder) });
@@ -150,26 +158,45 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       const hist = localStorage.getItem(`bleepx_history_${domain}_${id}`);
       if (hist) setQueryHistory(JSON.parse(hist));
     } catch { /* ignore */ }
-    // Auto-start timer for trial challenges (always timed) or capstone/hidden with test mode
-    try {
-      if (domain === 'trials' || id.startsWith('trial_')) {
-        setTimerEnabled(true);
-      } else {
+    // Show trial briefing for trial challenges (don't auto-start)
+    if (isTrial) {
+      setTrialBriefing(true);
+    } else {
+      // For non-trial challenges, check test mode
+      try {
         const profile = JSON.parse(localStorage.getItem('bleepx_profile') || '{}');
-        if (profile.testModeEnabled && (id.startsWith('capstone') || id.startsWith('hidden_'))) {
+        if (profile.testModeEnabled) {
+          const limit = id.startsWith('capstone') ? testModeTimeLimits.capstone
+            : id.startsWith('hidden_') ? testModeTimeLimits.hidden
+            : testModeTimeLimits.regular;
+          setTimeLimit(limit);
+          setTimerSeconds(limit);
           setTimerEnabled(true);
         }
-      }
-    } catch { /* ignore */ }
+      } catch { /* ignore */ }
+    }
   }, [domain, id]);
 
-  // Timer
+  // Timer — counts DOWN if timeLimit > 0, counts UP otherwise
   useEffect(() => {
-    if (timerEnabled && dbReady) {
-      timerRef.current = setInterval(() => setTimerSeconds((s) => s + 1), 1000);
+    if (timerEnabled && dbReady && !timeExpired) {
+      timerRef.current = setInterval(() => {
+        setTimerSeconds((s) => {
+          if (timeLimit > 0) {
+            // Countdown mode
+            if (s <= 1) {
+              setTimeExpired(true);
+              return 0;
+            }
+            return s - 1;
+          }
+          // Count-up mode
+          return s + 1;
+        });
+      }, 1000);
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [timerEnabled, dbReady]);
+  }, [timerEnabled, dbReady, timeExpired, timeLimit]);
 
   // Auto-scroll to success panel when it appears
   useEffect(() => {
@@ -455,7 +482,9 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
     );
   }
 
-  if (!dbReady) {
+  const fmtTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+
+  if (!dbReady && !trialBriefing) {
     return (
       <Suspense fallback={<div className="flex items-center justify-center p-8"><Spinner /><span className="ml-2 text-bleepx-gray">Loading...</span></div>}>
         <div className="flex items-center justify-center p-8" aria-live="polite">
@@ -466,18 +495,142 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
     );
   }
 
-  const fmtTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+  // Start a trial with a selected difficulty
+  const startTrial = (diff: TrialDifficulty) => {
+    setSelectedDifficulty(diff);
+    setTimeLimit(diff.timeLimitSeconds);
+    setTimerSeconds(diff.timeLimitSeconds);
+    setTimerEnabled(true);
+    setTrialBriefing(false);
+    setTimeExpired(false);
+  };
+
+  // Trial briefing overlay
+  if (trialBriefing && isTrial) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-8 py-8 sm:py-16 min-h-screen flex flex-col items-center justify-center bg-bleepx-bg text-bleepx-text">
+        <div className="w-full bg-bleepx-white rounded-2xl shadow-2xl p-6 sm:p-10 border border-bleepx-border">
+          <div className="flex items-center gap-3 mb-6">
+            <img src="/bleepx-logo.png" alt="Bleepx" className="h-10 w-10 animate-pulse-logo" />
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-gray">{name}</h1>
+              <p className="text-sm text-bleepx-text-secondary">Timed Trial Challenge</p>
+            </div>
+          </div>
+
+          <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-bleepx-blue/10 to-bleepx-pink/10">
+            <p className="text-sm text-bleepx-gray">{instructions || description}</p>
+          </div>
+
+          <div className="mb-6">
+            <h2 className="text-lg font-bold text-bleepx-gray mb-3">Select Difficulty</h2>
+            <p className="text-xs text-bleepx-text-secondary mb-4">Choose your time limit. Higher difficulty = less time, more glory.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {trialDifficulties.map((diff) => (
+                <button
+                  key={diff.id}
+                  onClick={() => startTrial(diff)}
+                  className={`group relative p-4 rounded-xl border-2 text-left transition-all hover:shadow-lg hover:scale-[1.02] ${
+                    diff.id === 'legendary' || diff.id === 'senior_pro'
+                      ? 'border-purple-400 dark:border-purple-600 hover:border-purple-500 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20'
+                      : diff.id === 'elite'
+                      ? 'border-red-300 dark:border-red-700 hover:border-red-400 bg-red-50/50 dark:bg-red-900/10'
+                      : diff.id === 'advanced'
+                      ? 'border-yellow-300 dark:border-yellow-700 hover:border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10'
+                      : 'border-green-300 dark:border-green-700 hover:border-green-400 bg-green-50/50 dark:bg-green-900/10'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xl">{diff.emoji}</span>
+                    <span className="font-bold text-bleepx-gray">{diff.label}</span>
+                    <span className="ml-auto text-xs font-mono font-bold text-bleepx-text-secondary">{fmtTime(diff.timeLimitSeconds)}</span>
+                  </div>
+                  <p className="text-xs text-bleepx-text-secondary">{diff.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Link href={`/cases/${domain}`}>
+              <button className="px-4 py-2 rounded-full border border-bleepx-border text-sm text-bleepx-text-secondary hover:bg-bleepx-blue/5 transition-colors">← Back to Trials</button>
+            </Link>
+            <p className="text-xs text-bleepx-text-secondary">*bleep* Pick wisely, human. The clock starts when you click.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6 min-h-screen transition-colors bg-bleepx-bg text-bleepx-text">
+      {/* Time expired overlay */}
+      {timeExpired && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-bleepx-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full text-center">
+            <img src="/bleepx-logo.png" alt="Bleepx" className="h-12 w-12 mx-auto mb-4 opacity-60" />
+            <h2 className="text-2xl font-bold text-red-600 mb-2">Time&apos;s Up!</h2>
+            <p className="text-sm text-bleepx-text-secondary mb-4">
+              *bleep* The clock has spoken, human. {selectedDifficulty ? `${selectedDifficulty.label} difficulty — ${selectedDifficulty.description.split('—')[0].trim()}.` : 'Time limit reached.'}
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <button onClick={() => { setTimeExpired(false); setTimerEnabled(false); setTimeLimit(0); }} className="px-5 py-2.5 rounded-full bg-bleepx-blue text-white text-sm font-bold hover:bg-bleepx-blue/90 transition-colors">Continue Without Timer</button>
+              {isTrial && <button onClick={() => { setTimeExpired(false); setTrialBriefing(true); setTimerEnabled(false); }} className="px-5 py-2.5 rounded-full border-2 border-bleepx-border text-sm font-bold text-bleepx-text-secondary hover:bg-bleepx-blue/5 transition-colors">Try Again</button>}
+              {nextCaseId && <Link href={`/cases/${domain}/${nextCaseId}`}><button className="px-5 py-2.5 rounded-full bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors">Next Case →</button></Link>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Next Case bar for completed challenges */}
+      {completed.has(id) && !showSuccess && (
+        <div className="flex items-center justify-between p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+          <div className="flex items-center gap-2">
+            <span className="text-green-600 font-bold text-sm">✓ Completed</span>
+            {prevCaseId && (
+              <Link href={`/cases/${domain}/${prevCaseId}`}>
+                <button className="px-3 py-1 rounded-full text-xs border border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800/30 transition-colors">← Previous</button>
+              </Link>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {nextCaseId ? (
+              <Link href={`/cases/${domain}/${nextCaseId}`}>
+                <button className="px-4 py-1.5 rounded-full bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors shadow-sm">Next Case →</button>
+              </Link>
+            ) : (
+              <Link href={`/cases/${domain}/dashboard`}>
+                <button className="px-4 py-1.5 rounded-full bg-bleepx-blue text-white text-sm font-bold hover:bg-bleepx-blue/90 transition-colors shadow-sm">View Dashboard</button>
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex items-center justify-end gap-2 text-xs">
-        <button onClick={() => { setTimerEnabled((v) => !v); if (!timerEnabled) setTimerSeconds(0); }} className={`px-2 py-1 rounded-full border transition-colors border-bleepx-border bg-bleepx-white text-bleepx-text-secondary ${timerEnabled ? 'ring-2 ring-bleepx-blue' : ''}`}>
-          ⏱️ {timerEnabled ? fmtTime(timerSeconds) : 'Timer'}
-        </button>
-        {(id.startsWith('capstone') || id.startsWith('hidden_')) && timerEnabled && (
-          <span className="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
-            🧪 TEST MODE
+        {!isTrial && (
+          <button onClick={() => {
+            if (timerEnabled) { setTimerEnabled(false); setTimeLimit(0); setTimerSeconds(0); }
+            else { setTimerSeconds(0); setTimerEnabled(true); }
+          }} className={`px-2 py-1 rounded-full border transition-colors border-bleepx-border bg-bleepx-white text-bleepx-text-secondary ${timerEnabled ? 'ring-2 ring-bleepx-blue' : ''}`}>
+            ⏱️ {timerEnabled ? fmtTime(timerSeconds) : 'Timer'}
+          </button>
+        )}
+        {isTrial && timerEnabled && (
+          <span className={`px-3 py-1 rounded-full text-sm font-bold font-mono shadow-sm ${
+            timerSeconds <= 30 ? 'bg-red-600 text-white animate-pulse' :
+            timerSeconds <= 60 ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300' :
+            'bg-bleepx-blue/10 text-bleepx-blue'
+          }`}>
+            ⏱ {fmtTime(timerSeconds)} {selectedDifficulty && <span className="text-xs ml-1">{selectedDifficulty.emoji} {selectedDifficulty.label}</span>}
+          </span>
+        )}
+        {!isTrial && timerEnabled && timeLimit > 0 && (
+          <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+            timerSeconds <= 60 ? 'bg-red-600 text-white animate-pulse' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+          }`}>
+            🧪 TEST MODE — {fmtTime(timerSeconds)}
           </span>
         )}
         <span className="hidden sm:inline px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">⌘/Ctrl+Enter = Run · ⌘/Ctrl+Shift+C = Clear</span>
@@ -762,10 +915,17 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
         {showSuccess && nextDestination && (
           <div ref={successRef} className="p-4 sm:p-6 rounded-xl shadow-xl bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 border-2 border-green-400 dark:border-green-600 animate-fade-in ring-2 ring-green-300 dark:ring-green-700">
             <div className="flex items-start gap-3">
-              <span className="text-4xl flex-shrink-0 animate-bounce">🎉</span>
+              <img src="/bleepx-logo.png" alt="Bleepx" className="h-12 w-12 flex-shrink-0 animate-bounce rounded-full ring-2 ring-green-400" />
               <div className="flex-1">
                 <h2 className="text-lg sm:text-xl font-bold text-green-900 dark:text-green-200 mb-2">*bleep* Outstanding work, human!</h2>
-                <p className="text-sm text-green-800 dark:text-green-300 mb-2">You cracked it{timerEnabled && timerSeconds > 0 ? ` in ${Math.floor(timerSeconds / 60)}m ${timerSeconds % 60}s` : ''}{attempts > 0 ? ` with ${attempts} attempt${attempts !== 1 ? 's' : ''}` : ''}. Your query results are below — take a moment to review them.</p>
+                <p className="text-sm text-green-800 dark:text-green-300 mb-2">
+                  You cracked it
+                  {timeLimit > 0 && selectedDifficulty
+                    ? ` on ${selectedDifficulty.emoji} ${selectedDifficulty.label} with ${fmtTime(timeLimit - timerSeconds)} remaining`
+                    : timerEnabled && timerSeconds > 0 ? ` in ${fmtTime(timerSeconds)}` : ''}
+                  {attempts > 0 ? ` with ${attempts} attempt${attempts !== 1 ? 's' : ''}` : ''}.
+                  Your query results are below — take a moment to review them.
+                </p>
                 <div className="flex items-center gap-2 mt-2 mb-3">
                   <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-600 text-white text-sm font-bold shadow-md">
                     ⏱ {countdown}s
@@ -779,6 +939,16 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                   >
                     {nextDestination.label} →
                   </button>
+                  {nextCaseId && !nextDestination.label.startsWith('Next:') && (
+                    <Link href={`/cases/${domain}/${nextCaseId}`}>
+                      <button
+                        onClick={() => { if (countdownRef.current) clearInterval(countdownRef.current); }}
+                        className="px-5 py-2.5 rounded-full bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors shadow-md"
+                      >
+                        Next Case →
+                      </button>
+                    </Link>
+                  )}
                   <button
                     onClick={() => { if (countdownRef.current) clearInterval(countdownRef.current); setNextDestination(null); setCountdown(0); setShowSuccess(false); }}
                     className="px-5 py-2.5 rounded-full border-2 border-green-500 dark:border-green-500 text-green-800 dark:text-green-200 text-sm font-bold hover:bg-green-200 dark:hover:bg-green-800/40 transition-colors"
@@ -787,7 +957,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                   </button>
                   {hasVisualizations && (
                     <Link href={`/cases/${domain}/${id}/visualizations`}>
-                      <button className="px-5 py-2.5 rounded-full border-2 border-green-500 text-green-800 text-sm font-bold hover:bg-green-200 transition-colors">
+                      <button className="px-5 py-2.5 rounded-full border-2 border-green-500 text-green-800 dark:text-green-200 text-sm font-bold hover:bg-green-200 dark:hover:bg-green-800/40 transition-colors">
                         View Visualizations
                       </button>
                     </Link>
