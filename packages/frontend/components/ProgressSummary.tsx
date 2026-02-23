@@ -24,7 +24,7 @@ const ProgressSummary = ({ caseIds }: Props) => {
           <span className="text-xs font-bold text-bleepx-blue bg-bleepx-blue/10 px-2 py-0.5 rounded-full">{points} pts</span>
         </div>
       </div>
-      <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+      <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-bleepx-blue to-emerald-500 rounded-full transition-all duration-700"
           style={{ width: `${percentage}%` }}

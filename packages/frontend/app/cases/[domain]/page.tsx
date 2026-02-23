@@ -58,7 +58,7 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
         <h1 className="text-3xl font-bold text-bleepx-text capitalize">
           {decodedDomain} Challenges
         </h1>
-        <div className="p-6 bg-red-50 text-red-800 rounded-lg shadow mt-6">
+        <div className="p-6 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg shadow mt-6">
           Invalid domain: {decodedDomain}. Bleepx says pick a valid challenge!
           <div className="mt-2">
             <Link href="/cases">
@@ -130,7 +130,7 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
         <h1 className="text-3xl font-bold text-bleepx-text capitalize">
           {decodedDomain} Challenges
         </h1>
-        <div className="p-6 bg-red-50 text-red-800 rounded-lg shadow mt-6">
+        <div className="p-6 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg shadow mt-6">
           No cases found for domain: {decodedDomain}. Bleepx is disappointed, human!
           <div className="mt-2">
             <Link href="/cases">

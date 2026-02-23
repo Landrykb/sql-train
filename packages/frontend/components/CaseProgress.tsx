@@ -51,11 +51,11 @@ export default function CaseProgress({ caseIds, domain, cases }: Props) {
           const done = progress.get(id);
           const open = unlocked.get(id);
           return (
-            <li key={id} className={`flex items-center py-1.5 px-3 rounded-lg transition-colors ${done ? 'bg-emerald-50' : open ? 'bg-blue-50/50' : 'bg-gray-50'}`}>
-              <span className={`w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold flex-shrink-0 ${done ? 'bg-emerald-500 text-white' : open ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-400'}`}>
+            <li key={id} className={`flex items-center py-1.5 px-3 rounded-lg transition-colors ${done ? 'bg-emerald-50 dark:bg-emerald-900/20' : open ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'bg-gray-50 dark:bg-gray-800/50'}`}>
+              <span className={`w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold flex-shrink-0 ${done ? 'bg-emerald-500 text-white' : open ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-gray-200 dark:bg-gray-700 text-gray-400'}`}>
                 {done ? '✓' : open ? '→' : '·'}
               </span>
-              <span className={`ml-3 text-sm ${done ? 'text-emerald-700 line-through' : open ? 'text-bleepx-text font-medium' : 'text-gray-400'}`}>
+              <span className={`ml-3 text-sm ${done ? 'text-emerald-700 dark:text-emerald-400 line-through' : open ? 'text-bleepx-text font-medium' : 'text-gray-400'}`}>
                 {getCaseName(id)}
               </span>
               {done && <span className="ml-auto text-xs text-emerald-600 font-mono">+{10 * tier}pts</span>}
@@ -66,9 +66,9 @@ export default function CaseProgress({ caseIds, domain, cases }: Props) {
       {bonusIds.length > 0 && (
         <>
           <div className="my-4 flex items-center gap-3">
-            <div className="h-px flex-1 bg-amber-200" />
-            <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Classified Missions</span>
-            <div className="h-px flex-1 bg-amber-200" />
+            <div className="h-px flex-1 bg-amber-200 dark:bg-amber-700" />
+            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest">Classified Missions</span>
+            <div className="h-px flex-1 bg-amber-200 dark:bg-amber-700" />
           </div>
           <ul className="space-y-1.5">
             {bonusIds.map((id) => {
@@ -76,11 +76,11 @@ export default function CaseProgress({ caseIds, domain, cases }: Props) {
               const done = progress.get(id);
               const open = unlocked.get(id);
               return (
-                <li key={id} className={`flex items-center py-1.5 px-3 rounded-lg transition-colors ${done ? 'bg-amber-50' : open ? 'bg-purple-50/50' : 'bg-gray-50'}`}>
-                  <span className={`w-5 h-5 flex items-center justify-center rounded text-xs font-bold flex-shrink-0 rotate-45 ${done ? 'bg-amber-500 text-white' : open ? 'bg-purple-100 text-purple-600' : 'bg-gray-200 text-gray-400'}`}>
+                <li key={id} className={`flex items-center py-1.5 px-3 rounded-lg transition-colors ${done ? 'bg-amber-50 dark:bg-amber-900/20' : open ? 'bg-purple-50/50 dark:bg-purple-900/10' : 'bg-gray-50 dark:bg-gray-800/50'}`}>
+                  <span className={`w-5 h-5 flex items-center justify-center rounded text-xs font-bold flex-shrink-0 rotate-45 ${done ? 'bg-amber-500 text-white' : open ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'bg-gray-200 dark:bg-gray-700 text-gray-400'}`}>
                     <span className="-rotate-45">{done ? '★' : open ? '◆' : '?'}</span>
                   </span>
-                  <span className={`ml-3 text-sm ${done ? 'text-amber-700' : open ? 'text-purple-700 font-medium' : 'text-gray-400 italic'}`}>
+                  <span className={`ml-3 text-sm ${done ? 'text-amber-700 dark:text-amber-400' : open ? 'text-purple-700 dark:text-purple-400 font-medium' : 'text-gray-400 italic'}`}>
                     {open || done ? getCaseName(id) : '■■■ Classified ■■■'}
                   </span>
                   {done && <span className="ml-auto text-xs text-amber-600 font-mono">+{10 * tier}pts</span>}

@@ -9,7 +9,7 @@ interface DiffGridProps {
 
 export default function DiffGrid({ actual, expected, expectedColumns }: DiffGridProps) {
   if ((!actual || actual.length === 0) && (!expected || expected.length === 0)) {
-    return <p className="text-sm text-gray-500">No data to compare.</p>;
+    return <p className="text-sm text-gray-500 dark:text-gray-400">No data to compare.</p>;
   }
 
   const actCols = actual.length > 0 ? Object.keys(actual[0]) : [];
@@ -24,10 +24,10 @@ export default function DiffGrid({ actual, expected, expectedColumns }: DiffGrid
       {(missingCols.length > 0 || extraCols.length > 0) && (
         <div className="text-xs space-y-1">
           {missingCols.length > 0 && (
-            <p className="text-red-600">Missing columns: <code className="bg-red-50 px-1 rounded">{missingCols.join(', ')}</code></p>
+            <p className="text-red-600 dark:text-red-400">Missing columns: <code className="bg-red-50 dark:bg-red-900/20 px-1 rounded">{missingCols.join(', ')}</code></p>
           )}
           {extraCols.length > 0 && (
-            <p className="text-amber-600">Extra columns: <code className="bg-amber-50 px-1 rounded">{extraCols.join(', ')}</code></p>
+            <p className="text-amber-600 dark:text-amber-400">Extra columns: <code className="bg-amber-50 dark:bg-amber-900/20 px-1 rounded">{extraCols.join(', ')}</code></p>
           )}
         </div>
       )}
@@ -40,12 +40,12 @@ export default function DiffGrid({ actual, expected, expectedColumns }: DiffGrid
         <table className="min-w-full table-auto border-collapse text-xs">
           <thead>
             <tr>
-              <th className="border px-2 py-1 bg-gray-200 text-left">#</th>
+              <th className="border border-gray-200 dark:border-gray-600 px-2 py-1 bg-gray-200 dark:bg-gray-700 text-left text-gray-800 dark:text-gray-200">#</th>
               {allCols.map((c) => (
                 <th
                   key={c}
-                  className={`border px-2 py-1 text-left ${
-                    missingCols.includes(c) ? 'bg-red-100 text-red-800' : extraCols.includes(c) ? 'bg-amber-100 text-amber-800' : 'bg-gray-100'
+                  className={`border border-gray-200 dark:border-gray-600 px-2 py-1 text-left ${
+                    missingCols.includes(c) ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300' : extraCols.includes(c) ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
                   }`}
                 >
                   {c}
@@ -59,7 +59,7 @@ export default function DiffGrid({ actual, expected, expectedColumns }: DiffGrid
               const expRow = expected[i];
               return (
                 <tr key={i}>
-                  <td className="border px-2 py-1 bg-gray-50 font-mono">{i + 1}</td>
+                  <td className="border border-gray-200 dark:border-gray-600 px-2 py-1 bg-gray-50 dark:bg-gray-800 font-mono text-gray-800 dark:text-gray-200">{i + 1}</td>
                   {allCols.map((c) => {
                     const actVal = actRow?.[c];
                     const expVal = expRow?.[c];
@@ -96,7 +96,7 @@ export default function DiffGrid({ actual, expected, expectedColumns }: DiffGrid
           </tbody>
         </table>
         {maxRows > 20 && (
-          <p className="text-xs text-gray-500 mt-2">Showing first 20 of {maxRows} rows...</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Showing first 20 of {maxRows} rows...</p>
         )}
       </div>
     </div>

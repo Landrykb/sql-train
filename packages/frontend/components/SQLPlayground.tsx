@@ -128,7 +128,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const [timerEnabled, setTimerEnabled] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const { dark, toggle: toggleDark } = useTheme();
+  const { dark } = useTheme();
 
   useEffect(() => {
     if (!caseOrder[domain]) console.error(`Invalid domain: ${domain}`, { rawDomain, availableDomains: Object.keys(caseOrder) });
@@ -420,8 +420,8 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
 
   if (!isUnlocked(prerequisites)) {
     return (
-      <div className="max-w-6xl mx-auto p-8 bg-gradient-to-b from-gray-50 to-bleepx-blue/10 min-h-screen">
-        <div className="p-6 bg-yellow-100 text-yellow-800 rounded-xl shadow-lg" role="alert">
+      <div className="max-w-6xl mx-auto p-8 bg-bleepx-bg min-h-screen">
+        <div className="p-6 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded-xl shadow-lg" role="alert">
           <div className="flex items-center gap-2">
             <img src="/bleepx-logo.png" alt="Bleepx" className="h-5 w-5" />
             <span>{getLockedMessage(prerequisites)}</span>
@@ -438,8 +438,8 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
 
   if (loadError) {
     return (
-      <div className="max-w-6xl mx-auto p-8 bg-gradient-to-b from-gray-50 to-bleepx-blue/10 min-h-screen">
-        <div className="p-6 bg-yellow-100 text-yellow-800 rounded-xl shadow-lg" role="alert">{loadError}</div>
+      <div className="max-w-6xl mx-auto p-8 bg-bleepx-bg min-h-screen">
+        <div className="p-6 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded-xl shadow-lg" role="alert">{loadError}</div>
       </div>
     );
   }
@@ -458,21 +458,18 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const fmtTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
   return (
-    <div className={`max-w-6xl mx-auto px-3 sm:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6 min-h-screen transition-colors ${dark ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-b from-gray-50 to-bleepx-blue/10'}`}>
+    <div className="max-w-6xl mx-auto px-3 sm:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6 min-h-screen transition-colors bg-bleepx-bg text-bleepx-text">
       {/* Toolbar */}
       <div className="flex items-center justify-end gap-2 text-xs">
-        <button onClick={toggleDark} className={`px-2 py-1 rounded-full border transition-colors ${dark ? 'border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700' : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-100'}`}>
-          {dark ? '☀️ Light' : '🌙 Dark'}
-        </button>
-        <button onClick={() => { setTimerEnabled((v) => !v); if (!timerEnabled) setTimerSeconds(0); }} className={`px-2 py-1 rounded-full border transition-colors ${dark ? 'border-gray-600 bg-gray-800 text-gray-200' : 'border-gray-300 bg-white text-gray-700'} ${timerEnabled ? 'ring-2 ring-bleepx-blue' : ''}`}>
+        <button onClick={() => { setTimerEnabled((v) => !v); if (!timerEnabled) setTimerSeconds(0); }} className={`px-2 py-1 rounded-full border transition-colors border-bleepx-border bg-bleepx-white text-bleepx-text-secondary ${timerEnabled ? 'ring-2 ring-bleepx-blue' : ''}`}>
           ⏱️ {timerEnabled ? fmtTime(timerSeconds) : 'Timer'}
         </button>
         {(id.startsWith('capstone') || id.startsWith('hidden_')) && timerEnabled && (
-          <span className={`px-2 py-1 rounded-full text-xs font-bold ${dark ? 'bg-amber-900/30 text-amber-300' : 'bg-amber-100 text-amber-700'}`}>
+          <span className="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
             🧪 TEST MODE
           </span>
         )}
-        <span className={`hidden sm:inline px-2 py-1 rounded ${dark ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>⌘/Ctrl+Enter = Run · ⌘/Ctrl+Shift+C = Clear</span>
+        <span className="hidden sm:inline px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">⌘/Ctrl+Enter = Run · ⌘/Ctrl+Shift+C = Clear</span>
       </div>
 
       <nav className="text-xs sm:text-sm font-medium text-bleepx-blue overflow-x-auto" aria-label="Breadcrumb">
@@ -508,32 +505,32 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
 
       <div className="space-y-4 sm:space-y-6">
         {/* 1. Write Your Query — always on top */}
-        <div className={`p-3 sm:p-6 rounded-xl shadow-lg ${dark ? 'bg-gray-800' : 'bg-white'}`}>
-          <h2 className={`text-base sm:text-lg font-semibold mb-3 sm:mb-4 ${dark ? 'text-gray-100' : 'text-bleepx-gray'}`}>Write Your Query</h2>
+        <div className="p-3 sm:p-6 rounded-xl shadow-lg bg-bleepx-white">
+          <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-bleepx-gray">Write Your Query</h2>
           <CodeMirror
             value={query}
             height="200px"
             onChange={setQuery}
             isDark={dark}
             aria-label="SQL query editor"
-            className={`border rounded-lg ${dark ? 'border-gray-600' : 'border-bleepx-gray/20'}`}
+            className="border rounded-lg border-bleepx-border"
           />
           <div className="mt-3 flex gap-2">
-            <button onClick={() => setShowSchema((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showSchema ? 'bg-bleepx-blue text-white border-bleepx-blue' : dark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
+            <button onClick={() => setShowSchema((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showSchema ? 'bg-bleepx-blue text-white border-bleepx-blue' : 'border-bleepx-border text-bleepx-text-secondary hover:bg-bleepx-blue/5'}`}>
               {showSchema ? '✕ Hide Schema' : '📋 Schema Explorer'}
             </button>
             {expected.length > 0 && (
-              <button onClick={() => setShowExpected((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showExpected ? 'bg-green-600 text-white border-green-600' : dark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
+              <button onClick={() => setShowExpected((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showExpected ? 'bg-green-600 text-white border-green-600' : 'border-bleepx-border text-bleepx-text-secondary hover:bg-bleepx-blue/5'}`}>
                 {showExpected ? '✕ Hide Expected' : '🎯 Expected Output'}
               </button>
             )}
-            <button onClick={() => setShowHistory((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showHistory ? 'bg-purple-600 text-white border-purple-600' : dark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
+            <button onClick={() => setShowHistory((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showHistory ? 'bg-purple-600 text-white border-purple-600' : 'border-bleepx-border text-bleepx-text-secondary hover:bg-bleepx-blue/5'}`}>
               {showHistory ? '✕ Hide History' : `📜 History (${queryHistory.length})`}
             </button>
           </div>
           {/* Schema Explorer */}
           {showSchema && tables.length > 0 && (
-            <div className={`mt-3 rounded-lg border p-3 text-xs ${dark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+            <div className="mt-3 rounded-lg border p-3 text-xs bg-bleepx-bg border-bleepx-border">
               {tables.map((table) => (
                 <div key={table.name} className="mb-3 last:mb-0">
                   <div className="font-semibold text-sm mb-1 flex items-center gap-1">
@@ -541,11 +538,11 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                     <button onClick={() => setQuery((q) => `${q.replace(/;?\s*$/, '')} ${table.name} `)} className="hover:text-bleepx-blue cursor-pointer">
                       {table.name}
                     </button>
-                    <span className={`text-[10px] ml-1 ${dark ? 'text-gray-500' : 'text-gray-400'}`}>({table.rowCount} rows)</span>
+                    <span className="text-[10px] ml-1 text-bleepx-text-secondary">({table.rowCount} rows)</span>
                   </div>
                   <div className="flex flex-wrap gap-1 ml-5">
                     {table.columns.map((c) => (
-                      <button key={c} onClick={() => { playBleep(); setQuery((q) => `${q.replace(/;?\s*$/, '')} ${c} `); }} className={`px-2 py-0.5 rounded text-[11px] cursor-pointer transition-colors ${dark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-white hover:bg-bleepx-blue/10 text-gray-700 border border-gray-200'}`}>
+                      <button key={c} onClick={() => { playBleep(); setQuery((q) => `${q.replace(/;?\s*$/, '')} ${c} `); }} className="px-2 py-0.5 rounded text-[11px] cursor-pointer transition-colors bg-bleepx-white hover:bg-bleepx-blue/10 text-bleepx-text-secondary border border-bleepx-border">
                         {c}
                       </button>
                     ))}
@@ -556,26 +553,26 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
           )}
           {/* Expected Output Preview */}
           {showExpected && expected.length > 0 && (
-            <div className={`mt-3 rounded-lg border p-3 text-xs ${dark ? 'bg-gray-800 border-gray-700' : 'bg-green-50 border-green-200'}`}>
+            <div className="mt-3 rounded-lg border p-3 text-xs bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
               <p className="font-semibold text-sm mb-2">🎯 Expected Output Shape</p>
               <p><strong>Columns:</strong> {expected.length > 0 ? Object.keys((expected as Record<string, any>[])[0]).join(', ') : '—'}</p>
               <p><strong>Rows:</strong> {expected.length}</p>
-              <p className={`mt-1 italic ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Match these columns and row count to pass.</p>
+              <p className="mt-1 italic text-bleepx-text-secondary">Match these columns and row count to pass.</p>
             </div>
           )}
           {/* Query History */}
           {showHistory && (
-            <div className={`mt-3 rounded-lg border p-3 text-xs max-h-[200px] overflow-y-auto ${dark ? 'bg-gray-800 border-gray-700' : 'bg-purple-50 border-purple-200'}`}>
+            <div className="mt-3 rounded-lg border p-3 text-xs max-h-[200px] overflow-y-auto bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800">
               <p className="font-semibold text-sm mb-2">📜 Query History</p>
               {queryHistory.length === 0 ? (
-                <p className={dark ? 'text-gray-400' : 'text-gray-500'}>No queries yet.</p>
+                <p className="text-bleepx-text-secondary">No queries yet.</p>
               ) : (
                 <div className="space-y-1.5">
                   {queryHistory.map((h, i) => (
-                    <div key={i} className={`flex items-start gap-2 p-1.5 rounded cursor-pointer hover:bg-opacity-50 ${dark ? 'hover:bg-gray-700' : 'hover:bg-purple-100'}`} onClick={() => { setQuery(h.query); setShowHistory(false); }}>
+                    <div key={i} className="flex items-start gap-2 p-1.5 rounded cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30" onClick={() => { setQuery(h.query); setShowHistory(false); }}>
                       <span className="flex-shrink-0 mt-0.5">{h.success === true ? '✅' : h.success === false ? '❌' : '⚪'}</span>
-                      <pre className={`truncate flex-1 font-mono ${dark ? 'text-gray-200' : 'text-gray-800'}`}>{h.query}</pre>
-                      <span className={`flex-shrink-0 text-[10px] ${dark ? 'text-gray-500' : 'text-gray-400'}`}>{new Date(h.ts).toLocaleTimeString()}</span>
+                      <pre className="truncate flex-1 font-mono text-bleepx-text">{h.query}</pre>
+                      <span className="flex-shrink-0 text-[10px] text-bleepx-text-secondary">{new Date(h.ts).toLocaleTimeString()}</span>
                     </div>
                   ))}
                 </div>
@@ -789,14 +786,14 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
         )}
 
         {/* 4. Query Results — always visible */}
-        <div ref={resultsRef} className={`p-3 sm:p-6 rounded-xl shadow-lg transition-all ${dark ? 'bg-gray-800' : 'bg-white'} ${!hasRun && !busy ? 'opacity-60' : ''}`}>
+        <div ref={resultsRef} className={`p-3 sm:p-6 rounded-xl shadow-lg transition-all bg-bleepx-white ${!hasRun && !busy ? 'opacity-60' : ''}`}>
           <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h2 className={`text-base sm:text-lg font-semibold ${dark ? 'text-gray-100' : 'text-bleepx-gray'}`}>
+            <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray">
               Query Results
-              {!busy && resultRows.length > 0 && <span className={`text-xs font-normal ml-2 ${dark ? 'text-gray-400' : 'text-gray-500'}`}>({resultRows.length} row{resultRows.length !== 1 ? 's' : ''})</span>}
+              {!busy && resultRows.length > 0 && <span className="text-xs font-normal ml-2 text-bleepx-text-secondary">({resultRows.length} row{resultRows.length !== 1 ? 's' : ''})</span>}
             </h2>
             {diffData && (
-              <button onClick={() => setShowDiff((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showDiff ? 'bg-red-600 text-white border-red-600' : dark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-red-300 text-red-600 hover:bg-red-50'}`}>
+              <button onClick={() => setShowDiff((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showDiff ? 'bg-red-600 text-white border-red-600' : 'border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'}`}>
                 {showDiff ? '✕ Hide Diff' : '🔍 Show Diff'}
               </button>
             )}
@@ -808,7 +805,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                 <span className="ml-2 text-bleepx-gray">{queryMessages.processing}</span>
               </div>
             ) : !hasRun ? (
-              <div className={`flex flex-col items-center justify-center py-6 ${dark ? 'text-gray-500' : 'text-gray-400'}`}>
+              <div className="flex flex-col items-center justify-center py-6 text-bleepx-text-secondary">
                 <span className="text-3xl mb-2">📊</span>
                 <p className="text-sm font-medium">Run a query to see results here</p>
                 <p className="text-xs mt-1">Press ⌘/Ctrl+Enter or click Run Query</p>
@@ -818,20 +815,20 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
             ) : resultRows.length > 0 ? (
               <DataGrid data={resultRows} />
             ) : (
-              <p className={`text-sm ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Query returned 0 rows.</p>
+              <p className="text-sm text-bleepx-text-secondary">Query returned 0 rows.</p>
             )}
           </div>
         </div>
 
         {/* 5. Dataset Preview — always visible */}
-        <div className={`p-3 sm:p-6 rounded-xl shadow-lg ${dark ? 'bg-gray-800' : 'bg-white'}`}>
-          <h2 className={`text-base sm:text-lg font-semibold mb-3 sm:mb-4 ${dark ? 'text-gray-100' : 'text-bleepx-gray'}`}>Dataset Preview</h2>
+        <div className="p-3 sm:p-6 rounded-xl shadow-lg bg-bleepx-white">
+          <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-bleepx-gray">Dataset Preview</h2>
           {datasets.length > 1 && (
             <div className="mb-4">
               <select
                 value={selectedTable || ''}
                 onChange={(e) => setSelectedTable(e.target.value)}
-                className={`p-2 border rounded-lg text-sm ${dark ? 'border-gray-600 bg-gray-700 text-gray-200' : 'border-bleepx-gray/20 text-bleepx-gray'}`}
+                className="p-2 border rounded-lg text-sm border-bleepx-border bg-bleepx-white text-bleepx-gray"
                 aria-label="Select dataset to preview"
               >
                 {tables.map((table) => (
@@ -843,7 +840,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
           <div className="min-h-[120px] sm:min-h-[200px] overflow-x-auto">
             <DataGrid data={tables.find((t) => t.name === selectedTable)?.previewRows || []} />
           </div>
-          <div className={`mt-4 text-sm ${dark ? 'text-gray-400' : 'text-bleepx-gray'}`}>
+          <div className="mt-4 text-sm text-bleepx-text-secondary">
             {tables.map((table) => (
               <div key={table.name} className="mb-2">
                 <p><strong>Dataset:</strong> <code>{table.file}</code></p>

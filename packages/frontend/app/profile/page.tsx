@@ -163,11 +163,11 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6">
       {/* Profile Header */}
-      <div className={`rounded-xl shadow-lg overflow-hidden ${dark ? 'bg-gray-800' : 'bg-white'}`}>
+      <div className="rounded-xl shadow-lg overflow-hidden bg-bleepx-white">
         <div className="bg-gradient-to-r from-bleepx-blue to-bleepx-pink h-24 sm:h-32" />
         <div className="px-4 sm:px-6 pb-4 sm:pb-6 -mt-10 sm:-mt-12">
           <div className="flex items-end gap-4">
-            <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 flex items-center justify-center text-3xl sm:text-4xl ${dark ? 'bg-gray-700 border-gray-800' : 'bg-gray-100 border-white'}`}>
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 flex items-center justify-center text-3xl sm:text-4xl bg-gray-100 dark:bg-gray-700 border-white dark:border-gray-800">
               {profile.authProvider === 'github' ? '🐙' : profile.authProvider ? '👤' : '🤖'}
             </div>
             <div className="flex-1 mb-1">
@@ -178,13 +178,13 @@ export default function ProfilePage() {
                       value={nameInput}
                       onChange={(e) => setNameInput(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') { saveProfile({ displayName: nameInput || profile.displayName }); setEditingName(false); } }}
-                      className={`text-lg sm:text-xl font-bold px-2 py-1 rounded border ${dark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                      className="text-lg sm:text-xl font-bold px-2 py-1 rounded border bg-bleepx-white border-bleepx-border text-bleepx-text"
                       autoFocus
                     />
                     <button onClick={() => { saveProfile({ displayName: nameInput || profile.displayName }); setEditingName(false); }} className="text-xs text-bleepx-blue">Save</button>
                   </div>
                 ) : (
-                  <h1 className={`text-lg sm:text-xl font-bold ${dark ? 'text-white' : 'text-gray-900'}`}>
+                  <h1 className="text-lg sm:text-xl font-bold text-bleepx-text">
                     {profile.displayName}
                     <button onClick={() => { setNameInput(profile.displayName); setEditingName(true); }} className="ml-2 text-xs text-bleepx-text-secondary hover:text-bleepx-blue">✏️</button>
                   </h1>
@@ -213,22 +213,22 @@ export default function ProfilePage() {
       {/* Sign In Modal */}
       {showSignIn && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowSignIn(false)}>
-          <div className={`mx-4 w-full max-w-md rounded-xl shadow-2xl p-6 ${dark ? 'bg-gray-800' : 'bg-white'}`} onClick={(e) => e.stopPropagation()}>
-            <h2 className={`text-lg font-bold mb-1 ${dark ? 'text-white' : 'text-gray-900'}`}>*bleep* Identify yourself, human.</h2>
+          <div className="mx-4 w-full max-w-md rounded-xl shadow-2xl p-6 bg-bleepx-white" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-bold mb-1 text-bleepx-text">*bleep* Identify yourself, human.</h2>
             <p className="text-sm text-bleepx-text-secondary mb-5">Sign in to save your progress across devices and export to GitHub.</p>
             <div className="space-y-3">
               <button onClick={() => handleSignIn('github')} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                <span className={`font-medium ${dark ? 'text-white' : 'text-gray-900'}`}>Continue with GitHub</span>
+                <span className="font-medium text-bleepx-text">Continue with GitHub</span>
                 <span className="ml-auto text-xs text-green-500">Recommended</span>
               </button>
               <button onClick={() => handleSignIn('google')} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                <span className={`font-medium ${dark ? 'text-white' : 'text-gray-900'}`}>Continue with Google</span>
+                <span className="font-medium text-bleepx-text">Continue with Google</span>
               </button>
               <button onClick={() => handleSignIn('email')} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 <span className="text-xl">📧</span>
-                <span className={`font-medium ${dark ? 'text-white' : 'text-gray-900'}`}>Continue with Email</span>
+                <span className="font-medium text-bleepx-text">Continue with Email</span>
               </button>
             </div>
             <p className="text-xs text-bleepx-text-secondary mt-4 text-center">
@@ -266,17 +266,17 @@ export default function ProfilePage() {
               { label: 'Total Points', value: stats.totalPoints, sub: 'earned', color: 'text-amber-500' },
               { label: 'Avg Solve Time', value: fmtTime(solveTimeStats.avgTime), sub: `${solveTimeStats.totalAttempts} attempts`, color: 'text-purple-500' },
             ].map((s) => (
-              <div key={s.label} className={`p-4 rounded-xl shadow-sm ${dark ? 'bg-gray-800' : 'bg-white'}`}>
+              <div key={s.label} className="p-4 rounded-xl shadow-sm bg-bleepx-white">
                 <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-                <p className={`text-xs font-medium ${dark ? 'text-gray-300' : 'text-gray-700'}`}>{s.label}</p>
+                <p className="text-xs font-medium text-bleepx-text">{s.label}</p>
                 <p className="text-xs text-bleepx-text-secondary">{s.sub}</p>
               </div>
             ))}
           </div>
 
           {/* Domain Progress */}
-          <div className={`rounded-xl shadow-lg p-4 sm:p-6 ${dark ? 'bg-gray-800' : 'bg-white'}`}>
-            <h2 className={`text-lg font-bold mb-4 ${dark ? 'text-white' : 'text-gray-900'}`}>Domain Progress</h2>
+          <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
+            <h2 className="text-lg font-bold mb-4 text-bleepx-text">Domain Progress</h2>
             <div className="space-y-3">
               {stats.domainStats.map((d) => (
                 <Link key={d.domain} href={`/cases/${d.domain}`} className="block group">
@@ -284,12 +284,12 @@ export default function ProfilePage() {
                     <span className="text-xl flex-shrink-0">{domainMeta[d.domain]?.icon}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline">
-                        <p className={`text-sm font-medium truncate group-hover:text-bleepx-blue transition-colors ${dark ? 'text-gray-200' : 'text-gray-800'}`}>
+                        <p className="text-sm font-medium truncate group-hover:text-bleepx-blue transition-colors text-bleepx-text">
                           {domainMeta[d.domain]?.label || d.domain}
                         </p>
                         <span className="text-xs text-bleepx-text-secondary ml-2 flex-shrink-0">{d.solved}/{d.total}</span>
                       </div>
-                      <div className={`mt-1 h-2 rounded-full overflow-hidden ${dark ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                      <div className="mt-1 h-2 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${d.pct === 100 ? 'bg-green-500' : 'bg-bleepx-blue'}`}
                           style={{ width: `${d.pct}%` }}
@@ -304,11 +304,11 @@ export default function ProfilePage() {
 
           {/* GitHub Connection */}
           {!profile.githubUsername && (
-            <div className={`rounded-xl shadow-lg p-4 sm:p-6 border-2 border-dashed ${dark ? 'bg-gray-800 border-gray-600' : 'bg-gray-50 border-gray-300'}`}>
+            <div className="rounded-xl shadow-lg p-4 sm:p-6 border-2 border-dashed bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">🐙</span>
                 <div className="flex-1">
-                  <h3 className={`font-bold ${dark ? 'text-white' : 'text-gray-900'}`}>Connect Your GitHub</h3>
+                  <h3 className="font-bold text-bleepx-text">Connect Your GitHub</h3>
                   <p className="text-sm text-bleepx-text-secondary mt-1">
                     *bleep* Link your GitHub account to export your SQL portfolio directly. Show off your query skills to the world, human.
                   </p>
@@ -324,8 +324,8 @@ export default function ProfilePage() {
 
       {tab === 'achievements' && (
         <div className="space-y-6">
-          <div className={`rounded-xl shadow-lg p-4 sm:p-6 ${dark ? 'bg-gray-800' : 'bg-white'}`}>
-            <h2 className={`text-lg font-bold mb-4 ${dark ? 'text-white' : 'text-gray-900'}`}>🏆 Achievements</h2>
+          <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
+            <h2 className="text-lg font-bold mb-4 text-bleepx-text">🏆 Achievements</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
                 { id: 'first_query', icon: '🎯', title: 'First Query', desc: 'Solve your first challenge', unlocked: stats.totalSolved >= 1 },
@@ -341,13 +341,13 @@ export default function ProfilePage() {
                   key={a.id}
                   className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
                     a.unlocked
-                      ? dark ? 'bg-green-900/20 border-green-700' : 'bg-green-50 border-green-200'
-                      : dark ? 'bg-gray-700/50 border-gray-600 opacity-50' : 'bg-gray-50 border-gray-200 opacity-50'
+                      ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
+                      : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 opacity-50'
                   }`}
                 >
                   <span className="text-2xl">{a.icon}</span>
                   <div>
-                    <p className={`text-sm font-bold ${a.unlocked ? (dark ? 'text-green-300' : 'text-green-800') : (dark ? 'text-gray-400' : 'text-gray-500')}`}>
+                    <p className={`text-sm font-bold ${a.unlocked ? 'text-green-800 dark:text-green-300' : 'text-gray-500 dark:text-gray-400'}`}>
                       {a.title} {a.unlocked && '✓'}
                     </p>
                     <p className="text-xs text-bleepx-text-secondary">{a.desc}</p>
@@ -362,11 +362,11 @@ export default function ProfilePage() {
       {tab === 'settings' && (
         <div className="space-y-6">
           {/* Appearance */}
-          <div className={`rounded-xl shadow-lg p-4 sm:p-6 ${dark ? 'bg-gray-800' : 'bg-white'}`}>
-            <h2 className={`text-lg font-bold mb-4 ${dark ? 'text-white' : 'text-gray-900'}`}>Appearance</h2>
+          <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
+            <h2 className="text-lg font-bold mb-4 text-bleepx-text">Appearance</h2>
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm font-medium ${dark ? 'text-gray-200' : 'text-gray-800'}`}>Dark Mode</p>
+                <p className="text-sm font-medium text-bleepx-text">Dark Mode</p>
                 <p className="text-xs text-bleepx-text-secondary">*bleep* For those who prefer the shadows.</p>
               </div>
               <button
@@ -379,14 +379,14 @@ export default function ProfilePage() {
           </div>
 
           {/* GitHub Connection */}
-          <div className={`rounded-xl shadow-lg p-4 sm:p-6 ${dark ? 'bg-gray-800' : 'bg-white'}`}>
-            <h2 className={`text-lg font-bold mb-4 ${dark ? 'text-white' : 'text-gray-900'}`}>GitHub Connection</h2>
+          <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
+            <h2 className="text-lg font-bold mb-4 text-bleepx-text">GitHub Connection</h2>
             {profile.githubUsername ? (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">🐙</span>
                   <div>
-                    <p className={`text-sm font-medium ${dark ? 'text-gray-200' : 'text-gray-800'}`}>Connected as <a href={`https://github.com/${profile.githubUsername}`} target="_blank" rel="noopener noreferrer" className="text-bleepx-blue hover:underline">@{profile.githubUsername}</a></p>
+                    <p className="text-sm font-medium text-bleepx-text">Connected as <a href={`https://github.com/${profile.githubUsername}`} target="_blank" rel="noopener noreferrer" className="text-bleepx-blue hover:underline">@{profile.githubUsername}</a></p>
                     <p className="text-xs text-bleepx-text-secondary">*bleep* Good. Your portfolio exports will use this account.</p>
                   </div>
                 </div>
@@ -404,30 +404,30 @@ export default function ProfilePage() {
           </div>
 
           {/* Test Mode */}
-          <div className={`rounded-xl shadow-lg p-4 sm:p-6 ${dark ? 'bg-gray-800' : 'bg-white'}`}>
-            <h2 className={`text-lg font-bold mb-4 ${dark ? 'text-white' : 'text-gray-900'}`}>Test Mode</h2>
+          <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
+            <h2 className="text-lg font-bold mb-4 text-bleepx-text">Test Mode</h2>
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm font-medium ${dark ? 'text-gray-200' : 'text-gray-800'}`}>Enable Test Mode</p>
+                <p className="text-sm font-medium text-bleepx-text">Enable Test Mode</p>
                 <p className="text-xs text-bleepx-text-secondary">*bleep* Think you're fast? Timed challenges: 30min for capstone, 1hr for hidden cases. Toggle on any applicable challenge.</p>
               </div>
               <button
                 onClick={() => { playBleep(); saveProfile({ testModeEnabled: !profile.testModeEnabled }); }}
-                className={`relative w-12 h-6 rounded-full transition-colors ${profile.testModeEnabled ? 'bg-amber-500' : dark ? 'bg-gray-600' : 'bg-gray-300'}`}
+                className={`relative w-12 h-6 rounded-full transition-colors ${profile.testModeEnabled ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'}`}
               >
                 <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${profile.testModeEnabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
               </button>
             </div>
             {profile.testModeEnabled && (
-              <p className={`mt-3 text-xs p-3 rounded-lg ${dark ? 'bg-amber-900/20 text-amber-300' : 'bg-amber-50 text-amber-700'}`}>
+              <p className="mt-3 text-xs p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300">
                 *bleep* Test mode active. Timer will auto-start on capstone and hidden challenges. Good luck, human. You'll need it.
               </p>
             )}
           </div>
 
           {/* Danger Zone */}
-          <div className={`rounded-xl shadow-lg p-4 sm:p-6 border-2 ${dark ? 'bg-red-900/10 border-red-800' : 'bg-red-50 border-red-200'}`}>
-            <h2 className={`text-lg font-bold mb-2 ${dark ? 'text-red-400' : 'text-red-700'}`}>⚠️ Danger Zone</h2>
+          <div className="rounded-xl shadow-lg p-4 sm:p-6 border-2 bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800">
+            <h2 className="text-lg font-bold mb-2 text-red-700 dark:text-red-400">⚠️ Danger Zone</h2>
             <p className="text-sm text-bleepx-text-secondary mb-4">
               *bleep* These actions are irreversible. Even I can't undo them.
             </p>
@@ -439,8 +439,8 @@ export default function ProfilePage() {
                 Reset All Progress
               </button>
             ) : (
-              <div className={`p-4 rounded-lg border ${dark ? 'bg-red-900/20 border-red-700' : 'bg-red-100 border-red-300'}`}>
-                <p className={`text-sm font-bold mb-2 ${dark ? 'text-red-300' : 'text-red-800'}`}>
+              <div className="p-4 rounded-lg border bg-red-100 dark:bg-red-900/20 border-red-300 dark:border-red-700">
+                <p className="text-sm font-bold mb-2 text-red-800 dark:text-red-300">
                   *bleep* Are you absolutely sure, human? This will erase EVERYTHING.
                 </p>
                 <p className="text-xs text-bleepx-text-secondary mb-3">All solved challenges, points, history, and achievements will be permanently deleted.</p>
@@ -463,7 +463,7 @@ export default function ProfilePage() {
                   </button>
                   <button
                     onClick={() => setShowResetConfirm(false)}
-                    className={`px-4 py-2 rounded-full border text-sm font-medium ${dark ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-600'}`}
+                    className="px-4 py-2 rounded-full border text-sm font-medium border-bleepx-border text-bleepx-text-secondary"
                   >
                     Cancel
                   </button>

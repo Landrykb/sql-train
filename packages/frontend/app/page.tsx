@@ -70,8 +70,8 @@ export default function HomePage() {
         <div className="bg-bleepx-white rounded-xl p-4 text-center shadow-sm border border-bleepx-border">
           <div className="relative w-12 h-12 mx-auto">
             <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" strokeWidth="8" />
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#2563eb" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${overallPct * 2.51} 251`} className="transition-all duration-1000" />
+              <circle cx="50" cy="50" r="40" fill="none" className="stroke-gray-200 dark:stroke-gray-700" strokeWidth="8" />
+              <circle cx="50" cy="50" r="40" fill="none" className="stroke-bleepx-blue" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${overallPct * 2.51} 251`} />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="text-xs font-bold text-bleepx-text">{overallPct}%</span>
@@ -108,7 +108,7 @@ export default function HomePage() {
                         {d}
                       </h3>
                       {done === total && total > 0 && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">COMPLETE</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">COMPLETE</span>
                       )}
                     </div>
                     <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-0.5 line-clamp-2">{meta.desc}</p>
@@ -117,7 +117,7 @@ export default function HomePage() {
                       <span className="text-amber-400 text-[10px]">{'⭐'.repeat(meta.stars)}</span>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full bg-gradient-to-r ${meta.color} transition-all duration-700`}
                           style={{ width: `${pct}%` }}
@@ -128,7 +128,7 @@ export default function HomePage() {
                       </span>
                     </div>
                   </div>
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 group-hover:text-bleepx-blue group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-1 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 dark:text-gray-600 group-hover:text-bleepx-blue group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-1 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
