@@ -30,7 +30,7 @@
     space: ['orbit_select', 'velocity_by_type', 'mission_joins', 'orbit_trend', 'cte_payload', 'capstone_space'],
     sports: ['match_select', 'score_by_team', 'player_joins', 'score_trend', 'cte_player', 'capstone_sports'],
     guide: ['guide'],
-    trials: ['trial_basics', 'trial_aggregation', 'trial_joins', 'trial_advanced'],
+    trials: ['trial_basics', 'trial_aggregation', 'trial_joins', 'trial_advanced', 'trial_window'],
   };
 
   // Hidden bonus levels: real-world business scenarios that unlock after completing all regular cases
@@ -56,18 +56,18 @@
   }
 
   export const trialDifficulties: TrialDifficulty[] = [
-    { id: 'intermediate', label: 'Intermediate', emoji: '🟢', timeLimitSeconds: 15 * 60, description: '15 minutes — comfortable pace for learning', color: 'green' },
-    { id: 'advanced', label: 'Advanced', emoji: '🟡', timeLimitSeconds: 10 * 60, description: '10 minutes — solid pace for experienced analysts', color: 'yellow' },
-    { id: 'elite', label: 'Elite', emoji: '🔴', timeLimitSeconds: 5 * 60, description: '5 minutes — speed and precision required', color: 'red' },
-    { id: 'legendary', label: 'Legendary', emoji: '💀', timeLimitSeconds: 3 * 60, description: '3 minutes — only the fastest survive', color: 'purple' },
-    { id: 'senior_pro', label: 'Senior Data Pro', emoji: '👑', timeLimitSeconds: 90, description: '90 seconds — prove you belong at the top', color: 'amber' },
+    { id: 'intermediate', label: 'Intermediate', emoji: '🟢', timeLimitSeconds: 60 * 60, description: '1 hour — standard SELECT, WHERE, ORDER BY queries', color: 'green' },
+    { id: 'advanced', label: 'Advanced', emoji: '🟡', timeLimitSeconds: 45 * 60, description: '45 minutes — JOINs, GROUP BY, and aggregation queries', color: 'yellow' },
+    { id: 'elite', label: 'Elite', emoji: '🔴', timeLimitSeconds: 30 * 60, description: '30 minutes — subqueries, window functions, and CTEs', color: 'red' },
+    { id: 'legendary', label: 'Legendary', emoji: '💀', timeLimitSeconds: 20 * 60, description: '20 minutes — complex multi-step analytical queries', color: 'purple' },
+    { id: 'senior_pro', label: 'Senior Data Pro', emoji: '👑', timeLimitSeconds: 20 * 60, description: '20 minutes — real-world business problems, no hints', color: 'amber' },
   ];
 
   // Default time limits for test mode on regular challenges (in seconds)
   export const testModeTimeLimits: Record<string, number> = {
-    capstone: 10 * 60,   // 10 min for capstone
-    hidden: 7 * 60,      // 7 min for hidden/bonus
-    regular: 15 * 60,    // 15 min for regular cases
+    capstone: 45 * 60,   // 45 min for capstone
+    hidden: 30 * 60,     // 30 min for hidden/bonus
+    regular: 60 * 60,    // 1 hour for regular cases
   };
 
   // Full case order including hidden levels

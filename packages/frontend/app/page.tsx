@@ -40,7 +40,7 @@ export default function HomePage() {
             <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">BleepxQuery</h1>
           </div>
           <p className="text-white/80 text-sm sm:text-lg max-w-lg leading-relaxed">
-            Master SQL through <strong className="text-white">real-world data challenges</strong>. Progress from beginner to expert across 8 industry domains, unlock hidden bonus missions, and build a portfolio.
+            Master SQL through <strong className="text-white">real-world data challenges</strong>. Progress from beginner to expert across 8 industry domains, tackle timed trials, unlock hidden bonus missions, and build a GitHub portfolio.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/cases" className="px-5 py-2.5 rounded-full bg-white text-bleepx-blue font-semibold text-sm hover:bg-gray-100 transition-colors shadow-lg">
@@ -102,11 +102,11 @@ export default function HomePage() {
                 </span>
               </div>
               <p className="text-sm text-gray-400 mt-1">
-                *bleep* 4 cross-domain SQL trials. No prerequisites. Prove your skills under pressure, human.
+                *bleep* {caseOrder.trials?.length || 5} cross-domain SQL trials. No prerequisites. Pick your difficulty and prove your skills, human.
               </p>
               <div className="mt-3 flex items-center gap-3">
                 <span className="text-xs text-gray-500">
-                  {caseOrder.trials?.filter((id: string) => completed?.has(id)).length || 0}/{caseOrder.trials?.length || 4} cleared
+                  {caseOrder.trials?.filter((id: string) => completed?.has(id)).length || 0}/{caseOrder.trials?.length || 5} cleared
                 </span>
                 <span className="text-amber-400 text-xs">⚡ Timed Mode</span>
               </div>
@@ -116,6 +116,13 @@ export default function HomePage() {
             </svg>
           </div>
         </Link>
+      </div>
+
+      {/* Or divider */}
+      <div className="flex items-center gap-4">
+        <div className="flex-1 h-px bg-bleepx-border" />
+        <span className="text-sm font-medium text-bleepx-text-secondary uppercase tracking-wider">Or</span>
+        <div className="flex-1 h-px bg-bleepx-border" />
       </div>
 
       {/* Domain cards */}

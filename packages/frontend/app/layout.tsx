@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <h1 className="text-base sm:text-xl font-semibold text-bleepx-text">BleepxQuery</h1>
             </Link>
             <nav className="flex items-center gap-3 sm:gap-4">
-              <Link href="/cases" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-bleepx-blue font-semibold text-sm sm:text-base transition-colors">
+              <Link href="/cases/trials" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-bleepx-blue font-semibold text-sm sm:text-base transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                 <span className="hidden sm:inline">Trials</span>
               </Link>

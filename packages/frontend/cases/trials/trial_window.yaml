@@ -1,0 +1,55 @@
+id: trial_window
+name: "Trial 5: Window Mastery"
+tier: 3
+domain: trials
+description: "Cross-domain expert trial — window functions, CTEs, and multi-step analytics under pressure."
+instructions: |-
+  *bleep* This is the real deal, human. No hand-holding.
+  Using the finance_stocks dataset, write a query that:
+  1. Uses a CTE to calculate each ticker's average closing price
+  2. Then uses a window function (RANK) to rank tickers by their average close price descending
+  3. Return ticker, avg_close (rounded to 2 decimals), and rank_position
+  4. Only show the top 5 ranked tickers
+skills:
+  - select
+  - cte
+  - avg
+  - group
+  - window
+  - rank
+datasets:
+  - name: finance_stocks
+    file: finance_stocks.csv
+prereq_cases: []
+seedQuery: |-
+  -- TRIAL 5: Window Mastery
+  -- Rank tickers by avg close using a CTE + window function
+  SELECT 1;
+solutionQuery: |-
+  WITH ticker_avg AS (
+    SELECT ticker, ROUND(AVG(close), 2) AS avg_close
+    FROM finance_stocks
+    GROUP BY ticker
+  )
+  SELECT ticker, avg_close,
+         RANK() OVER (ORDER BY avg_close DESC) AS rank_position
+  FROM ticker_avg
+  ORDER BY rank_position
+  LIMIT 5;
+hints:
+  - "Start with a CTE: WITH ticker_avg AS (SELECT ticker, ROUND(AVG(close),2) ... GROUP BY ticker)"
+  - "Use RANK() OVER (ORDER BY avg_close DESC) in the outer query"
+  - "LIMIT 5 to get top 5 ranked tickers"
+thoughtProcess:
+  - "Step 1: Build a CTE that groups by ticker and calculates AVG(close) rounded to 2 decimals."
+  - "Step 2: In the outer query, SELECT from the CTE and add RANK() OVER (ORDER BY avg_close DESC)."
+  - "Step 3: ORDER BY rank_position and LIMIT 5 to return only the top 5."
+  - "This combines CTEs, aggregation, and window functions — a hallmark of advanced SQL."
+type: trial
+tags:
+  - trial
+  - cte
+  - window_functions
+  - rank
+  - advanced
+category: Trials
