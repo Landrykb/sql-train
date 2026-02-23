@@ -1,0 +1,48 @@
+id: trial_joins
+name: "Trial 3: Join Operations"
+tier: 3
+domain: trials
+description: "Cross-domain JOIN trial — link tables under time pressure."
+instructions: |-
+  *bleep* Trial 3. This one requires joining tables, human.
+  Using the business_retail and returns tables, find the top 5 product lines
+  with the most returns. Show product_line and return_count, ordered by return_count descending.
+skills:
+  - select
+  - join
+  - group
+  - count
+  - order
+  - limit
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+  - name: returns
+    file: returns.csv
+prereq_cases: []
+seedQuery: |-
+  -- TRIAL 3: Join Operations
+  -- Find top 5 product lines with most returns
+  SELECT 1;
+solutionQuery: |-
+  SELECT b.product_line, COUNT(*) AS return_count
+  FROM returns r
+  JOIN business_retail b ON r.invoice_id = b.invoice_id
+  GROUP BY b.product_line
+  ORDER BY return_count DESC
+  LIMIT 5;
+hints:
+  - "JOIN returns with business_retail ON invoice_id"
+  - "GROUP BY product_line to aggregate per product line"
+  - "COUNT(*) gives the number of returns per product line"
+thoughtProcess:
+  - "The returns table has invoice_id but no product_line — you need to JOIN with business_retail to get it."
+  - "JOIN returns r ON r.invoice_id = b.invoice_id links each return to its original sale."
+  - "GROUP BY b.product_line then COUNT(*) gives returns per product line."
+  - "ORDER BY return_count DESC LIMIT 5 gets the top 5."
+type: trial
+tags:
+  - trial
+  - joins
+  - aggregation
+category: Trials

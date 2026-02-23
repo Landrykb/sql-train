@@ -1,0 +1,51 @@
+id: trial_advanced
+name: "Trial 4: Advanced Analytics"
+tier: 3
+domain: trials
+description: "Cross-domain advanced trial — window functions and CTEs under pressure."
+instructions: |-
+  *bleep* Final trial, human. This is where it gets real.
+  Using the farming_yield dataset, write a query using a CTE to calculate:
+  1. The average yield per region
+  2. Then select regions where the average yield is above the overall average yield.
+  Show region and avg_yield, ordered by avg_yield descending.
+skills:
+  - select
+  - cte
+  - avg
+  - group
+  - subquery
+datasets:
+  - name: farming_yield
+    file: farming_yield.csv
+prereq_cases: []
+seedQuery: |-
+  -- TRIAL 4: Advanced Analytics
+  -- Find regions with above-average yield using a CTE
+  SELECT 1;
+solutionQuery: |-
+  WITH region_avg AS (
+    SELECT region, AVG(yield) AS avg_yield
+    FROM farming_yield
+    GROUP BY region
+  )
+  SELECT region, avg_yield
+  FROM region_avg
+  WHERE avg_yield > (SELECT AVG(yield) FROM farming_yield)
+  ORDER BY avg_yield DESC;
+hints:
+  - "Use WITH ... AS to create a CTE that calculates average yield per region"
+  - "In the outer query, compare each region's avg to the overall average"
+  - "The overall average can be a subquery: (SELECT AVG(yield) FROM farming_yield)"
+thoughtProcess:
+  - "Step 1: Build a CTE that groups by region and calculates AVG(yield) per region."
+  - "Step 2: In the main query, SELECT from the CTE."
+  - "Step 3: Filter with WHERE avg_yield > (subquery for overall average)."
+  - "Step 4: ORDER BY avg_yield DESC to show highest-performing regions first."
+type: trial
+tags:
+  - trial
+  - cte
+  - window_functions
+  - advanced
+category: Trials

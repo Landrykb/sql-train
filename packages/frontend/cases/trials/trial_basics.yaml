@@ -1,0 +1,66 @@
+id: trial_basics
+name: "Trial 1: Data Reconnaissance"
+tier: 2
+domain: trials
+description: "Cross-domain basic SQL trial — prove you can navigate unfamiliar data."
+instructions: |-
+  *bleep* This is a timed trial, human. You have access to the business_retail dataset.
+  Write a query to find the top 10 highest-rated transactions (by rating) that used 'Ewallet' payment,
+  showing the invoice_id, product_line, total, and rating, ordered by rating descending.
+skills:
+  - select
+  - where
+  - order
+  - limit
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+prereq_cases: []
+seedQuery: |-
+  -- TRIAL 1: Data Reconnaissance
+  -- Find top 10 highest-rated Ewallet transactions
+  SELECT 1;
+solutionQuery: |-
+  SELECT invoice_id, product_line, total, rating
+  FROM business_retail
+  WHERE payment = 'Ewallet'
+  ORDER BY rating DESC
+  LIMIT 10;
+hints:
+  - "Filter payment method with WHERE payment = 'Ewallet'"
+  - "Order by rating DESC to get highest first"
+  - "LIMIT 10 for top 10"
+thoughtProcess:
+  - "Identify the table: business_retail contains transaction data with payment and rating columns."
+  - "Filter: WHERE payment = 'Ewallet' narrows to e-wallet transactions only."
+  - "Select the requested columns: invoice_id, product_line, total, rating."
+  - "Sort: ORDER BY rating DESC puts highest ratings first."
+  - "Cap results: LIMIT 10 returns only the top 10."
+expected:
+  - invoice_id: "849-09-3807"
+    product_line: "Fashion accessories"
+    total: 649.299
+    rating: 9.9
+  - invoice_id: "735-60-6651"
+    product_line: "Sports and travel"
+    total: 76.1355
+    rating: 9.8
+  - invoice_id: "228-47-5765"
+    product_line: "Home and lifestyle"
+    total: 167.6775
+    rating: 9.7
+  - invoice_id: "499-84-3498"
+    product_line: "Electronic accessories"
+    total: 532.3575
+    rating: 9.6
+  - invoice_id: "238-41-6281"
+    product_line: "Food and beverages"
+    total: 395.745
+    rating: 9.6
+type: trial
+tags:
+  - trial
+  - select
+  - filter
+  - basics
+category: Trials

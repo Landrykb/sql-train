@@ -23,7 +23,7 @@ const domains = Object.keys(domainMeta);
 
 export default function HomePage() {
   const { completed } = useProgress();
-  const allCaseIds = Object.entries(fullCaseOrder).filter(([d]) => d !== 'guide').flatMap(([, ids]) => ids);
+  const allCaseIds = Object.entries(fullCaseOrder).filter(([d]) => d !== 'guide' && d !== 'trials').flatMap(([, ids]) => ids);
   const totalCompleted = completed?.size || 0;
   const totalChallenges = allCaseIds.length;
   const overallPct = totalChallenges > 0 ? Math.round((totalCompleted / totalChallenges) * 100) : 0;
@@ -82,6 +82,41 @@ export default function HomePage() {
       </div>
 
       <BleepxPointsTracker caseIds={allCaseIds} />
+
+      {/* Trials Section */}
+      <div>
+        <Link
+          href="/cases/trials"
+          className="group block relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-indigo-900 border-2 border-indigo-500/30 rounded-xl shadow-lg hover:shadow-indigo-500/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+        >
+          <div className="absolute inset-0 bg-[url('/bleepx-logo.png')] bg-center bg-no-repeat opacity-5 bg-contain" />
+          <div className="relative p-5 sm:p-6 flex items-center gap-4">
+            <div className="text-3xl sm:text-4xl flex-shrink-0">🧪</div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-white text-lg sm:text-xl group-hover:text-indigo-300 transition-colors">
+                  Trials Arena
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider">
+                  Timed
+                </span>
+              </div>
+              <p className="text-sm text-gray-400 mt-1">
+                *bleep* 4 cross-domain SQL trials. No prerequisites. Prove your skills under pressure, human.
+              </p>
+              <div className="mt-3 flex items-center gap-3">
+                <span className="text-xs text-gray-500">
+                  {caseOrder.trials?.filter((id: string) => completed?.has(id)).length || 0}/{caseOrder.trials?.length || 4} cleared
+                </span>
+                <span className="text-amber-400 text-xs">⚡ Timed Mode</span>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-indigo-400 group-hover:translate-x-1 transition-transform flex-shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
+      </div>
 
       {/* Domain cards */}
       <div>

@@ -88,7 +88,7 @@ const Chip: React.FC<{ label: string; onClick(): void }> = ({ label, onClick }) 
   </kbd>
 );
 
-type ValidDomain = 'business' | 'crime' | 'healthcare' | 'farming' | 'space' | 'finance' | 'sports' | 'social';
+type ValidDomain = 'business' | 'crime' | 'healthcare' | 'farming' | 'space' | 'finance' | 'sports' | 'social' | 'trials';
 
 export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const { id, name, description, instructions, hints = [], thoughtProcess = [], skills = [], datasets, seedQuery = '', templateQuery = '', expected = [], solutionQuery = '', domain: rawDomain, prerequisites = [], tier } = caseData;
@@ -149,11 +149,15 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       const hist = localStorage.getItem(`bleepx_history_${domain}_${id}`);
       if (hist) setQueryHistory(JSON.parse(hist));
     } catch { /* ignore */ }
-    // Test mode: auto-start timer for capstone/hidden cases
+    // Auto-start timer for trial challenges (always timed) or capstone/hidden with test mode
     try {
-      const profile = JSON.parse(localStorage.getItem('bleepx_profile') || '{}');
-      if (profile.testModeEnabled && (id.startsWith('capstone') || id.startsWith('hidden_'))) {
+      if (domain === 'trials' || id.startsWith('trial_')) {
         setTimerEnabled(true);
+      } else {
+        const profile = JSON.parse(localStorage.getItem('bleepx_profile') || '{}');
+        if (profile.testModeEnabled && (id.startsWith('capstone') || id.startsWith('hidden_'))) {
+          setTimerEnabled(true);
+        }
       }
     } catch { /* ignore */ }
   }, [domain, id]);

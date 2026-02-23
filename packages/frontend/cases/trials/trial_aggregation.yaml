@@ -1,0 +1,45 @@
+id: trial_aggregation
+name: "Trial 2: Aggregate Strike"
+tier: 2
+domain: trials
+description: "Cross-domain aggregation trial — GROUP BY, COUNT, AVG under pressure."
+instructions: |-
+  *bleep* Trial 2, human. You have the crime_chicago dataset.
+  Write a query to find the top 5 crime types (primary_type) by total count,
+  showing the primary_type and crime_count, ordered by crime_count descending.
+skills:
+  - select
+  - group
+  - count
+  - order
+  - limit
+datasets:
+  - name: crime_chicago
+    file: crime_chicago.csv
+prereq_cases: []
+seedQuery: |-
+  -- TRIAL 2: Aggregate Strike
+  -- Find top 5 crime types by count
+  SELECT 1;
+solutionQuery: |-
+  SELECT primary_type, COUNT(*) AS crime_count
+  FROM crime_chicago
+  GROUP BY primary_type
+  ORDER BY crime_count DESC
+  LIMIT 5;
+hints:
+  - "Use COUNT(*) to count occurrences of each crime type"
+  - "GROUP BY primary_type groups rows by crime category"
+  - "ORDER BY crime_count DESC and LIMIT 5 gets the top 5"
+thoughtProcess:
+  - "You need to count crimes per type — that means GROUP BY primary_type."
+  - "COUNT(*) counts all rows in each group."
+  - "Alias it AS crime_count for clarity."
+  - "ORDER BY crime_count DESC puts the most frequent types first."
+  - "LIMIT 5 caps the output."
+type: trial
+tags:
+  - trial
+  - aggregation
+  - group_by
+category: Trials

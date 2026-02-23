@@ -16,6 +16,7 @@
     space: 'space',
     sports: 'sports',
     guide: 'guide',
+    trials: 'trials',
   };
 
   // Defines the order of regular cases for each domain
@@ -29,6 +30,7 @@
     space: ['orbit_select', 'velocity_by_type', 'mission_joins', 'orbit_trend', 'cte_payload', 'capstone_space'],
     sports: ['match_select', 'score_by_team', 'player_joins', 'score_trend', 'cte_player', 'capstone_sports'],
     guide: ['guide'],
+    trials: ['trial_basics', 'trial_aggregation', 'trial_joins', 'trial_advanced'],
   };
 
   // Hidden bonus levels: real-world business scenarios that unlock after completing all regular cases
