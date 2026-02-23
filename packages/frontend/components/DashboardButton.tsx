@@ -37,7 +37,7 @@ export default function DashboardButton({ domainKey }: { domainKey: string }) {
   return (
     <>
       <button
-        className={`px-2 sm:px-4 py-1 sm:py-2 rounded text-xs sm:text-sm bg-bleepx-blue text-white hover:bg-bleepx-pink transition-colors duration-200 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`px-2 sm:px-4 py-1 sm:py-2 rounded text-xs sm:text-sm bg-bleepx-blue text-white hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors duration-200 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
         onClick={handleClick}
         disabled={isLoading}
         title="View BleepxQuery Dashboard"

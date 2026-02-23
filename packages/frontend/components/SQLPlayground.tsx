@@ -12,7 +12,7 @@ import { compareResults } from '@/lib/compare';
 import { useProgress } from '@/lib/useProgress';
 import { fullCaseOrder, caseOrder, visualizationConfigs } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
-import { loadingMessages, queryMessages, getLockedMessage, getDomainCompleteMessage, getNextCaseMessage, getLoadError, pickRandom } from '@/lib/bleepxDialogue';
+import { loadingMessages, queryMessages, getLockedMessage, getDomainCompleteMessage, getNextCaseMessage, getLoadError, pickRandom, alternativeMessages } from '@/lib/bleepxDialogue';
 import { playBleep } from '@/lib/audio';
 import { useTheme } from '@/lib/useTheme';
 
@@ -313,6 +313,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
     }
     setBusy(true);
     setDiffData(null);
+    setShowDiff(false);
 
     try {
       console.log('[SQL] Running query:', query);
@@ -335,8 +336,13 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       }
 
       const expectedArray = (expected as Record<string, any>[]).map((obj) => cols.map((colName) => obj[colName] as string | number | null));
-      const { correct, feedback } = await compareResults(grid, expectedArray, solutionQuery, query, skills);
-      setMessage(feedback);
+      const { correct, feedback, alternative } = await compareResults(grid, expectedArray, solutionQuery, query, skills);
+      const finalFeedback = correct
+        ? alternative
+          ? pickRandom(alternativeMessages)
+          : pickRandom(queryMessages.correct)
+        : feedback;
+      setMessage(finalFeedback);
       addHistory(query, correct);
 
       if (!correct && expected.length > 0) {
@@ -385,16 +391,9 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const tryExampleQuery = useCallback(() => {
     const example = templateQuery || seedQuery;
     setQuery(example);
-    setMessage('');
+    setMessage('*bleep* Example query loaded. Review it, adapt it, then hit Run when ready.');
     setResultRows([]);
-    // Auto-run the example query after filling
-    if (example && example.trim() && dbReady) {
-      setTimeout(() => {
-        const btn = document.querySelector('[data-run-btn]') as HTMLButtonElement;
-        btn?.click();
-      }, 100);
-    }
-  }, [templateQuery, seedQuery, dbReady]);
+  }, [templateQuery, seedQuery]);
 
   const canRun = useMemo(() => dbReady && query.trim() !== '' && !busy, [dbReady, query, busy]);
 
@@ -428,7 +427,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
           </div>
           <div className="mt-4">
             <Link href={`/cases/${domain}`}>
-              <button className="px-4 py-2 rounded-full bg-bleepx-blue text-white hover:bg-bleepx-pink transition-all duration-200">Back to Challenges</button>
+                <button className="px-4 py-2 rounded-full bg-bleepx-blue text-white hover:bg-blue-700 dark:hover:bg-blue-500 transition-all duration-200">Back to Challenges</button>
             </Link>
           </div>
         </div>
@@ -587,7 +586,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
               }}
               data-run-btn
               disabled={!canRun}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-white text-sm sm:text-base font-medium transition-all duration-200 ${canRun ? 'bg-bleepx-blue hover:bg-bleepx-pink' : 'bg-gray-400 cursor-not-allowed'}`}
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-white text-sm sm:text-base font-medium transition-all duration-200 ${canRun ? 'bg-bleepx-blue hover:bg-blue-700 dark:hover:bg-blue-500' : 'bg-gray-400 cursor-not-allowed'}`}
               aria-disabled={!canRun}
             >
               Run Query
@@ -629,7 +628,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
               </button>
             )}
             <Link href={`/cases/${domain}/${id}/visualizations`}>
-              <button className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-bleepx-pink text-white text-sm sm:text-base hover:bg-bleepx-blue transition-all duration-200">
+              <button className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-indigo-600 text-white text-sm sm:text-base hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-all duration-200">
                 📊 Visualizations
               </button>
             </Link>

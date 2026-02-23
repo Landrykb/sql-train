@@ -114,7 +114,14 @@ export default async function CasePage({
       string,
       Record<string, { solutionQuery: string; expected: any[][] }>
     >;
-    const solEntry = allSolutions[domainKey]?.[caseId];
+    // solutions.yaml uses dataset-based keys (e.g. 'business_retail') not domain keys ('business')
+    const solutionKeyMap: Record<string, string> = {
+      business: 'business_retail', crime: 'crime_chicago', farming: 'farming_ndvi',
+      finance: 'finance_stocks', healthcare: 'healthcare_covid', social: 'social_twitter',
+      space: 'space_neo', sports: 'sports_nba',
+    };
+    const solEntry = allSolutions[solutionKeyMap[domainKey] || domainKey]?.[caseId]
+      || allSolutions[domainKey]?.[caseId];
     if (solEntry) {
       caseData.solutionQuery = solEntry.solutionQuery;
       caseData.expected = solEntry.expected;

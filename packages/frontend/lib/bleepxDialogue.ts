@@ -92,6 +92,15 @@ export function getLoadError(msg: string): string {
   return `*bleep* Data load failure: ${msg}. Even SwiftLink's servers hiccup sometimes.`;
 }
 
+// --- Alternative solution messages (user used a different valid approach) ---
+export const alternativeMessages = [
+  '*bleep* Well done, human. Your approach is... unconventional. I would have done it differently, but your results are correct.',
+  '*bleep* Interesting. You took a different path than my solution, but you arrived at the same destination. Acceptable.',
+  '*bleep* Huh. That\'s not how I\'d write it, but the data speaks for itself. Your way works too, human.',
+  '*bleep* Creative approach. I have my own solution, but yours produces identical results. I\'ll allow it.',
+  '*bleep* You did it your own way. Unorthodox, but correct. SwiftLink values independent thinkers... sometimes.',
+];
+
 // --- Random picker ---
 export function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];

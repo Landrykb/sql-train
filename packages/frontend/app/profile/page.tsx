@@ -371,9 +371,11 @@ export default function ProfilePage() {
               </div>
               <button
                 onClick={toggleDark}
-                className={`relative w-12 h-6 rounded-full transition-colors ${dark ? 'bg-bleepx-blue' : 'bg-gray-300'}`}
+                className={`relative w-14 h-7 rounded-full transition-all duration-300 shadow-inner ${dark ? 'bg-bleepx-blue' : 'bg-gray-300 dark:bg-gray-600'}`}
               >
-                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${dark ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                <span className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center text-xs transition-all duration-300 ${dark ? 'translate-x-7' : 'translate-x-0.5'}`}>
+                  {dark ? '🌙' : '☀️'}
+                </span>
               </button>
             </div>
           </div>
@@ -413,9 +415,11 @@ export default function ProfilePage() {
               </div>
               <button
                 onClick={() => { playBleep(); saveProfile({ testModeEnabled: !profile.testModeEnabled }); }}
-                className={`relative w-12 h-6 rounded-full transition-colors ${profile.testModeEnabled ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+                className={`relative w-14 h-7 rounded-full transition-all duration-300 shadow-inner ${profile.testModeEnabled ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'}`}
               >
-                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${profile.testModeEnabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                <span className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center text-xs transition-all duration-300 ${profile.testModeEnabled ? 'translate-x-7' : 'translate-x-0.5'}`}>
+                  {profile.testModeEnabled ? '🧪' : '⏸'}
+                </span>
               </button>
             </div>
             {profile.testModeEnabled && (

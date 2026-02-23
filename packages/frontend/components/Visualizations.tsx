@@ -342,7 +342,7 @@ ${getJSCode()}
         <div className="flex flex-wrap gap-2">
           <button
             onClick={handleDownloadProject}
-            className="px-4 py-2 rounded-full bg-bleepx-blue text-white text-sm hover:bg-bleepx-pink transition-colors"
+            className="px-4 py-2 rounded-full bg-bleepx-blue text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors"
           >
             📦 Download Project Files
           </button>

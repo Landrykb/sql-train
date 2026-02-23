@@ -23,7 +23,7 @@ const domains = Object.keys(domainMeta);
 
 export default function HomePage() {
   const { completed } = useProgress();
-  const allCaseIds = Object.values(fullCaseOrder).flat();
+  const allCaseIds = Object.entries(fullCaseOrder).filter(([d]) => d !== 'guide').flatMap(([, ids]) => ids);
   const totalCompleted = completed?.size || 0;
   const totalChallenges = allCaseIds.length;
   const overallPct = totalChallenges > 0 ? Math.round((totalCompleted / totalChallenges) * 100) : 0;
