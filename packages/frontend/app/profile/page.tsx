@@ -46,8 +46,6 @@ export default function ProfilePage() {
   const [tab, setTab] = useState<'overview' | 'settings' | 'achievements'>('overview');
   const [ghUser, setGhUser] = useState<GitHubUser | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [editingName, setEditingName] = useState(false);
-  const [nameInput, setNameInput] = useState('');
 
   // Load profile from localStorage
   useEffect(() => {
@@ -117,11 +115,29 @@ export default function ProfilePage() {
     return { totalTime, avgTime: count > 0 ? Math.round(totalTime / count) : 0, totalAttempts, solvedWithTimer: count };
   }, [completed]);
 
-  // Load GitHub user from authClient
+  // Load GitHub user from authClient + sync profile
   useEffect(() => {
     const gh = getGitHubUser();
-    if (gh) setGhUser(gh);
+    if (gh) {
+      setGhUser(gh);
+      // Sync GitHub info into profile
+      const updates: Partial<UserProfile> = {
+        authProvider: 'github',
+        githubUsername: gh.login,
+        displayName: gh.name || gh.login,
+      };
+      if (gh.email) updates.email = gh.email;
+      saveProfile(updates);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleLogout = () => {
+    playBleep();
+    clearGitHubUser();
+    setGhUser(null);
+    saveProfile({ authProvider: null, githubUsername: null, displayName: 'SQL Explorer' });
+  };
 
   const isSignedIn = !!ghUser;
   const githubUsername = ghUser?.login || profile.githubUsername;
@@ -139,31 +155,17 @@ export default function ProfilePage() {
         <div className="bg-gradient-to-r from-bleepx-blue to-bleepx-pink h-24 sm:h-32" />
         <div className="px-4 sm:px-6 pb-4 sm:pb-6 -mt-10 sm:-mt-12">
           <div className="flex items-end gap-4">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 overflow-hidden flex items-center justify-center text-3xl sm:text-4xl bg-gray-100 dark:bg-gray-700 border-white dark:border-gray-800">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 border-white dark:border-gray-800 relative">
               {ghUser?.avatar ? (
                 <img src={ghUser.avatar} alt="" className="w-full h-full object-cover" />
-              ) : isSignedIn ? '🐙' : '🤖'}
+              ) : (
+                <img src="/bleepx-icon.png" alt="Bleepx" className="w-full h-full object-cover blur-[2px] opacity-60" />
+              )}
             </div>
             <div className="flex-1 mb-1">
-              <div className="flex items-center gap-2">
-                {editingName ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      value={nameInput}
-                      onChange={(e) => setNameInput(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { saveProfile({ displayName: nameInput || profile.displayName }); setEditingName(false); } }}
-                      className="text-lg sm:text-xl font-bold px-2 py-1 rounded border bg-bleepx-white border-bleepx-border text-bleepx-text"
-                      autoFocus
-                    />
-                    <button onClick={() => { saveProfile({ displayName: nameInput || profile.displayName }); setEditingName(false); }} className="text-xs text-bleepx-blue">Save</button>
-                  </div>
-                ) : (
-                  <h1 className="text-lg sm:text-xl font-bold text-bleepx-text">
-                    {isSignedIn ? (ghUser?.name || profile.displayName) : profile.displayName}
-                    <button onClick={() => { setNameInput(profile.displayName); setEditingName(true); }} className="ml-2 text-xs text-bleepx-text-secondary hover:text-bleepx-blue">✏️</button>
-                  </h1>
-                )}
-              </div>
+              <h1 className="text-lg sm:text-xl font-bold text-bleepx-text">
+                {isSignedIn ? (ghUser?.name || profile.displayName) : profile.displayName}
+              </h1>
               <p className="text-sm text-bleepx-text-secondary">
                 {isSignedIn ? 'Signed in via GitHub' : '*bleep* Anonymous explorer'}
                 {githubUsername && isSignedIn && <span className="ml-2">· <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noopener noreferrer" className="text-bleepx-blue hover:underline">@{githubUsername}</a></span>}
@@ -176,7 +178,7 @@ export default function ProfilePage() {
                   Sign In with GitHub
                 </button>
               ) : (
-                <button onClick={() => { playBleep(); clearGitHubUser(); setGhUser(null); saveProfile({ authProvider: null, githubUsername: null }); }} className="px-3 py-1.5 rounded-full border border-red-300 text-red-500 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <button onClick={handleLogout} className="px-3 py-1.5 rounded-full border border-red-300 text-red-500 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                   Log Out
                 </button>
               )}
@@ -357,7 +359,7 @@ export default function ProfilePage() {
                     <p className="text-xs text-bleepx-text-secondary">*bleep* Good. Your portfolio exports will use this account.</p>
                   </div>
                 </div>
-                <button onClick={() => { playBleep(); clearGitHubUser(); setGhUser(null); saveProfile({ authProvider: null, githubUsername: null }); }} className="text-xs text-red-500 hover:underline">Sign Out</button>
+                <button onClick={handleLogout} className="text-xs text-red-500 hover:underline">Sign Out</button>
               </div>
             ) : (
               <div>

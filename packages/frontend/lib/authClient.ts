@@ -24,10 +24,13 @@ export function getGitHubUser(): GitHubUser | null {
   return null;
 }
 
+export const AUTH_CHANGE_EVENT = 'bleepx_auth_change';
+
 /** Store GitHub user in localStorage */
 export function setGitHubUser(user: GitHubUser): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
   } catch { /* ignore */ }
 }
 
@@ -35,6 +38,7 @@ export function setGitHubUser(user: GitHubUser): void {
 export function clearGitHubUser(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
+    window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
   } catch { /* ignore */ }
 }
 

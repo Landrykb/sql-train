@@ -118,6 +118,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const [countdown, setCountdown] = useState(0);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
   const resultsRef = useRef<HTMLDivElement | null>(null);
+  const successRef = useRef<HTMLDivElement | null>(null);
   const [savedQuery, setSavedQuery] = useState<string | null>(null);
   const [queryHistory, setQueryHistory] = useState<{ query: string; ts: number; success: boolean | null }[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -169,6 +170,13 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [timerEnabled, dbReady]);
+
+  // Auto-scroll to success panel when it appears
+  useEffect(() => {
+    if (showSuccess && nextDestination && successRef.current) {
+      setTimeout(() => successRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+    }
+  }, [showSuccess, nextDestination]);
 
   // Countdown for auto-navigation after success
   useEffect(() => {
@@ -752,36 +760,41 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
 
         {/* 3. Success / Transition Panel */}
         {showSuccess && nextDestination && (
-          <div className="p-4 sm:p-6 rounded-xl shadow-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-300 dark:border-green-700 animate-fade-in">
+          <div ref={successRef} className="p-4 sm:p-6 rounded-xl shadow-xl bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 border-2 border-green-400 dark:border-green-600 animate-fade-in ring-2 ring-green-300 dark:ring-green-700">
             <div className="flex items-start gap-3">
-              <span className="text-3xl flex-shrink-0">🎉</span>
+              <span className="text-4xl flex-shrink-0 animate-bounce">🎉</span>
               <div className="flex-1">
-                <h2 className="text-lg sm:text-xl font-bold text-green-800 dark:text-green-300 mb-1">*bleep* Outstanding work, human!</h2>
-                <p className="text-sm text-green-700 dark:text-green-400 mb-1">You cracked it{timerEnabled && timerSeconds > 0 ? ` in ${Math.floor(timerSeconds / 60)}m ${timerSeconds % 60}s` : ''}{attempts > 0 ? ` with ${attempts} attempt${attempts !== 1 ? 's' : ''}` : ''}. Your query results are below — take a moment to review them.</p>
-                <p className="text-xs text-green-600 dark:text-green-500 mt-2">Moving to <strong>{nextDestination.label}</strong> in <strong>{countdown}s</strong>. You can stay here to review, or head there now.</p>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <h2 className="text-lg sm:text-xl font-bold text-green-900 dark:text-green-200 mb-2">*bleep* Outstanding work, human!</h2>
+                <p className="text-sm text-green-800 dark:text-green-300 mb-2">You cracked it{timerEnabled && timerSeconds > 0 ? ` in ${Math.floor(timerSeconds / 60)}m ${timerSeconds % 60}s` : ''}{attempts > 0 ? ` with ${attempts} attempt${attempts !== 1 ? 's' : ''}` : ''}. Your query results are below — take a moment to review them.</p>
+                <div className="flex items-center gap-2 mt-2 mb-3">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-600 text-white text-sm font-bold shadow-md">
+                    ⏱ {countdown}s
+                  </span>
+                  <span className="text-sm font-medium text-green-800 dark:text-green-300">until <strong>{nextDestination.label}</strong></span>
+                </div>
+                <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => { if (countdownRef.current) clearInterval(countdownRef.current); window.location.href = nextDestination.url; }}
-                    className="px-4 py-2 rounded-full bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-colors"
+                    className="px-5 py-2.5 rounded-full bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors shadow-md"
                   >
                     {nextDestination.label} →
                   </button>
                   <button
                     onClick={() => { if (countdownRef.current) clearInterval(countdownRef.current); setNextDestination(null); setCountdown(0); setShowSuccess(false); }}
-                    className="px-4 py-2 rounded-full border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 text-sm font-medium hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                    className="px-5 py-2.5 rounded-full border-2 border-green-500 dark:border-green-500 text-green-800 dark:text-green-200 text-sm font-bold hover:bg-green-200 dark:hover:bg-green-800/40 transition-colors"
                   >
                     Stay & Review
                   </button>
                   {hasVisualizations && (
                     <Link href={`/cases/${domain}/${id}/visualizations`}>
-                      <button className="px-4 py-2 rounded-full border border-green-400 text-green-700 text-sm font-medium hover:bg-green-100 transition-colors">
+                      <button className="px-5 py-2.5 rounded-full border-2 border-green-500 text-green-800 text-sm font-bold hover:bg-green-200 transition-colors">
                         View Visualizations
                       </button>
                     </Link>
                   )}
                 </div>
-                <div className="mt-3 w-full bg-green-200 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-green-600 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${(countdown / 30) * 100}%` }} />
+                <div className="mt-3 w-full bg-green-300 dark:bg-green-800 rounded-full h-2 overflow-hidden">
+                  <div className="bg-green-600 h-2 rounded-full transition-all duration-1000" style={{ width: `${(countdown / 30) * 100}%` }} />
                 </div>
               </div>
             </div>

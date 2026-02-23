@@ -2,21 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getGitHubUser, startGitHubLogin } from '@/lib/authClient';
+import { getGitHubUser, startGitHubLogin, AUTH_CHANGE_EVENT } from '@/lib/authClient';
 
 export default function NavAuth() {
   const [user, setUser] = useState<{ login: string; avatar: string } | null>(null);
 
   useEffect(() => {
-    const gh = getGitHubUser();
-    if (gh) setUser({ login: gh.login, avatar: gh.avatar });
-
-    const onStorage = () => {
+    const sync = () => {
       const gh = getGitHubUser();
       setUser(gh ? { login: gh.login, avatar: gh.avatar } : null);
     };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    sync();
+    window.addEventListener('storage', sync);
+    window.addEventListener(AUTH_CHANGE_EVENT, sync);
+    return () => {
+      window.removeEventListener('storage', sync);
+      window.removeEventListener(AUTH_CHANGE_EVENT, sync);
+    };
   }, []);
 
   if (user) {
