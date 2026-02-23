@@ -191,12 +191,14 @@ export async function runQuery(sql: string, params: any[] = []): Promise<{ colum
 
   try {
     const result = params.length > 0 ? db.exec(cleanedSql, params) : db.exec(cleanedSql);
+    console.log('[runQuery] result sets:', result.length, 'cleanedSql:', cleanedSql.substring(0, 100));
     if (result.length === 0) {
       return { columns: [], data: [] };
     }
     // Return the last result set — when multiple statements exist,
     // the user's actual query is typically the last one
     const last = result[result.length - 1];
+    console.log('[runQuery] columns:', last.columns, 'rows:', last.values?.length, 'first row:', last.values?.[0]);
     return { columns: last.columns, data: last.values };
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);

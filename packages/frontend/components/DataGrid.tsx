@@ -1,18 +1,27 @@
 'use client'
-import React from 'react'
+import React, { useEffect } from 'react'
 
 export function DataGrid({ data }: { data: Record<string, any>[] }) {
+  useEffect(() => {
+    if (data && data.length > 0) {
+      console.log('[DataGrid] cols:', Object.keys(data[0]), 'rows:', data.length, 'first:', data[0]);
+    }
+  }, [data]);
+
   if (!data || !Array.isArray(data) || data.length === 0) {
-    return <p className="text-sm text-gray-500 dark:text-gray-400">No rows to display.</p>
+    return <p className="text-sm text-bleepx-text-secondary">No rows to display.</p>
   }
   const cols = Object.keys(data[0])
+  if (cols.length === 0) {
+    return <p className="text-sm text-bleepx-text-secondary">Query returned {data.length} row(s) but no columns were found.</p>
+  }
   return (
-    <div className="overflow-auto">
-      <table className="min-w-full table-auto border-collapse">
-        <thead>
+    <div className="overflow-auto max-h-[400px]">
+      <table className="min-w-full table-auto border-collapse text-sm" style={{ borderCollapse: 'collapse' }}>
+        <thead className="sticky top-0 z-10">
           <tr>
             {cols.map(c => (
-              <th key={c} className="border border-gray-200 dark:border-gray-600 px-2 py-1 bg-gray-100 dark:bg-gray-700 text-left text-xs text-gray-700 dark:text-gray-200">
+              <th key={c} className="px-3 py-2 text-left text-xs font-semibold border border-bleepx-border bg-bleepx-bg text-bleepx-gray whitespace-nowrap">
                 {c}
               </th>
             ))}
@@ -20,10 +29,10 @@ export function DataGrid({ data }: { data: Record<string, any>[] }) {
         </thead>
         <tbody>
           {data.map((row, i) => (
-            <tr key={i} className={i % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-750 dark:bg-gray-800/50'}>
+            <tr key={i} className={i % 2 === 0 ? 'bg-bleepx-white' : 'bg-bleepx-bg'}>
               {cols.map(c => (
-                <td key={c} className="border border-gray-200 dark:border-gray-600 px-2 py-1 text-xs text-gray-800 dark:text-gray-200">
-                  {row[c]?.toString() ?? ''}
+                <td key={c} className="px-3 py-1.5 text-xs border border-bleepx-border text-bleepx-text whitespace-nowrap">
+                  {row[c] != null ? String(row[c]) : ''}
                 </td>
               ))}
             </tr>
