@@ -64,7 +64,8 @@ const CodeMirror = dynamic(
       const { oneDark } = await import('@codemirror/theme-one-dark');
       return (props: any & { isDark?: boolean }) => {
         const { isDark, ...rest } = props;
-        const exts = isDark ? [sql(), oneDark] : [sql()];
+        const sqlExt = sql({ upperCaseKeywords: true });
+        const exts = isDark ? [sqlExt, oneDark] : [sqlExt];
         return <CM {...rest} basicSetup extensions={exts} theme={isDark ? 'dark' : 'light'} />;
       };
     } catch (err) {
