@@ -282,16 +282,97 @@ query_types:
           SELECT product_line, total, ROW_NUMBER() OVER (PARTITION BY product_line ORDER BY total DESC)
           FROM business_retail;
   - name: CTE
-    description: Define temporary result sets for readability.
+    description: Common Table Expressions (WITH) define temporary named result sets that make complex queries readable and modular. Think of them as creating a temporary view that only exists for one query.
     variants:
       - name: Basic CTE
-        description: Use WITH to create a named subquery.
+        description: Use WITH to create a named subquery that you can reference like a table.
         example_generic: |-
-          WITH temp AS (SELECT * FROM table_main WHERE col2 > X)
-          SELECT col1, SUM(col2) FROM temp GROUP BY col1;
+          WITH temp AS (
+            SELECT col1, col2
+            FROM table_main
+            WHERE col2 > X
+          )
+          SELECT col1, SUM(col2)
+          FROM temp
+          GROUP BY col1;
         example: |-
-          WITH high_sales AS (SELECT * FROM business_retail WHERE total > 150)
-          SELECT product_line, SUM(total) FROM high_sales GROUP BY product_line;
+          WITH high_sales AS (
+            SELECT product_line, total
+            FROM business_retail
+            WHERE total > 150
+          )
+          SELECT product_line, SUM(total) AS revenue
+          FROM high_sales
+          GROUP BY product_line;
+      - name: CTE with Aggregation
+        description: Use a CTE to pre-aggregate data, then filter or rank the results in the outer query.
+        example_generic: |-
+          WITH grouped AS (
+            SELECT col1, AVG(col2) AS avg_col2
+            FROM table_main
+            GROUP BY col1
+          )
+          SELECT col1, avg_col2
+          FROM grouped
+          WHERE avg_col2 > (SELECT AVG(col2) FROM table_main);
+        example: |-
+          WITH region_avg AS (
+            SELECT region, AVG(yield) AS avg_yield
+            FROM farming_yield
+            GROUP BY region
+          )
+          SELECT region, avg_yield
+          FROM region_avg
+          WHERE avg_yield > (SELECT AVG(yield) FROM farming_yield)
+          ORDER BY avg_yield DESC;
+      - name: Multiple CTEs
+        description: Chain multiple CTEs by separating them with commas. Each CTE can reference the ones defined before it.
+        example_generic: |-
+          WITH step1 AS (
+            SELECT col1, SUM(col2) AS total
+            FROM table_main
+            GROUP BY col1
+          ),
+          step2 AS (
+            SELECT col1, total,
+                   RANK() OVER (ORDER BY total DESC) AS rnk
+            FROM step1
+          )
+          SELECT * FROM step2 WHERE rnk <= 5;
+        example: |-
+          WITH ticker_avg AS (
+            SELECT ticker, ROUND(AVG(close), 2) AS avg_close
+            FROM finance_stocks
+            GROUP BY ticker
+          ),
+          ranked AS (
+            SELECT ticker, avg_close,
+                   RANK() OVER (ORDER BY avg_close DESC) AS rank_pos
+            FROM ticker_avg
+          )
+          SELECT * FROM ranked WHERE rank_pos <= 5;
+      - name: CTE with JOIN
+        description: Use a CTE to prepare data from one table, then JOIN it with another table in the outer query.
+        example_generic: |-
+          WITH summary AS (
+            SELECT key, COUNT(*) AS cnt
+            FROM ref_table
+            GROUP BY key
+          )
+          SELECT a.col1, s.cnt
+          FROM table_main a
+          JOIN summary s ON a.key = s.key
+          ORDER BY s.cnt DESC;
+        example: |-
+          WITH return_counts AS (
+            SELECT invoice_id, COUNT(*) AS return_count
+            FROM returns
+            GROUP BY invoice_id
+          )
+          SELECT b.product_line, r.return_count
+          FROM business_retail b
+          JOIN return_counts r ON b.invoice_id = r.invoice_id
+          ORDER BY r.return_count DESC;
   - name: SUBQUERY
     description: Nest SELECTs inside other queries.
     variants:

@@ -828,8 +828,8 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
           )}
         </div>
 
-        {/* 2. Hints & Thought Process — right below the query editor */}
-        {(hints.length > 0 || thoughtProcess.length > 0) && (
+        {/* 2. Hints, Thought Process & GuideBook — right below the query editor */}
+        {(
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {hints.length > 0 && (
               <div className="bg-bleepx-white p-3 sm:p-5 rounded-xl shadow-lg">
@@ -864,6 +864,20 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                     Show Next Hint
                   </button>
                 )}
+                <div className="mt-4 pt-3 border-t border-bleepx-border">
+                  <Link href={`/cases/guide?fromDomain=${domain}&fromCase=${id}`} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">
+                    <span>📖</span> Open SQL GuideBook
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {!hints.length && (
+              <div className="bg-bleepx-white p-3 sm:p-5 rounded-xl shadow-lg flex flex-col justify-center">
+                <p className="text-sm text-bleepx-text-secondary mb-3">Need help with SQL syntax?</p>
+                <Link href={`/cases/guide?fromDomain=${domain}&fromCase=${id}`} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors w-fit">
+                  <span>📖</span> Open SQL GuideBook
+                </Link>
               </div>
             )}
 
