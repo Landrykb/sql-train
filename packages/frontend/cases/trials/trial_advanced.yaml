@@ -18,7 +18,8 @@ skills:
 datasets:
   - name: farming_yield
     file: farming_yield.csv
-prereq_cases: []
+prereq_cases:
+  - trial_joins
 seedQuery: |-
   -- TRIAL 4: Advanced Analytics
   -- Find regions with above-average yield using a CTE

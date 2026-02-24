@@ -16,7 +16,8 @@ skills:
 datasets:
   - name: crime_chicago
     file: crime_chicago.csv
-prereq_cases: []
+prereq_cases:
+  - trial_basics
 seedQuery: |-
   -- TRIAL 2: Aggregate Strike
   -- Find top 5 crime types by count
