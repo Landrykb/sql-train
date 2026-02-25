@@ -130,6 +130,17 @@ export default async function CasePage({
     console.warn('Could not load/parse cases/solutions.yaml:', err.message);
   }
 
+  // Load guide data for the in-page GuideBook modal
+  let guideData: any = null;
+  try {
+    const guidePath = path.join(process.cwd(), 'cases', 'guide', 'guide.yaml');
+    const guideRaw = await fs.readFile(guidePath, 'utf8');
+    const guideParsed = yaml.load(guideRaw) as any;
+    if (guideParsed?.query_types) {
+      guideData = { id: guideParsed.id, title: guideParsed.title, description: guideParsed.description, query_types: guideParsed.query_types };
+    }
+  } catch { /* guide modal will just not be available */ }
+
   const caseIds = caseOrder[domainKey] || [];
   const allCaseIds = fullCaseOrder[domainKey] || caseIds;
   const hasVisualizations = visualizationConfigs[domainKey]?.[caseId]?.length > 0;
@@ -155,7 +166,7 @@ export default async function CasePage({
         )}
       </div>
       <Suspense fallback={<div>Loading challenge...</div>}>
-        <ClientSQLPlayground caseData={caseData} />
+        <ClientSQLPlayground caseData={caseData} guideData={guideData} />
       </Suspense>
       <AchievementNotification />
     </main>

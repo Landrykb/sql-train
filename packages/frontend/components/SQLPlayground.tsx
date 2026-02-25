@@ -16,6 +16,8 @@ import { normalizeDomain } from '@/lib/utils';
 import { loadingMessages, queryMessages, getLockedMessage, getDomainCompleteMessage, getNextCaseMessage, getLoadError, pickRandom, alternativeMessages } from '@/lib/bleepxDialogue';
 import { playBleep } from '@/lib/audio';
 import { useTheme } from '@/lib/useTheme';
+import { getSqlErrorHelp } from '@/lib/sqlErrorHelper';
+import GuideModal from './GuideModal';
 
 const Spinner = dynamic(() => import('./Spinner'), { ssr: false });
 
@@ -92,7 +94,7 @@ const Chip: React.FC<{ label: string; onClick(): void }> = ({ label, onClick }) 
 
 type ValidDomain = 'business' | 'crime' | 'healthcare' | 'farming' | 'space' | 'finance' | 'sports' | 'social' | 'trials';
 
-export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
+export default function SQLPlayground({ caseData, guideData }: { caseData: CaseData; guideData?: any }) {
   const { id, name, description, instructions, hints = [], thoughtProcess = [], skills = [], datasets, seedQuery = '', templateQuery = '', expected = [], solutionQuery = '', domain: rawDomain, prerequisites = [], tier } = caseData;
   const domain = normalizeDomain(rawDomain) as ValidDomain;
   const { markComplete, completed, isUnlocked } = useProgress();
@@ -136,6 +138,9 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   const [timeLimit, setTimeLimit] = useState(0); // countdown from this value (seconds)
   const [timeExpired, setTimeExpired] = useState(false);
   const { dark } = useTheme();
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [guideSection, setGuideSection] = useState<string | undefined>(undefined);
+  const [errorHelp, setErrorHelp] = useState<{ title: string; explanation: string; suggestions: string[]; guideSection?: string } | null>(null);
 
   const isTrial = domain === 'trials' || id.startsWith('trial_');
   const prevCaseId = currentIndex > 0 ? currentOrder[currentIndex - 1] : null;
@@ -354,6 +359,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
     setBusy(true);
     setDiffData(null);
     setShowDiff(false);
+    setErrorHelp(null);
 
     try {
       console.log('[SQL] Running query:', query);
@@ -420,7 +426,9 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
       console.error('Query error:', msg);
       setResultRows([]);
       addHistory(query, false);
-      setMessage(msg.includes('circular reference') ? `*bleep* Circular reference detected: ${msg}. Rename your CTEs (e.g., "returns" → "return_data").` : `${pickRandom(queryMessages.error)} — ${msg}`);
+      const help = getSqlErrorHelp(msg, query);
+      setErrorHelp(help);
+      setMessage(`${pickRandom(queryMessages.error)} — ${msg}`);
       setAttempts((a) => a + 1);
       if (attempts + 1 < hints.length) setVisibleHints((v) => Math.min(v + 1, hints.length));
     } finally {
@@ -564,6 +572,7 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
   }
 
   return (
+    <>
     <div className="max-w-6xl mx-auto px-3 sm:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6 min-h-screen transition-colors bg-bleepx-bg text-bleepx-text">
       {/* Time expired overlay */}
       {timeExpired && (
@@ -816,6 +825,31 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
               </div>
             </div>
           )}
+          {errorHelp && (
+            <div className="mt-3 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 shadow-sm animate-fade-in">
+              <h3 className="text-sm font-bold text-red-800 dark:text-red-200 flex items-center gap-2 mb-2">
+                <span>🔍</span> {errorHelp.title}
+              </h3>
+              <p className="text-xs text-red-700 dark:text-red-300 mb-3 leading-relaxed">{errorHelp.explanation}</p>
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-red-800 dark:text-red-200">How to fix:</p>
+                {errorHelp.suggestions.map((s, i) => (
+                  <div key={i} className="flex items-start gap-2 text-xs text-red-700 dark:text-red-300">
+                    <span className="flex-shrink-0 w-4 h-4 rounded-full bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200 text-[10px] font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
+                    <span className="leading-relaxed">{s}</span>
+                  </div>
+                ))}
+              </div>
+              {errorHelp.guideSection && guideData && (
+                <button
+                  onClick={() => { setGuideSection(errorHelp.guideSection); setGuideOpen(true); }}
+                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/60 transition-colors"
+                >
+                  <span>📖</span> Open {errorHelp.guideSection.toUpperCase()} in GuideBook
+                </button>
+              )}
+            </div>
+          )}
           {showSolution && (
             <div className="mt-4 bg-bleepx-gray/5 p-4 rounded-xl shadow-sm">
               <h3 className="text-sm font-semibold text-bleepx-gray mb-2">*bleep* Fine. Here's how I'd do it:</h3>
@@ -840,14 +874,13 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                     return (
                       <li key={i}>
                         {h}{' '}
-                        {m && (
-                          <a
-                            href={`/cases/guide?fromDomain=${domain}&fromCase=${id}#${m[1].toLowerCase()}`}
-                            className="text-bleepx-blue hover:underline ml-1"
-                            rel="noopener"
+                        {m && guideData && (
+                          <button
+                            onClick={() => { setGuideSection(m[1].toLowerCase()); setGuideOpen(true); }}
+                            className="text-bleepx-blue hover:underline ml-1 cursor-pointer"
                           >
                             (open SwiftLink GuideBook)
-                          </a>
+                          </button>
                         )}
                       </li>
                     );
@@ -865,9 +898,12 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
                   </button>
                 )}
                 <div className="mt-4 pt-3 border-t border-bleepx-border">
-                  <Link href={`/cases/guide?fromDomain=${domain}&fromCase=${id}`} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">
+                  <button
+                    onClick={() => { setGuideSection(undefined); setGuideOpen(true); }}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+                  >
                     <span>📖</span> Open SQL GuideBook
-                  </Link>
+                  </button>
                 </div>
               </div>
             )}
@@ -875,9 +911,11 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
             {!hints.length && (
               <div className="bg-bleepx-white p-3 sm:p-5 rounded-xl shadow-lg flex flex-col justify-center">
                 <p className="text-sm text-bleepx-text-secondary mb-3">Need help with SQL syntax?</p>
-                <Link href={`/cases/guide?fromDomain=${domain}&fromCase=${id}`} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors w-fit">
+                <button
+                  onClick={() => { setGuideSection(undefined); setGuideOpen(true); }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors w-fit">
                   <span>📖</span> Open SQL GuideBook
-                </Link>
+                </button>
               </div>
             )}
 
@@ -1053,5 +1091,12 @@ export default function SQLPlayground({ caseData }: { caseData: CaseData }) {
         </div>
       </div>
     </div>
+    <GuideModal
+      isOpen={guideOpen}
+      onClose={() => setGuideOpen(false)}
+      guideData={guideData}
+      scrollToSection={guideSection}
+    />
+    </>
   );
 }
