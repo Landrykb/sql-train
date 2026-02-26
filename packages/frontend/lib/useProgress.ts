@@ -8,7 +8,7 @@ import {
 import { playBleep } from './audio';
 import { syncProgress, pushProgress } from './progressSync';
 import { supabase } from './supabase';
-import { updateTotalPointsEarned, getActivePerks } from './pointsStore';
+import { updateTotalPointsEarned, getActivePerks, getStoreState, saveStoreState } from './pointsStore';
 import { CASE_TIERS } from './constants';
 
 export function useProgress() {
@@ -34,20 +34,23 @@ export function useProgress() {
     const storedCompleted = getCompletedCases();
     setCompleted(storedCompleted);
 
-    // Recalculate correct points from completed cases using known tier data
-    const correctPoints = Array.from(storedCompleted).reduce((sum, caseId) => {
+    // Recalculate earned points from completed cases using known tier data
+    const correctEarned = Array.from(storedCompleted).reduce((sum, caseId) => {
       const tier = CASE_TIERS[caseId] || 1;
       return sum + tier * 10;
     }, 0);
+    const store = getStoreState();
+    const totalSpent = store.totalPointsSpent || 0;
     const storedPoints = parseInt(localStorage.getItem('bleepxPoints') || '0', 10);
-    // Use the higher of stored vs recalculated (never lose points)
-    const finalPoints = Math.max(correctPoints, storedPoints);
+    // Balance = earned minus spent; use max of recalculated vs stored earned
+    const totalEarned = Math.max(correctEarned, storedPoints + totalSpent);
+    const finalPoints = totalEarned - totalSpent;
     if (finalPoints !== storedPoints) {
       localStorage.setItem('bleepxPoints', finalPoints.toString());
-      console.log('[useProgress] Recalculated points:', storedPoints, '->', finalPoints);
+      console.log('[useProgress] Recalculated points:', storedPoints, '->', finalPoints, '(earned:', totalEarned, 'spent:', totalSpent, ')');
     }
     setPoints(finalPoints);
-    updateTotalPointsEarned(finalPoints);
+    updateTotalPointsEarned(totalEarned);
 
     const storedAchievements = JSON.parse(localStorage.getItem('bleepxAchievements') || '[]');
     setAchievements(storedAchievements);
@@ -214,6 +217,10 @@ export function useProgress() {
     const newPoints = points - amount;
     setPoints(newPoints);
     localStorage.setItem('bleepxPoints', newPoints.toString());
+    // Track cumulative spending so recalculation on mount doesn't reset balance
+    const store = getStoreState();
+    store.totalPointsSpent = (store.totalPointsSpent || 0) + amount;
+    saveStoreState(store);
     pushProgress({ completed: [...completed], points: newPoints, achievements }).catch(() => {});
     return true;
   }, [points, completed, achievements]);

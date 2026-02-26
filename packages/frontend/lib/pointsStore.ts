@@ -121,6 +121,7 @@ export interface StoreState {
   unlockedTrials: string[];       // difficulty ids
   skippedCases: string[];         // case ids that were skip-unlocked
   totalPointsEarned: number;      // lifetime points (never decreases)
+  totalPointsSpent: number;        // cumulative points spent (purchases, hints, skips, unlocks)
   hintsPurchased: Record<string, number>; // caseId -> extra hints purchased count
 }
 
@@ -132,6 +133,7 @@ const DEFAULT_STORE: StoreState = {
   unlockedTrials: ['intermediate', 'advanced'],
   skippedCases: [],
   totalPointsEarned: 0,
+  totalPointsSpent: 0,
   hintsPurchased: {},
 };
 
@@ -149,6 +151,8 @@ export function getStoreState(): StoreState {
 export function saveStoreState(state: StoreState): void {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    // Notify other components that store changed
+    window.dispatchEvent(new CustomEvent('bleepx-store-changed'));
   } catch { /* quota */ }
 }
 

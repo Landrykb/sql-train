@@ -18,7 +18,11 @@ export default function PointsShop() {
   // Refresh store state
   const refreshStore = useCallback(() => setStore(getStoreState()), []);
 
-  useEffect(() => { refreshStore(); }, [refreshStore]);
+  useEffect(() => {
+    refreshStore();
+    window.addEventListener('bleepx-store-changed', refreshStore);
+    return () => window.removeEventListener('bleepx-store-changed', refreshStore);
+  }, [refreshStore]);
 
   const showToast = (msg: string) => {
     setToast(msg);
