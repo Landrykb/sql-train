@@ -6,6 +6,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import DataGrid from './DataGrid';
 import DiffGrid from './DiffGrid';
+import SqlDiff from './SqlDiff';
 import Papa from 'papaparse';
 import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { compareResults } from '@/lib/compare';
@@ -867,7 +868,13 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             <div className="mt-4 bg-bleepx-gray/5 p-4 rounded-xl shadow-sm">
               <h3 className="text-sm font-semibold text-bleepx-gray mb-2">*bleep* Fine. Here's how I'd do it:</h3>
               {solutionQuery ? (
-                <pre className="text-sm text-bleepx-gray whitespace-pre-wrap" aria-label="Solution query">{solutionQuery}</pre>
+                <>
+                  <SqlDiff userQuery={query} solutionQuery={solutionQuery} />
+                  <div className="mt-2 flex gap-3 text-[10px] text-bleepx-text-secondary">
+                    <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-green-200 dark:bg-green-900/50" /> Missing from your query</span>
+                    <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-red-200 dark:bg-red-900/50" /> Extra in your query</span>
+                  </div>
+                </>
               ) : (
                 <p className="text-sm text-bleepx-gray italic">*bleep* No solution available for this challenge. You're on your own, human.</p>
               )}
