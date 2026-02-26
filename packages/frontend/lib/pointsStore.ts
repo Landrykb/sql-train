@@ -5,6 +5,12 @@
 
 // ─── Title Catalog ───────────────────────────────────────────────────────────
 
+export interface TitlePerks {
+  pointMultiplier: number;    // e.g. 1.2 = +20% points on case completion
+  extraFreeHints: number;     // additional free hints per case
+  trialTimeBonus: number;     // extra seconds added to trial timer
+}
+
 export interface StoreTitle {
   id: string;
   name: string;
@@ -12,22 +18,29 @@ export interface StoreTitle {
   cost: number;
   /** Minimum total points ever earned (not current balance) to see this in store */
   minPointsRequired?: number;
+  perks: TitlePerks;
 }
 
 export const TITLES: StoreTitle[] = [
-  { id: 'sql_rookie', name: 'SQL Rookie', description: 'Just getting started.', cost: 0 },
-  { id: 'data_explorer', name: 'Data Explorer', description: 'Curious minds query everything.', cost: 50 },
-  { id: 'query_apprentice', name: 'Query Apprentice', description: 'Learning the craft of SQL.', cost: 100 },
-  { id: 'join_master', name: 'JOIN Master', description: 'Tables fear your JOINs.', cost: 200 },
-  { id: 'sql_samurai', name: 'SQL Samurai', description: 'Precision strikes with every query.', cost: 350 },
-  { id: 'query_ghost', name: 'Query Ghost', description: 'Invisible. Efficient. Deadly.', cost: 500 },
-  { id: 'cte_wizard', name: 'CTE Wizard', description: 'Recursive magic at your fingertips.', cost: 700 },
-  { id: 'window_sensei', name: 'Window Sensei', description: 'OVER and PARTITION BY bow to you.', cost: 900 },
-  { id: 'data_architect', name: 'Data Architect', description: 'You see the schema before it exists.', cost: 1200 },
-  { id: 'bleepx_legend', name: 'BleepX Legend', description: '*bleep* Even I respect this one.', cost: 1500, minPointsRequired: 1000 },
+  { id: 'sql_rookie',        name: 'SQL Rookie',       description: 'Just getting started.',                  cost: 0,    perks: { pointMultiplier: 1.0,  extraFreeHints: 0, trialTimeBonus: 0 } },
+  { id: 'data_explorer',     name: 'Data Explorer',    description: 'Curious minds query everything.',        cost: 50,   perks: { pointMultiplier: 1.05, extraFreeHints: 0, trialTimeBonus: 0 } },
+  { id: 'query_apprentice',  name: 'Query Apprentice', description: 'Learning the craft of SQL.',             cost: 100,  perks: { pointMultiplier: 1.1,  extraFreeHints: 1, trialTimeBonus: 0 } },
+  { id: 'join_master',       name: 'JOIN Master',      description: 'Tables fear your JOINs.',                cost: 200,  perks: { pointMultiplier: 1.15, extraFreeHints: 1, trialTimeBonus: 60 } },
+  { id: 'sql_samurai',       name: 'SQL Samurai',      description: 'Precision strikes with every query.',    cost: 350,  perks: { pointMultiplier: 1.2,  extraFreeHints: 1, trialTimeBonus: 90 } },
+  { id: 'query_ghost',       name: 'Query Ghost',      description: 'Invisible. Efficient. Deadly.',          cost: 500,  perks: { pointMultiplier: 1.3,  extraFreeHints: 2, trialTimeBonus: 120 } },
+  { id: 'cte_wizard',        name: 'CTE Wizard',       description: 'Recursive magic at your fingertips.',    cost: 700,  perks: { pointMultiplier: 1.4,  extraFreeHints: 2, trialTimeBonus: 150 } },
+  { id: 'window_sensei',     name: 'Window Sensei',    description: 'OVER and PARTITION BY bow to you.',      cost: 900,  perks: { pointMultiplier: 1.5,  extraFreeHints: 3, trialTimeBonus: 180 } },
+  { id: 'data_architect',    name: 'Data Architect',   description: 'You see the schema before it exists.',   cost: 1200, perks: { pointMultiplier: 1.75, extraFreeHints: 3, trialTimeBonus: 240 } },
+  { id: 'bleepx_legend',     name: 'BleepX Legend',    description: '*bleep* Even I respect this one.',       cost: 1500, minPointsRequired: 1000, perks: { pointMultiplier: 2.0, extraFreeHints: 4, trialTimeBonus: 300 } },
 ];
 
 // ─── Badge Catalog ───────────────────────────────────────────────────────────
+
+export interface BadgePerks {
+  pointMultiplier: number;    // stacks additively, e.g. 0.05 = +5%
+  hintDiscount: number;       // flat pts off hint cost, e.g. 5 = hints cost 5 less
+  skipDiscount: number;       // flat pts off skip cost
+}
 
 export interface StoreBadge {
   id: string;
@@ -36,19 +49,20 @@ export interface StoreBadge {
   description: string;
   cost: number;
   minPointsRequired?: number;
+  perks: BadgePerks;
 }
 
 export const BADGES: StoreBadge[] = [
-  { id: 'badge_fire', emoji: '🔥', name: 'On Fire', description: 'Hot streak energy.', cost: 30 },
-  { id: 'badge_brain', emoji: '🧠', name: 'Big Brain', description: 'Outsmarted the machine.', cost: 60 },
-  { id: 'badge_rocket', emoji: '🚀', name: 'Launch Ready', description: 'Speed-running SQL.', cost: 100 },
-  { id: 'badge_crown', emoji: '👑', name: 'Royal Query', description: 'Royalty of the database.', cost: 150 },
-  { id: 'badge_diamond', emoji: '💎', name: 'Diamond Hands', description: 'Never gave up.', cost: 200 },
-  { id: 'badge_ghost', emoji: '👻', name: 'Phantom', description: 'Solved it like a ghost.', cost: 300 },
-  { id: 'badge_star', emoji: '⭐', name: 'Gold Star', description: 'Teacher\'s favorite.', cost: 100 },
-  { id: 'badge_ninja', emoji: '🥷', name: 'SQL Ninja', description: 'Silent but effective.', cost: 250 },
-  { id: 'badge_lightning', emoji: '⚡', name: 'Lightning Fast', description: 'Sub-minute solves.', cost: 350 },
-  { id: 'badge_trophy', emoji: '🏆', name: 'Champion', description: 'Undisputed domain champion.', cost: 500 },
+  { id: 'badge_fire',      emoji: '🔥', name: 'On Fire',        description: 'Hot streak energy.',           cost: 30,  perks: { pointMultiplier: 0.03, hintDiscount: 0,  skipDiscount: 0 } },
+  { id: 'badge_brain',     emoji: '🧠', name: 'Big Brain',      description: 'Outsmarted the machine.',      cost: 60,  perks: { pointMultiplier: 0.05, hintDiscount: 3,  skipDiscount: 0 } },
+  { id: 'badge_rocket',    emoji: '🚀', name: 'Launch Ready',   description: 'Speed-running SQL.',           cost: 100, perks: { pointMultiplier: 0.05, hintDiscount: 0,  skipDiscount: 10 } },
+  { id: 'badge_crown',     emoji: '👑', name: 'Royal Query',    description: 'Royalty of the database.',     cost: 150, perks: { pointMultiplier: 0.07, hintDiscount: 5,  skipDiscount: 0 } },
+  { id: 'badge_diamond',   emoji: '💎', name: 'Diamond Hands',  description: 'Never gave up.',               cost: 200, perks: { pointMultiplier: 0.08, hintDiscount: 0,  skipDiscount: 15 } },
+  { id: 'badge_ghost',     emoji: '👻', name: 'Phantom',        description: 'Solved it like a ghost.',      cost: 300, perks: { pointMultiplier: 0.10, hintDiscount: 5,  skipDiscount: 10 } },
+  { id: 'badge_star',      emoji: '⭐', name: 'Gold Star',      description: 'Teacher\'s favorite.',         cost: 100, perks: { pointMultiplier: 0.05, hintDiscount: 3,  skipDiscount: 5 } },
+  { id: 'badge_ninja',     emoji: '🥷', name: 'SQL Ninja',      description: 'Silent but effective.',        cost: 250, perks: { pointMultiplier: 0.08, hintDiscount: 5,  skipDiscount: 10 } },
+  { id: 'badge_lightning',  emoji: '⚡', name: 'Lightning Fast', description: 'Sub-minute solves.',           cost: 350, perks: { pointMultiplier: 0.12, hintDiscount: 5,  skipDiscount: 15 } },
+  { id: 'badge_trophy',    emoji: '🏆', name: 'Champion',       description: 'Undisputed domain champion.',  cost: 500, perks: { pointMultiplier: 0.15, hintDiscount: 8,  skipDiscount: 20 } },
 ];
 
 // ─── Trial Difficulty Gating ─────────────────────────────────────────────────
@@ -238,4 +252,54 @@ export function updateTotalPointsEarned(pointsEarned: number): void {
   const store = getStoreState();
   store.totalPointsEarned = Math.max(store.totalPointsEarned, pointsEarned);
   saveStoreState(store);
+}
+
+// ─── Active Perks (combined from equipped title + badges) ───────────────────
+
+export interface ActivePerks {
+  pointMultiplier: number;    // final multiplier, e.g. 1.35
+  totalFreeHints: number;     // FREE_HINTS + title bonus
+  effectiveHintCost: number;  // HINT_COST - badge discounts (min 5)
+  effectiveSkipCost: number;  // SKIP_COST - badge discounts (min 10)
+  trialTimeBonus: number;     // extra seconds on trials
+  /** Human-readable perk lines for UI display */
+  perkLines: string[];
+}
+
+export function getActivePerks(): ActivePerks {
+  const store = getStoreState();
+
+  // Title perks (only one equipped)
+  const title = TITLES.find(t => t.id === store.equippedTitle);
+  const titlePerks = title?.perks ?? { pointMultiplier: 1.0, extraFreeHints: 0, trialTimeBonus: 0 };
+
+  // Badge perks (up to 3 equipped, stack additively)
+  let badgePointBonus = 0;
+  let badgeHintDiscount = 0;
+  let badgeSkipDiscount = 0;
+  for (const bid of store.equippedBadges) {
+    const badge = BADGES.find(b => b.id === bid);
+    if (badge) {
+      badgePointBonus += badge.perks.pointMultiplier;
+      badgeHintDiscount += badge.perks.hintDiscount;
+      badgeSkipDiscount += badge.perks.skipDiscount;
+    }
+  }
+
+  // Combined values
+  const pointMultiplier = Math.round((titlePerks.pointMultiplier + badgePointBonus) * 100) / 100;
+  const totalFreeHints = FREE_HINTS + titlePerks.extraFreeHints;
+  const effectiveHintCost = Math.max(5, HINT_COST - badgeHintDiscount);
+  const effectiveSkipCost = Math.max(10, SKIP_COST - badgeSkipDiscount);
+  const trialTimeBonus = titlePerks.trialTimeBonus;
+
+  // Build human-readable perk lines
+  const perkLines: string[] = [];
+  if (pointMultiplier > 1) perkLines.push(`${pointMultiplier}x point multiplier`);
+  if (totalFreeHints > FREE_HINTS) perkLines.push(`${totalFreeHints} free hints per case (base: ${FREE_HINTS})`);
+  if (effectiveHintCost < HINT_COST) perkLines.push(`Hints cost ${effectiveHintCost} pts (base: ${HINT_COST})`);
+  if (effectiveSkipCost < SKIP_COST) perkLines.push(`Skips cost ${effectiveSkipCost} pts (base: ${SKIP_COST})`);
+  if (trialTimeBonus > 0) perkLines.push(`+${Math.floor(trialTimeBonus / 60)}m bonus trial time`);
+
+  return { pointMultiplier, totalFreeHints, effectiveHintCost, effectiveSkipCost, trialTimeBonus, perkLines };
 }

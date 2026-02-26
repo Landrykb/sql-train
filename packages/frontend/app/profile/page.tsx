@@ -8,7 +8,7 @@ import { useTheme } from '@/lib/useTheme';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
 import { playBleep } from '@/lib/audio';
 import PointsShop from '@/components/PointsShop';
-import { getStoreState, TITLES, BADGES } from '@/lib/pointsStore';
+import { getStoreState, getActivePerks, TITLES, BADGES } from '@/lib/pointsStore';
 
 const DOMAINS = ['business', 'crime', 'farming', 'finance', 'healthcare', 'social', 'space', 'sports'] as const;
 
@@ -156,11 +156,21 @@ export default function ProfilePage() {
                 const store = getStoreState();
                 const title = TITLES.find(t => t.id === store.equippedTitle);
                 const badges = store.equippedBadges.map(id => BADGES.find(b => b.id === id)).filter(Boolean);
+                const perks = getActivePerks();
                 return (
-                  <div className="flex items-center gap-2 mt-0.5">
-                    {title && <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-full">{title.name}</span>}
-                    {badges.map(b => b && <span key={b.id} className="text-base" title={b.name}>{b.emoji}</span>)}
-                  </div>
+                  <>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {title && <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-full">{title.name}</span>}
+                      {badges.map(b => b && <span key={b.id} className="text-base" title={b.name}>{b.emoji}</span>)}
+                    </div>
+                    {perks.perkLines.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {perks.perkLines.map((line, i) => (
+                          <span key={i} className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 font-medium border border-indigo-200 dark:border-indigo-800">{line}</span>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 );
               })()}
               <p className="text-sm text-bleepx-text-secondary">

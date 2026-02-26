@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useProgress } from '@/lib/useProgress';
 import {
   TITLES, BADGES, TRIAL_UNLOCK_COST, FLAIR_TIERS,
-  getStoreState, purchaseTitle, purchaseBadge, equipTitle, equipBadge, unlockTrial, getFlairTier,
+  getStoreState, getActivePerks, purchaseTitle, purchaseBadge, equipTitle, equipBadge, unlockTrial, getFlairTier,
   type StoreState, type StoreTitle, type StoreBadge,
 } from '@/lib/pointsStore';
 import { playBleep } from '@/lib/audio';
@@ -77,6 +77,7 @@ export default function PointsShop() {
   const currentFlair = getFlairTier(store.totalPointsEarned);
   const equippedTitleObj = TITLES.find(t => t.id === store.equippedTitle);
   const equippedBadgeObjs = store.equippedBadges.map(id => BADGES.find(b => b.id === id)).filter(Boolean);
+  const activePerks = getActivePerks();
 
   return (
     <div className="space-y-6">
@@ -114,6 +115,16 @@ export default function PointsShop() {
             <span className="font-bold text-green-700 dark:text-green-300 text-sm">{currentFlair.name}</span>
           </div>
         </div>
+        {activePerks.perkLines.length > 0 && (
+          <div className="mt-3 p-3 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800">
+            <p className="text-xs font-bold text-indigo-700 dark:text-indigo-300 mb-1.5">⚡ Active Perks</p>
+            <div className="flex flex-wrap gap-2">
+              {activePerks.perkLines.map((line, i) => (
+                <span key={i} className="text-[11px] px-2 py-0.5 rounded-full bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-700 text-indigo-600 dark:text-indigo-300 font-medium">{line}</span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Shop Tabs */}
@@ -136,7 +147,7 @@ export default function PointsShop() {
           {/* Titles Shop */}
           {shopTab === 'titles' && (
             <div className="space-y-3">
-              <p className="text-xs text-bleepx-text-secondary mb-3">Titles display on your profile. Buy and equip one at a time.</p>
+              <p className="text-xs text-bleepx-text-secondary mb-3">Titles grant passive bonuses. Equip one at a time — higher titles = better perks.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {TITLES.map(title => {
                   const owned = store.purchasedTitles.includes(title.id);
@@ -157,6 +168,11 @@ export default function PointsShop() {
                         <div>
                           <p className="font-bold text-sm text-bleepx-text">{title.name}</p>
                           <p className="text-xs text-bleepx-text-secondary mt-0.5">{title.description}</p>
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {title.perks.pointMultiplier > 1 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">{title.perks.pointMultiplier}x pts</span>}
+                            {title.perks.extraFreeHints > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">+{title.perks.extraFreeHints} free hints</span>}
+                            {title.perks.trialTimeBonus > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">+{Math.floor(title.perks.trialTimeBonus / 60)}m trial time</span>}
+                          </div>
                         </div>
                         {!owned && !locked && (
                           <span className="text-xs font-bold text-amber-600 dark:text-amber-400 flex-shrink-0 ml-2">{title.cost} pts</span>
@@ -194,7 +210,7 @@ export default function PointsShop() {
           {/* Badges Shop */}
           {shopTab === 'badges' && (
             <div className="space-y-3">
-              <p className="text-xs text-bleepx-text-secondary mb-3">Badges display on your profile. Equip up to 3 at once.</p>
+              <p className="text-xs text-bleepx-text-secondary mb-3">Badges grant stacking micro-perks. Equip up to 3 — their bonuses combine!</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {BADGES.map(badge => {
                   const owned = store.purchasedBadges.includes(badge.id);
@@ -224,6 +240,11 @@ export default function PointsShop() {
                             )}
                           </div>
                           <p className="text-xs text-bleepx-text-secondary">{badge.description}</p>
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {badge.perks.pointMultiplier > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">+{Math.round(badge.perks.pointMultiplier * 100)}% pts</span>}
+                            {badge.perks.hintDiscount > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">-{badge.perks.hintDiscount} hint cost</span>}
+                            {badge.perks.skipDiscount > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-medium">-{badge.perks.skipDiscount} skip cost</span>}
+                          </div>
                         </div>
                       </div>
                       <div className="mt-2 flex gap-2">

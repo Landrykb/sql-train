@@ -8,7 +8,7 @@ import {
 import { playBleep } from './audio';
 import { syncProgress, pushProgress } from './progressSync';
 import { supabase } from './supabase';
-import { updateTotalPointsEarned } from './pointsStore';
+import { updateTotalPointsEarned, getActivePerks } from './pointsStore';
 import { CASE_TIERS } from './constants';
 
 export function useProgress() {
@@ -146,7 +146,8 @@ export function useProgress() {
       const next = new Set(prev);
       if (!next.has(caseId)) {
         next.add(caseId);
-        const pointsToAdd = 10 * tier;
+        const perks = getActivePerks();
+        const pointsToAdd = Math.round(10 * tier * perks.pointMultiplier);
         const newPoints = points + pointsToAdd;
         setPoints(newPoints);
         localStorage.setItem('bleepxPoints', newPoints.toString());

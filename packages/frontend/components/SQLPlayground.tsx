@@ -19,7 +19,7 @@ import { playBleep } from '@/lib/audio';
 import { useTheme } from '@/lib/useTheme';
 import { getSqlErrorHelp } from '@/lib/sqlErrorHelper';
 import GuideModal from './GuideModal';
-import { FREE_HINTS, HINT_COST, SKIP_COST, TRIAL_UNLOCK_COST, getStoreState, purchaseSkip as purchaseSkipFn, unlockTrial as unlockTrialFn } from '@/lib/pointsStore';
+import { FREE_HINTS, HINT_COST, SKIP_COST, TRIAL_UNLOCK_COST, getStoreState, getActivePerks, purchaseSkip as purchaseSkipFn, unlockTrial as unlockTrialFn } from '@/lib/pointsStore';
 
 const Spinner = dynamic(() => import('./Spinner'), { ssr: false });
 
@@ -482,7 +482,9 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
   }, [canRun, onRun]);
 
   if (!isUnlocked(prerequisites) && !skippedCases.includes(id)) {
-    const canSkip = points >= SKIP_COST;
+    const skipPerks = getActivePerks();
+    const skipCost = skipPerks.effectiveSkipCost;
+    const canSkip = points >= skipCost;
     return (
       <div className="max-w-6xl mx-auto p-8 bg-bleepx-bg min-h-screen">
         <div className="p-6 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded-xl shadow-lg" role="alert">
@@ -500,7 +502,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 playBleep();
                 const result = purchaseSkipFn(id, points);
                 if (result.success) {
-                  spendPoints(SKIP_COST);
+                  spendPoints(skipCost);
                   setSkippedCases(result.store.skippedCases);
                 }
               }}
@@ -509,7 +511,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 canSkip ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
               }`}
             >
-              {canSkip ? `⚡ Skip Prerequisite (${SKIP_COST} pts)` : `🔒 Need ${SKIP_COST} pts to skip`}
+              {canSkip ? `⚡ Skip Prerequisite (${skipCost} pts)` : `🔒 Need ${skipCost} pts to skip`}
             </button>
           </div>
         </div>
@@ -538,11 +540,13 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
     );
   }
 
-  // Start a trial with a selected difficulty
+  // Start a trial with a selected difficulty (title perks add bonus time)
   const startTrial = (diff: TrialDifficulty) => {
+    const trialPerks = getActivePerks();
+    const totalTime = diff.timeLimitSeconds + trialPerks.trialTimeBonus;
     setSelectedDifficulty(diff);
-    setTimeLimit(diff.timeLimitSeconds);
-    setTimerSeconds(diff.timeLimitSeconds);
+    setTimeLimit(totalTime);
+    setTimerSeconds(totalTime);
     setTimerEnabled(true);
     setTrialBriefing(false);
     setTimeExpired(false);
@@ -974,15 +978,17 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                   })}
                 </ul>
                 {visibleHints < hints.length && attempts > 0 && (() => {
-                  const needsPayment = visibleHints >= FREE_HINTS;
-                  const canAfford = points >= HINT_COST;
+                  const perks = getActivePerks();
+                  const needsPayment = visibleHints >= perks.totalFreeHints;
+                  const hintCost = perks.effectiveHintCost;
+                  const canAfford = points >= hintCost;
                   return (
                     <button
                       onClick={() => {
                         playBleep();
                         if (needsPayment) {
                           if (!canAfford) return;
-                          spendPoints(HINT_COST);
+                          spendPoints(hintCost);
                         }
                         setVisibleHints((v) => Math.min(v + 1, hints.length));
                       }}
@@ -993,7 +999,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                           : 'bg-bleepx-blue/10 hover:bg-bleepx-blue/20'
                       }`}
                     >
-                      {needsPayment ? (canAfford ? `🔓 Unlock Hint (${HINT_COST} pts)` : `🔒 Need ${HINT_COST} pts`) : 'Show Next Hint'}
+                      {needsPayment ? (canAfford ? `🔓 Unlock Hint (${hintCost} pts)` : `🔒 Need ${hintCost} pts`) : 'Show Next Hint'}
                     </button>
                   );
                 })()}
