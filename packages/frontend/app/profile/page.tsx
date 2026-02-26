@@ -7,6 +7,8 @@ import { useProgress } from '@/lib/useProgress';
 import { useTheme } from '@/lib/useTheme';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
 import { playBleep } from '@/lib/audio';
+import PointsShop from '@/components/PointsShop';
+import { getStoreState, TITLES, BADGES } from '@/lib/pointsStore';
 
 const DOMAINS = ['business', 'crime', 'farming', 'finance', 'healthcare', 'social', 'space', 'sports'] as const;
 
@@ -40,10 +42,10 @@ const DEFAULT_PROFILE: UserProfile = {
 };
 
 export default function ProfilePage() {
-  const { completed, resetProgress } = useProgress();
+  const { completed, points, resetProgress } = useProgress();
   const { dark, toggle: toggleDark } = useTheme();
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
-  const [tab, setTab] = useState<'overview' | 'settings' | 'achievements'>('overview');
+  const [tab, setTab] = useState<'overview' | 'shop' | 'achievements' | 'settings'>('overview');
   const [ghUser, setGhUser] = useState<GitHubUser | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -74,25 +76,9 @@ export default function ProfilePage() {
     });
     const totalSolved = domainStats.reduce((a, d) => a + d.solved, 0);
     const totalCases = domainStats.reduce((a, d) => a + d.total, 0);
-    const totalPoints = Array.from(completed).reduce((sum, caseId) => {
-      try {
-        for (const d of DOMAINS) {
-          const all = fullCaseOrder[d] || [];
-          if (all.includes(caseId)) {
-            const saved = localStorage.getItem(`bleepx_solved_${d}_${caseId}`);
-            if (saved) {
-              const parsed = JSON.parse(saved);
-              return sum + (parsed.tier ? parsed.tier * 10 : 10);
-            }
-            return sum + 10;
-          }
-        }
-      } catch { /* ignore */ }
-      return sum + 10;
-    }, 0);
     const completedDomains = domainStats.filter((d) => d.solved === d.total && d.total > 0).length;
-    return { domainStats, totalSolved, totalCases, totalPoints, completedDomains };
-  }, [completed]);
+    return { domainStats, totalSolved, totalCases, totalPoints: points, completedDomains };
+  }, [completed, points]);
 
   // Solve time stats
   const solveTimeStats = useMemo(() => {
@@ -166,6 +152,17 @@ export default function ProfilePage() {
               <h1 className="text-lg sm:text-xl font-bold text-bleepx-text">
                 {isSignedIn ? (ghUser?.name || profile.displayName) : profile.displayName}
               </h1>
+              {(() => {
+                const store = getStoreState();
+                const title = TITLES.find(t => t.id === store.equippedTitle);
+                const badges = store.equippedBadges.map(id => BADGES.find(b => b.id === id)).filter(Boolean);
+                return (
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {title && <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-full">{title.name}</span>}
+                    {badges.map(b => b && <span key={b.id} className="text-base" title={b.name}>{b.emoji}</span>)}
+                  </div>
+                );
+              })()}
               <p className="text-sm text-bleepx-text-secondary">
                 {isSignedIn ? 'Signed in via GitHub' : '*bleep* Anonymous explorer'}
                 {githubUsername && isSignedIn && <span className="ml-2">· <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noopener noreferrer" className="text-bleepx-blue hover:underline">@{githubUsername}</a></span>}
@@ -206,7 +203,7 @@ export default function ProfilePage() {
 
       {/* Tab Navigation */}
       <div className="flex gap-1 border-b border-bleepx-border">
-        {(['overview', 'achievements', 'settings'] as const).map((t) => (
+        {(['overview', 'shop', 'achievements', 'settings'] as const).map((t) => (
           <button
             key={t}
             onClick={() => { playBleep(); setTab(t); }}
@@ -216,7 +213,7 @@ export default function ProfilePage() {
                 : 'border-transparent text-bleepx-text-secondary hover:text-bleepx-text'
             }`}
           >
-            {t === 'overview' ? '📊 Overview' : t === 'achievements' ? '🏆 Achievements' : '⚙️ Settings'}
+            {t === 'overview' ? '📊 Overview' : t === 'shop' ? '🛒 Shop' : t === 'achievements' ? '🏆 Achievements' : '⚙️ Settings'}
           </button>
         ))}
       </div>
@@ -288,6 +285,8 @@ export default function ProfilePage() {
           )}
         </div>
       )}
+
+      {tab === 'shop' && <PointsShop />}
 
       {tab === 'achievements' && (
         <div className="space-y-6">

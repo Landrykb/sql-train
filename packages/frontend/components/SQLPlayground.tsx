@@ -19,6 +19,7 @@ import { playBleep } from '@/lib/audio';
 import { useTheme } from '@/lib/useTheme';
 import { getSqlErrorHelp } from '@/lib/sqlErrorHelper';
 import GuideModal from './GuideModal';
+import { FREE_HINTS, HINT_COST, SKIP_COST, TRIAL_UNLOCK_COST, getStoreState, purchaseSkip as purchaseSkipFn, unlockTrial as unlockTrialFn } from '@/lib/pointsStore';
 
 const Spinner = dynamic(() => import('./Spinner'), { ssr: false });
 
@@ -98,7 +99,7 @@ type ValidDomain = 'business' | 'crime' | 'healthcare' | 'farming' | 'space' | '
 export default function SQLPlayground({ caseData, guideData }: { caseData: CaseData; guideData?: any }) {
   const { id, name, description, instructions, hints = [], thoughtProcess = [], skills = [], datasets, seedQuery = '', templateQuery = '', expected = [], solutionQuery = '', domain: rawDomain, prerequisites = [], tier } = caseData;
   const domain = normalizeDomain(rawDomain) as ValidDomain;
-  const { markComplete, completed, isUnlocked } = useProgress();
+  const { markComplete, completed, isUnlocked, points, spendPoints } = useProgress();
 
   const currentOrder = fullCaseOrder[domain] || caseOrder[domain] || [];
   const currentIndex = currentOrder.indexOf(id);
@@ -144,6 +145,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
   const [guideOpen, setGuideOpen] = useState(false);
   const [guideSection, setGuideSection] = useState<string | undefined>(undefined);
   const [errorHelp, setErrorHelp] = useState<{ title: string; explanation: string; suggestions: string[]; guideSection?: string } | null>(null);
+  const [skippedCases, setSkippedCases] = useState<string[]>(() => { try { return getStoreState().skippedCases; } catch { return []; } });
 
   const insertAtCursor = useCallback((text: string) => {
     const view = editorViewRef.current;
@@ -479,7 +481,8 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
     return () => window.removeEventListener('keydown', handler);
   }, [canRun, onRun]);
 
-  if (!isUnlocked(prerequisites)) {
+  if (!isUnlocked(prerequisites) && !skippedCases.includes(id)) {
+    const canSkip = points >= SKIP_COST;
     return (
       <div className="max-w-6xl mx-auto p-8 bg-bleepx-bg min-h-screen">
         <div className="p-6 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded-xl shadow-lg" role="alert">
@@ -487,10 +490,27 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             <img src="/bleepx-logo.png" alt="Bleepx" className="h-5 w-5" />
             <span>{getLockedMessage(prerequisites)}</span>
           </div>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap gap-3">
             <Link href={`/cases/${domain}`}>
                 <button className="px-4 py-2 rounded-full bg-bleepx-blue text-white hover:bg-blue-700 dark:hover:bg-blue-500 transition-all duration-200">Back to Challenges</button>
             </Link>
+            <button
+              onClick={() => {
+                if (!canSkip) return;
+                playBleep();
+                const result = purchaseSkipFn(id, points);
+                if (result.success) {
+                  spendPoints(SKIP_COST);
+                  setSkippedCases(result.store.skippedCases);
+                }
+              }}
+              disabled={!canSkip}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                canSkip ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              {canSkip ? `⚡ Skip Prerequisite (${SKIP_COST} pts)` : `🔒 Need ${SKIP_COST} pts to skip`}
+            </button>
           </div>
         </div>
       </div>
@@ -549,28 +569,50 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             <h2 className="text-lg font-bold text-bleepx-gray mb-3">Select Difficulty</h2>
             <p className="text-xs text-bleepx-text-secondary mb-4">Choose your time limit. Higher difficulty = less time, more glory.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {trialDifficulties.map((diff) => (
-                <button
-                  key={diff.id}
-                  onClick={() => startTrial(diff)}
-                  className={`group relative p-4 rounded-xl border-2 text-left transition-all hover:shadow-lg hover:scale-[1.02] ${
-                    diff.id === 'legendary' || diff.id === 'senior_pro'
-                      ? 'border-purple-400 dark:border-purple-600 hover:border-purple-500 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20'
+              {trialDifficulties.map((diff) => {
+                const storeNow = getStoreState();
+                const isTrialUnlocked = storeNow.unlockedTrials.includes(diff.id);
+                const unlockCost = TRIAL_UNLOCK_COST[diff.id] ?? 0;
+                const canAffordUnlock = points >= unlockCost;
+                return (
+                  <button
+                    key={diff.id}
+                    onClick={() => {
+                      if (isTrialUnlocked) {
+                        startTrial(diff);
+                      } else if (canAffordUnlock) {
+                        playBleep();
+                        const result = unlockTrialFn(diff.id, points);
+                        if (result.success) {
+                          spendPoints(unlockCost);
+                        }
+                      }
+                    }}
+                    disabled={!isTrialUnlocked && !canAffordUnlock}
+                    className={`group relative p-4 rounded-xl border-2 text-left transition-all ${
+                      !isTrialUnlocked ? 'opacity-75 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800'
+                      : diff.id === 'legendary' || diff.id === 'senior_pro'
+                      ? 'border-purple-400 dark:border-purple-600 hover:border-purple-500 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 hover:shadow-lg hover:scale-[1.02]'
                       : diff.id === 'elite'
-                      ? 'border-red-300 dark:border-red-700 hover:border-red-400 bg-red-50/50 dark:bg-red-900/10'
+                      ? 'border-red-300 dark:border-red-700 hover:border-red-400 bg-red-50/50 dark:bg-red-900/10 hover:shadow-lg hover:scale-[1.02]'
                       : diff.id === 'advanced'
-                      ? 'border-yellow-300 dark:border-yellow-700 hover:border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10'
-                      : 'border-green-300 dark:border-green-700 hover:border-green-400 bg-green-50/50 dark:bg-green-900/10'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xl">{diff.emoji}</span>
-                    <span className="font-bold text-bleepx-gray">{diff.label}</span>
-                    <span className="ml-auto text-xs font-mono font-bold text-bleepx-text-secondary">{fmtTime(diff.timeLimitSeconds)}</span>
-                  </div>
-                  <p className="text-xs text-bleepx-text-secondary">{diff.description}</p>
-                </button>
-              ))}
+                      ? 'border-yellow-300 dark:border-yellow-700 hover:border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10 hover:shadow-lg hover:scale-[1.02]'
+                      : 'border-green-300 dark:border-green-700 hover:border-green-400 bg-green-50/50 dark:bg-green-900/10 hover:shadow-lg hover:scale-[1.02]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl">{isTrialUnlocked ? diff.emoji : '🔒'}</span>
+                      <span className="font-bold text-bleepx-gray">{diff.label}</span>
+                      <span className="ml-auto text-xs font-mono font-bold text-bleepx-text-secondary">
+                        {isTrialUnlocked ? fmtTime(diff.timeLimitSeconds) : `${unlockCost} pts to unlock`}
+                      </span>
+                    </div>
+                    <p className="text-xs text-bleepx-text-secondary">
+                      {isTrialUnlocked ? diff.description : canAffordUnlock ? 'Tap to unlock this difficulty' : `Need ${unlockCost} pts`}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -931,17 +973,30 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                     );
                   })}
                 </ul>
-                {visibleHints < hints.length && attempts > 0 && (
-                  <button
-                    onClick={() => {
-                      playBleep();
-                      setVisibleHints((v) => Math.min(v + 1, hints.length));
-                    }}
-                    className="mt-3 px-3 py-1 text-sm bg-bleepx-blue/10 hover:bg-bleepx-blue/20 rounded-full transition-all duration-200"
-                  >
-                    Show Next Hint
-                  </button>
-                )}
+                {visibleHints < hints.length && attempts > 0 && (() => {
+                  const needsPayment = visibleHints >= FREE_HINTS;
+                  const canAfford = points >= HINT_COST;
+                  return (
+                    <button
+                      onClick={() => {
+                        playBleep();
+                        if (needsPayment) {
+                          if (!canAfford) return;
+                          spendPoints(HINT_COST);
+                        }
+                        setVisibleHints((v) => Math.min(v + 1, hints.length));
+                      }}
+                      disabled={needsPayment && !canAfford}
+                      className={`mt-3 px-3 py-1 text-sm rounded-full transition-all duration-200 ${
+                        needsPayment && !canAfford
+                          ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+                          : 'bg-bleepx-blue/10 hover:bg-bleepx-blue/20'
+                      }`}
+                    >
+                      {needsPayment ? (canAfford ? `🔓 Unlock Hint (${HINT_COST} pts)` : `🔒 Need ${HINT_COST} pts`) : 'Show Next Hint'}
+                    </button>
+                  );
+                })()}
                 <div className="mt-4 pt-3 border-t border-bleepx-border">
                   <button
                     onClick={() => { setGuideSection(undefined); setGuideOpen(true); }}

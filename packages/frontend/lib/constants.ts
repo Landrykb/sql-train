@@ -78,6 +78,36 @@
     ])
   );
 
+  /** Tier for each case (from YAML). Used to recalculate points. */
+  export const CASE_TIERS: Record<string, number> = {
+    // business
+    basics_select: 1, agg_revenue: 1, joins_returns: 2, window_cumsum: 3, cte_profit: 4, capstone_root: 5,
+    hidden_sales_boost: 6, hidden_credit_recommend: 7, hidden_inventory_alert: 8,
+    // crime
+    crime_select: 1, crime_by_area: 2, suspect_joins: 3, crime_trend: 3, cte_crime: 4, capstone_crime: 5,
+    hidden_crime_hotspot: 6, hidden_serial_pattern: 7,
+    // farming
+    ndvi_overview: 1, yield_by_crop: 2, soil_joins: 3, yield_trend: 3, cte_soil: 4, capstone_farm: 5,
+    hidden_crop_optimization: 6, hidden_drought_risk: 7,
+    // finance
+    transaction_select: 1, balance_by_account: 2, fraud_joins: 3, balance_trend: 3, cte_fraud: 4, capstone_finance: 5,
+    hidden_fraud_detection: 6, hidden_portfolio_optimize: 7,
+    // healthcare
+    patient_select: 1, diagnosis_count: 2, treatment_joins: 3, admission_trend: 3, cte_treatment: 4, capstone_health: 5,
+    hidden_readmission_risk: 6, hidden_diagnosis_delay: 7,
+    // social
+    post_select: 1, engagement_by_type: 2, user_joins: 3, likes_trend: 3, cte_engagement: 4, capstone_social: 5,
+    hidden_influencer_roi: 6, hidden_viral_prediction: 7,
+    // space
+    orbit_select: 1, velocity_by_type: 2, mission_joins: 3, orbit_trend: 3, cte_payload: 4, capstone_space: 5,
+    hidden_mission_risk: 6, hidden_collision_alert: 7,
+    // sports
+    match_select: 1, score_by_team: 2, player_joins: 3, score_trend: 3, cte_player: 4, capstone_sports: 5,
+    hidden_player_value: 6, hidden_mvp_predictor: 7,
+    // trials
+    trial_basics: 2, trial_aggregation: 2, trial_joins: 3, trial_advanced: 3, trial_window: 3,
+  };
+
   // Visualization configurations for each domain and case
   // CSV columns:
   // business_retail: invoice_id, branch, city, customer_type, gender, product_line, unit_price, quantity, tax_5, total, date, time, payment, cogs, gross_margin_percentage, gross_income, rating

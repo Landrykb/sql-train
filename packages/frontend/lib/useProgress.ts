@@ -8,6 +8,8 @@ import {
 import { playBleep } from './audio';
 import { syncProgress, pushProgress } from './progressSync';
 import { supabase } from './supabase';
+import { updateTotalPointsEarned } from './pointsStore';
+import { CASE_TIERS } from './constants';
 
 export function useProgress() {
   const [completed, setCompleted] = useState<Set<string>>(new Set());
@@ -27,12 +29,25 @@ export function useProgress() {
   }, []);
 
   // Load initial state from localStorage on mount (client-side only)
+  // Also recalculate points from CASE_TIERS to fix any stale bleepxPoints values
   useEffect(() => {
     const storedCompleted = getCompletedCases();
     setCompleted(storedCompleted);
 
+    // Recalculate correct points from completed cases using known tier data
+    const correctPoints = Array.from(storedCompleted).reduce((sum, caseId) => {
+      const tier = CASE_TIERS[caseId] || 1;
+      return sum + tier * 10;
+    }, 0);
     const storedPoints = parseInt(localStorage.getItem('bleepxPoints') || '0', 10);
-    setPoints(storedPoints);
+    // Use the higher of stored vs recalculated (never lose points)
+    const finalPoints = Math.max(correctPoints, storedPoints);
+    if (finalPoints !== storedPoints) {
+      localStorage.setItem('bleepxPoints', finalPoints.toString());
+      console.log('[useProgress] Recalculated points:', storedPoints, '->', finalPoints);
+    }
+    setPoints(finalPoints);
+    updateTotalPointsEarned(finalPoints);
 
     const storedAchievements = JSON.parse(localStorage.getItem('bleepxAchievements') || '[]');
     setAchievements(storedAchievements);
@@ -176,6 +191,9 @@ export function useProgress() {
 
         console.log('Marking Complete:', caseId, 'New Completed:', Array.from(next), 'Points:', newPoints, 'Achievements:', newAchievements);
 
+        // Track lifetime points (never decreases)
+        updateTotalPointsEarned(newPoints);
+
         // Push to Supabase in background
         pushProgress({ completed: [...next], points: newPoints, achievements: newAchievements }).catch(() => {});
       }
@@ -188,6 +206,16 @@ export function useProgress() {
       setError('Failed to save progress.');
     }
   }, [points, achievements]);
+
+  /** Spend points (for store purchases, hints, skips). Returns false if insufficient. */
+  const spendPoints = useCallback((amount: number): boolean => {
+    if (points < amount) return false;
+    const newPoints = points - amount;
+    setPoints(newPoints);
+    localStorage.setItem('bleepxPoints', newPoints.toString());
+    pushProgress({ completed: [...completed], points: newPoints, achievements }).catch(() => {});
+    return true;
+  }, [points, completed, achievements]);
 
   const isUnlocked = useCallback((prereqs: string[]) => {
     try {
@@ -217,5 +245,5 @@ export function useProgress() {
     pushProgress({ completed: [], points: 0, achievements: [] }).catch(() => {});
   }, []);
 
-  return { completed, points, achievements, markComplete, isUnlocked, error, resetProgress };
+  return { completed, points, achievements, markComplete, spendPoints, isUnlocked, error, resetProgress };
 }
