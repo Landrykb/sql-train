@@ -347,7 +347,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
   }, [domain, id]);
 
   const onRun = useCallback(async () => {
-    if (query.length > 1000) {
+    if (query.length > 3000) {
       setMessage(queryMessages.tooLong);
       setAttempts((a) => a + 1);
       addHistory(query, false);

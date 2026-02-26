@@ -60,7 +60,7 @@ export const queryMessages = {
     'Query crashed. *bleep* I\'d fix it myself, but where\'s the fun in that?',
     '*bleep* Error detected. Take a breath, check your SQL, try again.',
   ],
-  tooLong: '*bleep* That query is enormous. Keep it under 1000 characters — efficiency matters at SwiftLink.',
+  tooLong: '*bleep* That query is enormous. Keep it under 3000 characters — efficiency matters at SwiftLink.',
   noExpected: '*bleep* Query ran, but I have no reference to validate it. Proceed with caution.',
   processing: '*bleep* Processing your query...',
 };
