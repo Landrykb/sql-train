@@ -35,7 +35,7 @@ const ProgressSummary = ({ caseIds }: Props) => {
         <div className="mt-3">
           <Link href="/cases">
             <button className="px-4 py-1.5 rounded-full bg-bleepx-blue text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors">
-              Next Domain →
+              Pick Another Domain →
             </button>
           </Link>
         </div>

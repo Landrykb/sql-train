@@ -114,6 +114,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
   const [busy, setBusy] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [showSolution, setShowSolution] = useState(false);
+  const [solutionView, setSolutionView] = useState<'diff' | 'clean'>('diff');
   const [visibleHints, setVisibleHints] = useState(1);
   const [visibleSteps, setVisibleSteps] = useState(1);
   const [showThoughtProcess, setShowThoughtProcess] = useState(false);
@@ -418,7 +419,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
         setShowSuccess(true);
         setVisibleHints(hints.length);
         if (timerRef.current) clearInterval(timerRef.current);
-        try { localStorage.setItem(`bleepx_solved_${domain}_${id}`, JSON.stringify({ query, ts: Date.now(), time: timerSeconds, attempts: attempts + 1 })); } catch { /* ignore */ }
+        try { localStorage.setItem(`bleepx_solved_${domain}_${id}`, JSON.stringify({ query, ts: Date.now(), time: timerSeconds, attempts: attempts + 1, tier })); } catch { /* ignore */ }
 
         const allCompleted = currentOrder.length > 0 && currentOrder.every((caseId) => completed.has(caseId) || caseId === id);
 
@@ -866,17 +867,41 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           )}
           {showSolution && (
             <div className="mt-4 bg-bleepx-gray/5 p-4 rounded-xl shadow-sm">
-              <h3 className="text-sm font-semibold text-bleepx-gray mb-2">*bleep* Fine. Here's how I'd do it:</h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-bleepx-gray">*bleep* Fine. Here&apos;s how I&apos;d do it:</h3>
+                {solutionQuery && (
+                  <div className="flex rounded-full bg-gray-200 dark:bg-gray-700 p-0.5 text-[11px] font-medium">
+                    <button
+                      onClick={() => setSolutionView('diff')}
+                      className={`px-3 py-1 rounded-full transition-colors ${solutionView === 'diff' ? 'bg-bleepx-blue text-white shadow-sm' : 'text-bleepx-text-secondary hover:text-bleepx-text'}`}
+                    >
+                      Diff
+                    </button>
+                    <button
+                      onClick={() => setSolutionView('clean')}
+                      className={`px-3 py-1 rounded-full transition-colors ${solutionView === 'clean' ? 'bg-bleepx-blue text-white shadow-sm' : 'text-bleepx-text-secondary hover:text-bleepx-text'}`}
+                    >
+                      Clean
+                    </button>
+                  </div>
+                )}
+              </div>
               {solutionQuery ? (
                 <>
-                  <SqlDiff userQuery={query} solutionQuery={solutionQuery} />
-                  <div className="mt-2 flex gap-3 text-[10px] text-bleepx-text-secondary">
-                    <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-green-200 dark:bg-green-900/50" /> Missing from your query</span>
-                    <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-red-200 dark:bg-red-900/50" /> Extra in your query</span>
-                  </div>
+                  {solutionView === 'diff' ? (
+                    <>
+                      <SqlDiff userQuery={query} solutionQuery={solutionQuery} />
+                      <div className="mt-2 flex gap-3 text-[10px] text-bleepx-text-secondary">
+                        <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-green-200 dark:bg-green-900/50" /> Missing from your query</span>
+                        <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-red-200 dark:bg-red-900/50" /> Extra in your query</span>
+                      </div>
+                    </>
+                  ) : (
+                    <pre className="text-sm whitespace-pre-wrap leading-relaxed text-bleepx-gray bg-gray-900 dark:bg-gray-950 text-green-400 p-3 rounded-lg overflow-x-auto">{solutionQuery}</pre>
+                  )}
                 </>
               ) : (
-                <p className="text-sm text-bleepx-gray italic">*bleep* No solution available for this challenge. You're on your own, human.</p>
+                <p className="text-sm text-bleepx-gray italic">*bleep* No solution available for this challenge. You&apos;re on your own, human.</p>
               )}
             </div>
           )}
