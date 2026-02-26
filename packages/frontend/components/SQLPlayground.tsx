@@ -138,9 +138,21 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
   const [timeLimit, setTimeLimit] = useState(0); // countdown from this value (seconds)
   const [timeExpired, setTimeExpired] = useState(false);
   const { dark } = useTheme();
+  const editorViewRef = useRef<any>(null);
   const [guideOpen, setGuideOpen] = useState(false);
   const [guideSection, setGuideSection] = useState<string | undefined>(undefined);
   const [errorHelp, setErrorHelp] = useState<{ title: string; explanation: string; suggestions: string[]; guideSection?: string } | null>(null);
+
+  const insertAtCursor = useCallback((text: string) => {
+    const view = editorViewRef.current;
+    if (view) {
+      const pos = view.state.selection.main.head;
+      view.dispatch({ changes: { from: pos, insert: text } });
+      view.focus();
+    } else {
+      setQuery((q) => q + text);
+    }
+  }, []);
 
   const isTrial = domain === 'trials' || id.startsWith('trial_');
   const prevCaseId = currentIndex > 0 ? currentOrder[currentIndex - 1] : null;
@@ -685,6 +697,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             value={query}
             height="200px"
             onChange={setQuery}
+            onCreateEditor={(view: any) => { editorViewRef.current = view; }}
             isDark={dark}
             aria-label="SQL query editor"
             className="border rounded-lg border-bleepx-border"
@@ -709,14 +722,14 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 <div key={table.name} className="mb-3 last:mb-0">
                   <div className="font-semibold text-sm mb-1 flex items-center gap-1">
                     <span>🗂️</span>
-                    <button onClick={() => setQuery((q) => `${q.replace(/;?\s*$/, '')} ${table.name} `)} className="hover:text-bleepx-blue cursor-pointer">
+                    <button onClick={() => insertAtCursor(table.name + ' ')} className="hover:text-bleepx-blue cursor-pointer">
                       {table.name}
                     </button>
                     <span className="text-[10px] ml-1 text-bleepx-text-secondary">({table.rowCount} rows)</span>
                   </div>
                   <div className="flex flex-wrap gap-1 ml-5">
                     {table.columns.map((c) => (
-                      <button key={c} onClick={() => { playBleep(); setQuery((q) => `${q.replace(/;?\s*$/, '')} ${c} `); }} className="px-2 py-0.5 rounded text-[11px] cursor-pointer transition-colors bg-bleepx-white hover:bg-bleepx-blue/10 text-bleepx-text-secondary border border-bleepx-border">
+                      <button key={c} onClick={() => { playBleep(); insertAtCursor(c + ' '); }} className="px-2 py-0.5 rounded text-[11px] cursor-pointer transition-colors bg-bleepx-white hover:bg-bleepx-blue/10 text-bleepx-text-secondary border border-bleepx-border">
                         {c}
                       </button>
                     ))}
