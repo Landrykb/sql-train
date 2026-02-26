@@ -541,6 +541,283 @@ query_types:
           SELECT product_line, total
           FROM business_retail
           WHERE total > ANY (SELECT total FROM business_retail WHERE product_line = 'Sports and travel');
+  - name: COALESCE
+    description: Return the first non-NULL value from a list of expressions. Essential for handling missing data gracefully.
+    variants:
+      - name: Basic COALESCE
+        description: Replace NULL with a default value.
+        example_generic: |-
+          SELECT col1, COALESCE(col2, 0) AS col2_safe
+          FROM table_main;
+        example: |-
+          SELECT product_line, COALESCE(discount, 0) AS discount
+          FROM business_retail;
+      - name: COALESCE with Multiple Fallbacks
+        description: Try multiple columns in order, returning the first non-NULL.
+        example_generic: |-
+          SELECT COALESCE(col1, col2, 'Unknown') AS result
+          FROM table_main;
+        example: |-
+          SELECT COALESCE(nickname, full_name, 'Anonymous') AS display_name
+          FROM customers;
+      - name: COALESCE in Calculations
+        description: Use COALESCE to safely handle NULL in math expressions (NULL in arithmetic makes the whole result NULL).
+        example_generic: |-
+          SELECT col1,
+                 col2 - COALESCE(prev_col2, col2) AS change
+          FROM table_main;
+        example: |-
+          SELECT region,
+                 avg_ndvi - COALESCE(prev_ndvi, avg_ndvi) AS ndvi_change
+          FROM monthly_stats;
+  - name: NULLIF
+    description: Return NULL if two expressions are equal. Commonly used to prevent division by zero.
+    variants:
+      - name: Basic NULLIF
+        description: Returns NULL when both arguments are the same, otherwise returns the first argument.
+        example_generic: |-
+          SELECT col1 / NULLIF(col2, 0) AS safe_ratio
+          FROM table_main;
+        example: |-
+          SELECT product_line,
+                 revenue / NULLIF(quantity, 0) AS price_per_unit
+          FROM business_retail;
+  - name: ROUND
+    description: Round a numeric value to a specified number of decimal places.
+    variants:
+      - name: Basic ROUND
+        description: Round to N decimal places.
+        example_generic: |-
+          SELECT ROUND(col1, 2) AS rounded_val
+          FROM table_main;
+        example: |-
+          SELECT product_line, ROUND(AVG(total), 2) AS avg_total
+          FROM business_retail
+          GROUP BY product_line;
+      - name: ROUND to Integer
+        description: Round to the nearest whole number by using 0 decimal places.
+        example_generic: |-
+          SELECT ROUND(col1, 0) AS whole_number
+          FROM table_main;
+        example: |-
+          SELECT ROUND(AVG(yield), 0) AS avg_yield
+          FROM farming_yield;
+  - name: CAST
+    description: Convert a value from one data type to another.
+    variants:
+      - name: Basic CAST
+        description: Convert between types like TEXT, INTEGER, REAL, DATE.
+        example_generic: |-
+          SELECT CAST(col1 AS INTEGER) AS int_val
+          FROM table_main;
+        example: |-
+          SELECT CAST(total AS INTEGER) AS total_int
+          FROM business_retail;
+      - name: CAST for Division
+        description: Cast integers to REAL/FLOAT before dividing to get decimal results instead of integer division.
+        example_generic: |-
+          SELECT CAST(col1 AS REAL) / col2 AS ratio
+          FROM table_main;
+        example: |-
+          SELECT CAST(correct_count AS REAL) / total_count AS accuracy
+          FROM results;
+  - name: OVER / PARTITION BY
+    description: The OVER clause turns an aggregate or ranking function into a window function. PARTITION BY divides rows into groups (like GROUP BY but without collapsing rows). ORDER BY within OVER defines the row order for the window.
+    variants:
+      - name: Aggregate with OVER
+        description: Compute an aggregate per group while keeping every row visible (unlike GROUP BY which collapses rows).
+        example_generic: |-
+          SELECT col1, col2,
+                 SUM(col2) OVER (PARTITION BY col1) AS group_total
+          FROM table_main;
+        example: |-
+          SELECT product_line, total,
+                 SUM(total) OVER (PARTITION BY product_line) AS line_total
+          FROM business_retail;
+      - name: Running Total with OVER
+        description: Compute a cumulative sum by ordering rows within each partition.
+        example_generic: |-
+          SELECT col1, col2,
+                 SUM(col2) OVER (PARTITION BY col1 ORDER BY col3) AS running_total
+          FROM table_main;
+        example: |-
+          SELECT product_line, date, total,
+                 SUM(total) OVER (PARTITION BY product_line ORDER BY date) AS cumulative_sales
+          FROM business_retail;
+      - name: PARTITION BY with Ranking
+        description: Rank rows within each group independently.
+        example_generic: |-
+          SELECT col1, col2,
+                 ROW_NUMBER() OVER (PARTITION BY col1 ORDER BY col2 DESC) AS rank_in_group
+          FROM table_main;
+        example: |-
+          SELECT product_line, total,
+                 ROW_NUMBER() OVER (PARTITION BY product_line ORDER BY total DESC) AS sales_rank
+          FROM business_retail;
+  - name: FIRST_VALUE / LAST_VALUE
+    description: Retrieve the first or last value in a window frame.
+    variants:
+      - name: Basic FIRST_VALUE
+        description: Get the first value within a partition.
+        example_generic: |-
+          SELECT col1, col2,
+                 FIRST_VALUE(col2) OVER (PARTITION BY col1 ORDER BY col3) AS first_val
+          FROM table_main;
+        example: |-
+          SELECT ticker, date, close,
+                 FIRST_VALUE(close) OVER (PARTITION BY ticker ORDER BY date) AS opening_price
+          FROM finance_stocks;
+      - name: Basic LAST_VALUE
+        description: Get the last value within a partition. Note — you often need a frame clause to get the true last value.
+        example_generic: |-
+          SELECT col1, col2,
+                 LAST_VALUE(col2) OVER (
+                   PARTITION BY col1 ORDER BY col3
+                   ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+                 ) AS last_val
+          FROM table_main;
+        example: |-
+          SELECT ticker, date, close,
+                 LAST_VALUE(close) OVER (
+                   PARTITION BY ticker ORDER BY date
+                   ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+                 ) AS latest_price
+          FROM finance_stocks;
+  - name: NTILE
+    description: Divide rows into N roughly equal buckets within a partition.
+    variants:
+      - name: Basic NTILE
+        description: Split rows into N groups and assign a bucket number.
+        example_generic: |-
+          SELECT col1, col2,
+                 NTILE(4) OVER (ORDER BY col2 DESC) AS quartile
+          FROM table_main;
+        example: |-
+          SELECT product_line, total,
+                 NTILE(4) OVER (ORDER BY total DESC) AS quartile
+          FROM business_retail;
+  - name: STRING_AGG
+    description: Concatenate string values from multiple rows into a single string, separated by a delimiter.
+    variants:
+      - name: Basic STRING_AGG
+        description: Combine values into a comma-separated list.
+        example_generic: |-
+          SELECT col1, STRING_AGG(col2, ', ') AS combined
+          FROM table_main
+          GROUP BY col1;
+        example: |-
+          SELECT product_line, STRING_AGG(invoice_id, ', ') AS invoices
+          FROM business_retail
+          GROUP BY product_line;
+  - name: String Functions
+    description: Functions for manipulating text values.
+    variants:
+      - name: REPLACE
+        description: Replace occurrences of a substring.
+        example_generic: |-
+          SELECT REPLACE(col1, 'old', 'new') AS cleaned
+          FROM table_main;
+        example: |-
+          SELECT REPLACE(product_line, 'and', '&') AS short_name
+          FROM business_retail;
+      - name: SUBSTR
+        description: Extract a portion of a string by position and length.
+        example_generic: |-
+          SELECT SUBSTR(col1, 1, 3) AS prefix
+          FROM table_main;
+        example: |-
+          SELECT SUBSTR(invoice_id, 1, 3) AS store_code
+          FROM business_retail;
+      - name: LENGTH
+        description: Get the number of characters in a string.
+        example_generic: |-
+          SELECT col1, LENGTH(col1) AS name_length
+          FROM table_main;
+        example: |-
+          SELECT product_line, LENGTH(product_line) AS name_length
+          FROM business_retail;
+      - name: TRIM / UPPER / LOWER
+        description: Clean and normalize text.
+        example_generic: |-
+          SELECT TRIM(col1) AS trimmed, UPPER(col1) AS uppercased, LOWER(col1) AS lowercased
+          FROM table_main;
+        example: |-
+          SELECT TRIM(product_line) AS cleaned, UPPER(product_line) AS upper_name
+          FROM business_retail;
+  - name: Date Functions
+    description: Functions for extracting and formatting dates and timestamps.
+    variants:
+      - name: STRFTIME
+        description: Format a date/timestamp into a string (SQLite/DuckDB).
+        example_generic: |-
+          SELECT STRFTIME('%Y-%m', date_col) AS month
+          FROM table_main;
+        example: |-
+          SELECT STRFTIME('%Y-%m', date) AS month, COUNT(*) AS sales
+          FROM business_retail
+          GROUP BY month;
+      - name: EXTRACT
+        description: Pull a specific part (year, month, day) from a date.
+        example_generic: |-
+          SELECT EXTRACT(YEAR FROM date_col) AS yr
+          FROM table_main;
+        example: |-
+          SELECT EXTRACT(MONTH FROM date) AS month, SUM(total) AS revenue
+          FROM business_retail
+          GROUP BY month;
+  - name: IFNULL / IIF
+    description: Simple conditional expressions for handling NULLs and inline if-else logic.
+    variants:
+      - name: IFNULL
+        description: Return the first argument if it is not NULL, otherwise return the second. Shorthand for COALESCE with two arguments.
+        example_generic: |-
+          SELECT col1, IFNULL(col2, 0) AS safe_col2
+          FROM table_main;
+        example: |-
+          SELECT product_line, IFNULL(discount, 0) AS discount
+          FROM business_retail;
+      - name: IIF
+        description: Inline if-else — returns one value if a condition is true, another if false.
+        example_generic: |-
+          SELECT col1, IIF(col2 > X, 'Yes', 'No') AS flag
+          FROM table_main;
+        example: |-
+          SELECT product_line, IIF(total > 150, 'High', 'Low') AS category
+          FROM business_retail;
+  - name: ABS
+    description: Return the absolute (non-negative) value of a number.
+    variants:
+      - name: Basic ABS
+        description: Remove the sign from a number.
+        example_generic: |-
+          SELECT ABS(col1 - col2) AS difference
+          FROM table_main;
+        example: |-
+          SELECT product_line, ABS(total - AVG(total) OVER()) AS deviation
+          FROM business_retail;
+  - name: EXCEPT / INTERSECT
+    description: Set operations to find differences or commonalities between two result sets.
+    variants:
+      - name: EXCEPT
+        description: Return rows from the first query that are NOT in the second query.
+        example_generic: |-
+          SELECT col1 FROM table_main
+          EXCEPT
+          SELECT col1 FROM ref_table;
+        example: |-
+          SELECT product_line FROM business_retail
+          EXCEPT
+          SELECT product_line FROM returns;
+      - name: INTERSECT
+        description: Return only rows that appear in BOTH queries.
+        example_generic: |-
+          SELECT col1 FROM table_main
+          INTERSECT
+          SELECT col1 FROM ref_table;
+        example: |-
+          SELECT product_line FROM business_retail WHERE total > 200
+          INTERSECT
+          SELECT product_line FROM business_retail WHERE quantity > 5;
 all_cases_by_domain:
   business: ['basics_select','agg_revenue','joins_returns','window_cumsum','cte_profit','capstone_root']
   crime:    ['crime_select','crime_by_area','suspect_joins','crime_trend','cte_crime','capstone_crime']
