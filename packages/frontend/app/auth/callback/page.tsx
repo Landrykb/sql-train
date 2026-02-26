@@ -36,12 +36,14 @@ function AuthCallbackInner() {
           if (sessionError) throw sessionError;
           if (session?.user) {
             const meta = session.user.user_metadata || {};
+            // provider_token is the actual GitHub API token; access_token is a Supabase JWT
+            const ghToken = session.provider_token || session.access_token;
             setGitHubUser({
               login: meta.user_name || meta.preferred_username || session.user.email || 'user',
               name: meta.full_name || meta.name || meta.user_name || 'User',
               avatar: meta.avatar_url || '',
               email: session.user.email || '',
-              token: session.access_token,
+              token: ghToken,
             });
             // Sync to bleepx_profile
             try {

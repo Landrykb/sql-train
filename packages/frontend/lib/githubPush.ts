@@ -109,6 +109,46 @@ export async function pushPortfolioToGitHub(
     onProgress?.('Done!');
     return { success: true, repoUrl: `https://github.com/${repo}` };
   } catch (err: any) {
-    return { success: false, error: err.message || 'Push failed' };
+    const msg = err.message || 'Push failed';
+    if (msg.includes('Bad credentials')) {
+      return { success: false, error: 'Bad credentials — please sign out and sign in again with GitHub to refresh your token.' };
+    }
+    return { success: false, error: msg };
+  }
+}
+
+/** Push an individual case visualization to GitHub */
+export async function pushCaseToGitHub(
+  domain: string,
+  caseId: string,
+  caseName: string,
+  files: PortfolioFile[],
+  onProgress?: (msg: string) => void,
+): Promise<PushResult> {
+  const user = getGitHubUser();
+  if (!user?.token) {
+    return { success: false, error: 'Sign in with GitHub first to push your work.' };
+  }
+
+  const repoName = 'sql-portfolio';
+
+  try {
+    onProgress?.('Creating repository...');
+    const repo = await ensureRepo(user.token, repoName);
+
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      onProgress?.(`Pushing ${f.path} (${i + 1}/${files.length})...`);
+      await pushFile(user.token, repo, f.path, f.content, `Add ${domain}/${caseId}: ${caseName} — BleepxQuery`);
+    }
+
+    onProgress?.('Done!');
+    return { success: true, repoUrl: `https://github.com/${repo}/tree/main/${domain}/${caseId}` };
+  } catch (err: any) {
+    const msg = err.message || 'Push failed';
+    if (msg.includes('Bad credentials')) {
+      return { success: false, error: 'Bad credentials — please sign out and sign in again with GitHub to refresh your token.' };
+    }
+    return { success: false, error: msg };
   }
 }

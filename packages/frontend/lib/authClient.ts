@@ -55,6 +55,7 @@ export async function startGitHubLogin(): Promise<void> {
         provider: 'github',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          scopes: 'repo',
         },
       });
       if (error) throw error;
