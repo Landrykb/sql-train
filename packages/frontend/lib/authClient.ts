@@ -1,7 +1,8 @@
 /**
- * Auth client — talks to the existing Render backend for GitHub OAuth.
- * No NextAuth needed — uses the backend's /api/auth/github flow.
+ * Auth client — uses Supabase Auth (GitHub provider) for fast OAuth.
+ * Falls back to the Render backend flow if Supabase is not configured.
  */
+import { supabase } from './supabase';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -43,12 +44,29 @@ export function clearGitHubUser(): void {
 }
 
 /**
- * Start GitHub OAuth flow.
- * Calls the backend to get the GitHub authorization URL, then redirects.
+ * Start GitHub OAuth flow via Supabase Auth.
+ * Falls back to the Render backend if Supabase is not configured.
  */
 export async function startGitHubLogin(): Promise<void> {
+  // Prefer Supabase Auth — much faster, no backend cold-start
+  if (supabase) {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+      return;
+    } catch (err) {
+      console.error('Supabase GitHub login failed, trying fallback:', err);
+    }
+  }
+
+  // Fallback: legacy Render backend flow
   if (!API_URL) {
-    console.error('NEXT_PUBLIC_API_URL not set');
+    console.error('No auth provider configured (set NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_API_URL)');
     return;
   }
   try {
@@ -60,4 +78,12 @@ export async function startGitHubLogin(): Promise<void> {
   } catch (err) {
     console.error('Failed to start GitHub login:', err);
   }
+}
+
+/** Sign out from Supabase + clear local user data */
+export async function logoutUser(): Promise<void> {
+  if (supabase) {
+    await supabase.auth.signOut().catch(() => {});
+  }
+  clearGitHubUser();
 }

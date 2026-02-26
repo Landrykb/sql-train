@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { setGitHubUser } from '@/lib/authClient';
+import { supabase } from '@/lib/supabase';
 
 export default function AuthCallbackPage() {
   return (
@@ -26,38 +27,76 @@ function AuthCallbackInner() {
       return;
     }
 
-    const login = searchParams.get('login');
-    const name = searchParams.get('name');
-    const avatar = searchParams.get('avatar');
-    const email = searchParams.get('email');
-    const token = searchParams.get('token');
+    // --- Supabase OAuth flow ---
+    // Supabase puts the session in the URL hash; the client auto-detects it.
+    if (supabase) {
+      const handleSupabaseCallback = async () => {
+        try {
+          const { data: { session }, error: sessionError } = await supabase!.auth.getSession();
+          if (sessionError) throw sessionError;
+          if (session?.user) {
+            const meta = session.user.user_metadata || {};
+            setGitHubUser({
+              login: meta.user_name || meta.preferred_username || session.user.email || 'user',
+              name: meta.full_name || meta.name || meta.user_name || 'User',
+              avatar: meta.avatar_url || '',
+              email: session.user.email || '',
+              token: session.access_token,
+            });
+            // Sync to bleepx_profile
+            try {
+              const existing = JSON.parse(localStorage.getItem('bleepx_profile') || '{}');
+              localStorage.setItem('bleepx_profile', JSON.stringify({
+                ...existing,
+                authProvider: 'github',
+                githubUsername: meta.user_name || meta.preferred_username || '',
+                displayName: meta.full_name || meta.name || meta.user_name || 'User',
+                email: session.user.email || existing.email || '',
+              }));
+            } catch { /* ignore */ }
+            setStatus('success');
+            setTimeout(() => router.push('/profile'), 1200);
+            return;
+          }
+        } catch (err) {
+          console.error('[auth/callback] Supabase session error:', err);
+        }
 
-    if (login && token) {
-      setGitHubUser({
-        login: login,
-        name: name || login,
-        avatar: avatar || '',
-        email: email || '',
-        token: token,
-      });
+        // If Supabase didn't yield a session, fall through to legacy check
+        checkLegacyParams();
+      };
+      handleSupabaseCallback();
+      return;
+    }
 
-      // Also sync to bleepx_profile for compatibility
-      try {
-        const existing = JSON.parse(localStorage.getItem('bleepx_profile') || '{}');
-        localStorage.setItem('bleepx_profile', JSON.stringify({
-          ...existing,
-          authProvider: 'github',
-          githubUsername: login,
-          displayName: name || login,
-          email: email || existing.email || '',
-        }));
-      } catch { /* ignore */ }
+    // --- Legacy Render backend flow ---
+    checkLegacyParams();
 
-      setStatus('success');
-      setTimeout(() => router.push('/profile'), 1500);
-    } else {
-      setStatus('error');
-      setErrorMsg('Missing user data from GitHub');
+    function checkLegacyParams() {
+      const login = searchParams.get('login');
+      const name = searchParams.get('name');
+      const avatar = searchParams.get('avatar');
+      const email = searchParams.get('email');
+      const token = searchParams.get('token');
+
+      if (login && token) {
+        setGitHubUser({ login, name: name || login, avatar: avatar || '', email: email || '', token });
+        try {
+          const existing = JSON.parse(localStorage.getItem('bleepx_profile') || '{}');
+          localStorage.setItem('bleepx_profile', JSON.stringify({
+            ...existing,
+            authProvider: 'github',
+            githubUsername: login,
+            displayName: name || login,
+            email: email || existing.email || '',
+          }));
+        } catch { /* ignore */ }
+        setStatus('success');
+        setTimeout(() => router.push('/profile'), 1500);
+      } else {
+        setStatus('error');
+        setErrorMsg('Missing user data from GitHub');
+      }
     }
   }, [searchParams, router]);
 

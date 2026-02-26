@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { getGitHubUser, clearGitHubUser, startGitHubLogin, GitHubUser } from '@/lib/authClient';
+import { getGitHubUser, clearGitHubUser, startGitHubLogin, logoutUser, GitHubUser } from '@/lib/authClient';
 import { useProgress } from '@/lib/useProgress';
 import { useTheme } from '@/lib/useTheme';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
@@ -132,9 +132,9 @@ export default function ProfilePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     playBleep();
-    clearGitHubUser();
+    await logoutUser();
     setGhUser(null);
     saveProfile({ authProvider: null, githubUsername: null, displayName: 'SQL Explorer' });
   };
