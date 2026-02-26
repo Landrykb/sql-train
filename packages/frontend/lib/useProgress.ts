@@ -63,6 +63,20 @@ export function useProgress() {
 
     const { data: { subscription } } = supabase!.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') doSync();
+      if (event === 'SIGNED_OUT') {
+        // Clear progress from UI and localStorage on logout
+        setCompleted(new Set());
+        setPoints(0);
+        setAchievements([]);
+        try {
+          localStorage.removeItem('completed');
+          localStorage.removeItem('completedCases');
+          localStorage.removeItem('bleepxPoints');
+          localStorage.removeItem('bleepxAchievements');
+        } catch { /* ignore */ }
+        syncedRef.current = false;
+        console.log('[useProgress] Cleared progress on sign-out');
+      }
     });
     return () => subscription.unsubscribe();
   }, [writeLocalStorage]);
