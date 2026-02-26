@@ -125,3 +125,8 @@ tags:
   - treatment_delay
   - patient_safety
 category: Healthcare COVID
+expected:
+  - { diagnosis: allergy, patient_count: 1272, avg_delay_days: 125.4, min_delay: 0, max_delay: 354, delay_status: CRITICAL DELAY, delay_rank: 1 }
+  - { diagnosis: hypertension, patient_count: 1253, avg_delay_days: 123.5, min_delay: 0, max_delay: 361, delay_status: CRITICAL DELAY, delay_rank: 2 }
+  - { diagnosis: covid, patient_count: 1267, avg_delay_days: 120.3, min_delay: 0, max_delay: 358, delay_status: CRITICAL DELAY, delay_rank: 3 }
+  - { diagnosis: flu, patient_count: 1238, avg_delay_days: 119.3, min_delay: 0, max_delay: 360, delay_status: CRITICAL DELAY, delay_rank: 4 }

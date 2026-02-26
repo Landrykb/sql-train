@@ -115,3 +115,29 @@ tags:
   - serial_crime
   - pattern_detection
 category: Crime Chicago
+expected:
+  - { location_description: SIDEWALK, primary_type: ASSAULT, incident_count: 20186, distinct_dates: 730, hotspot_rank: 1, risk_level: High Serial Risk }
+  - { location_description: BANK, primary_type: ASSAULT, incident_count: 20073, distinct_dates: 730, hotspot_rank: 2, risk_level: High Serial Risk }
+  - { location_description: APARTMENT, primary_type: ASSAULT, incident_count: 20066, distinct_dates: 730, hotspot_rank: 3, risk_level: High Serial Risk }
+  - { location_description: RESIDENCE, primary_type: ASSAULT, incident_count: 20020, distinct_dates: 730, hotspot_rank: 4, risk_level: High Serial Risk }
+  - { location_description: STREET, primary_type: ASSAULT, incident_count: 19871, distinct_dates: 730, hotspot_rank: 5, risk_level: High Serial Risk }
+  - { location_description: BANK, primary_type: BATTERY, incident_count: 20146, distinct_dates: 730, hotspot_rank: 1, risk_level: High Serial Risk }
+  - { location_description: RESIDENCE, primary_type: BATTERY, incident_count: 20065, distinct_dates: 730, hotspot_rank: 2, risk_level: High Serial Risk }
+  - { location_description: STREET, primary_type: BATTERY, incident_count: 20049, distinct_dates: 730, hotspot_rank: 3, risk_level: High Serial Risk }
+  - { location_description: APARTMENT, primary_type: BATTERY, incident_count: 19923, distinct_dates: 730, hotspot_rank: 4, risk_level: High Serial Risk }
+  - { location_description: SIDEWALK, primary_type: BATTERY, incident_count: 19885, distinct_dates: 730, hotspot_rank: 5, risk_level: High Serial Risk }
+  - { location_description: STREET, primary_type: NARCOTICS, incident_count: 20100, distinct_dates: 730, hotspot_rank: 1, risk_level: High Serial Risk }
+  - { location_description: APARTMENT, primary_type: NARCOTICS, incident_count: 19965, distinct_dates: 730, hotspot_rank: 2, risk_level: High Serial Risk }
+  - { location_description: RESIDENCE, primary_type: NARCOTICS, incident_count: 19919, distinct_dates: 730, hotspot_rank: 3, risk_level: High Serial Risk }
+  - { location_description: BANK, primary_type: NARCOTICS, incident_count: 19868, distinct_dates: 730, hotspot_rank: 4, risk_level: High Serial Risk }
+  - { location_description: SIDEWALK, primary_type: NARCOTICS, incident_count: 19834, distinct_dates: 730, hotspot_rank: 5, risk_level: High Serial Risk }
+  - { location_description: STREET, primary_type: ROBBERY, incident_count: 20226, distinct_dates: 730, hotspot_rank: 1, risk_level: High Serial Risk }
+  - { location_description: SIDEWALK, primary_type: ROBBERY, incident_count: 19989, distinct_dates: 730, hotspot_rank: 2, risk_level: High Serial Risk }
+  - { location_description: RESIDENCE, primary_type: ROBBERY, incident_count: 19924, distinct_dates: 730, hotspot_rank: 3, risk_level: High Serial Risk }
+  - { location_description: APARTMENT, primary_type: ROBBERY, incident_count: 19916, distinct_dates: 730, hotspot_rank: 4, risk_level: High Serial Risk }
+  - { location_description: BANK, primary_type: ROBBERY, incident_count: 19890, distinct_dates: 730, hotspot_rank: 5, risk_level: High Serial Risk }
+  - { location_description: RESIDENCE, primary_type: THEFT, incident_count: 20146, distinct_dates: 730, hotspot_rank: 1, risk_level: High Serial Risk }
+  - { location_description: SIDEWALK, primary_type: THEFT, incident_count: 20118, distinct_dates: 730, hotspot_rank: 2, risk_level: High Serial Risk }
+  - { location_description: STREET, primary_type: THEFT, incident_count: 20019, distinct_dates: 730, hotspot_rank: 3, risk_level: High Serial Risk }
+  - { location_description: BANK, primary_type: THEFT, incident_count: 19906, distinct_dates: 730, hotspot_rank: 4, risk_level: High Serial Risk }
+  - { location_description: APARTMENT, primary_type: THEFT, incident_count: 19896, distinct_dates: 730, hotspot_rank: 5, risk_level: High Serial Risk }

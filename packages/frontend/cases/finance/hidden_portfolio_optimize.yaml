@@ -34,72 +34,79 @@ seedQuery: |-
   -- Build the portfolio optimizer!
   SELECT 1;
 solutionQuery: |-
-  WITH DailyReturns AS (
+  WITH TickerMetrics AS (
     SELECT
       ticker,
       date,
+      open,
       close,
-      LAG(close) OVER (PARTITION BY ticker ORDER BY date) AS prev_close,
-      ROUND((close - LAG(close) OVER (PARTITION BY ticker ORDER BY date))
-        / LAG(close) OVER (PARTITION BY ticker ORDER BY date) * 100, 3) AS daily_return_pct
+      high,
+      low,
+      volume,
+      ROUND((close - open) / open * 100, 3) AS day_return_pct,
+      ROUND((high - low) / open * 100, 3) AS volatility_pct
     FROM finance_stocks
+    WHERE open > 0
   ),
-  TickerStats AS (
+  Ranked AS (
     SELECT
       ticker,
-      COUNT(*) AS trading_days,
-      ROUND(AVG(daily_return_pct), 3) AS avg_daily_return,
-      ROUND(AVG(close), 2) AS avg_price,
-      MIN(close) AS min_price,
-      MAX(close) AS max_price
-    FROM DailyReturns
-    WHERE prev_close IS NOT NULL
-    GROUP BY ticker
+      date,
+      ROUND(open, 2) AS open_price,
+      ROUND(close, 2) AS close_price,
+      ROUND(high - low, 2) AS price_spread,
+      volume,
+      day_return_pct,
+      volatility_pct,
+      CASE
+        WHEN day_return_pct > 5 THEN 'STRONG BUY'
+        WHEN day_return_pct > 0 THEN 'BUY'
+        WHEN day_return_pct > -5 THEN 'HOLD'
+        ELSE 'SELL'
+      END AS recommendation,
+      ROW_NUMBER() OVER (ORDER BY day_return_pct DESC) AS performance_rank
+    FROM TickerMetrics
   )
   SELECT
     ticker,
-    trading_days,
-    avg_daily_return,
-    avg_price,
-    min_price,
-    max_price,
-    ROUND(max_price - min_price, 2) AS price_range,
-    CASE
-      WHEN avg_daily_return > 0.05 THEN 'STRONG BUY'
-      WHEN avg_daily_return > 0 THEN 'BUY'
-      WHEN avg_daily_return > -0.05 THEN 'HOLD'
-      ELSE 'SELL'
-    END AS recommendation,
-    ROW_NUMBER() OVER (ORDER BY avg_daily_return DESC) AS performance_rank
-  FROM TickerStats
+    date,
+    open_price,
+    close_price,
+    price_spread,
+    volume,
+    day_return_pct,
+    volatility_pct,
+    recommendation,
+    performance_rank
+  FROM Ranked
+  WHERE performance_rank <= 20
   ORDER BY performance_rank;
 instructions: |-
   Build a portfolio optimization report:
 
-  1. Calculate daily returns for each ticker: (close - prev_close) / prev_close * 100
-     Use LAG() to get the previous day's closing price
-  2. Aggregate per ticker: trading_days, avg_daily_return, avg_price, min_price, max_price
-  3. Compute price_range = max_price - min_price
+  1. Calculate each ticker's intra-day return: (close - open) / open * 100
+  2. Calculate volatility as the intra-day spread: (high - low) / open * 100
+  3. Only include tickers where open > 0 (avoid division by zero)
   4. Classify recommendation:
-     - STRONG BUY: avg daily return > 0.05%
-     - BUY: avg daily return > 0%
-     - HOLD: avg daily return > -0.05%
+     - STRONG BUY: day return > 5%
+     - BUY: day return > 0%
+     - HOLD: day return > -5%
      - SELL: everything else
-  5. Rank by avg_daily_return descending
+  5. Rank by day_return_pct descending, show only top 20
 
-  Return: ticker, trading_days, avg_daily_return, avg_price, min_price, max_price, price_range, recommendation, performance_rank
+  Return: ticker, date, open_price, close_price, price_spread, volume, day_return_pct, volatility_pct, recommendation, performance_rank
 hints:
-  - LAG(close) OVER (PARTITION BY ticker ORDER BY date) gets yesterday's price
-  - Filter WHERE prev_close IS NOT NULL to exclude first trading day
-  - Use two CTEs: one for daily returns, one for aggregated stats
-  - ROW_NUMBER() in the final SELECT for ranking
+  - Intra-day return = (close - open) / open * 100
+  - Use ROUND to clean up decimal places
+  - ROW_NUMBER() OVER (ORDER BY day_return_pct DESC) for ranking
+  - Filter WHERE performance_rank <= 20 in the outer query
 thoughtProcess:
-  - "Portfolio optimization = compare stocks by return and risk. You need daily returns first, then aggregate stats per ticker. Two CTEs."
-  - "CTE 1 — DailyReturns: Use LAG(close) OVER (PARTITION BY ticker ORDER BY date) to get yesterday's closing price. Daily return = (close - prev_close) / prev_close * 100."
-  - "LAG looks at the previous row within each ticker's date-ordered partition. The first trading day for each ticker has no previous row, so prev_close is NULL."
-  - "CTE 2 — TickerStats: FROM DailyReturns WHERE prev_close IS NOT NULL (skip first day). GROUP BY ticker to get AVG(daily_return_pct), AVG(close), MIN(close), MAX(close), COUNT(*) as trading_days."
-  - "Final SELECT adds ROW_NUMBER() OVER (ORDER BY avg_daily_return DESC) AS performance_rank. Use CASE for investment recommendation based on return and volatility metrics."
-  - "Key pattern: LAG in CTE1 for row-to-row comparison → aggregate in CTE2 → rank + classify in final SELECT. This three-layer approach is standard for financial analytics."
+  - "Portfolio optimization = compare stocks by return and risk. Each row has open/close/high/low for a single trading snapshot per ticker."
+  - "CTE 1 — TickerMetrics: Compute day_return_pct = (close - open) / open * 100. This shows how much each ticker gained or lost. Compute volatility_pct = (high - low) / open * 100 — wider spread means more volatile."
+  - "Filter WHERE open > 0 to avoid division by zero errors. Always validate denominators in financial calculations."
+  - "CTE 2 — Ranked: Add ROW_NUMBER() OVER (ORDER BY day_return_pct DESC) to rank by best performance. Use CASE for investment recommendation."
+  - "Final SELECT filters WHERE performance_rank <= 20 to show only the top performers. This two-CTE pattern — compute metrics → rank + classify — is standard for financial analytics."
+  - "Key takeaway: Window functions like ROW_NUMBER can't be used in WHERE of the same query. Wrap in a CTE first, then filter in the outer query."
 schema:
   - name: finance_stocks
     columns:
@@ -121,3 +128,24 @@ tags:
   - portfolio
   - risk_analysis
 category: Finance Stocks
+expected:
+  - { ticker: TICK49782, date: '2024-01-29', open_price: 100.18, close_price: 199.9, price_spread: -14.52, volume: 87333530, day_return_pct: 99.541, volatility_pct: -14.494, recommendation: STRONG BUY, performance_rank: 1 }
+  - { ticker: TICK45033, date: '2023-09-19', open_price: 100.81, close_price: 199.9, price_spread: 51.31, volume: 29652838, day_return_pct: 98.294, volatility_pct: 50.898, recommendation: STRONG BUY, performance_rank: 2 }
+  - { ticker: TICK18746, date: '2023-03-08', open_price: 100.63, close_price: 199.45, price_spread: -24.68, volume: 19502135, day_return_pct: 98.201, volatility_pct: -24.525, recommendation: STRONG BUY, performance_rank: 3 }
+  - { ticker: TICK41165, date: '2023-07-06', open_price: 100.84, close_price: 199.62, price_spread: -7.49, volume: 22560574, day_return_pct: 97.957, volatility_pct: -7.428, recommendation: STRONG BUY, performance_rank: 4 }
+  - { ticker: TICK28370, date: '2024-02-29', open_price: 100.93, close_price: 199.62, price_spread: -27.01, volume: 75781906, day_return_pct: 97.781, volatility_pct: -26.761, recommendation: STRONG BUY, performance_rank: 5 }
+  - { ticker: TICK45553, date: '2023-05-31', open_price: 100.62, close_price: 198.96, price_spread: 74.88, volume: 84868237, day_return_pct: 97.734, volatility_pct: 74.419, recommendation: STRONG BUY, performance_rank: 6 }
+  - { ticker: TICK3350, date: '2023-01-13', open_price: 100.32, close_price: 198.36, price_spread: -26.81, volume: 27515609, day_return_pct: 97.727, volatility_pct: -26.724, recommendation: STRONG BUY, performance_rank: 7 }
+  - { ticker: TICK10814, date: '2023-04-13', open_price: 101.02, close_price: 199.45, price_spread: -1.15, volume: 95313781, day_return_pct: 97.436, volatility_pct: -1.138, recommendation: STRONG BUY, performance_rank: 8 }
+  - { ticker: TICK5537, date: '2024-12-01', open_price: 100.41, close_price: 197.67, price_spread: 17.19, volume: 48816934, day_return_pct: 96.863, volatility_pct: 17.12, recommendation: STRONG BUY, performance_rank: 9 }
+  - { ticker: TICK28909, date: '2024-07-23', open_price: 100.47, close_price: 197.75, price_spread: -46.67, volume: 34280370, day_return_pct: 96.825, volatility_pct: -46.452, recommendation: STRONG BUY, performance_rank: 10 }
+  - { ticker: TICK11716, date: '2023-04-13', open_price: 101.33, close_price: 199.43, price_spread: 17.35, volume: 72440430, day_return_pct: 96.812, volatility_pct: 17.122, recommendation: STRONG BUY, performance_rank: 11 }
+  - { ticker: TICK46424, date: '2023-03-06', open_price: 101.34, close_price: 199.4, price_spread: -64.46, volume: 52763460, day_return_pct: 96.763, volatility_pct: -63.608, recommendation: STRONG BUY, performance_rank: 12 }
+  - { ticker: TICK19291, date: '2024-10-12', open_price: 100.75, close_price: 198.11, price_spread: 2.66, volume: 79126867, day_return_pct: 96.635, volatility_pct: 2.64, recommendation: STRONG BUY, performance_rank: 13 }
+  - { ticker: TICK43442, date: '2023-08-27', open_price: 100.59, close_price: 197.79, price_spread: 8.49, volume: 98528315, day_return_pct: 96.63, volatility_pct: 8.44, recommendation: STRONG BUY, performance_rank: 14 }
+  - { ticker: TICK157, date: '2024-02-04', open_price: 101.51, close_price: 199.39, price_spread: -0.62, volume: 67462023, day_return_pct: 96.424, volatility_pct: -0.611, recommendation: STRONG BUY, performance_rank: 15 }
+  - { ticker: TICK11482, date: '2023-04-17', open_price: 101.4, close_price: 199.09, price_spread: -30.57, volume: 35501244, day_return_pct: 96.341, volatility_pct: -30.148, recommendation: STRONG BUY, performance_rank: 16 }
+  - { ticker: TICK13046, date: '2023-04-10', open_price: 100.93, close_price: 198.16, price_spread: -10.87, volume: 74018634, day_return_pct: 96.334, volatility_pct: -10.77, recommendation: STRONG BUY, performance_rank: 17 }
+  - { ticker: TICK43435, date: '2023-12-18', open_price: 100.78, close_price: 197.8, price_spread: -1.64, volume: 21803382, day_return_pct: 96.269, volatility_pct: -1.627, recommendation: STRONG BUY, performance_rank: 18 }
+  - { ticker: TICK13842, date: '2024-02-10', open_price: 101.99, close_price: 199.93, price_spread: 32.55, volume: 73332007, day_return_pct: 96.029, volatility_pct: 31.915, recommendation: STRONG BUY, performance_rank: 19 }
+  - { ticker: TICK49573, date: '2023-03-21', open_price: 101.12, close_price: 198.07, price_spread: 45.85, volume: 21137277, day_return_pct: 95.876, volatility_pct: 45.342, recommendation: STRONG BUY, performance_rank: 20 }

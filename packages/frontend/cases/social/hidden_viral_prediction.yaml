@@ -34,75 +34,88 @@ seedQuery: |-
   -- Build the creator analytics engine!
   SELECT 1;
 solutionQuery: |-
-  WITH UserActivity AS (
+  WITH UserMetrics AS (
     SELECT
       t.user_id,
       u.user_name,
       u.signup_date,
-      COUNT(t.tweet_id) AS total_posts,
-      MIN(t.created_at) AS first_post,
-      MAX(t.created_at) AS last_post
+      t.created_at AS post_date,
+      LENGTH(t.text) AS content_length,
+      ROUND(JULIANDAY(t.created_at) - JULIANDAY(u.signup_date)) AS days_to_first_post
     FROM tweets t
     JOIN users u ON t.user_id = u.user_id
-    GROUP BY t.user_id, u.user_name, u.signup_date
   ),
   Ranked AS (
     SELECT
       user_id,
       user_name,
       signup_date,
-      total_posts,
-      first_post,
-      last_post,
-      JULIANDAY(last_post) - JULIANDAY(first_post) AS active_days,
-      RANK() OVER (ORDER BY total_posts DESC) AS activity_rank,
+      post_date,
+      content_length,
+      days_to_first_post,
+      RANK() OVER (ORDER BY days_to_first_post ASC) AS speed_rank,
       CASE
-        WHEN total_posts >= 10 THEN 'Power Creator'
-        WHEN total_posts >= 5 THEN 'Active Creator'
-        WHEN total_posts >= 2 THEN 'Casual Creator'
-        ELSE 'Lurker'
-      END AS creator_tier
-    FROM UserActivity
+        WHEN days_to_first_post <= 30 THEN 'Early Adopter'
+        WHEN days_to_first_post <= 90 THEN 'Quick Starter'
+        WHEN days_to_first_post <= 180 THEN 'Steady User'
+        ELSE 'Late Bloomer'
+      END AS engagement_tier,
+      CASE
+        WHEN content_length >= 40 THEN 'Long Form'
+        WHEN content_length >= 20 THEN 'Standard'
+        ELSE 'Short Form'
+      END AS content_type
+    FROM UserMetrics
+    WHERE days_to_first_post >= 0
   )
   SELECT
     user_id,
     user_name,
     signup_date,
-    total_posts,
-    first_post,
-    last_post,
-    ROUND(active_days, 0) AS active_days,
-    activity_rank,
-    creator_tier
+    post_date,
+    content_length,
+    days_to_first_post,
+    speed_rank,
+    engagement_tier,
+    content_type
   FROM Ranked
-  ORDER BY activity_rank;
+  WHERE speed_rank <= 20
+  ORDER BY speed_rank;
 instructions: |-
   Build a creator analytics engine:
 
   1. Join tweets with users to get user details
-  2. Per user: count total_posts, find first_post and last_post dates
-  3. Calculate active_days (days between first and last post)
-  4. Rank users by total_posts descending
-  5. Classify creator tier:
-     - Power Creator: 10+ posts
-     - Active Creator: 5+ posts
-     - Casual Creator: 2+ posts
-     - Lurker: 1 post or less
+  2. Per user: calculate content_length (LENGTH of tweet text)
+  3. Calculate days_to_first_post: JULIANDAY(post_date) - JULIANDAY(signup_date)
+  4. Only include users where days_to_first_post >= 0
+  5. Rank users by days_to_first_post ascending (fastest posters first)
+  6. Classify engagement tier:
+     - Early Adopter: posted within 30 days
+     - Quick Starter: posted within 90 days
+     - Steady User: posted within 180 days
+     - Late Bloomer: everyone else
+  7. Classify content type:
+     - Long Form: 40+ characters
+     - Standard: 20+ characters
+     - Short Form: under 20 characters
+  8. Show only top 20 fastest posters
 
-  Return: user_id, user_name, signup_date, total_posts, first_post, last_post, active_days, activity_rank, creator_tier
-  Order by activity_rank
+  Return: user_id, user_name, signup_date, post_date, content_length, days_to_first_post, speed_rank, engagement_tier, content_type
+  Order by speed_rank
 hints:
   - JOIN tweets with users ON user_id
-  - JULIANDAY(last_post) - JULIANDAY(first_post) gives active days
-  - RANK() OVER (ORDER BY total_posts DESC) for ranking
+  - JULIANDAY(created_at) - JULIANDAY(signup_date) gives days between signup and first post
+  - LENGTH(text) gives the character count of the tweet
+  - RANK() OVER (ORDER BY days_to_first_post ASC) ranks fastest posters first
   - Use a CTE for the base metrics, then classify in a second step
+  - Filter WHERE speed_rank <= 20 in the outer query (can't use window functions in WHERE of same query)
 thoughtProcess:
-  - "Viral prediction = identify users with high activity and sustained posting. You need total posts, posting timespan, and posting frequency per user."
-  - "CTE 1 — UserActivity: JOIN tweets with users on user_id. Compute COUNT(tweet_id) AS total_posts, MIN(created_at) AS first_post, MAX(created_at) AS last_post. GROUP BY user_id, user_name, signup_date."
-  - "Active days = JULIANDAY(last_post) - JULIANDAY(first_post). This shows how long a user has been actively posting. Divide total_posts by active_days for posting frequency."
-  - "CTE 2 — Ranked: Add RANK() OVER (ORDER BY total_posts DESC) to rank users by volume. Window functions don't need GROUP BY — they compute across the full result set."
-  - "Final SELECT uses CASE to classify viral potential based on posting frequency and total posts. High frequency + high volume = likely to go viral."
-  - "Pattern: CTE1 for raw metrics → CTE2 for ranking → final SELECT for classification. Each layer adds one insight dimension."
+  - "Viral prediction = identify the most engaged users. Users who post soon after signup are more likely to become power creators. Measure days_to_first_post as a proxy for engagement speed."
+  - "CTE 1 — UserMetrics: JOIN tweets with users on user_id. Compute LENGTH(text) AS content_length and ROUND(JULIANDAY(created_at) - JULIANDAY(signup_date)) AS days_to_first_post."
+  - "Days to first post = JULIANDAY(post_date) - JULIANDAY(signup_date). Users who post quickly after signup tend to be more engaged. JULIANDAY converts dates to numeric Julian day numbers."
+  - "CTE 2 — Ranked: Add RANK() OVER (ORDER BY days_to_first_post ASC) to rank by engagement speed. Window functions compute across the full result set without GROUP BY."
+  - "CASE for engagement_tier: <= 30 days = 'Early Adopter', <= 90 = 'Quick Starter'. Another CASE for content_type based on LENGTH. Multiple CASE expressions in one SELECT is a powerful classification pattern."
+  - "Pattern: CTE1 for raw metrics → CTE2 for ranking + classification → outer SELECT for filtering. You can't use window function results in WHERE of the same query — that's why you need the CTE layer."
 schema:
   - name: tweets
     columns:
@@ -122,3 +135,24 @@ tags:
   - viral_content
   - creator_analytics
 category: Social Twitter
+expected:
+  - { user_id: U2976, user_name: User_2976, signup_date: '2023-01-01', post_date: '2023-01-06', content_length: 17, days_to_first_post: 5, speed_rank: 1, engagement_tier: Early Adopter, content_type: Short Form }
+  - { user_id: U7511, user_name: User_7511, signup_date: '2022-12-29', post_date: '2023-01-04', content_length: 23, days_to_first_post: 6, speed_rank: 2, engagement_tier: Early Adopter, content_type: Standard }
+  - { user_id: U9546, user_name: User_9546, signup_date: '2022-12-25', post_date: '2023-01-02', content_length: 23, days_to_first_post: 8, speed_rank: 3, engagement_tier: Early Adopter, content_type: Standard }
+  - { user_id: U3317, user_name: User_3317, signup_date: '2022-12-30', post_date: '2023-01-08', content_length: 21, days_to_first_post: 9, speed_rank: 4, engagement_tier: Early Adopter, content_type: Standard }
+  - { user_id: U5684, user_name: User_5684, signup_date: '2022-12-29', post_date: '2023-01-07', content_length: 17, days_to_first_post: 9, speed_rank: 4, engagement_tier: Early Adopter, content_type: Short Form }
+  - { user_id: U7676, user_name: User_7676, signup_date: '2022-12-30', post_date: '2023-01-09', content_length: 23, days_to_first_post: 10, speed_rank: 6, engagement_tier: Early Adopter, content_type: Standard }
+  - { user_id: U8393, user_name: User_8393, signup_date: '2023-01-01', post_date: '2023-01-11', content_length: 22, days_to_first_post: 10, speed_rank: 6, engagement_tier: Early Adopter, content_type: Standard }
+  - { user_id: U3290, user_name: User_3290, signup_date: '2022-12-26', post_date: '2023-01-06', content_length: 17, days_to_first_post: 11, speed_rank: 8, engagement_tier: Early Adopter, content_type: Short Form }
+  - { user_id: U2825, user_name: User_2825, signup_date: '2022-12-30', post_date: '2023-01-13', content_length: 22, days_to_first_post: 14, speed_rank: 9, engagement_tier: Early Adopter, content_type: Standard }
+  - { user_id: U9435, user_name: User_9435, signup_date: '2022-12-31', post_date: '2023-01-14', content_length: 17, days_to_first_post: 14, speed_rank: 9, engagement_tier: Early Adopter, content_type: Short Form }
+  - { user_id: U4326, user_name: User_4326, signup_date: '2022-12-27', post_date: '2023-01-12', content_length: 22, days_to_first_post: 16, speed_rank: 11, engagement_tier: Early Adopter, content_type: Standard }
+  - { user_id: U4559, user_name: User_4559, signup_date: '2022-12-30', post_date: '2023-01-15', content_length: 23, days_to_first_post: 16, speed_rank: 11, engagement_tier: Early Adopter, content_type: Standard }
+  - { user_id: U5710, user_name: User_5710, signup_date: '2022-12-22', post_date: '2023-01-07', content_length: 22, days_to_first_post: 16, speed_rank: 11, engagement_tier: Early Adopter, content_type: Standard }
+  - { user_id: U2131, user_name: User_2131, signup_date: '2022-12-22', post_date: '2023-01-08', content_length: 22, days_to_first_post: 17, speed_rank: 14, engagement_tier: Early Adopter, content_type: Standard }
+  - { user_id: U1578, user_name: User_1578, signup_date: '2022-12-21', post_date: '2023-01-08', content_length: 17, days_to_first_post: 18, speed_rank: 15, engagement_tier: Early Adopter, content_type: Short Form }
+  - { user_id: U4152, user_name: User_4152, signup_date: '2023-01-01', post_date: '2023-01-19', content_length: 21, days_to_first_post: 18, speed_rank: 15, engagement_tier: Early Adopter, content_type: Standard }
+  - { user_id: U8448, user_name: User_8448, signup_date: '2022-12-31', post_date: '2023-01-19', content_length: 21, days_to_first_post: 19, speed_rank: 17, engagement_tier: Early Adopter, content_type: Standard }
+  - { user_id: U5546, user_name: User_5546, signup_date: '2022-12-26', post_date: '2023-01-15', content_length: 17, days_to_first_post: 20, speed_rank: 18, engagement_tier: Early Adopter, content_type: Short Form }
+  - { user_id: U9175, user_name: User_9175, signup_date: '2022-12-21', post_date: '2023-01-10', content_length: 23, days_to_first_post: 20, speed_rank: 18, engagement_tier: Early Adopter, content_type: Standard }
+  - { user_id: U5720, user_name: User_5720, signup_date: '2022-12-29', post_date: '2023-01-19', content_length: 22, days_to_first_post: 21, speed_rank: 20, engagement_tier: Early Adopter, content_type: Standard }
