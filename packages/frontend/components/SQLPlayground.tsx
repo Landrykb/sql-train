@@ -7,7 +7,6 @@ import Link from 'next/link';
 import DataGrid from './DataGrid';
 import DiffGrid from './DiffGrid';
 import SqlDiff from './SqlDiff';
-import Papa from 'papaparse';
 import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { compareResults } from '@/lib/compare';
 import { useProgress } from '@/lib/useProgress';
@@ -303,21 +302,13 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
 
             let previewRows: Record<string, string | number | null>[] = [];
             try {
-              const url = dataset.file.startsWith('/datasets/') ? dataset.file : `/datasets/${dataset.file}`;
-              const csvResp = await fetch(url);
-              if (csvResp.ok) {
-                const csvText = await csvResp.text();
-                const parsed = Papa.parse(csvText.trim().replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true, preview: 5 });
-                previewRows = (parsed.data as Record<string, any>[]).map((row) => {
-                  const out: Record<string, string | number | null> = {};
-                  for (const key of Object.keys(row)) {
-                    const v = row[key];
-                    out[key] = v === '' || v === undefined ? null : v;
-                  }
-                  return out;
-                });
-                console.log(`[SQL] preview for ${dataset.name}: ${previewRows.length} rows from CSV`);
-              }
+              const previewRes = await runQuery(`SELECT * FROM "${dataset.name}" LIMIT 5`);
+              previewRows = previewRes.data.map((row) => {
+                const out: Record<string, string | number | null> = {};
+                previewRes.columns.forEach((col, i) => { out[col] = row[i] as string | number | null; });
+                return out;
+              });
+              console.log(`[SQL] preview for ${dataset.name}: ${previewRows.length} rows from DB`);
             } catch (err) { console.error(`[SQL] preview failed for ${dataset.name}:`, err); }
 
             return { name: dataset.name, file: dataset.file, columns: sqlColumns, previewRows, rowCount };
@@ -499,6 +490,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             <button
               onClick={() => {
                 if (!canSkip) return;
+                if (!window.confirm(`Skip this prerequisite for ${skipCost} pts?\n\nYour balance: ${points} pts → ${points - skipCost} pts`)) return;
                 playBleep();
                 const result = purchaseSkipFn(id, points);
                 if (result.success) {
@@ -585,6 +577,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                       if (isTrialUnlocked) {
                         startTrial(diff);
                       } else if (canAffordUnlock) {
+                        if (!window.confirm(`Unlock ${diff.label} difficulty for ${unlockCost} pts?\n\nYour balance: ${points} pts → ${points - unlockCost} pts`)) return;
                         playBleep();
                         const result = unlockTrialFn(diff.id, points);
                         if (result.success) {
@@ -985,11 +978,12 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                   return (
                     <button
                       onClick={() => {
-                        playBleep();
                         if (needsPayment) {
                           if (!canAfford) return;
+                          if (!window.confirm(`Unlock next hint for ${hintCost} pts?\n\nYour balance: ${points} pts → ${points - hintCost} pts`)) return;
                           spendPoints(hintCost);
                         }
+                        playBleep();
                         setVisibleHints((v) => Math.min(v + 1, hints.length));
                       }}
                       disabled={needsPayment && !canAfford}

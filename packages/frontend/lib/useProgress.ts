@@ -40,6 +40,15 @@ export function useProgress() {
       return sum + tier * 10;
     }, 0);
     const store = getStoreState();
+    // One-time migration: refund accidental legendary trial unlock
+    if (!localStorage.getItem('bleepx_legendary_refund') && store.unlockedTrials.includes('legendary')) {
+      const legendaryCost = 350;
+      store.unlockedTrials = store.unlockedTrials.filter(t => t !== 'legendary');
+      store.totalPointsSpent = Math.max(0, (store.totalPointsSpent || 0) - legendaryCost);
+      saveStoreState(store);
+      localStorage.setItem('bleepx_legendary_refund', '1');
+      console.log('[useProgress] Refunded legendary trial unlock (350 pts)');
+    }
     const totalSpent = store.totalPointsSpent || 0;
     const storedPoints = parseInt(localStorage.getItem('bleepxPoints') || '0', 10);
     // Balance = earned minus spent; use max of recalculated vs stored earned

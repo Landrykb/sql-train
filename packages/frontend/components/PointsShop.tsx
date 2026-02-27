@@ -30,6 +30,7 @@ export default function PointsShop() {
   };
 
   const handleBuyTitle = (title: StoreTitle) => {
+    if (!window.confirm(`Buy "${title.name}" for ${title.cost} pts?\n\nYour balance: ${points} pts → ${points - title.cost} pts`)) return;
     playBleep();
     const result = purchaseTitle(title.id, points);
     if (result.success && result.newBalance !== undefined) {
@@ -48,6 +49,7 @@ export default function PointsShop() {
   };
 
   const handleBuyBadge = (badge: StoreBadge) => {
+    if (!window.confirm(`Buy "${badge.name}" for ${badge.cost} pts?\n\nYour balance: ${points} pts → ${points - badge.cost} pts`)) return;
     playBleep();
     const result = purchaseBadge(badge.id, points);
     if (result.success && result.newBalance !== undefined) {
@@ -66,8 +68,9 @@ export default function PointsShop() {
   };
 
   const handleUnlockTrial = (difficulty: string) => {
-    playBleep();
     const cost = TRIAL_UNLOCK_COST[difficulty] ?? 0;
+    if (cost > 0 && !window.confirm(`Unlock ${difficulty} trials for ${cost} pts?\n\nYour balance: ${points} pts → ${points - cost} pts`)) return;
+    playBleep();
     const result = unlockTrial(difficulty, points);
     if (result.success && result.newBalance !== undefined) {
       spendPoints(cost);

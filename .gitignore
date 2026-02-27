@@ -10,3 +10,4 @@ __pycache__/
 packages/backend/data/
 packages/backend/output/
 packages/backend/visualizations/
+packages/frontend/public/datasets/healthcare_covid_full_backup.csv
