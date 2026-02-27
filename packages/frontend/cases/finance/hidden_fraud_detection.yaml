@@ -33,10 +33,10 @@ solutionQuery: |-
   WITH DailyVolume AS (
     SELECT
       ticker,
-      transaction_date,
-      SUM(amount) AS daily_volume
+      date,
+      SUM(volume) AS daily_volume
     FROM finance_stocks
-    GROUP BY ticker, transaction_date
+    GROUP BY ticker, date
   ),
   TickerAvg AS (
     SELECT
@@ -47,10 +47,10 @@ solutionQuery: |-
   )
   SELECT
     d.ticker,
-    d.transaction_date,
+    d.date,
     d.daily_volume,
     t.avg_daily_volume,
-    ROUND(d.daily_volume / t.avg_daily_volume, 2) AS volume_ratio,
+    ROUND(CAST(d.daily_volume AS REAL) / t.avg_daily_volume, 2) AS volume_ratio,
     CASE
       WHEN d.daily_volume > 3 * t.avg_daily_volume THEN 'RED FLAG'
       WHEN d.daily_volume > 2 * t.avg_daily_volume THEN 'WARNING'
@@ -64,7 +64,7 @@ solutionQuery: |-
 instructions: |-
   The compliance team suspects market manipulation. They need you to:
 
-  1. Compute daily_volume per ticker per day
+  1. Compute daily_volume (SUM of volume) per ticker per date
   2. Compute avg_daily_volume per ticker
   3. Flag days where daily_volume > 2x average:
      - RED FLAG: > 3x average
@@ -72,22 +72,22 @@ instructions: |-
   4. Show ticker, date, daily_volume, avg_daily_volume, volume_ratio, alert_level
   5. Order by volume_ratio DESC, LIMIT 15
 hints:
-  - First CTE: daily volume per ticker/date
-  - Second CTE: average daily volume per ticker
+  - First CTE: SUM(volume) per ticker/date
+  - Second CTE: AVG(daily_volume) per ticker
   - JOIN the two CTEs on ticker
   - Use CASE for alert classification
   - Filter with WHERE after the join
 thoughtProcess:
   - "Fraud detection = find abnormal trading volume. You need to compare each day's volume against the ticker's average. This requires two CTEs: one for daily totals, one for averages."
-  - "CTE 1 — DailyVolume: SELECT ticker, transaction_date, SUM(amount) AS daily_volume GROUP BY ticker, transaction_date. This gives the total traded amount per ticker per day."
+  - "CTE 1 — DailyVolume: SELECT ticker, date, SUM(volume) AS daily_volume GROUP BY ticker, date. This gives the total traded volume per ticker per day."
   - "CTE 2 — TickerAvg: SELECT ticker, ROUND(AVG(daily_volume), 2) AS avg_daily_volume FROM DailyVolume GROUP BY ticker. This computes each ticker's normal daily volume baseline."
   - "Main query: JOIN DailyVolume with TickerAvg on ticker. Compute volume_ratio = daily_volume / avg_daily_volume. A ratio of 3 means 3x normal volume."
   - "CASE classification: volume_ratio > 3 = 'RED FLAG', > 2 = 'WARNING', else 'NORMAL'. Strictest condition first. This is exactly how real fraud detection systems work."
   - "Pattern: CTE for granular metrics → CTE for baseline averages → JOIN to compare → CASE for alerting. Each layer is independently testable."
 expected:
-  - ticker: AAPL
-    transaction_date: "2024-01-15"
-    daily_volume: 15230.50
+  - ticker: TICK1
+    date: "2024-01-15"
+    daily_volume: 15230
     avg_daily_volume: 3200.12
     volume_ratio: 4.76
     alert_level: RED FLAG
