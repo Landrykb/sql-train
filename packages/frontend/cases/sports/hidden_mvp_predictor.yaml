@@ -105,7 +105,7 @@ hints:
   - Use CASE WHEN made = 'True' THEN 1 ELSE 0 END to count made shots
   - LEFT JOIN shooting stats since not all players may have shot data
   - COALESCE(fg_pct, 0) handles players with no shot records
-  - Three CTEs: PlayerStats, ShootingStats, MVPScore
+  - "Three CTEs: PlayerStats, ShootingStats, MVPScore"
   - You can use RANK() inside CASE in the final SELECT
 thoughtProcess:
   - "MVP prediction = combine multiple performance dimensions into a single score. Break it into three CTEs: game stats, shooting efficiency, and composite score."

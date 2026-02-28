@@ -75,7 +75,7 @@ instructions: |-
   4. Order by avg_score DESC
 hints:
   - Use CASE inside SUM for win counting
-  - Two CTEs: one for records, one for scoring
+  - "Two CTEs: one for records, one for scoring"
   - JOIN them on team name
   - Use CASE for trade classification
 thoughtProcess:

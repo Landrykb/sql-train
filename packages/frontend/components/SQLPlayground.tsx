@@ -954,7 +954,8 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 <h2 className="text-base font-semibold text-bleepx-gray mb-2">Intel from Bleepx</h2>
                 <ul className="list-disc pl-5 text-sm text-bleepx-gray space-y-2">
                   {hints.slice(0, visibleHints).map((h, i) => {
-                    const m = h.match(/Review the (\w+)/);
+                    const hStr = typeof h === 'string' ? h : String(h);
+                    const m = hStr.match(/Review the (\w+)/);
                     return (
                       <li key={i}>
                         {h}{' '}

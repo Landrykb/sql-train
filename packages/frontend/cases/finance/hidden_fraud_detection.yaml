@@ -72,8 +72,8 @@ instructions: |-
   4. Show ticker, date, daily_volume, avg_daily_volume, volume_ratio, alert_level
   5. Order by volume_ratio DESC, LIMIT 15
 hints:
-  - First CTE: SUM(volume) per ticker/date
-  - Second CTE: AVG(daily_volume) per ticker
+  - "First CTE: SUM(volume) per ticker/date"
+  - "Second CTE: AVG(daily_volume) per ticker"
   - JOIN the two CTEs on ticker
   - Use CASE for alert classification
   - Filter with WHERE after the join
