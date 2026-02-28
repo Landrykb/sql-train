@@ -2,7 +2,7 @@ id: hidden_player_value
 name: "Identify Undervalued Players for Trade Deadline"
 tier: 6
 domain: Sports NBA
-description: The GM needs trade deadline analysis — find players delivering outsized performance relative to their team's record to identify undervalued trade targets.
+description: The GM needs trade deadline analysis — find players delivering outsized performance by combining scoring, assists, rebounds, and shooting efficiency to identify the most valuable trade targets.
 hidden: true
 skills:
   - select
@@ -31,68 +31,90 @@ seedQuery: |-
   --  star players. Show me the data."
   SELECT 1;
 solutionQuery: |-
-  WITH TeamRecords AS (
+  WITH PlayerStats AS (
     SELECT
-      home_team AS team,
-      SUM(CASE WHEN home_score > away_score THEN 1 ELSE 0 END) AS wins,
-      COUNT(*) AS games,
-      ROUND(100.0 * SUM(CASE WHEN home_score > away_score THEN 1 ELSE 0 END) / COUNT(*), 1) AS win_pct
-    FROM nba_games
-    GROUP BY home_team
+      g.player_id,
+      COUNT(DISTINCT g.game_id) AS games_played,
+      ROUND(AVG(g.points), 1) AS avg_points,
+      ROUND(AVG(g.assists), 1) AS avg_assists,
+      ROUND(AVG(g.rebounds), 1) AS avg_rebounds,
+      SUM(g.points) AS total_points
+    FROM nba_games g
+    GROUP BY g.player_id
   ),
-  TeamScoring AS (
+  ShootingStats AS (
     SELECT
-      home_team AS team,
-      ROUND(AVG(home_score), 1) AS avg_score,
-      MAX(home_score) AS max_score
-    FROM nba_games
-    GROUP BY home_team
+      player_id,
+      COUNT(*) AS total_shots,
+      SUM(CASE WHEN made = 'True' THEN 1 ELSE 0 END) AS made_shots,
+      ROUND(100.0 * SUM(CASE WHEN made = 'True' THEN 1 ELSE 0 END) / COUNT(*), 1) AS fg_pct
+    FROM shot_zones
+    GROUP BY player_id
   )
   SELECT
-    r.team,
-    r.wins,
-    r.games,
-    r.win_pct,
-    s.avg_score,
-    s.max_score,
+    p.player_id,
+    p.games_played,
+    p.avg_points,
+    p.avg_assists,
+    p.avg_rebounds,
+    COALESCE(s.fg_pct, 0) AS fg_pct,
+    ROUND(p.avg_points + p.avg_assists * 1.5 + p.avg_rebounds + COALESCE(s.fg_pct, 0) * 0.5, 1) AS trade_value,
     CASE
-      WHEN r.win_pct < 40 AND s.avg_score > 105 THEN 'Prime Trade Target'
-      WHEN r.win_pct < 50 AND s.avg_score > 100 THEN 'Possible Target'
-      ELSE 'Unlikely to Trade'
+      WHEN p.avg_points >= 30 AND COALESCE(s.fg_pct, 0) >= 50 THEN 'Elite Target'
+      WHEN p.avg_points >= 20 THEN 'High Value'
+      WHEN p.avg_points >= 10 AND p.avg_assists >= 5 THEN 'Solid Role Player'
+      ELSE 'Depth Piece'
     END AS trade_likelihood
-  FROM TeamRecords r
-  INNER JOIN TeamScoring s ON r.team = s.team
-  ORDER BY s.avg_score DESC;
+  FROM PlayerStats p
+  LEFT JOIN ShootingStats s ON p.player_id = s.player_id
+  ORDER BY trade_value DESC
+  LIMIT 20;
 instructions: |-
   The GM needs trade deadline intelligence:
 
-  1. Calculate each team's win record (wins, games, win_pct) from home games
-  2. Calculate each team's scoring (avg_score, max_score)
-  3. Classify trade_likelihood:
-     - Prime Trade Target: win_pct < 40% AND avg_score > 105
-     - Possible Target: win_pct < 50% AND avg_score > 100
-     - Unlikely to Trade: everyone else
-  4. Order by avg_score DESC
+  1. CTE 1: Calculate per player from nba_games: games_played, avg_points, avg_assists, avg_rebounds
+  2. CTE 2: Calculate per player from shot_zones: fg_pct using CASE WHEN made = 'True'
+  3. LEFT JOIN to combine (not all players have shot data)
+  4. Compute trade_value = avg_points + avg_assists * 1.5 + avg_rebounds + fg_pct * 0.5
+  5. Classify trade_likelihood:
+     - Elite Target: avg_points >= 30 AND fg_pct >= 50
+     - High Value: avg_points >= 20
+     - Solid Role Player: avg_points >= 10 AND avg_assists >= 5
+     - Depth Piece: everyone else
+  6. Order by trade_value DESC, LIMIT 20
 hints:
-  - Use CASE inside SUM for win counting
-  - "Two CTEs: one for records, one for scoring"
-  - JOIN them on team name
-  - Use CASE for trade classification
+  - "Two CTEs: one for game stats, one for shooting"
+  - Use CASE WHEN made = 'True' for fg_pct
+  - LEFT JOIN on player_id (not all have shot data)
+  - COALESCE(fg_pct, 0) for players without shot records
 thoughtProcess:
-  - "Player trade value = combine team win records with scoring stats. Two CTEs: one for win/loss records, one for scoring averages — then JOIN on team."
-  - "CTE 1 — TeamRecords: SUM(CASE WHEN home_score > away_score THEN 1 ELSE 0 END) AS wins counts home wins. COUNT(*) gives total games. Win percentage = 100.0 * wins / games."
-  - "CTE 2 — TeamScoring: AVG(home_score) AS avg_score, MAX(home_score) AS max_score from nba_games GROUP BY home_team. This captures offensive output."
-  - "Main query: JOIN TeamRecords with TeamScoring on team. Now each team has wins, win%, avg score, and max score in one row."
-  - "CASE for trade_classification: high win% + high scoring = 'Contender', moderate = 'Playoff Team', low = 'Rebuilding'. Combine multiple metrics in WHEN conditions."
-  - "Pattern: independent CTEs for different aspects → JOIN for complete picture → CASE for business classification. This is how front offices evaluate trade targets."
+  - "Player trade value = combine game performance with shooting efficiency. Two CTEs: one for per-game averages, one for shooting percentage — then LEFT JOIN on player_id."
+  - "CTE 1 — PlayerStats: GROUP BY player_id from nba_games. AVG(points), AVG(assists), AVG(rebounds), SUM(points). These raw per-player metrics show on-court impact."
+  - "CTE 2 — ShootingStats: SUM(CASE WHEN made = 'True' THEN 1 ELSE 0 END) / COUNT(*) AS fg_pct. The CASE-inside-SUM pattern counts made shots from shot_zones."
+  - "LEFT JOIN ensures players without shot data are kept. COALESCE(fg_pct, 0) replaces NULL with 0 for the composite score."
+  - "Trade value formula: weighted sum of avg_points, avg_assists, avg_rebounds, fg_pct. Different weights reflect position value — assists worth 1.5x shows playmaking premium."
+  - "Pattern: independent CTEs for different aspects → LEFT JOIN for completeness → composite score → CASE classification. This is how front offices evaluate trade targets."
 expected:
-  - team: Golden State Warriors
-    wins: 5
-    games: 12
-    win_pct: 41.7
-    avg_score: 112.3
-    max_score: 142
-    trade_likelihood: Possible Target
+  - { player_id: 'P1194', games_played: 1, avg_points: 50, avg_assists: 15, avg_rebounds: 18, fg_pct: 100, trade_value: 140.5, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P860', games_played: 1, avg_points: 50, avg_assists: 14, avg_rebounds: 17, fg_pct: 100, trade_value: 138, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P6259', games_played: 1, avg_points: 46, avg_assists: 15, avg_rebounds: 19, fg_pct: 100, trade_value: 137.5, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P3686', games_played: 1, avg_points: 48, avg_assists: 14, avg_rebounds: 16, fg_pct: 100, trade_value: 135, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P665', games_played: 1, avg_points: 48, avg_assists: 12, avg_rebounds: 19, fg_pct: 100, trade_value: 135, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P811', games_played: 1, avg_points: 46, avg_assists: 13, avg_rebounds: 19, fg_pct: 100, trade_value: 134.5, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P1823', games_played: 1, avg_points: 46, avg_assists: 12, avg_rebounds: 20, fg_pct: 100, trade_value: 134, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P2107', games_played: 1, avg_points: 46, avg_assists: 12, avg_rebounds: 19, fg_pct: 100, trade_value: 133, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P3447', games_played: 1, avg_points: 49, avg_assists: 12, avg_rebounds: 16, fg_pct: 100, trade_value: 133, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P8617', games_played: 1, avg_points: 50, avg_assists: 13, avg_rebounds: 13, fg_pct: 100, trade_value: 132.5, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P2497', games_played: 1, avg_points: 49, avg_assists: 12, avg_rebounds: 15, fg_pct: 100, trade_value: 132, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P4566', games_played: 1, avg_points: 49, avg_assists: 14, avg_rebounds: 12, fg_pct: 100, trade_value: 132, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P4980', games_played: 1, avg_points: 45, avg_assists: 14, avg_rebounds: 16, fg_pct: 100, trade_value: 132, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P642', games_played: 1, avg_points: 45, avg_assists: 14, avg_rebounds: 16, fg_pct: 100, trade_value: 132, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P1826', games_played: 1, avg_points: 41, avg_assists: 15, avg_rebounds: 18, fg_pct: 100, trade_value: 131.5, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P2546', games_played: 1, avg_points: 43, avg_assists: 15, avg_rebounds: 16, fg_pct: 100, trade_value: 131.5, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P2913', games_played: 1, avg_points: 44, avg_assists: 15, avg_rebounds: 15, fg_pct: 100, trade_value: 131.5, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P3252', games_played: 1, avg_points: 42, avg_assists: 13, avg_rebounds: 20, fg_pct: 100, trade_value: 131.5, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P7825', games_played: 1, avg_points: 47, avg_assists: 13, avg_rebounds: 15, fg_pct: 100, trade_value: 131.5, trade_likelihood: 'Elite Target' }
+  - { player_id: 'P8520', games_played: 1, avg_points: 50, avg_assists: 11, avg_rebounds: 15, fg_pct: 100, trade_value: 131.5, trade_likelihood: 'Elite Target' }
 type: hidden
 tags:
   - sports_nba

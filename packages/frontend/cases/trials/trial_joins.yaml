@@ -41,6 +41,12 @@ thoughtProcess:
   - "JOIN returns r ON r.invoice_id = b.invoice_id links each return to its original sale."
   - "GROUP BY b.product_line then COUNT(*) gives returns per product line."
   - "ORDER BY return_count DESC LIMIT 5 gets the top 5."
+expected:
+  - { product_line: 'Electronic accessories', return_count: 92 }
+  - { product_line: 'Fashion accessories', return_count: 86 }
+  - { product_line: 'Sports and travel', return_count: 81 }
+  - { product_line: 'Health and beauty', return_count: 81 }
+  - { product_line: 'Food and beverages', return_count: 81 }
 type: trial
 tags:
   - trial

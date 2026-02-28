@@ -30,67 +30,68 @@ seedQuery: |-
   --  red flags for potential market manipulation."
   SELECT 1;
 solutionQuery: |-
-  WITH DailyVolume AS (
+  WITH MarketAvg AS (
     SELECT
-      ticker,
       date,
-      SUM(volume) AS daily_volume
+      ROUND(AVG(volume), 2) AS market_avg_volume
     FROM finance_stocks
-    GROUP BY ticker, date
-  ),
-  TickerAvg AS (
-    SELECT
-      ticker,
-      ROUND(AVG(daily_volume), 2) AS avg_daily_volume
-    FROM DailyVolume
-    GROUP BY ticker
+    GROUP BY date
   )
   SELECT
-    d.ticker,
-    d.date,
-    d.daily_volume,
-    t.avg_daily_volume,
-    ROUND(CAST(d.daily_volume AS REAL) / t.avg_daily_volume, 2) AS volume_ratio,
+    f.ticker,
+    f.date,
+    CAST(f.volume AS INTEGER) AS volume,
+    CAST(m.market_avg_volume AS INTEGER) AS market_avg_volume,
+    ROUND(f.volume / m.market_avg_volume, 2) AS volume_ratio,
     CASE
-      WHEN d.daily_volume > 3 * t.avg_daily_volume THEN 'RED FLAG'
-      WHEN d.daily_volume > 2 * t.avg_daily_volume THEN 'WARNING'
+      WHEN f.volume > 3 * m.market_avg_volume THEN 'RED FLAG'
+      WHEN f.volume > 2 * m.market_avg_volume THEN 'WARNING'
       ELSE 'NORMAL'
     END AS alert_level
-  FROM DailyVolume d
-  INNER JOIN TickerAvg t ON d.ticker = t.ticker
-  WHERE d.daily_volume > 2 * t.avg_daily_volume
+  FROM finance_stocks f
+  INNER JOIN MarketAvg m ON f.date = m.date
+  WHERE f.volume > 2 * m.market_avg_volume
   ORDER BY volume_ratio DESC
   LIMIT 15;
 instructions: |-
   The compliance team suspects market manipulation. They need you to:
 
-  1. Compute daily_volume (SUM of volume) per ticker per date
-  2. Compute avg_daily_volume per ticker
-  3. Flag days where daily_volume > 2x average:
-     - RED FLAG: > 3x average
-     - WARNING: > 2x average
-  4. Show ticker, date, daily_volume, avg_daily_volume, volume_ratio, alert_level
+  1. Compute market_avg_volume (AVG of volume) per date across all tickers
+  2. Compare each ticker's volume to the market average for that date
+  3. Flag tickers where volume > 2x market average:
+     - RED FLAG: > 3x market average
+     - WARNING: > 2x market average
+  4. Show ticker, date, volume, market_avg_volume, volume_ratio, alert_level
   5. Order by volume_ratio DESC, LIMIT 15
 hints:
-  - "First CTE: SUM(volume) per ticker/date"
-  - "Second CTE: AVG(daily_volume) per ticker"
-  - JOIN the two CTEs on ticker
+  - "CTE: AVG(volume) per date for the market baseline"
+  - JOIN finance_stocks with the CTE on date
   - Use CASE for alert classification
   - Filter with WHERE after the join
+  - volume_ratio = volume / market_avg_volume
 thoughtProcess:
-  - "Fraud detection = find abnormal trading volume. You need to compare each day's volume against the ticker's average. This requires two CTEs: one for daily totals, one for averages."
-  - "CTE 1 — DailyVolume: SELECT ticker, date, SUM(volume) AS daily_volume GROUP BY ticker, date. This gives the total traded volume per ticker per day."
-  - "CTE 2 — TickerAvg: SELECT ticker, ROUND(AVG(daily_volume), 2) AS avg_daily_volume FROM DailyVolume GROUP BY ticker. This computes each ticker's normal daily volume baseline."
-  - "Main query: JOIN DailyVolume with TickerAvg on ticker. Compute volume_ratio = daily_volume / avg_daily_volume. A ratio of 3 means 3x normal volume."
-  - "CASE classification: volume_ratio > 3 = 'RED FLAG', > 2 = 'WARNING', else 'NORMAL'. Strictest condition first. This is exactly how real fraud detection systems work."
-  - "Pattern: CTE for granular metrics → CTE for baseline averages → JOIN to compare → CASE for alerting. Each layer is independently testable."
+  - "Fraud detection = find abnormal trading volume. Compare each ticker's volume to the market-wide average for that day. A ticker trading 3x the market average is suspicious."
+  - "CTE — MarketAvg: SELECT date, AVG(volume) AS market_avg_volume FROM finance_stocks GROUP BY date. This gives the daily market baseline."
+  - "Main query: JOIN finance_stocks with MarketAvg on date. Compute volume_ratio = volume / market_avg_volume. A ratio of 3 means 3x normal market volume."
+  - "CASE classification: ratio > 3 = 'RED FLAG', > 2 = 'WARNING', else 'NORMAL'. Strictest condition first. This is exactly how real compliance systems flag outliers."
+  - "WHERE f.volume > 2 * m.market_avg_volume filters to only suspicious trades. ORDER BY volume_ratio DESC surfaces the worst offenders."
+  - "Pattern: CTE for market baseline → JOIN to compare individual vs market → CASE for alerting → WHERE to filter. Each layer is independently testable."
 expected:
-  - ticker: TICK1
-    date: "2024-01-15"
-    daily_volume: 15230
-    avg_daily_volume: 3200.12
-    volume_ratio: 4.76
-    alert_level: RED FLAG
+  - { ticker: 'TICK25', date: '2023-01-06', volume: 74168283, market_avg_volume: 25425559, volume_ratio: 2.92, alert_level: 'WARNING' }
+  - { ticker: 'TICK5114', date: '2024-03-17', volume: 91674210, market_avg_volume: 32925286, volume_ratio: 2.78, alert_level: 'WARNING' }
+  - { ticker: 'TICK9384', date: '2024-07-21', volume: 89769292, market_avg_volume: 32430941, volume_ratio: 2.77, alert_level: 'WARNING' }
+  - { ticker: 'TICK7872', date: '2024-08-31', volume: 89578580, market_avg_volume: 32768459, volume_ratio: 2.73, alert_level: 'WARNING' }
+  - { ticker: 'TICK6521', date: '2023-09-13', volume: 80487590, market_avg_volume: 29592623, volume_ratio: 2.72, alert_level: 'WARNING' }
+  - { ticker: 'TICK3695', date: '2024-05-14', volume: 95170516, market_avg_volume: 35546490, volume_ratio: 2.68, alert_level: 'WARNING' }
+  - { ticker: 'TICK6549', date: '2024-05-14', volume: 94494572, market_avg_volume: 35546490, volume_ratio: 2.66, alert_level: 'WARNING' }
+  - { ticker: 'TICK8831', date: '2023-09-04', volume: 94332292, market_avg_volume: 35606295, volume_ratio: 2.65, alert_level: 'WARNING' }
+  - { ticker: 'TICK9083', date: '2024-11-03', volume: 98782653, market_avg_volume: 37242180, volume_ratio: 2.65, alert_level: 'WARNING' }
+  - { ticker: 'TICK2232', date: '2024-07-06', volume: 90510693, market_avg_volume: 34642465, volume_ratio: 2.61, alert_level: 'WARNING' }
+  - { ticker: 'TICK3189', date: '2023-01-10', volume: 89094228, market_avg_volume: 34509585, volume_ratio: 2.58, alert_level: 'WARNING' }
+  - { ticker: 'TICK1661', date: '2023-07-03', volume: 97524965, market_avg_volume: 37939572, volume_ratio: 2.57, alert_level: 'WARNING' }
+  - { ticker: 'TICK5679', date: '2023-03-15', volume: 83349489, market_avg_volume: 32417623, volume_ratio: 2.57, alert_level: 'WARNING' }
+  - { ticker: 'TICK1646', date: '2024-07-22', volume: 99484391, market_avg_volume: 38851704, volume_ratio: 2.56, alert_level: 'WARNING' }
+  - { ticker: 'TICK3493', date: '2024-11-11', volume: 96525415, market_avg_volume: 37660156, volume_ratio: 2.56, alert_level: 'WARNING' }
 type: hidden
 tags:
   - finance_stocks

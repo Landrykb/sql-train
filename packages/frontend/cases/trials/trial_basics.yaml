@@ -37,26 +37,16 @@ thoughtProcess:
   - "Sort: ORDER BY rating DESC puts highest ratings first."
   - "Cap results: LIMIT 10 returns only the top 10."
 expected:
-  - invoice_id: "849-09-3807"
-    product_line: "Fashion accessories"
-    total: 649.299
-    rating: 9.9
-  - invoice_id: "735-60-6651"
-    product_line: "Sports and travel"
-    total: 76.1355
-    rating: 9.8
-  - invoice_id: "228-47-5765"
-    product_line: "Home and lifestyle"
-    total: 167.6775
-    rating: 9.7
-  - invoice_id: "499-84-3498"
-    product_line: "Electronic accessories"
-    total: 532.3575
-    rating: 9.6
-  - invoice_id: "238-41-6281"
-    product_line: "Food and beverages"
-    total: 395.745
-    rating: 9.6
+  - { invoice_id: '347-34-2234', product_line: 'Sports and travel', total: 520.41, rating: 10 }
+  - { invoice_id: '423-57-2993', product_line: 'Sports and travel', total: 588.36, rating: 10 }
+  - { invoice_id: '866-70-2814', product_line: 'Electronic accessories', total: 554.29, rating: 10 }
+  - { invoice_id: '636-48-8204', product_line: 'Electronic accessories', total: 181.44, rating: 9.9 }
+  - { invoice_id: '109-28-2512', product_line: 'Fashion accessories', total: 614.94, rating: 9.9 }
+  - { invoice_id: '214-17-6927', product_line: 'Food and beverages', total: 103.82, rating: 9.9 }
+  - { invoice_id: '342-65-4817', product_line: 'Health and beauty', total: 273.42, rating: 9.9 }
+  - { invoice_id: '400-60-7251', product_line: 'Home and lifestyle', total: 77.77, rating: 9.9 }
+  - { invoice_id: '662-72-2873', product_line: 'Food and beverages', total: 214.94, rating: 9.9 }
+  - { invoice_id: '410-67-1709', product_line: 'Fashion accessories', total: 536.59, rating: 9.9 }
 type: trial
 tags:
   - trial

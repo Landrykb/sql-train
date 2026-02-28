@@ -38,6 +38,12 @@ thoughtProcess:
   - "Alias it AS crime_count for clarity."
   - "ORDER BY crime_count DESC puts the most frequent types first."
   - "LIMIT 5 caps the output."
+expected:
+  - { primary_type: 'NARCOTICS', crime_count: 2052 }
+  - { primary_type: 'BATTERY', crime_count: 2042 }
+  - { primary_type: 'ASSAULT', crime_count: 1988 }
+  - { primary_type: 'ROBBERY', crime_count: 1984 }
+  - { primary_type: 'THEFT', crime_count: 1934 }
 type: trial
 tags:
   - trial

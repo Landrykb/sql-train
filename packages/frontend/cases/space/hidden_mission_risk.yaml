@@ -30,58 +30,71 @@ seedQuery: |-
 solutionQuery: |-
   WITH NeoStats AS (
     SELECT
-      neo_id,
-      name,
-      estimated_diameter_max_km,
-      relative_velocity_kmh,
-      miss_distance_km,
+      des,
+      close_approach_date,
+      dist_km,
+      relative_velocity_km_s,
       is_potentially_hazardous
     FROM space_neo
   )
   SELECT
-    name,
-    ROUND(estimated_diameter_max_km, 4) AS diameter_km,
-    ROUND(relative_velocity_kmh, 2) AS velocity_kmh,
-    ROUND(miss_distance_km, 2) AS miss_distance_km,
+    des,
+    close_approach_date,
+    ROUND(dist_km, 2) AS dist_km,
+    ROUND(relative_velocity_km_s, 2) AS velocity_km_s,
     is_potentially_hazardous,
     CASE
-      WHEN is_potentially_hazardous = 'True' AND miss_distance_km < 5000000 THEN 'CRITICAL'
+      WHEN is_potentially_hazardous = 'True' AND dist_km < 50000 THEN 'CRITICAL'
       WHEN is_potentially_hazardous = 'True' THEN 'HIGH'
-      WHEN miss_distance_km < 10000000 THEN 'MODERATE'
+      WHEN dist_km < 100000 THEN 'MODERATE'
       ELSE 'LOW'
     END AS threat_level
   FROM NeoStats
-  ORDER BY miss_distance_km ASC
+  ORDER BY dist_km ASC
   LIMIT 20;
 instructions: |-
   NASA needs a threat assessment of near-earth objects.
 
-  1. Select name, diameter, velocity, miss_distance, is_potentially_hazardous
+  1. Select des, close_approach_date, dist_km, relative_velocity_km_s, is_potentially_hazardous
   2. Classify threat_level:
-     - CRITICAL: hazardous AND miss_distance < 5,000,000 km
+     - CRITICAL: hazardous AND dist_km < 50,000
      - HIGH: hazardous
-     - MODERATE: miss_distance < 10,000,000 km
+     - MODERATE: dist_km < 100,000
      - LOW: everything else
-  3. Order by miss_distance ascending, LIMIT 20
+  3. Order by dist_km ascending, LIMIT 20
 hints:
   - Check the is_potentially_hazardous column
   - Use CASE with compound conditions
-  - Smaller miss_distance = closer = more dangerous
+  - Smaller dist_km = closer = more dangerous
   - ROUND for clean output
 thoughtProcess:
   - "Mission risk assessment = classify NEOs by size, speed, and proximity. You need to combine multiple metrics into a risk rating using CASE."
-  - "CTE — NeoStats: SELECT the key columns — name, estimated_diameter_max_km, relative_velocity_kmh, miss_distance_km, is_potentially_hazardous. This organizes the raw data."
-  - "ROUND for clean output: ROUND(estimated_diameter_max_km, 4) AS diameter_km, ROUND(relative_velocity_kmh, 2) AS velocity_kmh. Precision matters in space calculations."
-  - "CASE for risk classification: combine is_potentially_hazardous = 'True' with miss_distance and velocity thresholds. Smaller miss_distance AND higher velocity = more dangerous."
-  - "Use compound conditions: WHEN is_potentially_hazardous = 'True' AND miss_distance_km < threshold THEN 'CRITICAL'. Layer from most severe to least severe."
-  - "Pattern: organize raw data in CTE → compute derived metrics → classify with multi-condition CASE. This mirrors real planetary defense risk matrices."
+  - "CTE — NeoStats: SELECT the key columns — des, close_approach_date, dist_km, relative_velocity_km_s, is_potentially_hazardous. This organizes the raw data."
+  - "ROUND for clean output: ROUND(dist_km, 2), ROUND(relative_velocity_km_s, 2). Precision matters in space calculations."
+  - "CASE for risk classification: combine is_potentially_hazardous = 'True' with dist_km thresholds. Smaller dist_km = closer = more dangerous."
+  - "Use compound conditions: WHEN is_potentially_hazardous = 'True' AND dist_km < threshold THEN 'CRITICAL'. Layer from most severe to least severe."
+  - "Pattern: organize raw data in CTE → classify with multi-condition CASE → ORDER BY dist_km ASC. This mirrors real planetary defense risk matrices."
 expected:
-  - name: "(2020 FM)"
-    diameter_km: 0.0253
-    velocity_kmh: 32451.12
-    miss_distance_km: 1234567.89
-    is_potentially_hazardous: "True"
-    threat_level: CRITICAL
+  - { des: 'NEO927', close_approach_date: '2025-09-09', dist_km: 30041, velocity_km_s: 11.1, is_potentially_hazardous: 'True', threat_level: 'CRITICAL' }
+  - { des: 'NEO2603', close_approach_date: '2025-05-25', dist_km: 30058, velocity_km_s: 9.3, is_potentially_hazardous: 'False', threat_level: 'MODERATE' }
+  - { des: 'NEO669', close_approach_date: '2025-08-19', dist_km: 30127, velocity_km_s: 12.5, is_potentially_hazardous: 'True', threat_level: 'CRITICAL' }
+  - { des: 'NEO604', close_approach_date: '2025-04-11', dist_km: 30181, velocity_km_s: 13.6, is_potentially_hazardous: 'True', threat_level: 'CRITICAL' }
+  - { des: 'NEO4633', close_approach_date: '2025-07-18', dist_km: 30237, velocity_km_s: 10.2, is_potentially_hazardous: 'False', threat_level: 'MODERATE' }
+  - { des: 'NEO2688', close_approach_date: '2025-10-22', dist_km: 30262, velocity_km_s: 9.8, is_potentially_hazardous: 'False', threat_level: 'MODERATE' }
+  - { des: 'NEO3208', close_approach_date: '2025-12-20', dist_km: 30474, velocity_km_s: 11.2, is_potentially_hazardous: 'True', threat_level: 'CRITICAL' }
+  - { des: 'NEO1303', close_approach_date: '2025-06-14', dist_km: 30504, velocity_km_s: 10.6, is_potentially_hazardous: 'False', threat_level: 'MODERATE' }
+  - { des: 'NEO2455', close_approach_date: '2025-12-27', dist_km: 30507, velocity_km_s: 7.4, is_potentially_hazardous: 'True', threat_level: 'CRITICAL' }
+  - { des: 'NEO1926', close_approach_date: '2025-12-19', dist_km: 30536, velocity_km_s: 6.1, is_potentially_hazardous: 'True', threat_level: 'CRITICAL' }
+  - { des: 'NEO4200', close_approach_date: '2025-06-01', dist_km: 30651, velocity_km_s: 6.8, is_potentially_hazardous: 'False', threat_level: 'MODERATE' }
+  - { des: 'NEO3713', close_approach_date: '2025-04-28', dist_km: 30666, velocity_km_s: 12.8, is_potentially_hazardous: 'True', threat_level: 'CRITICAL' }
+  - { des: 'NEO3673', close_approach_date: '2025-06-14', dist_km: 30674, velocity_km_s: 4.6, is_potentially_hazardous: 'True', threat_level: 'CRITICAL' }
+  - { des: 'NEO3686', close_approach_date: '2025-07-31', dist_km: 30686, velocity_km_s: 3.5, is_potentially_hazardous: 'True', threat_level: 'CRITICAL' }
+  - { des: 'NEO3999', close_approach_date: '2025-10-08', dist_km: 30780, velocity_km_s: 10.1, is_potentially_hazardous: 'False', threat_level: 'MODERATE' }
+  - { des: 'NEO3064', close_approach_date: '2025-08-28', dist_km: 30784, velocity_km_s: 8.4, is_potentially_hazardous: 'True', threat_level: 'CRITICAL' }
+  - { des: 'NEO3340', close_approach_date: '2025-11-21', dist_km: 30820, velocity_km_s: 3.4, is_potentially_hazardous: 'False', threat_level: 'MODERATE' }
+  - { des: 'NEO3657', close_approach_date: '2025-08-25', dist_km: 30830, velocity_km_s: 7.6, is_potentially_hazardous: 'False', threat_level: 'MODERATE' }
+  - { des: 'NEO4184', close_approach_date: '2025-10-19', dist_km: 30853, velocity_km_s: 9.2, is_potentially_hazardous: 'True', threat_level: 'CRITICAL' }
+  - { des: 'NEO4076', close_approach_date: '2025-02-16', dist_km: 30869, velocity_km_s: 7.3, is_potentially_hazardous: 'True', threat_level: 'CRITICAL' }
 type: hidden
 tags:
   - space_neo

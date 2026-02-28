@@ -1,0 +1,91 @@
+id: trial_final_boss
+name: "Trial 10: The Final Boss"
+tier: 4
+domain: trials
+description: "The ultimate cross-domain trial — CTEs, JOINs, CASE, and window functions in one query. Prove you've mastered SQL."
+instructions: |-
+  *bleep* This is it, human. The final boss.
+  Using the nba_games and shot_zones datasets:
+  1. Calculate each player's average points and total made shots (where made = 'True')
+  2. Compute a performance_score = avg_points + (made_shots * 0.5)
+  3. Classify players:
+     - 'Star' if performance_score > 40
+     - 'Starter' if performance_score > 20
+     - 'Bench' otherwise
+  4. Rank by performance_score descending
+  Show player_id, avg_points (rounded to 1), made_shots, performance_score (rounded to 1), player_class, and rank_position.
+  LIMIT 10.
+skills:
+  - select
+  - join
+  - group
+  - cte
+  - case
+  - window
+  - rank
+datasets:
+  - name: nba_games
+    file: nba_games.csv
+  - name: shot_zones
+    file: shot_zones.csv
+prereq_cases:
+  - trial_window
+seedQuery: |-
+  -- TRIAL 10: The Final Boss
+  -- Combine everything: CTE + JOIN + CASE + RANK
+  SELECT 1;
+solutionQuery: |-
+  WITH PlayerPerf AS (
+    SELECT
+      g.player_id,
+      ROUND(AVG(g.points), 1) AS avg_points,
+      COALESCE(SUM(CASE WHEN s.made = 'True' THEN 1 ELSE 0 END), 0) AS made_shots,
+      ROUND(AVG(g.points) + COALESCE(SUM(CASE WHEN s.made = 'True' THEN 1 ELSE 0 END), 0) * 0.5, 1) AS performance_score
+    FROM nba_games g
+    LEFT JOIN shot_zones s ON g.player_id = s.player_id
+    GROUP BY g.player_id
+  )
+  SELECT
+    player_id,
+    avg_points,
+    made_shots,
+    performance_score,
+    CASE
+      WHEN performance_score > 40 THEN 'Star'
+      WHEN performance_score > 20 THEN 'Starter'
+      ELSE 'Bench'
+    END AS player_class,
+    RANK() OVER (ORDER BY performance_score DESC) AS rank_position
+  FROM PlayerPerf
+  ORDER BY rank_position
+  LIMIT 10;
+hints:
+  - "CTE first: aggregate game stats and shot stats per player"
+  - "LEFT JOIN nba_games with shot_zones on player_id"
+  - "CASE WHEN made = 'True' counts successful shots"
+  - "Use RANK() OVER in the outer SELECT for ranking"
+thoughtProcess:
+  - "This combines every major SQL concept: CTE for aggregation, LEFT JOIN across tables, CASE for classification, RANK() for ordering."
+  - "CTE — PlayerPerf: LEFT JOIN nba_games with shot_zones on player_id. GROUP BY player_id. AVG(points) and SUM(CASE WHEN made = 'True') give offensive metrics."
+  - "performance_score = avg_points + made_shots * 0.5 creates a composite metric."
+  - "Outer query: CASE classifies players, RANK() OVER orders them. LIMIT 10 caps output."
+expected:
+  - { player_id: 'P1194', avg_points: 50, made_shots: 2, performance_score: 51, player_class: 'Star', rank_position: 1 }
+  - { player_id: 'P3612', avg_points: 50, made_shots: 2, performance_score: 51, player_class: 'Star', rank_position: 1 }
+  - { player_id: 'P6825', avg_points: 50, made_shots: 2, performance_score: 51, player_class: 'Star', rank_position: 1 }
+  - { player_id: 'P7014', avg_points: 50, made_shots: 2, performance_score: 51, player_class: 'Star', rank_position: 1 }
+  - { player_id: 'P7939', avg_points: 50, made_shots: 2, performance_score: 51, player_class: 'Star', rank_position: 1 }
+  - { player_id: 'P7965', avg_points: 50, made_shots: 2, performance_score: 51, player_class: 'Star', rank_position: 1 }
+  - { player_id: 'P860', avg_points: 50, made_shots: 2, performance_score: 51, player_class: 'Star', rank_position: 1 }
+  - { player_id: 'P8891', avg_points: 50, made_shots: 2, performance_score: 51, player_class: 'Star', rank_position: 1 }
+  - { player_id: 'P2040', avg_points: 50, made_shots: 1, performance_score: 50.5, player_class: 'Star', rank_position: 9 }
+  - { player_id: 'P2439', avg_points: 50, made_shots: 1, performance_score: 50.5, player_class: 'Star', rank_position: 9 }
+type: trial
+tags:
+  - trial
+  - cte
+  - joins
+  - case
+  - window_functions
+  - boss
+category: Trials

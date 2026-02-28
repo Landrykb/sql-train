@@ -137,9 +137,9 @@ tags:
   - operations
 category: Business Retail
 expected:
-  - { product_line: Electronic accessories, total_sales: 170, total_revenue: 54337.53, avg_rating: 6.92, total_returns: 76, return_rate_pct: 44.71, quality_status: REVIEW }
-  - { product_line: Home and lifestyle, total_sales: 160, total_revenue: 53861.91, avg_rating: 6.84, total_returns: 68, return_rate_pct: 42.5, quality_status: REVIEW }
-  - { product_line: Fashion accessories, total_sales: 178, total_revenue: 54305.9, avg_rating: 7.03, total_returns: 72, return_rate_pct: 40.45, quality_status: REVIEW }
-  - { product_line: Health and beauty, total_sales: 152, total_revenue: 49193.74, avg_rating: 7, total_returns: 60, return_rate_pct: 39.47, quality_status: OK }
-  - { product_line: Food and beverages, total_sales: 174, total_revenue: 56144.84, avg_rating: 7.11, total_returns: 64, return_rate_pct: 36.78, quality_status: OK }
-  - { product_line: Sports and travel, total_sales: 166, total_revenue: 55122.83, avg_rating: 6.92, total_returns: 61, return_rate_pct: 36.75, quality_status: OK }
+  - { product_line: 'Electronic accessories', total_sales: 170, total_revenue: 54337.53, avg_rating: 6.92, total_returns: 76, return_rate_pct: 44.71, quality_status: 'REVIEW' }
+  - { product_line: 'Home and lifestyle', total_sales: 160, total_revenue: 53861.91, avg_rating: 6.84, total_returns: 68, return_rate_pct: 42.5, quality_status: 'REVIEW' }
+  - { product_line: 'Fashion accessories', total_sales: 178, total_revenue: 54305.9, avg_rating: 7.03, total_returns: 72, return_rate_pct: 40.45, quality_status: 'REVIEW' }
+  - { product_line: 'Health and beauty', total_sales: 152, total_revenue: 49193.74, avg_rating: 7, total_returns: 60, return_rate_pct: 39.47, quality_status: 'OK' }
+  - { product_line: 'Food and beverages', total_sales: 174, total_revenue: 56144.84, avg_rating: 7.11, total_returns: 64, return_rate_pct: 36.78, quality_status: 'OK' }
+  - { product_line: 'Sports and travel', total_sales: 166, total_revenue: 55122.83, avg_rating: 6.92, total_returns: 61, return_rate_pct: 36.75, quality_status: 'OK' }

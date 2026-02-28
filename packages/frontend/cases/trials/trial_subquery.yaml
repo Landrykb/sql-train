@@ -1,0 +1,58 @@
+id: trial_subquery
+name: "Trial 8: Subquery Showdown"
+tier: 3
+domain: trials
+description: "Cross-domain subquery trial — filter with nested queries under pressure."
+instructions: |-
+  *bleep* Trial 8, human. Queries inside queries.
+  Using the nba_games dataset, find all players who scored above the league average points.
+  Show player_id, points, assists, rebounds, and game_date.
+  Order by points descending, LIMIT 10.
+skills:
+  - select
+  - where
+  - subquery
+  - order
+  - limit
+datasets:
+  - name: nba_games
+    file: nba_games.csv
+prereq_cases:
+  - trial_aggregation
+seedQuery: |-
+  -- TRIAL 8: Subquery Showdown
+  -- Find players scoring above league average
+  SELECT 1;
+solutionQuery: |-
+  SELECT player_id, points, assists, rebounds, game_date
+  FROM nba_games
+  WHERE points > (SELECT AVG(points) FROM nba_games)
+  ORDER BY points DESC
+  LIMIT 10;
+hints:
+  - "Use a subquery in WHERE: points > (SELECT AVG(points) FROM nba_games)"
+  - "The subquery calculates the overall average independently"
+  - "ORDER BY points DESC LIMIT 10 gets the top scorers above average"
+thoughtProcess:
+  - "You need to compare each player's points to the league average — that's a subquery in WHERE."
+  - "The subquery (SELECT AVG(points) FROM nba_games) runs once and returns a single value."
+  - "WHERE points > that value filters to above-average performances."
+  - "ORDER BY points DESC LIMIT 10 shows the top 10 above-average scorers."
+expected:
+  - { player_id: 'P70', points: 50, assists: 10, rebounds: 0, game_date: '2023-09-06' }
+  - { player_id: 'P75', points: 50, assists: 3, rebounds: 18, game_date: '2023-10-01' }
+  - { player_id: 'P81', points: 50, assists: 7, rebounds: 9, game_date: '2023-04-09' }
+  - { player_id: 'P187', points: 50, assists: 13, rebounds: 20, game_date: '2023-05-18' }
+  - { player_id: 'P193', points: 50, assists: 5, rebounds: 14, game_date: '2023-10-06' }
+  - { player_id: 'P221', points: 50, assists: 9, rebounds: 1, game_date: '2023-07-15' }
+  - { player_id: 'P273', points: 50, assists: 7, rebounds: 16, game_date: '2023-12-09' }
+  - { player_id: 'P360', points: 50, assists: 13, rebounds: 14, game_date: '2023-01-29' }
+  - { player_id: 'P671', points: 50, assists: 4, rebounds: 17, game_date: '2023-05-10' }
+  - { player_id: 'P841', points: 50, assists: 9, rebounds: 13, game_date: '2023-01-08' }
+type: trial
+tags:
+  - trial
+  - subquery
+  - filtering
+  - sports
+category: Trials

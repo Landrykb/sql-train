@@ -46,6 +46,12 @@ thoughtProcess:
   - "Step 2: In the outer query, SELECT from the CTE and add RANK() OVER (ORDER BY avg_close DESC)."
   - "Step 3: ORDER BY rank_position and LIMIT 5 to return only the top 5."
   - "This combines CTEs, aggregation, and window functions — a hallmark of advanced SQL."
+expected:
+  - { ticker: 'TICK8450', avg_close: 200, rank_position: 1 }
+  - { ticker: 'TICK2483', avg_close: 199.99, rank_position: 2 }
+  - { ticker: 'TICK2551', avg_close: 199.99, rank_position: 2 }
+  - { ticker: 'TICK5858', avg_close: 199.99, rank_position: 2 }
+  - { ticker: 'TICK4519', avg_close: 199.97, rank_position: 5 }
 type: trial
 tags:
   - trial

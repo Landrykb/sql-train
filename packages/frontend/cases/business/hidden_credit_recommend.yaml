@@ -144,60 +144,18 @@ schema:
       - name: return_reason
         type: TEXT
 expected:
-  - branch: A
-    customer_type: Member
-    gender: Female
-    total_purchases: 87
-    total_spent: 30408.31
-    avg_rating: 6.97
-    return_count: 28
-    program_tier: Platinum Invite
-    spend_rank: 1
-  - branch: C
-    customer_type: Member
-    gender: Female
-    total_purchases: 79
-    total_spent: 28649.04
-    avg_rating: 7.16
-    return_count: 24
-    program_tier: Gold Invite
-    spend_rank: 2
-  - branch: B
-    customer_type: Member
-    gender: Female
-    total_purchases: 79
-    total_spent: 27478.96
-    avg_rating: 7.02
-    return_count: 30
-    program_tier: Gold Invite
-    spend_rank: 3
-  - branch: A
-    customer_type: Normal
-    gender: Male
-    total_purchases: 76
-    total_spent: 25867.41
-    avg_rating: 6.75
-    return_count: 27
-    program_tier: Gold Invite
-    spend_rank: 4
-  - branch: C
-    customer_type: Normal
-    gender: Female
-    total_purchases: 68
-    total_spent: 24152.93
-    avg_rating: 6.83
-    return_count: 24
-    program_tier: Gold Invite
-    spend_rank: 5
-  - branch: B
-    customer_type: Normal
-    gender: Male
-    total_purchases: 62
-    total_spent: 21129.47
-    avg_rating: 6.89
-    return_count: 23
-    program_tier: Gold Invite
-    spend_rank: 6
+  - { branch: 'C', customer_type: 'Member', gender: 'Female', total_purchases: 96, total_spent: 37045.83, avg_rating: 7.06, return_count: 41, program_tier: 'Gold Invite', spend_rank: 1 }
+  - { branch: 'B', customer_type: 'Member', gender: 'Male', total_purchases: 80, total_spent: 30301.35, avg_rating: 6.56, return_count: 30, program_tier: 'Gold Invite', spend_rank: 2 }
+  - { branch: 'B', customer_type: 'Normal', gender: 'Male', total_purchases: 90, total_spent: 30226.91, avg_rating: 6.79, return_count: 40, program_tier: 'Gold Invite', spend_rank: 3 }
+  - { branch: 'A', customer_type: 'Normal', gender: 'Male', total_purchases: 92, total_spent: 30009.99, avg_rating: 7.18, return_count: 39, program_tier: 'Gold Invite', spend_rank: 4 }
+  - { branch: 'A', customer_type: 'Member', gender: 'Male', total_purchases: 87, total_spent: 29904.75, avg_rating: 7.18, return_count: 37, program_tier: 'Gold Invite', spend_rank: 5 }
+  - { branch: 'B', customer_type: 'Member', gender: 'Female', total_purchases: 85, total_spent: 29771.51, avg_rating: 6.82, return_count: 30, program_tier: 'Gold Invite', spend_rank: 6 }
+  - { branch: 'A', customer_type: 'Member', gender: 'Female', total_purchases: 80, total_spent: 29755.71, avg_rating: 6.89, return_count: 27, program_tier: 'Gold Invite', spend_rank: 7 }
+  - { branch: 'C', customer_type: 'Normal', gender: 'Female', total_purchases: 82, total_spent: 29624.68, avg_rating: 7.34, return_count: 31, program_tier: 'Gold Invite', spend_rank: 8 }
+  - { branch: 'B', customer_type: 'Normal', gender: 'Female', total_purchases: 77, total_spent: 28604.99, avg_rating: 6.84, return_count: 33, program_tier: 'Gold Invite', spend_rank: 9 }
+  - { branch: 'C', customer_type: 'Normal', gender: 'Male', total_purchases: 77, total_spent: 28296.18, avg_rating: 6.99, return_count: 30, program_tier: 'Gold Invite', spend_rank: 10 }
+  - { branch: 'A', customer_type: 'Normal', gender: 'Female', total_purchases: 81, total_spent: 27098.05, avg_rating: 6.87, return_count: 33, program_tier: 'Gold Invite', spend_rank: 11 }
+  - { branch: 'C', customer_type: 'Member', gender: 'Male', total_purchases: 73, total_spent: 23816.85, avg_rating: 6.99, return_count: 30, program_tier: 'Gold Invite', spend_rank: 12 }
 type: hidden
 tags:
   - business_retail

@@ -33,22 +33,23 @@ seedQuery: |-
 solutionQuery: |-
   WITH AreaStats AS (
     SELECT
-      area_name,
+      c.location_description,
       COUNT(*) AS total_crimes,
-      SUM(CASE WHEN arrest = 'true' THEN 1 ELSE 0 END) AS total_arrests,
-      ROUND(100.0 * SUM(CASE WHEN arrest = 'true' THEN 1 ELSE 0 END) / COUNT(*), 2) AS arrest_rate
-    FROM crime_chicago
-    GROUP BY area_name
+      COUNT(DISTINCT s.suspect_id) AS total_suspects,
+      ROUND(100.0 * COUNT(DISTINCT s.suspect_id) / COUNT(*), 2) AS suspect_rate
+    FROM crime_chicago c
+    LEFT JOIN suspects s ON c.id = s.crime_id
+    GROUP BY c.location_description
   )
   SELECT
-    area_name,
+    location_description,
     total_crimes,
-    total_arrests,
-    arrest_rate,
+    total_suspects,
+    suspect_rate,
     CASE
-      WHEN total_crimes > 500 AND arrest_rate < 20 THEN 'Critical — Deploy Now'
-      WHEN total_crimes > 300 THEN 'High Priority'
-      WHEN total_crimes > 100 THEN 'Monitor'
+      WHEN total_crimes > 200 AND suspect_rate < 30 THEN 'Critical — Deploy Now'
+      WHEN total_crimes > 100 THEN 'High Priority'
+      WHEN total_crimes > 50 THEN 'Monitor'
       ELSE 'Low Risk'
     END AS deployment_priority,
     RANK() OVER (ORDER BY total_crimes DESC) AS crime_rank
@@ -58,32 +59,32 @@ solutionQuery: |-
 instructions: |-
   The Police Chief wants to know where to deploy extra patrols.
 
-  1. Calculate per-area: total_crimes, total_arrests, arrest_rate (percentage)
-  2. Classify each area with a deployment_priority:
-     - Critical: > 500 crimes AND arrest_rate < 20%
-     - High Priority: > 300 crimes
-     - Monitor: > 100 crimes
+  1. JOIN crime_chicago with suspects to get suspect identification rate per location
+  2. Calculate per location_description: total_crimes, total_suspects, suspect_rate (%)
+  3. Classify each location with a deployment_priority:
+     - Critical: > 200 crimes AND suspect_rate < 30%
+     - High Priority: > 100 crimes
+     - Monitor: > 50 crimes
      - Low Risk: everything else
-  3. Rank by total_crimes descending and show top 10
+  4. Rank by total_crimes descending and show top 10
 hints:
-  - Use SUM(CASE WHEN arrest = 'true' THEN 1 ELSE 0 END) for arrest counts
-  - Divide arrests by total to get arrest_rate
+  - LEFT JOIN suspects to count identified suspects per crime location
+  - "suspect_rate: 100.0 * COUNT(DISTINCT suspect_id) / COUNT(*)"
   - Use RANK() OVER for ranking
-  - LIMIT 10 for top areas
+  - LIMIT 10 for top locations
 thoughtProcess:
   - "The Police Chief wants patrol deployment priorities. Translate to SQL: count crimes per area, compute arrest rates, classify priority, and rank."
-  - "CTE — AreaStats: GROUP BY area_name. Use COUNT(*) for total_crimes. For arrests, use SUM(CASE WHEN arrest = 'true' THEN 1 ELSE 0 END) — this conditional sum counts only rows where an arrest was made."
-  - "Arrest rate = arrests / total crimes × 100. Write: ROUND(100.0 * SUM(CASE...) / COUNT(*), 2) AS arrest_rate. The 100.0 (not 100) forces decimal division — integer division would truncate."
+  - "CTE — AreaStats: LEFT JOIN crime_chicago with suspects ON id = crime_id. GROUP BY location_description. COUNT(*) for total_crimes, COUNT(DISTINCT suspect_id) for identified suspects."
+  - "Suspect rate = suspects / total crimes × 100. Write: ROUND(100.0 * COUNT(DISTINCT s.suspect_id) / COUNT(*), 2). The 100.0 forces decimal division."
   - "Main query uses CASE for deployment_priority: strictest first (Critical = high crime AND low arrest rate), then High Priority, Monitor, Low Risk. This mirrors how police chiefs actually prioritize."
   - "RANK() OVER (ORDER BY total_crimes DESC) assigns rank 1 to the highest-crime area. RANK allows ties (two areas with same count get same rank). Compare: ROW_NUMBER never ties."
   - "LIMIT 10 gives the top 10 areas. The pattern: CTE for metrics → CASE for classification → RANK for ordering → LIMIT for focus. Real-world analysts use this exact pattern for priority dashboards."
 expected:
-  - area_name: Austin
-    total_crimes: 862
-    total_arrests: 152
-    arrest_rate: 17.63
-    deployment_priority: "Critical — Deploy Now"
-    crime_rank: 1
+  - { location_description: 'BANK', total_crimes: 2023, total_suspects: 46, suspect_rate: 2.27, deployment_priority: 'Critical — Deploy Now', crime_rank: 1 }
+  - { location_description: 'APARTMENT', total_crimes: 2011, total_suspects: 45, suspect_rate: 2.24, deployment_priority: 'Critical — Deploy Now', crime_rank: 2 }
+  - { location_description: 'STREET', total_crimes: 1993, total_suspects: 33, suspect_rate: 1.66, deployment_priority: 'Critical — Deploy Now', crime_rank: 3 }
+  - { location_description: 'SIDEWALK', total_crimes: 1992, total_suspects: 40, suspect_rate: 2.01, deployment_priority: 'Critical — Deploy Now', crime_rank: 4 }
+  - { location_description: 'RESIDENCE', total_crimes: 1983, total_suspects: 33, suspect_rate: 1.66, deployment_priority: 'Critical — Deploy Now', crime_rank: 5 }
 type: hidden
 tags:
   - crime_chicago

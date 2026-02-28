@@ -1,0 +1,66 @@
+id: trial_case_logic
+name: "Trial 6: Conditional Logic"
+tier: 2
+domain: trials
+description: "Cross-domain CASE trial — classify data with conditional logic under pressure."
+instructions: |-
+  *bleep* Trial 6, human. Time to think conditionally.
+  Using the space_neo dataset, classify each near-Earth object into a threat category:
+  - 'DANGEROUS' if is_potentially_hazardous = 'True' AND relative_velocity_km_s > 15
+  - 'WATCH' if is_potentially_hazardous = 'True'
+  - 'SAFE' otherwise
+  Show des, dist_km (rounded to 1 decimal), relative_velocity_km_s (rounded to 2), is_potentially_hazardous, and threat_category.
+  Order by dist_km ascending, LIMIT 10.
+skills:
+  - select
+  - case
+  - order
+  - limit
+datasets:
+  - name: space_neo
+    file: space_neo.csv
+prereq_cases:
+  - trial_basics
+seedQuery: |-
+  -- TRIAL 6: Conditional Logic
+  -- Classify NEOs by threat category
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    des,
+    ROUND(dist_km, 1) AS dist_km,
+    ROUND(relative_velocity_km_s, 2) AS relative_velocity_km_s,
+    is_potentially_hazardous,
+    CASE
+      WHEN is_potentially_hazardous = 'True' AND relative_velocity_km_s > 15 THEN 'DANGEROUS'
+      WHEN is_potentially_hazardous = 'True' THEN 'WATCH'
+      ELSE 'SAFE'
+    END AS threat_category
+  FROM space_neo
+  ORDER BY dist_km ASC
+  LIMIT 10;
+hints:
+  - "Use CASE WHEN ... THEN ... END for conditional classification"
+  - "Put the most specific condition first (DANGEROUS before WATCH)"
+  - "ROUND(column, N) controls decimal places"
+thoughtProcess:
+  - "You need to classify each NEO row — that's a CASE expression, not a WHERE filter."
+  - "Order matters in CASE: check 'DANGEROUS' first (hazardous AND fast), then 'WATCH' (hazardous only), then 'SAFE' as default."
+  - "ROUND for clean numeric output. ORDER BY dist_km ASC shows closest objects first."
+expected:
+  - { des: 'NEO927', dist_km: 30041, relative_velocity_km_s: 11.1, is_potentially_hazardous: 'True', threat_category: 'WATCH' }
+  - { des: 'NEO2603', dist_km: 30058, relative_velocity_km_s: 9.3, is_potentially_hazardous: 'False', threat_category: 'SAFE' }
+  - { des: 'NEO669', dist_km: 30127, relative_velocity_km_s: 12.5, is_potentially_hazardous: 'True', threat_category: 'WATCH' }
+  - { des: 'NEO604', dist_km: 30181, relative_velocity_km_s: 13.6, is_potentially_hazardous: 'True', threat_category: 'WATCH' }
+  - { des: 'NEO4633', dist_km: 30237, relative_velocity_km_s: 10.2, is_potentially_hazardous: 'False', threat_category: 'SAFE' }
+  - { des: 'NEO2688', dist_km: 30262, relative_velocity_km_s: 9.8, is_potentially_hazardous: 'False', threat_category: 'SAFE' }
+  - { des: 'NEO3208', dist_km: 30474, relative_velocity_km_s: 11.2, is_potentially_hazardous: 'True', threat_category: 'WATCH' }
+  - { des: 'NEO1303', dist_km: 30504, relative_velocity_km_s: 10.6, is_potentially_hazardous: 'False', threat_category: 'SAFE' }
+  - { des: 'NEO2455', dist_km: 30507, relative_velocity_km_s: 7.4, is_potentially_hazardous: 'True', threat_category: 'WATCH' }
+  - { des: 'NEO1926', dist_km: 30536, relative_velocity_km_s: 6.1, is_potentially_hazardous: 'True', threat_category: 'WATCH' }
+type: trial
+tags:
+  - trial
+  - case
+  - conditional
+category: Trials

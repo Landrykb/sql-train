@@ -1,0 +1,64 @@
+id: trial_date_grouping
+name: "Trial 9: Temporal Analysis"
+tier: 3
+domain: trials
+description: "Cross-domain date trial — group and analyze data by time periods under pressure."
+instructions: |-
+  *bleep* Trial 9, human. Time-based analysis.
+  Using the finance_stocks dataset, find the average closing price and total volume
+  per date. Show date, avg_close (rounded to 2), and total_volume.
+  Only include dates where total_volume exceeds 500,000,000.
+  Order by total_volume descending, LIMIT 10.
+skills:
+  - select
+  - group
+  - avg
+  - sum
+  - having
+  - order
+  - limit
+datasets:
+  - name: finance_stocks
+    file: finance_stocks.csv
+prereq_cases:
+  - trial_aggregation
+seedQuery: |-
+  -- TRIAL 9: Temporal Analysis
+  -- Find high-volume trading dates
+  SELECT 1;
+solutionQuery: |-
+  SELECT date,
+         ROUND(AVG(close), 2) AS avg_close,
+         SUM(volume) AS total_volume
+  FROM finance_stocks
+  GROUP BY date
+  HAVING total_volume > 500000000
+  ORDER BY total_volume DESC
+  LIMIT 10;
+hints:
+  - "GROUP BY date to aggregate per trading day"
+  - "Use HAVING (not WHERE) to filter on aggregated values"
+  - "SUM(volume) gives total market volume per date"
+thoughtProcess:
+  - "You need per-date aggregates — GROUP BY date."
+  - "AVG(close) and SUM(volume) compute the daily averages and totals."
+  - "HAVING filters AFTER grouping. WHERE filters BEFORE. Since total_volume is an aggregate, use HAVING."
+  - "ORDER BY total_volume DESC LIMIT 10 shows the busiest trading days."
+expected:
+  - { date: '2023-02-05', avg_close: 147.64, total_volume: 1742755777 }
+  - { date: '2023-09-11', avg_close: 150.34, total_volume: 1435811169 }
+  - { date: '2024-05-06', avg_close: 147.49, total_volume: 1378370386 }
+  - { date: '2024-08-05', avg_close: 150.4, total_volume: 1375728714 }
+  - { date: '2024-04-14', avg_close: 154.43, total_volume: 1342786170 }
+  - { date: '2024-04-25', avg_close: 138.58, total_volume: 1330981738 }
+  - { date: '2023-09-22', avg_close: 156.52, total_volume: 1301342050 }
+  - { date: '2024-11-23', avg_close: 154.32, total_volume: 1294561440 }
+  - { date: '2024-10-02', avg_close: 148.19, total_volume: 1291907203 }
+  - { date: '2024-10-05', avg_close: 152.89, total_volume: 1220048772 }
+type: trial
+tags:
+  - trial
+  - date
+  - having
+  - aggregation
+category: Trials

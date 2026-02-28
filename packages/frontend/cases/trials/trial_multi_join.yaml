@@ -1,0 +1,60 @@
+id: trial_multi_join
+name: "Trial 7: Multi-Table Joins"
+tier: 3
+domain: trials
+description: "Cross-domain multi-join trial — connect three tables under pressure."
+instructions: |-
+  *bleep* Trial 7, human. Multiple tables, one query.
+  Using the patients, admissions, and treatments tables, find the top 5 diagnoses
+  by number of unique patients. Show diagnosis and patient_count,
+  ordered by patient_count descending.
+  Hint: diagnosis is in the treatments table, patient_id links all three.
+skills:
+  - select
+  - join
+  - group
+  - count
+  - order
+  - limit
+datasets:
+  - name: patients
+    file: patients.csv
+  - name: admissions
+    file: admissions.csv
+  - name: treatments
+    file: treatments.csv
+prereq_cases:
+  - trial_joins
+seedQuery: |-
+  -- TRIAL 7: Multi-Table Joins
+  -- Find top 5 diagnoses by unique patient count
+  SELECT 1;
+solutionQuery: |-
+  SELECT t.diagnosis, COUNT(DISTINCT p.patient_id) AS patient_count
+  FROM patients p
+  INNER JOIN admissions a ON p.patient_id = a.patient_id
+  INNER JOIN treatments t ON p.patient_id = t.patient_id
+  GROUP BY t.diagnosis
+  ORDER BY patient_count DESC
+  LIMIT 5;
+hints:
+  - "diagnosis lives in the treatments table, not patients"
+  - "JOIN all three tables through patient_id"
+  - "COUNT(DISTINCT patient_id) avoids counting the same patient twice"
+thoughtProcess:
+  - "diagnosis is in treatments, patient info in patients, admission info in admissions. You need all three joined on patient_id."
+  - "INNER JOIN patients → admissions → treatments on patient_id."
+  - "GROUP BY t.diagnosis, then COUNT(DISTINCT p.patient_id) to avoid double-counting."
+  - "ORDER BY patient_count DESC LIMIT 5 gives the top 5 most common diagnoses."
+expected:
+  - { diagnosis: 'flu', patient_count: 1576 }
+  - { diagnosis: 'allergy', patient_count: 1564 }
+  - { diagnosis: 'hypertension', patient_count: 1552 }
+  - { diagnosis: 'covid', patient_count: 1545 }
+type: trial
+tags:
+  - trial
+  - joins
+  - multi_table
+  - healthcare
+category: Trials

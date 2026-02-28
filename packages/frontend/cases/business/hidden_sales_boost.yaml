@@ -123,114 +123,24 @@ schema:
       - name: return_reason
         type: TEXT
 expected:
-  - branch: C
-    product_line: Food and beverages
-    total_revenue: 23766.855
-    avg_rating: 7.11
-    transaction_count: 66
-    growth_opportunity: Monitor
-  - branch: A
-    product_line: Home and lifestyle
-    total_revenue: 22417.1955
-    avg_rating: 6.84
-    transaction_count: 65
-    growth_opportunity: High Priority
-  - branch: C
-    product_line: Fashion accessories
-    total_revenue: 21560.07
-    avg_rating: 7.03
-    transaction_count: 62
-    growth_opportunity: Monitor
-  - branch: B
-    product_line: Sports and travel
-    total_revenue: 19988.199
-    avg_rating: 6.92
-    transaction_count: 59
-    growth_opportunity: High Priority
-  - branch: B
-    product_line: Health and beauty
-    total_revenue: 19980.66
-    avg_rating: 6.84
-    transaction_count: 58
-    growth_opportunity: High Priority
-  - branch: A
-    product_line: Sports and travel
-    total_revenue: 19372.6995
-    avg_rating: 6.92
-    transaction_count: 56
-    growth_opportunity: High Priority
-  - branch: C
-    product_line: Electronic accessories
-    total_revenue: 18968.9745
-    avg_rating: 6.85
-    transaction_count: 55
-    growth_opportunity: High Priority
-  - branch: A
-    product_line: Electronic accessories
-    total_revenue: 18317.1135
-    avg_rating: 6.98
-    transaction_count: 60
-    growth_opportunity: High Priority
-  - branch: B
-    product_line: Home and lifestyle
-    total_revenue: 17549.1645
-    avg_rating: 7.19
-    transaction_count: 50
-    growth_opportunity: Monitor
-  - branch: A
-    product_line: Food and beverages
-    total_revenue: 17163.1005
-    avg_rating: 7.07
-    transaction_count: 51
-    growth_opportunity: Monitor
-  - branch: B
-    product_line: Electronic accessories
-    total_revenue: 17051.4435
-    avg_rating: 7.08
-    transaction_count: 53
-    growth_opportunity: Monitor
-  - branch: C
-    product_line: Health and beauty
-    total_revenue: 16615.326
-    avg_rating: 6.61
-    transaction_count: 49
-    growth_opportunity: Medium Priority
-  - branch: B
-    product_line: Fashion accessories
-    total_revenue: 16413.3165
-    avg_rating: 7.07
-    transaction_count: 47
-    growth_opportunity: Monitor
-  - branch: A
-    product_line: Fashion accessories
-    total_revenue: 16332.5085
-    avg_rating: 7.28
-    transaction_count: 49
-    growth_opportunity: Monitor
-  - branch: C
-    product_line: Sports and travel
-    total_revenue: 15761.928
-    avg_rating: 6.87
-    transaction_count: 45
-    growth_opportunity: Medium Priority
-  - branch: B
-    product_line: Food and beverages
-    total_revenue: 15214.8885
-    avg_rating: 7.11
-    transaction_count: 49
-    growth_opportunity: Monitor
-  - branch: C
-    product_line: Home and lifestyle
-    total_revenue: 13895.553
-    avg_rating: 6.82
-    transaction_count: 46
-    growth_opportunity: Monitor
-  - branch: A
-    product_line: Health and beauty
-    total_revenue: 12597.753
-    avg_rating: 6.72
-    transaction_count: 47
-    growth_opportunity: Monitor
+  - { branch: 'C', product_line: 'Food and beverages', total_revenue: 23766.85, avg_rating: 7.08, transaction_count: 66, growth_opportunity: 'Monitor' }
+  - { branch: 'A', product_line: 'Home and lifestyle', total_revenue: 22417.2, avg_rating: 6.93, transaction_count: 65, growth_opportunity: 'High Priority' }
+  - { branch: 'C', product_line: 'Fashion accessories', total_revenue: 21560.07, avg_rating: 7.44, transaction_count: 65, growth_opportunity: 'Monitor' }
+  - { branch: 'B', product_line: 'Sports and travel', total_revenue: 19988.2, avg_rating: 6.51, transaction_count: 62, growth_opportunity: 'High Priority' }
+  - { branch: 'B', product_line: 'Health and beauty', total_revenue: 19980.66, avg_rating: 7.1, transaction_count: 53, growth_opportunity: 'Monitor' }
+  - { branch: 'A', product_line: 'Sports and travel', total_revenue: 19372.7, avg_rating: 7.26, transaction_count: 59, growth_opportunity: 'Monitor' }
+  - { branch: 'C', product_line: 'Electronic accessories', total_revenue: 18968.97, avg_rating: 6.75, transaction_count: 55, growth_opportunity: 'High Priority' }
+  - { branch: 'A', product_line: 'Electronic accessories', total_revenue: 18317.11, avg_rating: 6.91, transaction_count: 60, growth_opportunity: 'High Priority' }
+  - { branch: 'B', product_line: 'Home and lifestyle', total_revenue: 17549.16, avg_rating: 6.52, transaction_count: 50, growth_opportunity: 'Medium Priority' }
+  - { branch: 'A', product_line: 'Food and beverages', total_revenue: 17163.1, avg_rating: 7.25, transaction_count: 58, growth_opportunity: 'Monitor' }
+  - { branch: 'B', product_line: 'Electronic accessories', total_revenue: 17051.44, avg_rating: 7.12, transaction_count: 55, growth_opportunity: 'Monitor' }
+  - { branch: 'C', product_line: 'Health and beauty', total_revenue: 16615.33, avg_rating: 7, transaction_count: 52, growth_opportunity: 'Monitor' }
+  - { branch: 'B', product_line: 'Fashion accessories', total_revenue: 16413.32, avg_rating: 6.72, transaction_count: 62, growth_opportunity: 'Medium Priority' }
+  - { branch: 'A', product_line: 'Fashion accessories', total_revenue: 16332.51, avg_rating: 6.88, transaction_count: 51, growth_opportunity: 'Medium Priority' }
+  - { branch: 'C', product_line: 'Sports and travel', total_revenue: 15761.93, avg_rating: 7.03, transaction_count: 45, growth_opportunity: 'Monitor' }
+  - { branch: 'B', product_line: 'Food and beverages', total_revenue: 15214.89, avg_rating: 6.99, transaction_count: 50, growth_opportunity: 'Medium Priority' }
+  - { branch: 'C', product_line: 'Home and lifestyle', total_revenue: 13895.55, avg_rating: 7.06, transaction_count: 45, growth_opportunity: 'Monitor' }
+  - { branch: 'A', product_line: 'Health and beauty', total_revenue: 12597.75, avg_rating: 6.9, transaction_count: 47, growth_opportunity: 'Monitor' }
 type: hidden
 tags:
   - business_retail

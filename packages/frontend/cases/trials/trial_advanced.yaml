@@ -43,6 +43,8 @@ thoughtProcess:
   - "Step 2: In the main query, SELECT from the CTE."
   - "Step 3: Filter with WHERE avg_yield > (subquery for overall average)."
   - "Step 4: ORDER BY avg_yield DESC to show highest-performing regions first."
+expected:
+  - { region: 'North', avg_yield: 3.51 }
 type: trial
 tags:
   - trial

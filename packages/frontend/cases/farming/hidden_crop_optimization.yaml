@@ -33,59 +33,69 @@ seedQuery: |-
 solutionQuery: |-
   WITH CropPerformance AS (
     SELECT
-      f.crop_type,
+      f.soil_type,
+      f.region,
       COUNT(*) AS harvests,
-      ROUND(AVG(f.yield_kg), 2) AS avg_yield,
+      ROUND(AVG(f.yield), 2) AS avg_yield,
       ROUND(AVG(f.ndvi), 4) AS avg_ndvi,
       ROUND(AVG(s.soil_ph), 2) AS avg_soil_ph
     FROM farming_yield f
-    INNER JOIN soil_data s ON f.field_id = s.field_id
-    GROUP BY f.crop_type
+    INNER JOIN soil_data s ON f.id = s.id
+    GROUP BY f.soil_type, f.region
   )
   SELECT
-    crop_type,
+    soil_type,
+    region,
     harvests,
     avg_yield,
     avg_ndvi,
     avg_soil_ph,
     CASE
-      WHEN avg_yield > 5000 AND avg_ndvi > 0.6 THEN 'Strongly Recommend'
-      WHEN avg_yield > 3000 AND avg_ndvi > 0.4 THEN 'Recommend'
-      WHEN avg_yield > 1000 THEN 'Consider'
+      WHEN avg_yield > 800 AND avg_ndvi > 0.6 THEN 'Strongly Recommend'
+      WHEN avg_yield > 500 AND avg_ndvi > 0.4 THEN 'Recommend'
+      WHEN avg_yield > 200 THEN 'Consider'
       ELSE 'Not Recommended'
     END AS planting_recommendation
   FROM CropPerformance
-  ORDER BY avg_yield DESC;
+  ORDER BY avg_yield DESC
+  LIMIT 15;
 instructions: |-
   The farm manager needs crop selection advice for next season.
 
-  1. JOIN farming_yield with soil_data on field_id
-  2. Calculate per crop: harvests, avg_yield, avg_ndvi, avg_soil_ph
-  3. Classify each crop:
-     - Strongly Recommend: avg_yield > 5000 AND avg_ndvi > 0.6
-     - Recommend: avg_yield > 3000 AND avg_ndvi > 0.4
-     - Consider: avg_yield > 1000
+  1. JOIN farming_yield with soil_data on id
+  2. GROUP BY soil_type and region
+  3. Calculate: harvests, avg_yield, avg_ndvi, avg_soil_ph
+  4. Classify planting_recommendation:
+     - Strongly Recommend: avg_yield > 800 AND avg_ndvi > 0.6
+     - Recommend: avg_yield > 500 AND avg_ndvi > 0.4
+     - Consider: avg_yield > 200
      - Not Recommended: everything else
-  4. Order by avg_yield descending
+  5. Order by avg_yield DESC, LIMIT 15
 hints:
-  - JOIN the two tables on field_id
+  - JOIN the two tables on id
   - Use AVG for yield, NDVI, and soil pH
   - Use CASE for the recommendation
-  - GROUP BY crop_type
+  - GROUP BY soil_type and region
 thoughtProcess:
   - "The farm manager wants to know which crops to plant more of. Translate to SQL: compare crop types by yield efficiency, NDVI health, and soil compatibility."
-  - "CTE — CropPerformance: JOIN farming_yield with soil_data on field_id. GROUP BY crop_type to get AVG(yield_kg), AVG(ndvi), AVG(soil_ph), and COUNT(*) as harvests per crop."
-  - "ROUND your averages for clean output: ROUND(AVG(f.yield_kg), 2). Farm managers don't need 10 decimal places."
+  - "CTE — CropPerformance: JOIN farming_yield with soil_data on id. GROUP BY soil_type, region to get AVG(yield), AVG(ndvi), AVG(soil_ph), and COUNT(*) as harvests."
+  - "ROUND your averages for clean output: ROUND(AVG(f.yield), 2). Farm managers don't need 10 decimal places."
   - "Use CASE to create a recommendation column: high yield + high NDVI = 'Expand Planting', low yield or low NDVI = 'Reduce or Investigate', otherwise 'Maintain Current'."
   - "ORDER BY avg_yield DESC shows the best-performing crops first. The pattern: CTE for metrics → CASE for business recommendation → ORDER BY for prioritization."
   - "This is a real-world decision support query. The output directly answers: 'Plant more of X, investigate Y, keep Z the same.' That's the power of SQL in agriculture."
 expected:
-  - crop_type: Wheat
-    harvests: 50
-    avg_yield: 5230.45
-    avg_ndvi: 0.6512
-    avg_soil_ph: 6.82
-    planting_recommendation: Strongly Recommend
+  - { soil_type: 'sandy_loam', region: 'North', harvests: 178, avg_yield: 3.58, avg_ndvi: 0.7, avg_soil_ph: 6.41, planting_recommendation: 'Not Recommended' }
+  - { soil_type: 'clay', region: 'South', harvests: 165, avg_yield: 3.56, avg_ndvi: 0.72, avg_soil_ph: 6.54, planting_recommendation: 'Not Recommended' }
+  - { soil_type: 'peat', region: 'South', harvests: 174, avg_yield: 3.54, avg_ndvi: 0.7, avg_soil_ph: 6.5, planting_recommendation: 'Not Recommended' }
+  - { soil_type: 'peat', region: 'North', harvests: 146, avg_yield: 3.5, avg_ndvi: 0.7, avg_soil_ph: 6.49, planting_recommendation: 'Not Recommended' }
+  - { soil_type: 'clay', region: 'East', harvests: 167, avg_yield: 3.49, avg_ndvi: 0.71, avg_soil_ph: 6.54, planting_recommendation: 'Not Recommended' }
+  - { soil_type: 'sandy_loam', region: 'East', harvests: 169, avg_yield: 3.48, avg_ndvi: 0.7, avg_soil_ph: 6.49, planting_recommendation: 'Not Recommended' }
+  - { soil_type: 'clay', region: 'West', harvests: 161, avg_yield: 3.47, avg_ndvi: 0.7, avg_soil_ph: 6.5, planting_recommendation: 'Not Recommended' }
+  - { soil_type: 'clay', region: 'North', harvests: 169, avg_yield: 3.46, avg_ndvi: 0.7, avg_soil_ph: 6.49, planting_recommendation: 'Not Recommended' }
+  - { soil_type: 'sandy_loam', region: 'West', harvests: 174, avg_yield: 3.46, avg_ndvi: 0.7, avg_soil_ph: 6.52, planting_recommendation: 'Not Recommended' }
+  - { soil_type: 'peat', region: 'West', harvests: 166, avg_yield: 3.45, avg_ndvi: 0.7, avg_soil_ph: 6.46, planting_recommendation: 'Not Recommended' }
+  - { soil_type: 'sandy_loam', region: 'South', harvests: 177, avg_yield: 3.41, avg_ndvi: 0.7, avg_soil_ph: 6.48, planting_recommendation: 'Not Recommended' }
+  - { soil_type: 'peat', region: 'East', harvests: 154, avg_yield: 3.39, avg_ndvi: 0.69, avg_soil_ph: 6.49, planting_recommendation: 'Not Recommended' }
 type: hidden
 tags:
   - farming_ndvi

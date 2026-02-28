@@ -2,7 +2,7 @@ id: hidden_influencer_roi
 name: "Find High-ROI Influencers for Campaign"
 tier: 6
 domain: Social Twitter
-description: The marketing director needs to select influencers for a paid campaign — find users with the best engagement-to-follower ratio to maximize campaign ROI.
+description: The marketing director needs to select top content creators for a campaign — find users who post the longest, most substantial content and joined earliest to identify the best partners.
 hidden: true
 skills:
   - select
@@ -31,68 +31,76 @@ seedQuery: |-
   --  our best bang-for-buck partners."
   SELECT 1;
 solutionQuery: |-
-  WITH UserEngagement AS (
+  WITH UserActivity AS (
     SELECT
       u.user_id,
-      u.username,
-      u.followers_count,
+      u.user_name,
+      u.signup_date,
       COUNT(t.tweet_id) AS total_posts,
-      SUM(t.likes) AS total_likes,
-      SUM(t.retweets) AS total_retweets,
-      SUM(t.likes + t.retweets) AS total_engagement
+      ROUND(AVG(LENGTH(t.text)), 1) AS avg_content_length,
+      MAX(LENGTH(t.text)) AS max_content_length,
+      MIN(t.created_at) AS first_post_date
     FROM users u
     INNER JOIN tweets t ON u.user_id = t.user_id
-    GROUP BY u.user_id, u.username, u.followers_count
+    GROUP BY u.user_id, u.user_name, u.signup_date
   )
   SELECT
-    username,
-    followers_count,
+    user_name,
     total_posts,
-    total_engagement,
-    ROUND(1.0 * total_engagement / followers_count, 4) AS engagement_rate,
-    ROUND(1.0 * total_engagement / total_posts, 2) AS avg_engagement_per_post,
+    avg_content_length,
+    max_content_length,
+    signup_date,
+    first_post_date,
+    CAST(JULIANDAY(first_post_date) - JULIANDAY(signup_date) AS INTEGER) AS days_to_first_post,
     CASE
-      WHEN 1.0 * total_engagement / followers_count > 0.05 THEN 'Tier 1 — Best ROI'
-      WHEN 1.0 * total_engagement / followers_count > 0.02 THEN 'Tier 2 — Good ROI'
-      WHEN 1.0 * total_engagement / followers_count > 0.01 THEN 'Tier 3 — Average'
+      WHEN avg_content_length > 30 AND JULIANDAY(first_post_date) - JULIANDAY(signup_date) < 30 THEN 'Tier 1 — Top Creator'
+      WHEN avg_content_length > 20 THEN 'Tier 2 — Active Creator'
+      WHEN total_posts >= 1 THEN 'Tier 3 — Casual'
       ELSE 'Skip'
     END AS campaign_tier
-  FROM UserEngagement
-  WHERE followers_count > 100
-  ORDER BY engagement_rate DESC
-  LIMIT 10;
+  FROM UserActivity
+  ORDER BY avg_content_length DESC, days_to_first_post ASC
+  LIMIT 15;
 instructions: |-
-  The marketing team needs to pick 10 influencers for a campaign.
+  The marketing team needs to pick top content creators for a campaign.
 
   1. JOIN users with tweets on user_id
-  2. Calculate per user: total_posts, total_likes, total_retweets, total_engagement
-  3. Compute engagement_rate = total_engagement / followers_count
+  2. Calculate per user: total_posts, avg_content_length, max_content_length, first_post_date
+  3. Compute days_to_first_post = JULIANDAY(first_post_date) - JULIANDAY(signup_date)
   4. Classify campaign_tier:
-     - Tier 1: engagement_rate > 0.05
-     - Tier 2: engagement_rate > 0.02
-     - Tier 3: engagement_rate > 0.01
-     - Skip: below 0.01
-  5. Filter: followers_count > 100, order by engagement_rate DESC, LIMIT 10
+     - Tier 1: avg_content_length > 30 AND days_to_first_post < 30
+     - Tier 2: avg_content_length > 20
+     - Tier 3: at least 1 post
+     - Skip: no posts
+  5. Order by avg_content_length DESC, days_to_first_post ASC, LIMIT 15
 hints:
-  - SUM(likes + retweets) for total engagement
-  - Divide total engagement by followers for the rate
-  - Use WHERE to filter minimum followers
+  - COUNT(tweet_id) for total posts per user
+  - AVG(LENGTH(text)) for average content length
+  - JULIANDAY difference for days_to_first_post
   - Use CASE for tier classification
 thoughtProcess:
-  - "Influencer ROI = total engagement relative to follower count. High followers with low engagement = poor ROI. You need engagement metrics per user, then divide by followers."
-  - "CTE — UserEngagement: JOIN users with tweets on user_id. Compute SUM(t.likes + t.retweets) AS total_engagement, COUNT(t.tweet_id) AS total_posts. GROUP BY user info."
-  - "Engagement rate = total_engagement / followers_count. Use ROUND for clean output. This normalizes engagement — a user with 100 likes and 50 followers has better ROI than 1000 likes with 100K followers."
-  - "Use CASE to classify tiers: engagement_rate > threshold = 'Top Influencer', moderate = 'Rising Star', low = 'Casual Poster'. Strictest condition first in CASE."
-  - "Filter WHERE followers_count > minimum to exclude inactive accounts. ORDER BY engagement_rate DESC to surface the best ROI influencers."
-  - "Pattern: JOIN for combined metrics → CTE for aggregation → ratio computation → CASE classification. This is how marketing teams evaluate influencer partnerships."
+  - "Top creators = users who write substantial content and started posting quickly after signup. You need posting metrics per user, then classify by activity level."
+  - "CTE — UserActivity: JOIN users with tweets on user_id. Compute COUNT(tweet_id) AS total_posts, AVG(LENGTH(text)) for content depth. GROUP BY user info."
+  - "JULIANDAY(first_post_date) - JULIANDAY(signup_date) computes how quickly they started posting. Early adopters who write long content = best campaign partners."
+  - "Use CASE to classify tiers: long content + fast posting = 'Top Creator', moderate content = 'Active Creator', any posts = 'Casual'. Strictest condition first in CASE."
+  - "ORDER BY avg_content_length DESC surfaces users who write the most substantial content first."
+  - "Pattern: JOIN for combined metrics → CTE for aggregation → date math → CASE classification. This is how marketing teams evaluate content creator partnerships."
 expected:
-  - username: social_guru
-    followers_count: 5230
-    total_posts: 45
-    total_engagement: 892
-    engagement_rate: 0.1706
-    avg_engagement_per_post: 19.82
-    campaign_tier: "Tier 1 — Best ROI"
+  - { user_name: 'User_7511', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-29', first_post_date: '2023-01-04', days_to_first_post: 6, campaign_tier: 'Tier 2 — Active Creator' }
+  - { user_name: 'User_9546', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-25', first_post_date: '2023-01-02', days_to_first_post: 8, campaign_tier: 'Tier 2 — Active Creator' }
+  - { user_name: 'User_7676', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-30', first_post_date: '2023-01-09', days_to_first_post: 10, campaign_tier: 'Tier 2 — Active Creator' }
+  - { user_name: 'User_4559', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-30', first_post_date: '2023-01-15', days_to_first_post: 16, campaign_tier: 'Tier 2 — Active Creator' }
+  - { user_name: 'User_9175', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-21', first_post_date: '2023-01-10', days_to_first_post: 20, campaign_tier: 'Tier 2 — Active Creator' }
+  - { user_name: 'User_932', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-24', first_post_date: '2023-01-16', days_to_first_post: 23, campaign_tier: 'Tier 2 — Active Creator' }
+  - { user_name: 'User_7027', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-17', first_post_date: '2023-01-12', days_to_first_post: 26, campaign_tier: 'Tier 2 — Active Creator' }
+  - { user_name: 'User_9416', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-13', first_post_date: '2023-01-08', days_to_first_post: 26, campaign_tier: 'Tier 2 — Active Creator' }
+  - { user_name: 'User_4815', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-26', first_post_date: '2023-01-24', days_to_first_post: 29, campaign_tier: 'Tier 2 — Active Creator' }
+  - { user_name: 'User_7266', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-15', first_post_date: '2023-01-13', days_to_first_post: 29, campaign_tier: 'Tier 2 — Active Creator' }
+  - { user_name: 'User_8175', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-27', first_post_date: '2023-01-26', days_to_first_post: 30, campaign_tier: 'Tier 2 — Active Creator' }
+  - { user_name: 'User_9644', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-25', first_post_date: '2023-01-24', days_to_first_post: 30, campaign_tier: 'Tier 2 — Active Creator' }
+  - { user_name: 'User_438', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-15', first_post_date: '2023-01-15', days_to_first_post: 31, campaign_tier: 'Tier 2 — Active Creator' }
+  - { user_name: 'User_9148', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-05', first_post_date: '2023-01-06', days_to_first_post: 32, campaign_tier: 'Tier 2 — Active Creator' }
+  - { user_name: 'User_1348', total_posts: 1, avg_content_length: 23, max_content_length: 23, signup_date: '2022-12-06', first_post_date: '2023-01-08', days_to_first_post: 33, campaign_tier: 'Tier 2 — Active Creator' }
 type: hidden
 tags:
   - social_twitter

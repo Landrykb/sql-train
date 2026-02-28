@@ -34,14 +34,15 @@ seedQuery: |-
 solutionQuery: |-
   WITH PatientAdmissions AS (
     SELECT
-      p.diagnosis,
+      t.diagnosis,
       p.gender,
       COUNT(DISTINCT a.admission_id) AS total_admissions,
       COUNT(DISTINCT p.patient_id) AS unique_patients,
       ROUND(1.0 * COUNT(DISTINCT a.admission_id) / COUNT(DISTINCT p.patient_id), 2) AS avg_admissions_per_patient
     FROM patients p
     INNER JOIN admissions a ON p.patient_id = a.patient_id
-    GROUP BY p.diagnosis, p.gender
+    INNER JOIN treatments t ON p.patient_id = t.patient_id
+    GROUP BY t.diagnosis, p.gender
   )
   SELECT
     diagnosis,
@@ -55,12 +56,13 @@ solutionQuery: |-
       ELSE 'Low Risk'
     END AS readmission_risk
   FROM PatientAdmissions
-  ORDER BY avg_admissions_per_patient DESC;
+  ORDER BY avg_admissions_per_patient DESC
+  LIMIT 15;
 instructions: |-
   The hospital director wants to reduce readmissions.
 
-  1. JOIN patients with admissions on patient_id
-  2. Group by diagnosis and gender
+  1. JOIN patients with admissions and treatments on patient_id
+  2. Group by diagnosis (from treatments) and gender
   3. Calculate: total_admissions, unique_patients, avg_admissions_per_patient
   4. Classify readmission_risk:
      - High Risk: avg > 2.0 admissions per patient
@@ -74,18 +76,20 @@ hints:
   - Use CASE for risk classification
 thoughtProcess:
   - "Readmission risk = patients being admitted multiple times. You need admissions per patient per diagnosis, then classify risk levels."
-  - "CTE — PatientAdmissions: JOIN patients with admissions on patient_id. GROUP BY diagnosis, gender. Compute COUNT(DISTINCT admission_id) AS total_admissions and COUNT(DISTINCT patient_id) AS unique_patients."
+  - "CTE — PatientAdmissions: JOIN patients, admissions, and treatments on patient_id. GROUP BY t.diagnosis, p.gender. Compute COUNT(DISTINCT admission_id) AS total_admissions and COUNT(DISTINCT patient_id) AS unique_patients."
   - "The ratio total_admissions / unique_patients tells you how often each patient is readmitted on average. Use 1.0 * to force decimal division: ROUND(1.0 * COUNT(DISTINCT a.admission_id) / COUNT(DISTINCT p.patient_id), 2)."
   - "CASE for risk_level: ratio > 2 = 'High Readmission Risk', ratio > 1.5 = 'Moderate Risk', else 'Low Risk'. Higher ratios mean more repeat admissions per patient."
   - "ORDER BY avg_admissions_per_patient DESC highlights the highest-risk diagnosis-gender segments. This is how hospitals prioritize follow-up care programs."
   - "Pattern: aggregate with DISTINCT counts → compute ratios → classify with CASE. The DISTINCT keyword is crucial — without it, you'd count duplicate rows."
 expected:
-  - diagnosis: Diabetes
-    gender: Male
-    total_admissions: 145
-    unique_patients: 62
-    avg_admissions_per_patient: 2.34
-    readmission_risk: High Risk
+  - { diagnosis: 'hypertension', gender: 'F', total_admissions: 976, unique_patients: 760, avg_admissions_per_patient: 1.28, readmission_risk: 'Low Risk' }
+  - { diagnosis: 'hypertension', gender: 'M', total_admissions: 1010, unique_patients: 792, avg_admissions_per_patient: 1.28, readmission_risk: 'Low Risk' }
+  - { diagnosis: 'allergy', gender: 'F', total_admissions: 944, unique_patients: 748, avg_admissions_per_patient: 1.26, readmission_risk: 'Low Risk' }
+  - { diagnosis: 'allergy', gender: 'M', total_admissions: 1030, unique_patients: 816, avg_admissions_per_patient: 1.26, readmission_risk: 'Low Risk' }
+  - { diagnosis: 'covid', gender: 'M', total_admissions: 1004, unique_patients: 796, avg_admissions_per_patient: 1.26, readmission_risk: 'Low Risk' }
+  - { diagnosis: 'flu', gender: 'F', total_admissions: 970, unique_patients: 773, avg_admissions_per_patient: 1.25, readmission_risk: 'Low Risk' }
+  - { diagnosis: 'covid', gender: 'F', total_admissions: 930, unique_patients: 749, avg_admissions_per_patient: 1.24, readmission_risk: 'Low Risk' }
+  - { diagnosis: 'flu', gender: 'M', total_admissions: 998, unique_patients: 803, avg_admissions_per_patient: 1.24, readmission_risk: 'Low Risk' }
 type: hidden
 tags:
   - healthcare
