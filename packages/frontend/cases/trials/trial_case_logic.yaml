@@ -19,7 +19,7 @@ skills:
 datasets:
   - name: space_neo
     file: space_neo.csv
-prereq_cases:
+prereq_cases: []
   - trial_basics
 seedQuery: |-
   -- TRIAL 6: Conditional Logic

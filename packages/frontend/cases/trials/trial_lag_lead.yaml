@@ -21,7 +21,7 @@ skills:
 datasets:
   - name: market_index
     file: market_index.csv
-prereq_cases:
+prereq_cases: []
   - trial_window
 seedQuery: |-
   -- Day-over-day market index change

@@ -28,7 +28,7 @@ datasets:
     file: nba_games.csv
   - name: shot_zones
     file: shot_zones.csv
-prereq_cases:
+prereq_cases: []
   - trial_window
 seedQuery: |-
   -- TRIAL 10: The Final Boss

@@ -19,7 +19,7 @@ datasets:
     file: business_retail.csv
   - name: returns
     file: returns.csv
-prereq_cases:
+prereq_cases: []
   - trial_aggregation
 seedQuery: |-
   -- TRIAL 3: Join Operations

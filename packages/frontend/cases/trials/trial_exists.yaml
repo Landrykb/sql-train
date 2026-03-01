@@ -20,7 +20,7 @@ datasets:
     file: patients.csv
   - name: treatments
     file: treatments.csv
-prereq_cases:
+prereq_cases: []
   - trial_subquery
 seedQuery: |-
   -- Find patients who have been treated

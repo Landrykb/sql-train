@@ -22,7 +22,7 @@ skills:
 datasets:
   - name: business_retail
     file: business_retail.csv
-prereq_cases:
+prereq_cases: []
   - trial_case_logic
 seedQuery: |-
   -- Pivot: revenue by branch and payment method

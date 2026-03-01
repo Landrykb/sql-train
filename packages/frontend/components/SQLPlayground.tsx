@@ -473,7 +473,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
     return () => window.removeEventListener('keydown', handler);
   }, [canRun, onRun]);
 
-  if (!isUnlocked(prerequisites) && !skippedCases.includes(id)) {
+  if (!isTrial && !isUnlocked(prerequisites) && !skippedCases.includes(id)) {
     const skipPerks = getActivePerks();
     const skipCost = skipPerks.effectiveSkipCost;
     const canSkip = points >= skipCost;

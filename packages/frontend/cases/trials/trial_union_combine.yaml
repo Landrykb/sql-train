@@ -21,7 +21,7 @@ datasets:
     file: crime_chicago.csv
   - name: admissions
     file: admissions.csv
-prereq_cases:
+prereq_cases: []
   - trial_aggregation
 seedQuery: |-
   -- Combine crime and admission events into one feed

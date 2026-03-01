@@ -20,7 +20,7 @@ skills:
 datasets:
   - name: farming_yield
     file: farming_yield.csv
-prereq_cases:
+prereq_cases: []
   - trial_subquery
 seedQuery: |-
   -- Find above-average yields per region

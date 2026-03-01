@@ -27,7 +27,7 @@ datasets:
     file: farming_yield.csv
   - name: soil_data
     file: soil_data.csv
-prereq_cases:
+prereq_cases: []
   - trial_advanced
 seedQuery: |-
   -- Soil quality report: combine yield data with soil chemistry
