@@ -30,7 +30,19 @@
     space: ['orbit_select', 'velocity_by_type', 'mission_joins', 'orbit_trend', 'cte_payload', 'capstone_space'],
     sports: ['match_select', 'score_by_team', 'player_joins', 'score_trend', 'cte_player', 'capstone_sports'],
     guide: ['guide'],
-    trials: ['trial_basics', 'trial_aggregation', 'trial_joins', 'trial_advanced', 'trial_window'],
+    trials: [
+    'trial_basics', 'trial_aggregation', 'trial_joins', 'trial_advanced', 'trial_window',
+    'trial_case_logic', 'trial_multi_join', 'trial_subquery', 'trial_date_grouping', 'trial_final_boss',
+    'trial_max_min', 'trial_distinct', 'trial_sum_avg', 'trial_count_distinct', 'trial_between',
+    'trial_like_pattern', 'trial_in_filter', 'trial_null_handling', 'trial_multi_order',
+    'trial_left_join', 'trial_percentage', 'trial_date_math', 'trial_group_multi',
+    'trial_string_funcs', 'trial_having_complex', 'trial_min_max_group',
+    'trial_lag_lead', 'trial_running_total', 'trial_dense_rank', 'trial_top_n_group',
+    'trial_exists', 'trial_self_compare', 'trial_coalesce', 'trial_cast_convert',
+    'trial_union_combine', 'trial_not_in', 'trial_ntile', 'trial_cross_domain',
+    'trial_avg_filter', 'trial_group_concat', 'trial_compound_where', 'trial_ratio_calc',
+    'trial_median_approx', 'trial_pivot_case', 'trial_date_extract', 'trial_count_case',
+  ],
   };
 
   // Hidden bonus levels: real-world business scenarios that unlock after completing all regular cases
@@ -106,6 +118,16 @@
     hidden_player_value: 6, hidden_mvp_predictor: 7,
     // trials
     trial_basics: 2, trial_aggregation: 2, trial_joins: 3, trial_advanced: 3, trial_window: 3,
+    trial_case_logic: 2, trial_multi_join: 3, trial_subquery: 3, trial_date_grouping: 3, trial_final_boss: 4,
+    trial_max_min: 1, trial_distinct: 1, trial_sum_avg: 1, trial_count_distinct: 2, trial_between: 2,
+    trial_like_pattern: 2, trial_in_filter: 2, trial_null_handling: 2, trial_multi_order: 1,
+    trial_left_join: 3, trial_percentage: 3, trial_date_math: 3, trial_group_multi: 2,
+    trial_string_funcs: 2, trial_having_complex: 3, trial_min_max_group: 2,
+    trial_lag_lead: 3, trial_running_total: 3, trial_dense_rank: 4, trial_top_n_group: 4,
+    trial_exists: 3, trial_self_compare: 4, trial_coalesce: 2, trial_cast_convert: 2,
+    trial_union_combine: 3, trial_not_in: 2, trial_ntile: 3, trial_cross_domain: 4,
+    trial_avg_filter: 3, trial_group_concat: 3, trial_compound_where: 2, trial_ratio_calc: 2,
+    trial_median_approx: 4, trial_pivot_case: 4, trial_date_extract: 2, trial_count_case: 2,
   };
 
   // Visualization configurations for each domain and case

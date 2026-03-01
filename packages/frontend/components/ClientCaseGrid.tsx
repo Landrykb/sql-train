@@ -72,8 +72,9 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
         {filteredCases.map((c, index) => {
           const isHidden = hiddenIds.has(c.id) || c.hidden;
+          const isTrial = domain === 'trials';
           const isFirstCase = index === 0 && !isHidden;
-          const locked = !isFirstCase && !isUnlocked(c.prereq_cases || []);
+          const locked = isTrial ? false : (!isFirstCase && !isUnlocked(c.prereq_cases || []));
           const hiddenLocked = isHidden && !allRegularComplete;
           const isEffectivelyLocked = locked || hiddenLocked;
           const isNext = c.id === nextCaseId && !isEffectivelyLocked && !completed.has(c.id);

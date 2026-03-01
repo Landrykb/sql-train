@@ -49,13 +49,13 @@ const domainChartBuilders: Record<string, (tables: Record<string, Record<string,
     if (!rows.length) return [];
     const typeMap: Record<string, number> = {};
     rows.forEach((r) => { typeMap[r.primary_type] = (typeMap[r.primary_type] || 0) + 1; });
-    const sorted = Object.entries(typeMap).sort((a, b) => b[1] - a[1]).slice(0, 12);
+    const sorted = Object.entries(typeMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
     const locMap: Record<string, number> = {};
     rows.forEach((r) => { if (r.location_description) locMap[r.location_description] = (locMap[r.location_description] || 0) + 1; });
-    const locSorted = Object.entries(locMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const locSorted = Object.entries(locMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
     return [
-      { title: 'Crimes by Type', data: [{ x: sorted.map(([k]) => k), y: sorted.map(([, v]) => v), type: 'bar', marker: { color: '#9333ea' } }], layout: { title: { text: 'Top Crime Types' }, xaxis: { tickangle: -45 } } },
-      { title: 'Top Locations', data: [{ x: locSorted.map(([k]) => k), y: locSorted.map(([, v]) => v), type: 'bar', marker: { color: '#ef4444' } }], layout: { title: { text: 'Top Crime Locations' }, xaxis: { tickangle: -45 } } },
+      { title: 'Crimes by Type', data: [{ y: sorted.map(([k]) => k), x: sorted.map(([, v]) => v), type: 'bar', orientation: 'h', marker: { color: '#9333ea' } }], layout: { title: { text: 'Top 8 Crime Types' }, margin: { l: 120 } } },
+      { title: 'Top Locations', data: [{ y: locSorted.map(([k]) => k.length > 20 ? k.slice(0, 18) + '…' : k), x: locSorted.map(([, v]) => v), type: 'bar', orientation: 'h', marker: { color: '#ef4444' } }], layout: { title: { text: 'Top 8 Crime Locations' }, margin: { l: 140 } } },
     ];
   },
   farming: (t) => {
@@ -68,9 +68,10 @@ const domainChartBuilders: Record<string, (tables: Record<string, Record<string,
       regMap[reg].yield += Number(r.yield || 0); regMap[reg].ndvi += Number(r.ndvi || 0); regMap[reg].cnt++;
     });
     const regions = Object.keys(regMap);
+    const sample = rows.length > 500 ? rows.filter((_, i) => i % Math.ceil(rows.length / 500) === 0) : rows;
     return [
-      { title: 'Yield by Region', data: [{ x: regions, y: regions.map((r) => Math.round(regMap[r].yield)), type: 'bar', marker: { color: '#16a34a' } }], layout: { title: { text: 'Total Yield by Region' } } },
-      { title: 'NDVI vs Yield', data: [{ x: rows.map((r) => Number(r.ndvi)), y: rows.map((r) => Number(r.yield)), mode: 'markers', type: 'scatter', marker: { color: '#2563eb', size: 4, opacity: 0.5 } }], layout: { title: { text: 'NDVI vs Yield (Scatter)' }, xaxis: { title: 'NDVI' }, yaxis: { title: 'Yield' } } },
+      { title: 'Yield by Region', data: [{ x: regions, y: regions.map((r) => Math.round(regMap[r].yield / regMap[r].cnt * 100) / 100), type: 'bar', marker: { color: '#16a34a' } }], layout: { title: { text: 'Avg Yield by Region' } } },
+      { title: 'NDVI vs Yield', data: [{ x: sample.map((r) => Number(r.ndvi)), y: sample.map((r) => Number(r.yield)), mode: 'markers', type: 'scatter', marker: { color: '#2563eb', size: 4, opacity: 0.5 } }], layout: { title: { text: 'NDVI vs Yield (sampled)' }, xaxis: { title: 'NDVI' }, yaxis: { title: 'Yield' } } },
     ];
   },
   finance: (t) => {
@@ -82,10 +83,11 @@ const domainChartBuilders: Record<string, (tables: Record<string, Record<string,
       if (!tickerMap[tk]) tickerMap[tk] = { close: [], vol: 0 };
       tickerMap[tk].close.push(Number(r.close || 0)); tickerMap[tk].vol += Number(r.volume || 0);
     });
-    const tickers = Object.keys(tickerMap);
+    const byAvg = Object.entries(tickerMap).map(([tk, d]) => ({ tk, avg: d.close.reduce((a, b) => a + b, 0) / d.close.length })).sort((a, b) => b.avg - a.avg).slice(0, 10);
+    const byVol = Object.entries(tickerMap).sort((a, b) => b[1].vol - a[1].vol).slice(0, 10);
     return [
-      { title: 'Avg Close Price', data: [{ x: tickers, y: tickers.map((tk) => Math.round(tickerMap[tk].close.reduce((a, b) => a + b, 0) / tickerMap[tk].close.length * 100) / 100), type: 'bar', marker: { color: '#0ea5e9' } }], layout: { title: { text: 'Average Close Price by Ticker' } } },
-      { title: 'Total Volume', data: [{ labels: tickers, values: tickers.map((tk) => tickerMap[tk].vol), type: 'pie', textinfo: 'percent+label' }], layout: { title: { text: 'Trading Volume Distribution' } } },
+      { title: 'Top 10 Avg Close Price', data: [{ x: byAvg.map((d) => d.tk), y: byAvg.map((d) => Math.round(d.avg * 100) / 100), type: 'bar', marker: { color: '#0ea5e9' } }], layout: { title: { text: 'Top 10 Tickers by Avg Close Price' }, xaxis: { tickangle: -30 } } },
+      { title: 'Top 10 Volume', data: [{ x: byVol.map(([k]) => k), y: byVol.map(([, v]) => v.vol), type: 'bar', marker: { color: '#f59e0b' } }], layout: { title: { text: 'Top 10 Tickers by Total Volume' }, xaxis: { tickangle: -30 } } },
     ];
   },
   healthcare: (t) => {
@@ -110,11 +112,11 @@ const domainChartBuilders: Record<string, (tables: Record<string, Record<string,
     if (!tweets.length) return [];
     const userMap: Record<string, number> = {};
     tweets.forEach((r) => { userMap[r.user_id] = (userMap[r.user_id] || 0) + 1; });
-    const sorted = Object.entries(userMap).sort((a, b) => b[1] - a[1]).slice(0, 15);
+    const sorted = Object.entries(userMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
     const lenBuckets: Record<string, number> = { 'Short (<50)': 0, 'Medium (50-150)': 0, 'Long (>150)': 0 };
     tweets.forEach((r) => { const len = (r.text || '').length; if (len < 50) lenBuckets['Short (<50)']++; else if (len <= 150) lenBuckets['Medium (50-150)']++; else lenBuckets['Long (>150)']++; });
     return [
-      { title: 'Top Tweeters', data: [{ x: sorted.map(([k]) => k), y: sorted.map(([, v]) => v), type: 'bar', marker: { color: '#1d9bf0' } }], layout: { title: { text: 'Most Active Users' } } },
+      { title: 'Top 10 Tweeters', data: [{ x: sorted.map(([k]) => k), y: sorted.map(([, v]) => v), type: 'bar', marker: { color: '#1d9bf0' } }], layout: { title: { text: 'Top 10 Most Active Users' }, xaxis: { tickangle: -30 } } },
       { title: 'Tweet Length', data: [{ labels: Object.keys(lenBuckets), values: Object.values(lenBuckets), type: 'pie', textinfo: 'percent+label', marker: { colors: ['#93c5fd', '#3b82f6', '#1e40af'] } }], layout: { title: { text: 'Tweet Length Distribution' } } },
     ];
   },
@@ -139,9 +141,10 @@ const domainChartBuilders: Record<string, (tables: Record<string, Record<string,
       playerMap[p].pts += Number(r.points || 0); playerMap[p].ast += Number(r.assists || 0); playerMap[p].reb += Number(r.rebounds || 0); playerMap[p].games++;
     });
     const top = Object.entries(playerMap).sort((a, b) => b[1].pts - a[1].pts).slice(0, 10);
+    const ptsDist = rows.map((r) => Number(r.points)).filter((v) => !isNaN(v));
     return [
-      { title: 'Top Scorers', data: [{ x: top.map(([k]) => k), y: top.map(([, v]) => v.pts), type: 'bar', name: 'Points', marker: { color: '#f97316' } }, { x: top.map(([k]) => k), y: top.map(([, v]) => v.ast), type: 'bar', name: 'Assists', marker: { color: '#3b82f6' } }], layout: { title: { text: 'Top Players: Points & Assists' }, barmode: 'group' } },
-      { title: 'Points vs Rebounds', data: [{ x: rows.map((r) => Number(r.points)), y: rows.map((r) => Number(r.rebounds)), mode: 'markers', type: 'scatter', marker: { color: '#f97316', size: 4, opacity: 0.4 } }], layout: { title: { text: 'Points vs Rebounds' }, xaxis: { title: 'Points' }, yaxis: { title: 'Rebounds' } } },
+      { title: 'Top Scorers', data: [{ x: top.map(([k]) => k), y: top.map(([, v]) => v.pts), type: 'bar', name: 'Points', marker: { color: '#f97316' } }, { x: top.map(([k]) => k), y: top.map(([, v]) => v.ast), type: 'bar', name: 'Assists', marker: { color: '#3b82f6' } }], layout: { title: { text: 'Top 10 Players: Points & Assists' }, barmode: 'group', xaxis: { tickangle: -30 } } },
+      { title: 'Points Distribution', data: [{ x: ptsDist, type: 'histogram', nbinsx: 25, marker: { color: '#f97316' } }], layout: { title: { text: 'Points Scored Distribution' }, xaxis: { title: 'Points' }, yaxis: { title: 'Games' } } },
     ];
   },
 };
@@ -424,14 +427,17 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
                     setPushing(true);
                     setPushResult(null);
                     const domainTitle = domain.charAt(0).toUpperCase() + domain.slice(1);
+                    const avgTime = solvedEntries.filter((e) => e.time).length > 0 ? Math.round(solvedEntries.filter((e) => e.time).reduce((s, e) => s + (e.time || 0), 0) / solvedEntries.filter((e) => e.time).length) : 0;
+                    const bestTime = solvedEntries.filter((e) => e.time).length > 0 ? Math.min(...solvedEntries.filter((e) => e.time).map((e) => e.time!)) : 0;
+                    const firstTryCount = solvedEntries.filter((e) => (e.attempts || 1) === 1).length;
                     const files = [
                       {
                         path: `${domain}/README.md`,
-                        content: `# ${domainTitle} SQL Analytics Portfolio\n\n## About\nSQL data analysis projects completed through the **BleepxQuery SwiftLink Training Program**.\nDomain: **${domainTitle}** | Challenges Solved: **${solvedEntries.length}/${totalCases}** | Completion: **${pct}%**\n\n## Skills Demonstrated\n- SQL (SELECT, JOIN, GROUP BY, Window Functions, CTEs, Subqueries)\n- Data Analysis & Aggregation\n- Real-world problem solving with industry datasets\n\n## Projects\n\n${solvedEntries.map((e, i) => `### ${i + 1}. [${e.name}](./${e.id}/query.sql)\n${e.attempts ? `- **Attempts:** ${e.attempts}` : ''}\n${e.time ? `- **Solve Time:** ${Math.floor(e.time / 60)}m ${e.time % 60}s` : ''}\n\n\`\`\`sql\n${e.query}\n\`\`\`\n`).join('\n')}\n## How to Run\n1. Load the CSV datasets into any SQL database (SQLite, PostgreSQL, etc.)\n2. Run each query against the loaded tables\n3. Each challenge has its own folder with a \`query.sql\` file\n\n## Datasets\n${tables.map((t) => `- **${t.name}** — ${t.rowCount} rows, ${t.columns.length} columns (${t.columns.slice(0, 5).join(', ')}${t.columns.length > 5 ? '...' : ''})`).join('\n')}\n\n---\n*Generated by [BleepxQuery](https://bleepxacademy.vercel.app) — SwiftLink Training Program*\n`,
+                        content: `# ${domainTitle} SQL Analytics Portfolio\n\n## About\nSQL data analysis projects completed through the **BleepxQuery SwiftLink Training Program**.\n\n| Metric | Value |\n|--------|-------|\n| Domain | **${domainTitle}** |\n| Challenges Solved | **${solvedEntries.length}/${totalCases}** (${pct}%) |\n${avgTime ? `| Avg Solve Time | **${Math.floor(avgTime / 60)}m ${avgTime % 60}s** |\n` : ''}${bestTime ? `| Best Solve Time | **${Math.floor(bestTime / 60)}m ${bestTime % 60}s** |\n` : ''}| First-Try Solves | **${firstTryCount}/${solvedEntries.length}** |\n\n## Skills Demonstrated\n- **Core SQL:** SELECT, WHERE, ORDER BY, LIMIT, DISTINCT\n- **Aggregation:** GROUP BY, HAVING, COUNT, SUM, AVG, MAX, MIN\n- **Joins:** INNER JOIN, LEFT JOIN, multi-table joins\n- **Advanced:** Window Functions (RANK, LAG, LEAD), CTEs, Subqueries\n- **Analysis:** CASE expressions, date functions, percentage calculations\n- **Real-world:** ${domainTitle} industry data analysis & problem solving\n\n## Datasets Used\n${tables.map((t) => `- **${t.name}** — ${t.rowCount.toLocaleString()} rows, ${t.columns.length} columns\n  - Columns: \`${t.columns.join('`, `')}\``).join('\n')}\n\n## Projects\n\n${solvedEntries.map((e, i) => `### ${i + 1}. [${e.name}](./${e.id}/query.sql)\n${e.attempts ? `- **Attempts:** ${e.attempts}` : ''}${(e.attempts || 1) === 1 ? ' (first try!)' : ''}\n${e.time ? `- **Solve Time:** ${Math.floor(e.time / 60)}m ${e.time % 60}s` : ''}\n\n\`\`\`sql\n${e.query}\n\`\`\`\n`).join('\n')}\n## How to Run\n1. Load the CSV datasets into any SQL database (SQLite, PostgreSQL, etc.)\n2. Run each query against the loaded tables\n3. Each challenge has its own folder with a \`query.sql\` file\n\n---\n*Generated by [BleepxQuery](https://bleepxacademy.vercel.app) — SwiftLink Training Program*\n`,
                       },
                       ...solvedEntries.map((e) => ({
                         path: `${domain}/${e.id}/query.sql`,
-                        content: `-- ${e.name}\n-- Domain: ${domainTitle}\n-- My solution query\n\n${e.query}\n`,
+                        content: `-- ${e.name}\n-- Domain: ${domainTitle}\n-- BleepxQuery SwiftLink Training Program\n--\n${e.attempts ? `-- Attempts: ${e.attempts}${(e.attempts || 1) === 1 ? ' (first try!)' : ''}\n` : ''}${e.time ? `-- Solve Time: ${Math.floor(e.time / 60)}m ${e.time % 60}s\n` : ''}-- Date: ${e.ts ? new Date(e.ts).toLocaleDateString() : 'N/A'}\n\n${e.query}\n`,
                       })),
                     ];
                     const result = await pushPortfolioToGitHub(domain, files, (msg) => setPushMsg(msg));
@@ -455,7 +461,11 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
               )}
               <button
                 onClick={() => {
-                  const report = `# ${domain.charAt(0).toUpperCase() + domain.slice(1)} — Progress Report\n## BleepxQuery SwiftLink Training Program\n\n**Completed:** ${completedCount} of ${totalCases} (${pct}%)\n**Date:** ${new Date().toLocaleDateString()}\n\n---\n\n${solvedEntries.map((e) => `### ${e.name}${e.attempts ? ` (${e.attempts} attempts)` : ''}${e.time ? ` — ${Math.floor(e.time / 60)}m ${e.time % 60}s` : ''}\n\`\`\`sql\n${e.query}\n\`\`\`\n`).join('\n')}\n\n---\n*Generated by [BleepxQuery](https://bleepxacademy.vercel.app)*\n`;
+                  const dt = domain.charAt(0).toUpperCase() + domain.slice(1);
+                  const avgT = solvedEntries.filter((e) => e.time).length > 0 ? Math.round(solvedEntries.filter((e) => e.time).reduce((s, e) => s + (e.time || 0), 0) / solvedEntries.filter((e) => e.time).length) : 0;
+                  const bestT = solvedEntries.filter((e) => e.time).length > 0 ? Math.min(...solvedEntries.filter((e) => e.time).map((e) => e.time!)) : 0;
+                  const ftc = solvedEntries.filter((e) => (e.attempts || 1) === 1).length;
+                  const report = `# ${dt} SQL Analytics — Progress Report\n## BleepxQuery SwiftLink Training Program\n\n| Metric | Value |\n|--------|-------|\n| Domain | **${dt}** |\n| Completed | **${completedCount}/${totalCases}** (${pct}%) |\n${avgT ? `| Avg Solve Time | **${Math.floor(avgT / 60)}m ${avgT % 60}s** |\n` : ''}${bestT ? `| Best Solve Time | **${Math.floor(bestT / 60)}m ${bestT % 60}s** |\n` : ''}| First-Try Solves | **${ftc}/${solvedEntries.length}** |\n| Date | **${new Date().toLocaleDateString()}** |\n\n## Datasets Analyzed\n${tables.map((t) => `- **${t.name}** — ${t.rowCount.toLocaleString()} rows, ${t.columns.length} columns (\`${t.columns.slice(0, 6).join('`, `')}\`${t.columns.length > 6 ? ', ...' : ''})`).join('\n')}\n\n## Skills Demonstrated\nSELECT, WHERE, ORDER BY, GROUP BY, HAVING, JOIN, LEFT JOIN, CTE, Window Functions, Subqueries, CASE, Date Functions, Aggregation (COUNT, SUM, AVG, MAX, MIN)\n\n---\n\n## Solved Challenges\n\n${solvedEntries.map((e, i) => `### ${i + 1}. ${e.name}\n${e.attempts ? `- **Attempts:** ${e.attempts}${(e.attempts || 1) === 1 ? ' ✨ first try' : ''}` : ''}\n${e.time ? `- **Solve Time:** ${Math.floor(e.time / 60)}m ${e.time % 60}s` : ''}\n${e.ts ? `- **Date:** ${new Date(e.ts).toLocaleDateString()}` : ''}\n\n\`\`\`sql\n${e.query}\n\`\`\`\n`).join('\n')}\n\n---\n*Generated by [BleepxQuery](https://bleepxacademy.vercel.app) — SwiftLink Training Program*\n`;
                   const blob = new Blob([report], { type: 'text/markdown' });
                   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${domain}_progress.md`; a.click();
                 }}
@@ -465,7 +475,10 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
               </button>
               <button
                 onClick={() => {
-                  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${domain} Portfolio</title><style>body{font-family:system-ui;max-width:800px;margin:40px auto;padding:20px;color:#1f2937}h1{color:#2563eb;border-bottom:3px solid #2563eb;padding-bottom:8px}h2{margin-top:32px;color:#374151}pre{background:#1e293b;color:#a5f3fc;padding:16px;border-radius:12px;overflow-x:auto;font-size:13px;line-height:1.5}.meta{display:flex;gap:16px;color:#6b7280;font-size:13px;margin:8px 0}.badge{display:inline-block;background:#dcfce7;color:#166534;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600}@media print{body{margin:0}pre{background:#f1f5f9;color:#0f172a}}</style></head><body><h1>${domain.charAt(0).toUpperCase() + domain.slice(1)} SQL Analytics Portfolio</h1><p><strong>BleepxQuery SwiftLink Training</strong> | ${completedCount}/${totalCases} challenges (${pct}%) | ${new Date().toLocaleDateString()}</p><hr>${solvedEntries.map((e) => `<h2>${e.name} <span class="badge">Solved</span></h2><div class="meta">${e.attempts ? `<span>Attempts: ${e.attempts}</span>` : ''}${e.time ? `<span>Time: ${Math.floor(e.time / 60)}m ${e.time % 60}s</span>` : ''}</div><pre>${e.query.replace(/</g,'&lt;')}</pre>`).join('')}<hr><p style="font-size:12px;color:#9ca3af;margin-top:24px">Generated by <a href="https://bleepxacademy.vercel.app" style="color:#2563eb">BleepxQuery</a></p></body></html>`;
+                  const pdt = domain.charAt(0).toUpperCase() + domain.slice(1);
+                  const pAvgT = solvedEntries.filter((e) => e.time).length > 0 ? Math.round(solvedEntries.filter((e) => e.time).reduce((s, e) => s + (e.time || 0), 0) / solvedEntries.filter((e) => e.time).length) : 0;
+                  const pFtc = solvedEntries.filter((e) => (e.attempts || 1) === 1).length;
+                  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${pdt} Portfolio</title><style>body{font-family:system-ui;max-width:800px;margin:40px auto;padding:20px;color:#1f2937}h1{color:#2563eb;border-bottom:3px solid #2563eb;padding-bottom:8px}h2{margin-top:32px;color:#374151}pre{background:#1e293b;color:#a5f3fc;padding:16px;border-radius:12px;overflow-x:auto;font-size:13px;line-height:1.5}.meta{display:flex;gap:16px;color:#6b7280;font-size:13px;margin:8px 0}.badge{display:inline-block;background:#dcfce7;color:#166534;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600}table{border-collapse:collapse;width:100%;margin:16px 0}th,td{border:1px solid #e5e7eb;padding:8px 12px;text-align:left;font-size:13px}th{background:#f3f4f6;font-weight:600}.ds{background:#f0fdf4;border-radius:8px;padding:12px;margin:8px 0;font-size:13px}@media print{body{margin:0}pre{background:#f1f5f9;color:#0f172a}}</style></head><body><h1>${pdt} SQL Analytics Portfolio</h1><p><strong>BleepxQuery SwiftLink Training</strong> | ${new Date().toLocaleDateString()}</p><table><tr><th>Metric</th><th>Value</th></tr><tr><td>Challenges Solved</td><td><strong>${completedCount}/${totalCases}</strong> (${pct}%)</td></tr>${pAvgT ? `<tr><td>Avg Solve Time</td><td>${Math.floor(pAvgT / 60)}m ${pAvgT % 60}s</td></tr>` : ''}<tr><td>First-Try Solves</td><td>${pFtc}/${solvedEntries.length}</td></tr></table><h2>Datasets</h2>${tables.map((t) => `<div class="ds"><strong>${t.name}</strong> — ${t.rowCount.toLocaleString()} rows, ${t.columns.length} cols<br><small>${t.columns.join(', ')}</small></div>`).join('')}<h2>Skills</h2><p>SELECT, WHERE, JOIN, LEFT JOIN, GROUP BY, HAVING, CTE, Window Functions, Subqueries, CASE, Aggregation, Date Functions</p><hr>${solvedEntries.map((e) => `<h2>${e.name} <span class="badge">Solved</span></h2><div class="meta">${e.attempts ? `<span>Attempts: ${e.attempts}${(e.attempts || 1) === 1 ? ' (first try!)' : ''}</span>` : ''}${e.time ? `<span>Time: ${Math.floor(e.time / 60)}m ${e.time % 60}s</span>` : ''}</div><pre>${e.query.replace(/</g,'&lt;')}</pre>`).join('')}<hr><p style="font-size:12px;color:#9ca3af;margin-top:24px">Generated by <a href="https://bleepxacademy.vercel.app" style="color:#2563eb">BleepxQuery</a> — SwiftLink Training Program</p></body></html>`;
                   const w = window.open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
                   if (w) setTimeout(() => w.print(), 800);
                 }}
