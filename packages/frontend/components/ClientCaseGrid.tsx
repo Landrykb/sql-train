@@ -5,7 +5,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useProgress } from '@/lib/useProgress';
-import { caseOrder, hiddenCaseOrder } from '@/lib/constants';
+import { caseOrder, hiddenCaseOrder, CASE_TIERS, TRIAL_TIER_UNLOCK } from '@/lib/constants';
+import { getStoreState } from '@/lib/pointsStore';
 
 interface Case {
   id: string;
@@ -30,6 +31,20 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
   const regularCases = caseOrder[domain] || [];
   const hiddenIds = new Set(hiddenCaseOrder[domain] || []);
   const allRegularComplete = regularCases.length > 0 && regularCases.every((id) => completed.has(id));
+
+  // Progressive trial unlock: check lifetime points against trial tier thresholds
+  const isTrial = domain === 'trials';
+  const totalPointsEarned = isTrial ? (getStoreState().totalPointsEarned || 0) : 0;
+  const isTrialUnlocked = (caseId: string) => {
+    const tier = CASE_TIERS[caseId] || 1;
+    const req = TRIAL_TIER_UNLOCK[tier] || TRIAL_TIER_UNLOCK[1];
+    return totalPointsEarned >= req.minPoints;
+  };
+  const getTrialLockLabel = (caseId: string) => {
+    const tier = CASE_TIERS[caseId] || 1;
+    const req = TRIAL_TIER_UNLOCK[tier] || TRIAL_TIER_UNLOCK[1];
+    return `${req.label} (${req.minPoints} pts)`;
+  };
 
   const filteredCases = cases.filter((c, index) => {
     const isHidden = hiddenIds.has(c.id) || c.hidden;
@@ -72,9 +87,8 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
         {filteredCases.map((c, index) => {
           const isHidden = hiddenIds.has(c.id) || c.hidden;
-          const isTrial = domain === 'trials';
           const isFirstCase = index === 0 && !isHidden;
-          const locked = isTrial ? false : (!isFirstCase && !isUnlocked(c.prereq_cases || []));
+          const locked = isTrial ? !isTrialUnlocked(c.id) : (!isFirstCase && !isUnlocked(c.prereq_cases || []));
           const hiddenLocked = isHidden && !allRegularComplete;
           const isEffectivelyLocked = locked || hiddenLocked;
           const isNext = c.id === nextCaseId && !isEffectivelyLocked && !completed.has(c.id);
@@ -173,7 +187,12 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
               {isNext && (
                 <p className="text-xs sm:text-sm text-bleepx-blue mt-2">*bleep* Tackle this next.</p>
               )}
-              {isEffectivelyLocked && c.prereq_cases && c.prereq_cases.length > 0 && (
+              {isEffectivelyLocked && isTrial && (
+                <div className="text-xs text-bleepx-gray mt-2">
+                  🔒 Requires <strong>{getTrialLockLabel(c.id)}</strong> portfolio level
+                </div>
+              )}
+              {isEffectivelyLocked && !isTrial && c.prereq_cases && c.prereq_cases.length > 0 && (
                 <div className="text-xs text-bleepx-gray mt-2">
                   Complete prerequisites:{' '}
                   {c.prereq_cases.map((prereq, i) => (

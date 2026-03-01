@@ -138,6 +138,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
   const [trialBriefing, setTrialBriefing] = useState(false); // show start screen for trials
   const [selectedDifficulty, setSelectedDifficulty] = useState<TrialDifficulty | null>(null);
   const [timeLimit, setTimeLimit] = useState(0); // countdown from this value (seconds)
+  const [showTestModePicker, setShowTestModePicker] = useState(false); // in-trial test mode toggle
   const [timeExpired, setTimeExpired] = useState(false);
   const { dark } = useTheme();
   const editorViewRef = useRef<any>(null);
@@ -542,6 +543,40 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
     setTimerEnabled(true);
     setTrialBriefing(false);
     setTimeExpired(false);
+    setShowTestModePicker(false);
+  };
+
+  // Start practice mode (no timer)
+  const startPractice = () => {
+    setSelectedDifficulty(null);
+    setTimeLimit(0);
+    setTimerSeconds(0);
+    setTimerEnabled(false);
+    setTrialBriefing(false);
+    setTimeExpired(false);
+  };
+
+  // Activate test mode mid-trial (from toolbar toggle)
+  const activateTestMode = (diff: TrialDifficulty) => {
+    const trialPerks = getActivePerks();
+    const totalTime = diff.timeLimitSeconds + trialPerks.trialTimeBonus;
+    setSelectedDifficulty(diff);
+    setTimeLimit(totalTime);
+    setTimerSeconds(totalTime);
+    setTimerEnabled(true);
+    setTimeExpired(false);
+    setShowTestModePicker(false);
+  };
+
+  // Deactivate test mode (back to practice)
+  const deactivateTestMode = () => {
+    setSelectedDifficulty(null);
+    setTimeLimit(0);
+    setTimerSeconds(0);
+    setTimerEnabled(false);
+    setTimeExpired(false);
+    setShowTestModePicker(false);
+    if (timerRef.current) clearInterval(timerRef.current);
   };
 
   // Trial briefing overlay
@@ -553,7 +588,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             <img src="/bleepx-logo.png" alt="Bleepx" className="h-10 w-10 animate-pulse-logo" />
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-gray">{name}</h1>
-              <p className="text-sm text-bleepx-text-secondary">Timed Trial Challenge</p>
+              <p className="text-sm text-bleepx-text-secondary">Trial Challenge</p>
             </div>
           </div>
 
@@ -561,20 +596,37 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             <p className="text-sm text-bleepx-gray">{instructions || description}</p>
           </div>
 
+          {/* Practice Mode — always available */}
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-bleepx-gray mb-3">Select Difficulty</h2>
-            <p className="text-xs text-bleepx-text-secondary mb-4">Choose your time limit. Higher difficulty = less time, more glory.</p>
+            <button
+              onClick={() => { playBleep(); startPractice(); }}
+              className="w-full p-4 rounded-xl border-2 border-blue-400 dark:border-blue-600 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 hover:shadow-lg hover:scale-[1.01] transition-all text-left"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xl">📝</span>
+                <span className="font-bold text-bleepx-gray">Practice Mode</span>
+                <span className="ml-auto text-xs font-mono font-bold text-blue-600 dark:text-blue-400">No timer</span>
+              </div>
+              <p className="text-xs text-bleepx-text-secondary">Take your time — no countdown. You can toggle test mode anytime from the toolbar.</p>
+            </button>
+          </div>
+
+          {/* Test Mode — timed difficulties */}
+          <div className="mb-6">
+            <h2 className="text-lg font-bold text-bleepx-gray mb-2">🧪 Test Mode</h2>
+            <p className="text-xs text-bleepx-text-secondary mb-4">Start with a countdown. Higher difficulty = less time, more glory. You can also switch to test mode anytime during practice.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {trialDifficulties.map((diff) => {
                 const storeNow = getStoreState();
-                const isTrialUnlocked = storeNow.unlockedTrials.includes(diff.id);
+                const isDiffUnlocked = storeNow.unlockedTrials.includes(diff.id);
                 const unlockCost = TRIAL_UNLOCK_COST[diff.id] ?? 0;
                 const canAffordUnlock = points >= unlockCost;
                 return (
                   <button
                     key={diff.id}
                     onClick={() => {
-                      if (isTrialUnlocked) {
+                      if (isDiffUnlocked) {
+                        playBleep();
                         startTrial(diff);
                       } else if (canAffordUnlock) {
                         if (!window.confirm(`Unlock ${diff.label} difficulty for ${unlockCost} pts?\n\nYour balance: ${points} pts → ${points - unlockCost} pts`)) return;
@@ -585,9 +637,9 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                         }
                       }
                     }}
-                    disabled={!isTrialUnlocked && !canAffordUnlock}
+                    disabled={!isDiffUnlocked && !canAffordUnlock}
                     className={`group relative p-4 rounded-xl border-2 text-left transition-all ${
-                      !isTrialUnlocked ? 'opacity-75 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800'
+                      !isDiffUnlocked ? 'opacity-75 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800'
                       : diff.id === 'legendary' || diff.id === 'senior_pro'
                       ? 'border-purple-400 dark:border-purple-600 hover:border-purple-500 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 hover:shadow-lg hover:scale-[1.02]'
                       : diff.id === 'elite'
@@ -598,14 +650,14 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xl">{isTrialUnlocked ? diff.emoji : '🔒'}</span>
+                      <span className="text-xl">{isDiffUnlocked ? diff.emoji : '🔒'}</span>
                       <span className="font-bold text-bleepx-gray">{diff.label}</span>
                       <span className="ml-auto text-xs font-mono font-bold text-bleepx-text-secondary">
-                        {isTrialUnlocked ? fmtTime(diff.timeLimitSeconds) : `${unlockCost} pts to unlock`}
+                        {isDiffUnlocked ? fmtTime(diff.timeLimitSeconds) : `${unlockCost} pts to unlock`}
                       </span>
                     </div>
                     <p className="text-xs text-bleepx-text-secondary">
-                      {isTrialUnlocked ? diff.description : canAffordUnlock ? 'Tap to unlock this difficulty' : `Need ${unlockCost} pts`}
+                      {isDiffUnlocked ? diff.description : canAffordUnlock ? 'Tap to unlock this difficulty' : `Need ${unlockCost} pts`}
                     </p>
                   </button>
                 );
@@ -617,7 +669,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             <Link href={`/cases/${domain}`}>
               <button className="px-4 py-2 rounded-full border border-bleepx-border text-sm text-bleepx-text-secondary hover:bg-bleepx-blue/5 transition-colors">← Back to Trials</button>
             </Link>
-            <p className="text-xs text-bleepx-text-secondary">*bleep* Pick wisely, human. The clock starts when you click.</p>
+            <p className="text-xs text-bleepx-text-secondary">*bleep* Practice freely or test yourself, human.</p>
           </div>
         </div>
       </div>
@@ -671,7 +723,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       )}
 
       {/* Toolbar */}
-      <div className="flex items-center justify-end gap-2 text-xs">
+      <div className="flex items-center justify-end gap-2 text-xs relative">
         {!isTrial && (
           <button onClick={() => {
             if (timerEnabled) { setTimerEnabled(false); setTimeLimit(0); setTimerSeconds(0); }
@@ -680,14 +732,79 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             ⏱️ {timerEnabled ? fmtTime(timerSeconds) : 'Timer'}
           </button>
         )}
+        {/* Trial: test mode toggle + countdown display */}
+        {isTrial && !timerEnabled && (
+          <button
+            onClick={() => setShowTestModePicker((v) => !v)}
+            className={`px-3 py-1.5 rounded-full border-2 transition-all font-medium ${
+              showTestModePicker ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 ring-2 ring-amber-300'
+              : 'border-bleepx-border bg-bleepx-white text-bleepx-text-secondary hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/10'
+            }`}
+          >
+            🧪 Test Mode
+          </button>
+        )}
         {isTrial && timerEnabled && (
-          <span className={`px-3 py-1 rounded-full text-sm font-bold font-mono shadow-sm ${
-            timerSeconds <= 30 ? 'bg-red-600 text-white animate-pulse' :
-            timerSeconds <= 60 ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300' :
-            'bg-bleepx-blue/10 text-bleepx-blue'
-          }`}>
-            ⏱ {fmtTime(timerSeconds)} {selectedDifficulty && <span className="text-xs ml-1">{selectedDifficulty.emoji} {selectedDifficulty.label}</span>}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={`px-3 py-1 rounded-full text-sm font-bold font-mono shadow-sm ${
+              timerSeconds <= 30 ? 'bg-red-600 text-white animate-pulse' :
+              timerSeconds <= 60 ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300' :
+              'bg-bleepx-blue/10 text-bleepx-blue'
+            }`}>
+              ⏱ {fmtTime(timerSeconds)} {selectedDifficulty && <span className="text-xs ml-1">{selectedDifficulty.emoji} {selectedDifficulty.label}</span>}
+            </span>
+            <button
+              onClick={deactivateTestMode}
+              className="px-2 py-1 rounded-full border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium"
+              title="Stop test mode"
+            >
+              ✕ Stop
+            </button>
+            <button
+              onClick={() => setShowTestModePicker((v) => !v)}
+              className="px-2 py-1 rounded-full border border-bleepx-border text-bleepx-text-secondary hover:bg-bleepx-blue/5 transition-colors"
+              title="Change difficulty"
+            >
+              ↻ Change
+            </button>
+          </div>
+        )}
+        {/* Test mode difficulty picker dropdown (for trials) */}
+        {isTrial && showTestModePicker && (
+          <div className="absolute right-0 top-full mt-2 z-40 w-72 bg-bleepx-white rounded-xl shadow-2xl border border-bleepx-border p-3 space-y-2">
+            <p className="text-xs font-bold text-bleepx-gray mb-2">Select difficulty — countdown starts immediately</p>
+            {trialDifficulties.map((diff) => {
+              const storeNow = getStoreState();
+              const isDiffUnlocked = storeNow.unlockedTrials.includes(diff.id);
+              const unlockCost = TRIAL_UNLOCK_COST[diff.id] ?? 0;
+              const canAffordUnlock = points >= unlockCost;
+              return (
+                <button
+                  key={diff.id}
+                  onClick={() => {
+                    if (isDiffUnlocked) {
+                      playBleep();
+                      activateTestMode(diff);
+                    } else if (canAffordUnlock) {
+                      if (!window.confirm(`Unlock ${diff.label} for ${unlockCost} pts?`)) return;
+                      playBleep();
+                      const result = unlockTrialFn(diff.id, points);
+                      if (result.success) spendPoints(unlockCost);
+                    }
+                  }}
+                  disabled={!isDiffUnlocked && !canAffordUnlock}
+                  className={`w-full p-2.5 rounded-lg border text-left transition-all text-xs ${
+                    !isDiffUnlocked ? 'opacity-60 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
+                    : 'border-bleepx-border hover:border-bleepx-blue hover:bg-bleepx-blue/5'
+                  }`}
+                >
+                  <span className="font-bold">{isDiffUnlocked ? diff.emoji : '🔒'} {diff.label}</span>
+                  <span className="ml-auto float-right font-mono">{isDiffUnlocked ? fmtTime(diff.timeLimitSeconds) : `${unlockCost} pts`}</span>
+                </button>
+              );
+            })}
+            <button onClick={() => setShowTestModePicker(false)} className="w-full text-center text-xs text-bleepx-text-secondary hover:text-bleepx-blue py-1">Cancel</button>
+          </div>
         )}
         {!isTrial && timerEnabled && timeLimit > 0 && (
           <span className={`px-2 py-1 rounded-full text-xs font-bold ${
