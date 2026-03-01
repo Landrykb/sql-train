@@ -1,0 +1,72 @@
+id: trial_avg_filter
+name: "Trial: Filter by Aggregate"
+tier: 3
+domain: trials
+description: "Find records above or below an aggregate threshold — combines subqueries with comparisons."
+instructions: |-
+  *bleep* Compare to the average, human.
+  Using the farming_yield dataset, find all records where the yield is above
+  the average yield for that record's specific region.
+  Use a correlated subquery: WHERE yield > (SELECT AVG(yield) FROM farming_yield f2 WHERE f2.region = f1.region).
+  Show region, soil_type, yield (rounded to 2), ndvi (rounded to 3).
+  Order by yield descending, LIMIT 15.
+skills:
+  - select
+  - where
+  - subquery
+  - avg
+  - order
+  - limit
+datasets:
+  - name: farming_yield
+    file: farming_yield.csv
+prereq_cases:
+  - trial_subquery
+seedQuery: |-
+  -- Find above-average yields per region
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    f1.region,
+    f1.soil_type,
+    ROUND(f1.yield, 2) AS yield,
+    ROUND(f1.ndvi, 3) AS ndvi
+  FROM farming_yield f1
+  WHERE f1.yield > (
+    SELECT AVG(f2.yield) FROM farming_yield f2 WHERE f2.region = f1.region
+  )
+  ORDER BY f1.yield DESC
+  LIMIT 15;
+hints:
+  - "A correlated subquery re-runs for each row in the outer query"
+  - "f2.region = f1.region links the subquery to the current row's region"
+  - "This finds rows above their own region's average, not the global average"
+thoughtProcess:
+  - "A correlated subquery references the outer query (f1.region). It re-evaluates for each row."
+  - "For each row, the subquery computes AVG(yield) for THAT row's region. Then WHERE checks if the row beats its regional average."
+  - "This is more nuanced than a global average — it accounts for regional differences."
+  - "Correlated subqueries are common interview topics. They're powerful but can be slow on large tables."
+expected:
+  - { region: 'North', soil_type: 'clay', yield: 5, ndvi: 0.53 }
+  - { region: 'South', soil_type: 'peat', yield: 5, ndvi: 0.67 }
+  - { region: 'South', soil_type: 'sandy_loam', yield: 5, ndvi: 0.63 }
+  - { region: 'East', soil_type: 'sandy_loam', yield: 5, ndvi: 0.64 }
+  - { region: 'West', soil_type: 'peat', yield: 5, ndvi: 0.76 }
+  - { region: 'East', soil_type: 'clay', yield: 5, ndvi: 0.63 }
+  - { region: 'East', soil_type: 'clay', yield: 5, ndvi: 0.79 }
+  - { region: 'North', soil_type: 'sandy_loam', yield: 5, ndvi: 0.52 }
+  - { region: 'South', soil_type: 'sandy_loam', yield: 5, ndvi: 0.87 }
+  - { region: 'West', soil_type: 'peat', yield: 5, ndvi: 0.67 }
+  - { region: 'West', soil_type: 'peat', yield: 5, ndvi: 0.74 }
+  - { region: 'West', soil_type: 'sandy_loam', yield: 5, ndvi: 0.89 }
+  - { region: 'East', soil_type: 'peat', yield: 5, ndvi: 0.6 }
+  - { region: 'North', soil_type: 'peat', yield: 5, ndvi: 0.8 }
+  - { region: 'East', soil_type: 'peat', yield: 5, ndvi: 0.61 }
+type: trial
+tags:
+  - trial
+  - correlated_subquery
+  - avg
+  - filtering
+  - medium
+category: Trials

@@ -1,0 +1,57 @@
+id: trial_median_approx
+name: "Trial: Approximate Median"
+tier: 4
+domain: trials
+description: "Calculate an approximate median using NTILE or percentile logic — a tricky but common interview question."
+instructions: |-
+  *bleep* Median calculation, human. SQL has no built-in MEDIAN function.
+  Using the nba_games dataset, find the approximate median points scored across all games.
+  Strategy: Use a CTE with ROW_NUMBER to order all games by points,
+  then select the middle row(s).
+  Use COUNT(*) to find the total, then filter to the middle position(s).
+  Show points AS median_points.
+  Only return 1 row.
+skills:
+  - select
+  - cte
+  - window
+  - count
+datasets:
+  - name: nba_games
+    file: nba_games.csv
+prereq_cases:
+  - trial_window
+seedQuery: |-
+  -- Find the approximate median of points scored
+  SELECT 1;
+solutionQuery: |-
+  WITH Ordered AS (
+    SELECT
+      points,
+      ROW_NUMBER() OVER (ORDER BY points) AS row_num,
+      COUNT(*) OVER () AS total_rows
+    FROM nba_games
+  )
+  SELECT ROUND(AVG(points), 1) AS median_points
+  FROM Ordered
+  WHERE row_num IN (total_rows / 2, total_rows / 2 + 1);
+hints:
+  - "ROW_NUMBER() OVER (ORDER BY points) assigns position 1 to lowest, N to highest"
+  - "COUNT(*) OVER () gives the total row count as a column on every row"
+  - "The median is the middle value — at position total/2 (or average of two middle values)"
+thoughtProcess:
+  - "SQL has no MEDIAN aggregate. You have to sort, find the middle position, and extract it."
+  - "ROW_NUMBER() OVER (ORDER BY points) gives each row its sorted position."
+  - "COUNT(*) OVER () (no PARTITION BY) gives the total count on every row — this avoids a separate subquery."
+  - "For even-length data, the median is the average of the two middle values. WHERE row_num IN (N/2, N/2+1) gets both."
+  - "This is a classic interview question: 'How do you calculate median in SQL?' Now you know."
+expected:
+  - { median_points: 25 }
+type: trial
+tags:
+  - trial
+  - median
+  - window_functions
+  - interview_classic
+  - hard
+category: Trials

@@ -1,0 +1,65 @@
+id: trial_having_complex
+name: "Trial: HAVING vs WHERE"
+tier: 3
+domain: trials
+description: "Understand the difference between WHERE and HAVING — a top interview question."
+instructions: |-
+  *bleep* Filter BEFORE vs AFTER aggregation, human.
+  Using the nba_games dataset, find players who average more than 25 points per game.
+  Show player_id, COUNT(DISTINCT game_id) AS games_played,
+  ROUND(AVG(points), 1) AS avg_points, SUM(points) AS total_points.
+  Only include players with avg_points > 25.
+  Order by avg_points descending, LIMIT 10.
+skills:
+  - select
+  - group
+  - having
+  - avg
+  - order
+  - limit
+datasets:
+  - name: nba_games
+    file: nba_games.csv
+prereq_cases:
+  - trial_aggregation
+seedQuery: |-
+  -- Find high-scoring players using HAVING
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    player_id,
+    COUNT(DISTINCT game_id) AS games_played,
+    ROUND(AVG(points), 1) AS avg_points,
+    SUM(points) AS total_points
+  FROM nba_games
+  GROUP BY player_id
+  HAVING avg_points > 25
+  ORDER BY avg_points DESC
+  LIMIT 10;
+hints:
+  - "WHERE filters rows BEFORE grouping; HAVING filters AFTER"
+  - "You cannot use WHERE on an aggregate like AVG(points)"
+  - "HAVING avg_points > 25 filters groups by their computed average"
+thoughtProcess:
+  - "WHERE runs before GROUP BY — it filters individual rows. HAVING runs after — it filters groups."
+  - "Since avg_points is computed by AVG(), you must use HAVING, not WHERE."
+  - "This WHERE vs HAVING distinction is one of the most frequently asked SQL interview questions."
+  - "GROUP BY player_id → HAVING avg_points > 25 → ORDER BY avg_points DESC → LIMIT 10."
+expected:
+  - { player_id: 'P9903', games_played: 1, avg_points: 50, total_points: 50 }
+  - { player_id: 'P9892', games_played: 1, avg_points: 50, total_points: 50 }
+  - { player_id: 'P9843', games_played: 1, avg_points: 50, total_points: 50 }
+  - { player_id: 'P9783', games_played: 1, avg_points: 50, total_points: 50 }
+  - { player_id: 'P9735', games_played: 1, avg_points: 50, total_points: 50 }
+  - { player_id: 'P9718', games_played: 1, avg_points: 50, total_points: 50 }
+  - { player_id: 'P9630', games_played: 1, avg_points: 50, total_points: 50 }
+  - { player_id: 'P9604', games_played: 1, avg_points: 50, total_points: 50 }
+  - { player_id: 'P9585', games_played: 1, avg_points: 50, total_points: 50 }
+  - { player_id: 'P9555', games_played: 1, avg_points: 50, total_points: 50 }
+type: trial
+tags:
+  - trial
+  - having
+  - where_vs_having
+  - medium
+category: Trials

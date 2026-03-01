@@ -1,0 +1,54 @@
+id: trial_count_distinct
+name: "Trial: COUNT DISTINCT"
+tier: 2
+domain: trials
+description: "Use COUNT(DISTINCT ...) to count unique values within groups."
+instructions: |-
+  *bleep* Precision counting, human.
+  Using the nba_games dataset, find the number of unique players who played on each game_date.
+  Show game_date and player_count.
+  Order by player_count descending, LIMIT 10.
+skills:
+  - select
+  - group
+  - count
+  - order
+  - limit
+datasets:
+  - name: nba_games
+    file: nba_games.csv
+prereq_cases: []
+seedQuery: |-
+  -- Count unique players per game date
+  SELECT 1;
+solutionQuery: |-
+  SELECT game_date, COUNT(DISTINCT player_id) AS player_count
+  FROM nba_games
+  GROUP BY game_date
+  ORDER BY player_count DESC
+  LIMIT 10;
+hints:
+  - "COUNT(DISTINCT player_id) counts each player only once per date"
+  - "Without DISTINCT, you'd count duplicate appearances"
+  - "GROUP BY game_date to aggregate per day"
+thoughtProcess:
+  - "COUNT(*) would count all rows. COUNT(DISTINCT player_id) counts unique players only."
+  - "GROUP BY game_date gives one row per date."
+  - "ORDER BY player_count DESC LIMIT 10 shows the dates with the most active players."
+expected:
+  - { game_date: '2023-08-17', player_count: 45 }
+  - { game_date: '2024-01-01', player_count: 40 }
+  - { game_date: '2023-09-01', player_count: 40 }
+  - { game_date: '2023-04-12', player_count: 40 }
+  - { game_date: '2023-02-17', player_count: 40 }
+  - { game_date: '2023-09-20', player_count: 39 }
+  - { game_date: '2023-08-07', player_count: 39 }
+  - { game_date: '2023-05-14', player_count: 39 }
+  - { game_date: '2023-11-23', player_count: 38 }
+  - { game_date: '2023-05-05', player_count: 38 }
+type: trial
+tags:
+  - trial
+  - count_distinct
+  - aggregation
+category: Trials

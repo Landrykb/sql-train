@@ -1,0 +1,61 @@
+id: trial_in_filter
+name: "Trial: IN Operator"
+tier: 2
+domain: trials
+description: "Filter rows matching a list of values using the IN operator."
+instructions: |-
+  *bleep* List filtering, human.
+  Using the crime_chicago dataset, find all crimes where primary_type is IN
+  ('THEFT', 'BATTERY', 'ASSAULT').
+  Show primary_type, location_description, date.
+  Order by date descending, LIMIT 15.
+skills:
+  - select
+  - where
+  - in
+  - order
+  - limit
+datasets:
+  - name: crime_chicago
+    file: crime_chicago.csv
+prereq_cases: []
+seedQuery: |-
+  -- Filter crimes by type using IN
+  SELECT 1;
+solutionQuery: |-
+  SELECT primary_type, location_description, date
+  FROM crime_chicago
+  WHERE primary_type IN ('THEFT', 'BATTERY', 'ASSAULT')
+  ORDER BY date DESC
+  LIMIT 15;
+hints:
+  - "IN ('value1', 'value2', 'value3') matches any of the listed values"
+  - "It's shorthand for OR chains: type = 'THEFT' OR type = 'BATTERY' OR ..."
+  - "String values must be in single quotes inside the IN list"
+thoughtProcess:
+  - "IN is cleaner than writing multiple OR conditions."
+  - "WHERE primary_type IN ('THEFT', 'BATTERY', 'ASSAULT') matches any of these three."
+  - "ORDER BY date DESC shows the most recent crimes first."
+expected:
+  - { primary_type: 'THEFT', location_description: 'SIDEWALK', date: '2024-12-31' }
+  - { primary_type: 'THEFT', location_description: 'APARTMENT', date: '2024-12-31' }
+  - { primary_type: 'BATTERY', location_description: 'STREET', date: '2024-12-31' }
+  - { primary_type: 'THEFT', location_description: 'SIDEWALK', date: '2024-12-31' }
+  - { primary_type: 'ASSAULT', location_description: 'RESIDENCE', date: '2024-12-31' }
+  - { primary_type: 'BATTERY', location_description: 'STREET', date: '2024-12-30' }
+  - { primary_type: 'ASSAULT', location_description: 'SIDEWALK', date: '2024-12-30' }
+  - { primary_type: 'BATTERY', location_description: 'RESIDENCE', date: '2024-12-30' }
+  - { primary_type: 'ASSAULT', location_description: 'SIDEWALK', date: '2024-12-30' }
+  - { primary_type: 'ASSAULT', location_description: 'APARTMENT', date: '2024-12-30' }
+  - { primary_type: 'BATTERY', location_description: 'RESIDENCE', date: '2024-12-30' }
+  - { primary_type: 'THEFT', location_description: 'STREET', date: '2024-12-30' }
+  - { primary_type: 'ASSAULT', location_description: 'BANK', date: '2024-12-30' }
+  - { primary_type: 'THEFT', location_description: 'SIDEWALK', date: '2024-12-29' }
+  - { primary_type: 'BATTERY', location_description: 'APARTMENT', date: '2024-12-29' }
+type: trial
+tags:
+  - trial
+  - in_operator
+  - filtering
+  - easy
+category: Trials

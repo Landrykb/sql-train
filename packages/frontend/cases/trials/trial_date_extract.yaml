@@ -1,0 +1,50 @@
+id: trial_date_extract
+name: "Trial: Date Part Extraction"
+tier: 2
+domain: trials
+description: "Extract year, month, or day from date strings using strftime — essential for time-based grouping."
+instructions: |-
+  *bleep* Date dissection, human.
+  Using the crime_chicago dataset, extract the year from the date column
+  and count crimes per year.
+  Show the year (using strftime('%Y', date)) AS crime_year, and COUNT(*) AS crime_count.
+  Order by crime_year ascending.
+skills:
+  - select
+  - group
+  - date_functions
+  - count
+  - order
+datasets:
+  - name: crime_chicago
+    file: crime_chicago.csv
+prereq_cases: []
+seedQuery: |-
+  -- Count crimes per year
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    strftime('%Y', date) AS crime_year,
+    COUNT(*) AS crime_count
+  FROM crime_chicago
+  GROUP BY crime_year
+  ORDER BY crime_year ASC;
+hints:
+  - "strftime('%Y', date) extracts the 4-digit year from a date string"
+  - "'%m' extracts month, '%d' extracts day"
+  - "GROUP BY the extracted year to count crimes per year"
+thoughtProcess:
+  - "strftime (string format time) is SQLite's date extraction function."
+  - "'%Y' = year (2023), '%m' = month (01-12), '%d' = day (01-31), '%H' = hour."
+  - "GROUP BY the extracted part lets you aggregate by time period."
+  - "In other databases: EXTRACT(YEAR FROM date) or YEAR(date). SQLite uses strftime."
+expected:
+  - { crime_year: '2023', crime_count: 4909 }
+  - { crime_year: '2024', crime_count: 5091 }
+type: trial
+tags:
+  - trial
+  - date
+  - strftime
+  - extraction
+category: Trials

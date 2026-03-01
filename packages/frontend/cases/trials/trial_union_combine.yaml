@@ -1,0 +1,67 @@
+id: trial_union_combine
+name: "Trial: UNION Combine"
+tier: 3
+domain: trials
+description: "Combine results from multiple queries using UNION — useful for merging datasets or creating reports."
+instructions: |-
+  *bleep* Merge results, human.
+  Create a combined event feed from two different tables.
+  Query 1: From crime_chicago, select 'CRIME' as event_type, date, primary_type as detail. LIMIT 5.
+  Query 2: From admissions, select 'ADMISSION' as event_type, admission_date as date, patient_id as detail. LIMIT 5.
+  UNION ALL both queries. Order the combined result by date descending, LIMIT 10.
+  Wrap everything in a CTE to apply the final ORDER BY and LIMIT.
+skills:
+  - select
+  - union
+  - cte
+  - order
+  - limit
+datasets:
+  - name: crime_chicago
+    file: crime_chicago.csv
+  - name: admissions
+    file: admissions.csv
+prereq_cases:
+  - trial_aggregation
+seedQuery: |-
+  -- Combine crime and admission events into one feed
+  SELECT 1;
+solutionQuery: |-
+  WITH CombinedEvents AS (
+    SELECT 'CRIME' AS event_type, date, primary_type AS detail
+    FROM crime_chicago
+    UNION ALL
+    SELECT 'ADMISSION' AS event_type, admission_date AS date, patient_id AS detail
+    FROM admissions
+  )
+  SELECT event_type, date, detail
+  FROM CombinedEvents
+  ORDER BY date DESC
+  LIMIT 10;
+hints:
+  - "UNION ALL combines results from two SELECT statements"
+  - "Both SELECTs must have the same number of columns with compatible types"
+  - "UNION ALL keeps duplicates; UNION removes them"
+thoughtProcess:
+  - "UNION ALL stacks the results of two queries vertically. Both must have the same column count and compatible types."
+  - "Use aliases to give both queries matching column names (date, detail)."
+  - "UNION removes duplicates (slower); UNION ALL keeps all rows (faster). Use ALL when duplicates are okay."
+  - "Wrap in a CTE so you can ORDER BY and LIMIT the combined result."
+expected:
+  - { event_type: 'CRIME', date: '2024-12-31', detail: 'THEFT' }
+  - { event_type: 'CRIME', date: '2024-12-31', detail: 'NARCOTICS' }
+  - { event_type: 'CRIME', date: '2024-12-31', detail: 'NARCOTICS' }
+  - { event_type: 'CRIME', date: '2024-12-31', detail: 'ROBBERY' }
+  - { event_type: 'CRIME', date: '2024-12-31', detail: 'THEFT' }
+  - { event_type: 'CRIME', date: '2024-12-31', detail: 'BATTERY' }
+  - { event_type: 'CRIME', date: '2024-12-31', detail: 'NARCOTICS' }
+  - { event_type: 'CRIME', date: '2024-12-31', detail: 'THEFT' }
+  - { event_type: 'CRIME', date: '2024-12-31', detail: 'NARCOTICS' }
+  - { event_type: 'CRIME', date: '2024-12-31', detail: 'ASSAULT' }
+type: trial
+tags:
+  - trial
+  - union
+  - combine
+  - medium
+category: Trials

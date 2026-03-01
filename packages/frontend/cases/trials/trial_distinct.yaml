@@ -1,0 +1,51 @@
+id: trial_distinct
+name: "Trial: DISTINCT Values"
+tier: 1
+domain: trials
+description: "Extract unique values from a dataset using DISTINCT."
+instructions: |-
+  *bleep* Basics first, human.
+  Using the crime_chicago dataset, find all unique location descriptions
+  and count how many crimes occurred at each one.
+  Show location_description and crime_count.
+  Order by crime_count descending, LIMIT 10.
+skills:
+  - select
+  - group
+  - count
+  - order
+  - limit
+datasets:
+  - name: crime_chicago
+    file: crime_chicago.csv
+prereq_cases: []
+seedQuery: |-
+  -- Find the top 10 crime locations
+  SELECT 1;
+solutionQuery: |-
+  SELECT location_description, COUNT(*) AS crime_count
+  FROM crime_chicago
+  GROUP BY location_description
+  ORDER BY crime_count DESC
+  LIMIT 10;
+hints:
+  - "GROUP BY gives you one row per unique location_description"
+  - "COUNT(*) counts how many crimes at each location"
+  - "ORDER BY crime_count DESC puts busiest locations first"
+thoughtProcess:
+  - "GROUP BY location_description effectively gets DISTINCT locations while also letting you aggregate."
+  - "COUNT(*) counts all rows in each group."
+  - "ORDER BY crime_count DESC LIMIT 10 gives the top 10 busiest crime locations."
+expected:
+  - { location_description: 'BANK', crime_count: 2022 }
+  - { location_description: 'APARTMENT', crime_count: 2010 }
+  - { location_description: 'STREET', crime_count: 1993 }
+  - { location_description: 'SIDEWALK', crime_count: 1992 }
+  - { location_description: 'RESIDENCE', crime_count: 1983 }
+type: trial
+tags:
+  - trial
+  - distinct
+  - group_by
+  - easy
+category: Trials

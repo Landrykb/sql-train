@@ -1,0 +1,62 @@
+id: trial_between
+name: "Trial: BETWEEN Ranges"
+tier: 2
+domain: trials
+description: "Filter data within a range using BETWEEN — a classic interview question."
+instructions: |-
+  *bleep* Range filtering, human.
+  Using the patients dataset, find all patients whose age is BETWEEN 30 AND 50 (inclusive).
+  Show patient_id, age, gender, birthdate.
+  Order by age descending, then patient_id ascending.
+  LIMIT 15.
+skills:
+  - select
+  - where
+  - between
+  - order
+  - limit
+datasets:
+  - name: patients
+    file: patients.csv
+prereq_cases: []
+seedQuery: |-
+  -- Find patients aged 30-50
+  SELECT 1;
+solutionQuery: |-
+  SELECT patient_id, age, gender, birthdate
+  FROM patients
+  WHERE age BETWEEN 30 AND 50
+  ORDER BY age DESC, patient_id ASC
+  LIMIT 15;
+hints:
+  - "BETWEEN 30 AND 50 includes both endpoints (30 and 50)"
+  - "You can ORDER BY multiple columns separated by commas"
+  - "DESC for age (oldest first), ASC for patient_id (tiebreaker)"
+thoughtProcess:
+  - "BETWEEN is inclusive on both ends — equivalent to age >= 30 AND age <= 50."
+  - "ORDER BY age DESC puts oldest patients first. patient_id ASC breaks ties deterministically."
+  - "LIMIT 15 caps the output."
+expected:
+  - { patient_id: 'P1067', age: 50, gender: 'F', birthdate: '1972-06-12' }
+  - { patient_id: 'P1076', age: 50, gender: 'M', birthdate: '1972-02-17' }
+  - { patient_id: 'P1132', age: 50, gender: 'F', birthdate: '1972-11-19' }
+  - { patient_id: 'P1196', age: 50, gender: 'M', birthdate: '1972-04-16' }
+  - { patient_id: 'P1235', age: 50, gender: 'M', birthdate: '1972-11-22' }
+  - { patient_id: 'P1315', age: 50, gender: 'F', birthdate: '1972-11-10' }
+  - { patient_id: 'P1373', age: 50, gender: 'M', birthdate: '1972-09-16' }
+  - { patient_id: 'P1404', age: 50, gender: 'M', birthdate: '1972-09-17' }
+  - { patient_id: 'P149', age: 50, gender: 'F', birthdate: '1973-01-09' }
+  - { patient_id: 'P1534', age: 50, gender: 'F', birthdate: '1972-03-04' }
+  - { patient_id: 'P164', age: 50, gender: 'F', birthdate: '1972-08-26' }
+  - { patient_id: 'P1665', age: 50, gender: 'M', birthdate: '1972-02-02' }
+  - { patient_id: 'P1741', age: 50, gender: 'F', birthdate: '1972-09-20' }
+  - { patient_id: 'P1770', age: 50, gender: 'F', birthdate: '1972-10-24' }
+  - { patient_id: 'P1797', age: 50, gender: 'M', birthdate: '1972-11-23' }
+type: trial
+tags:
+  - trial
+  - between
+  - range
+  - filtering
+  - easy
+category: Trials

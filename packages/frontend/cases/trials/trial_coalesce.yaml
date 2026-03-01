@@ -1,0 +1,69 @@
+id: trial_coalesce
+name: "Trial: COALESCE & Default Values"
+tier: 2
+domain: trials
+description: "Replace NULLs with default values using COALESCE — critical for clean output in real-world queries."
+instructions: |-
+  *bleep* Handle missing data gracefully, human.
+  Using the patients and admissions tables, show each patient's info with their latest admission date.
+  LEFT JOIN patients with admissions, then use COALESCE to replace NULL admission_date with 'Never Admitted'.
+  Show patient_id, age, gender, COALESCE(admission_date, 'Never Admitted') AS last_admission.
+  Order by age descending, LIMIT 15.
+skills:
+  - select
+  - join
+  - coalesce
+  - order
+  - limit
+datasets:
+  - name: patients
+    file: patients.csv
+  - name: admissions
+    file: admissions.csv
+prereq_cases: []
+seedQuery: |-
+  -- Show patients with admission status
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    p.patient_id,
+    p.age,
+    p.gender,
+    COALESCE(MAX(a.admission_date), 'Never Admitted') AS last_admission
+  FROM patients p
+  LEFT JOIN admissions a ON p.patient_id = a.patient_id
+  GROUP BY p.patient_id, p.age, p.gender
+  ORDER BY p.age DESC
+  LIMIT 15;
+hints:
+  - "LEFT JOIN keeps all patients even without admissions"
+  - "COALESCE(value, default) returns the first non-NULL argument"
+  - "MAX(admission_date) gets the most recent admission per patient"
+thoughtProcess:
+  - "LEFT JOIN ensures patients without admissions still appear — their admission columns will be NULL."
+  - "MAX(a.admission_date) gets the latest admission. For patients with no admissions, MAX returns NULL."
+  - "COALESCE(NULL, 'Never Admitted') returns 'Never Admitted' — it picks the first non-NULL value."
+  - "GROUP BY patient to collapse multiple admissions into one row per patient."
+expected:
+  - { patient_id: 'P1531', age: 113, gender: 'M', last_admission: '2023-06-30' }
+  - { patient_id: 'P6565', age: 113, gender: 'M', last_admission: 'Never Admitted' }
+  - { patient_id: 'P9112', age: 113, gender: 'F', last_admission: '2023-06-23' }
+  - { patient_id: 'P1094', age: 112, gender: 'F', last_admission: 'Never Admitted' }
+  - { patient_id: 'P1096', age: 112, gender: 'M', last_admission: 'Never Admitted' }
+  - { patient_id: 'P1435', age: 112, gender: 'F', last_admission: 'Never Admitted' }
+  - { patient_id: 'P1479', age: 112, gender: 'F', last_admission: 'Never Admitted' }
+  - { patient_id: 'P1562', age: 112, gender: 'M', last_admission: '2023-08-27' }
+  - { patient_id: 'P1626', age: 112, gender: 'F', last_admission: '2023-01-14' }
+  - { patient_id: 'P1877', age: 112, gender: 'F', last_admission: 'Never Admitted' }
+  - { patient_id: 'P1903', age: 112, gender: 'M', last_admission: 'Never Admitted' }
+  - { patient_id: 'P216', age: 112, gender: 'F', last_admission: 'Never Admitted' }
+  - { patient_id: 'P2164', age: 112, gender: 'M', last_admission: 'Never Admitted' }
+  - { patient_id: 'P2215', age: 112, gender: 'M', last_admission: '2023-08-21' }
+  - { patient_id: 'P2254', age: 112, gender: 'F', last_admission: 'Never Admitted' }
+type: trial
+tags:
+  - trial
+  - coalesce
+  - null_handling
+  - left_join
+category: Trials

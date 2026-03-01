@@ -1,0 +1,61 @@
+id: trial_null_handling
+name: "Trial: NULL Handling"
+tier: 2
+domain: trials
+description: "Handle missing data with IS NULL and COALESCE — critical for real-world SQL."
+instructions: |-
+  *bleep* NULLs are everywhere in real data, human.
+  Using the patients and admissions tables, find patients who have NEVER been admitted.
+  LEFT JOIN patients with admissions on patient_id, then filter where admission_id IS NULL.
+  Show patient_id, age, gender.
+  Order by age descending, LIMIT 10.
+skills:
+  - select
+  - join
+  - where
+  - is_null
+  - order
+  - limit
+datasets:
+  - name: patients
+    file: patients.csv
+  - name: admissions
+    file: admissions.csv
+prereq_cases: []
+seedQuery: |-
+  -- Find patients with no admissions
+  SELECT 1;
+solutionQuery: |-
+  SELECT p.patient_id, p.age, p.gender
+  FROM patients p
+  LEFT JOIN admissions a ON p.patient_id = a.patient_id
+  WHERE a.admission_id IS NULL
+  ORDER BY p.age DESC
+  LIMIT 10;
+hints:
+  - "LEFT JOIN keeps ALL patients even if they have no matching admission"
+  - "When there's no match, the admission columns are NULL"
+  - "WHERE a.admission_id IS NULL finds the unmatched patients"
+thoughtProcess:
+  - "LEFT JOIN returns all rows from the left table (patients) even without a match in admissions."
+  - "Unmatched rows have NULL in all admission columns."
+  - "WHERE a.admission_id IS NULL filters to only those without admissions."
+  - "This LEFT JOIN + IS NULL pattern is the standard way to find 'missing' records."
+expected:
+  - { patient_id: 'P6565', age: 113, gender: 'M' }
+  - { patient_id: 'P216', age: 112, gender: 'F' }
+  - { patient_id: 'P664', age: 112, gender: 'M' }
+  - { patient_id: 'P699', age: 112, gender: 'F' }
+  - { patient_id: 'P742', age: 112, gender: 'M' }
+  - { patient_id: 'P809', age: 112, gender: 'M' }
+  - { patient_id: 'P842', age: 112, gender: 'M' }
+  - { patient_id: 'P854', age: 112, gender: 'F' }
+  - { patient_id: 'P1094', age: 112, gender: 'F' }
+  - { patient_id: 'P1096', age: 112, gender: 'M' }
+type: trial
+tags:
+  - trial
+  - null
+  - left_join
+  - is_null
+category: Trials

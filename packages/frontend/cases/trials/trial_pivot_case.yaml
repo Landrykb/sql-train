@@ -1,0 +1,60 @@
+id: trial_pivot_case
+name: "Trial: Pivot with CASE"
+tier: 4
+domain: trials
+description: "Simulate a pivot table using CASE inside SUM — transforms rows into columns for cross-tabulation."
+instructions: |-
+  *bleep* Pivot tables in SQL, human.
+  Using the business_retail dataset, create a cross-tabulation showing
+  total revenue per branch, broken down by payment method as columns.
+  Show branch,
+  SUM(CASE WHEN payment = 'Ewallet' ...) AS ewallet_revenue,
+  SUM(CASE WHEN payment = 'Cash' ...) AS cash_revenue,
+  SUM(CASE WHEN payment = 'Credit card' ...) AS credit_revenue.
+  All rounded to 2 decimals.
+  Order by branch ASC.
+skills:
+  - select
+  - group
+  - case
+  - sum
+  - order
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+prereq_cases:
+  - trial_case_logic
+seedQuery: |-
+  -- Pivot: revenue by branch and payment method
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    branch,
+    ROUND(SUM(CASE WHEN payment = 'Ewallet' THEN total ELSE 0 END), 2) AS ewallet_revenue,
+    ROUND(SUM(CASE WHEN payment = 'Cash' THEN total ELSE 0 END), 2) AS cash_revenue,
+    ROUND(SUM(CASE WHEN payment = 'Credit card' THEN total ELSE 0 END), 2) AS credit_revenue,
+    ROUND(SUM(total), 2) AS total_revenue
+  FROM business_retail
+  GROUP BY branch
+  ORDER BY branch ASC;
+hints:
+  - "SUM(CASE WHEN condition THEN value ELSE 0 END) sums only matching rows"
+  - "Each payment method becomes its own column"
+  - "This is SQL's version of a pivot table / crosstab"
+thoughtProcess:
+  - "SQL doesn't have a native PIVOT keyword in most databases. The workaround: SUM(CASE WHEN ... THEN value ELSE 0 END)."
+  - "Each CASE expression creates a column for one payment method. The SUM aggregates within each branch."
+  - "This 'conditional aggregation' pattern is one of the most powerful techniques in SQL reporting."
+  - "Add a total_revenue column with SUM(total) to verify the parts add up to the whole."
+expected:
+  - { branch: 'A', ewallet_revenue: 39324.37, cash_revenue: 33781.25, credit_revenue: 33094.75, total_revenue: 106200.37 }
+  - { branch: 'B', ewallet_revenue: 33513.35, cash_revenue: 35339.46, credit_revenue: 37344.86, total_revenue: 106197.67 }
+  - { branch: 'C', ewallet_revenue: 37155.38, cash_revenue: 43085.86, credit_revenue: 30327.47, total_revenue: 110568.71 }
+type: trial
+tags:
+  - trial
+  - pivot
+  - case
+  - conditional_aggregation
+  - hard
+category: Trials

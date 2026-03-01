@@ -1,0 +1,63 @@
+id: trial_left_join
+name: "Trial: LEFT JOIN Gaps"
+tier: 3
+domain: trials
+description: "Use LEFT JOIN to find records that exist in one table but not another."
+instructions: |-
+  *bleep* Find the gaps, human.
+  Using the users and tweets tables, find users who have posted tweets
+  and calculate how many tweets each user has.
+  Show user_name, signup_date, and tweet_count.
+  Order by tweet_count descending, LIMIT 10.
+skills:
+  - select
+  - join
+  - group
+  - count
+  - order
+  - limit
+datasets:
+  - name: users
+    file: users.csv
+  - name: tweets
+    file: tweets.csv
+prereq_cases:
+  - trial_joins
+seedQuery: |-
+  -- Find most active tweeters
+  SELECT 1;
+solutionQuery: |-
+  SELECT u.user_name, u.signup_date, COUNT(t.tweet_id) AS tweet_count
+  FROM users u
+  LEFT JOIN tweets t ON u.user_id = t.user_id
+  GROUP BY u.user_id, u.user_name, u.signup_date
+  HAVING tweet_count > 0
+  ORDER BY tweet_count DESC
+  LIMIT 10;
+hints:
+  - "LEFT JOIN keeps all users even without tweets"
+  - "COUNT(t.tweet_id) counts only non-NULL tweet matches"
+  - "HAVING tweet_count > 0 filters to users who actually posted"
+thoughtProcess:
+  - "LEFT JOIN users with tweets ensures we see all users. COUNT(t.tweet_id) counts matched tweets (NULLs aren't counted)."
+  - "GROUP BY user to get one row per user with their tweet count."
+  - "HAVING filters after grouping — here it keeps only users with at least 1 tweet."
+  - "ORDER BY tweet_count DESC LIMIT 10 shows the most prolific tweeters."
+expected:
+  - { user_name: 'User_1', signup_date: '2022-10-23', tweet_count: 1 }
+  - { user_name: 'User_10', signup_date: '2022-09-17', tweet_count: 1 }
+  - { user_name: 'User_100', signup_date: '2022-02-02', tweet_count: 1 }
+  - { user_name: 'User_1000', signup_date: '2022-06-22', tweet_count: 1 }
+  - { user_name: 'User_10000', signup_date: '2022-04-10', tweet_count: 1 }
+  - { user_name: 'User_1001', signup_date: '2022-07-29', tweet_count: 1 }
+  - { user_name: 'User_1002', signup_date: '2022-03-20', tweet_count: 1 }
+  - { user_name: 'User_1003', signup_date: '2022-04-17', tweet_count: 1 }
+  - { user_name: 'User_1004', signup_date: '2022-11-16', tweet_count: 1 }
+  - { user_name: 'User_1005', signup_date: '2022-12-26', tweet_count: 1 }
+type: trial
+tags:
+  - trial
+  - left_join
+  - having
+  - medium
+category: Trials

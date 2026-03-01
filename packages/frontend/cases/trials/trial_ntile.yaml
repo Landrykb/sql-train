@@ -1,0 +1,67 @@
+id: trial_ntile
+name: "Trial: NTILE Buckets"
+tier: 3
+domain: trials
+description: "Divide rows into equal buckets using NTILE — perfect for percentile and quartile analysis."
+instructions: |-
+  *bleep* Bucketing data, human.
+  Using the nba_games dataset, divide all player performances into 4 quartiles by points scored.
+  Show player_id, points, game_date, and NTILE(4) OVER (ORDER BY points DESC) AS quartile.
+  Quartile 1 = top 25%, quartile 4 = bottom 25%.
+  Order by points descending, LIMIT 15.
+skills:
+  - select
+  - window
+  - ntile
+  - order
+  - limit
+datasets:
+  - name: nba_games
+    file: nba_games.csv
+prereq_cases:
+  - trial_window
+seedQuery: |-
+  -- Divide players into scoring quartiles
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    player_id,
+    points,
+    game_date,
+    NTILE(4) OVER (ORDER BY points DESC) AS quartile
+  FROM nba_games
+  ORDER BY points DESC
+  LIMIT 15;
+hints:
+  - "NTILE(4) divides rows into 4 roughly equal groups"
+  - "NTILE(4) OVER (ORDER BY points DESC) means group 1 = highest scorers"
+  - "NTILE is useful for percentile analysis — NTILE(100) gives percentiles"
+thoughtProcess:
+  - "NTILE(N) splits the result set into N approximately equal groups, numbered 1 through N."
+  - "With ORDER BY points DESC, group 1 contains the top 25% of scorers."
+  - "NTILE handles uneven splits automatically — if 100 rows / 4 groups = 25 each."
+  - "Real-world use: customer segmentation, performance tiers, percentile rankings."
+expected:
+  - { player_id: 'P70', points: 50, game_date: '2023-09-06', quartile: 1 }
+  - { player_id: 'P75', points: 50, game_date: '2023-10-01', quartile: 1 }
+  - { player_id: 'P81', points: 50, game_date: '2023-04-09', quartile: 1 }
+  - { player_id: 'P187', points: 50, game_date: '2023-05-18', quartile: 1 }
+  - { player_id: 'P193', points: 50, game_date: '2023-10-06', quartile: 1 }
+  - { player_id: 'P221', points: 50, game_date: '2023-07-15', quartile: 1 }
+  - { player_id: 'P273', points: 50, game_date: '2023-12-09', quartile: 1 }
+  - { player_id: 'P360', points: 50, game_date: '2023-01-29', quartile: 1 }
+  - { player_id: 'P671', points: 50, game_date: '2023-05-10', quartile: 1 }
+  - { player_id: 'P841', points: 50, game_date: '2023-01-08', quartile: 1 }
+  - { player_id: 'P852', points: 50, game_date: '2023-11-24', quartile: 1 }
+  - { player_id: 'P860', points: 50, game_date: '2023-12-07', quartile: 1 }
+  - { player_id: 'P881', points: 50, game_date: '2023-07-11', quartile: 1 }
+  - { player_id: 'P1014', points: 50, game_date: '2023-07-22', quartile: 1 }
+  - { player_id: 'P1015', points: 50, game_date: '2023-10-29', quartile: 1 }
+type: trial
+tags:
+  - trial
+  - ntile
+  - window_functions
+  - buckets
+  - medium
+category: Trials

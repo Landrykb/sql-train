@@ -1,0 +1,57 @@
+id: trial_multi_order
+name: "Trial: Multi-Column ORDER BY"
+tier: 1
+domain: trials
+description: "Sort results by multiple columns with mixed ASC/DESC directions."
+instructions: |-
+  *bleep* Sorting precision, human.
+  Using the farming_yield dataset, show region, soil_type, yield (rounded to 2), and ndvi (rounded to 3).
+  Order by region ascending, then yield descending within each region.
+  LIMIT 15.
+skills:
+  - select
+  - order
+  - limit
+datasets:
+  - name: farming_yield
+    file: farming_yield.csv
+prereq_cases: []
+seedQuery: |-
+  -- Sort by region then yield
+  SELECT 1;
+solutionQuery: |-
+  SELECT region, soil_type, ROUND(yield, 2) AS yield, ROUND(ndvi, 3) AS ndvi
+  FROM farming_yield
+  ORDER BY region ASC, yield DESC
+  LIMIT 15;
+hints:
+  - "ORDER BY col1 ASC, col2 DESC sorts by col1 first, then col2 within ties"
+  - "ASC = ascending (A-Z, 0-9), DESC = descending (Z-A, 9-0)"
+  - "ROUND(column, N) controls decimal places"
+thoughtProcess:
+  - "Multi-column ORDER BY sorts by the first column, then breaks ties with the second."
+  - "region ASC groups rows alphabetically by region. yield DESC shows highest yield first within each region."
+  - "ROUND keeps output clean and readable."
+expected:
+  - { region: 'East', soil_type: 'sandy_loam', yield: 5, ndvi: 0.64 }
+  - { region: 'East', soil_type: 'clay', yield: 5, ndvi: 0.63 }
+  - { region: 'East', soil_type: 'clay', yield: 5, ndvi: 0.79 }
+  - { region: 'East', soil_type: 'peat', yield: 5, ndvi: 0.6 }
+  - { region: 'East', soil_type: 'peat', yield: 5, ndvi: 0.61 }
+  - { region: 'East', soil_type: 'peat', yield: 5, ndvi: 0.84 }
+  - { region: 'East', soil_type: 'sandy_loam', yield: 5, ndvi: 0.67 }
+  - { region: 'East', soil_type: 'clay', yield: 5, ndvi: 0.72 }
+  - { region: 'East', soil_type: 'sandy_loam', yield: 5, ndvi: 0.52 }
+  - { region: 'East', soil_type: 'sandy_loam', yield: 5, ndvi: 0.64 }
+  - { region: 'East', soil_type: 'sandy_loam', yield: 5, ndvi: 0.61 }
+  - { region: 'East', soil_type: 'clay', yield: 5, ndvi: 0.89 }
+  - { region: 'East', soil_type: 'clay', yield: 5, ndvi: 0.7 }
+  - { region: 'East', soil_type: 'sandy_loam', yield: 5, ndvi: 0.86 }
+  - { region: 'East', soil_type: 'clay', yield: 5, ndvi: 0.62 }
+type: trial
+tags:
+  - trial
+  - order_by
+  - sorting
+  - easy
+category: Trials

@@ -1,0 +1,56 @@
+id: trial_sum_avg
+name: "Trial: SUM & AVG"
+tier: 1
+domain: trials
+description: "Combine SUM and AVG aggregates to analyze revenue and ratings."
+instructions: |-
+  *bleep* Show me you can aggregate, human.
+  Using the business_retail dataset, calculate per branch:
+  - total_revenue (SUM of total, rounded to 2)
+  - avg_rating (AVG of rating, rounded to 2)
+  - transaction_count (COUNT)
+  Show branch, total_revenue, avg_rating, transaction_count.
+  Order by total_revenue descending.
+skills:
+  - select
+  - group
+  - sum
+  - avg
+  - count
+  - order
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+prereq_cases: []
+seedQuery: |-
+  -- Revenue and rating summary per branch
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    branch,
+    ROUND(SUM(total), 2) AS total_revenue,
+    ROUND(AVG(rating), 2) AS avg_rating,
+    COUNT(*) AS transaction_count
+  FROM business_retail
+  GROUP BY branch
+  ORDER BY total_revenue DESC;
+hints:
+  - "SUM(total) adds up all revenue per branch"
+  - "AVG(rating) computes the average rating"
+  - "COUNT(*) counts transactions"
+thoughtProcess:
+  - "Three aggregate functions in one query — SUM, AVG, COUNT — each summarizes a different dimension."
+  - "GROUP BY branch collapses all transactions into one row per branch."
+  - "ROUND keeps output clean. ORDER BY total_revenue DESC shows highest-earning branch first."
+expected:
+  - { branch: 'C', total_revenue: 110568.71, avg_rating: 7.07, transaction_count: 328 }
+  - { branch: 'A', total_revenue: 106200.37, avg_rating: 7.03, transaction_count: 340 }
+  - { branch: 'B', total_revenue: 106197.67, avg_rating: 6.82, transaction_count: 332 }
+type: trial
+tags:
+  - trial
+  - sum
+  - avg
+  - count
+  - easy
+category: Trials

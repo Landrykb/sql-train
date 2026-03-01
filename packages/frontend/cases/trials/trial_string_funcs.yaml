@@ -1,0 +1,58 @@
+id: trial_string_funcs
+name: "Trial: String Functions"
+tier: 2
+domain: trials
+description: "Use LENGTH, UPPER, SUBSTR and other string functions to analyze text data."
+instructions: |-
+  *bleep* String manipulation, human.
+  Using the tweets dataset, find the 10 longest tweets.
+  Show tweet_id, LENGTH(text) AS text_length, UPPER(SUBSTR(text, 1, 20)) AS preview.
+  Order by text_length descending, LIMIT 10.
+skills:
+  - select
+  - string_functions
+  - order
+  - limit
+datasets:
+  - name: tweets
+    file: tweets.csv
+prereq_cases: []
+seedQuery: |-
+  -- Find the longest tweets with a preview
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    tweet_id,
+    LENGTH(text) AS text_length,
+    UPPER(SUBSTR(text, 1, 20)) AS preview
+  FROM tweets
+  ORDER BY text_length DESC
+  LIMIT 10;
+hints:
+  - "LENGTH(text) returns the number of characters in a string"
+  - "SUBSTR(text, 1, 20) extracts the first 20 characters"
+  - "UPPER() converts text to uppercase"
+thoughtProcess:
+  - "LENGTH() counts characters in a string — useful for analyzing content depth."
+  - "SUBSTR(string, start, length) extracts a substring. Start is 1-indexed in SQL."
+  - "UPPER() converts to uppercase — often combined with SUBSTR for previews."
+  - "You can nest string functions: UPPER(SUBSTR(...)) applies both transformations."
+expected:
+  - { tweet_id: 'TW3', text_length: 23, preview: 'SAMPLE TWEET #ANALYT' }
+  - { tweet_id: 'TW6', text_length: 23, preview: 'SAMPLE TWEET #ANALYT' }
+  - { tweet_id: 'TW8', text_length: 23, preview: 'SAMPLE TWEET #ANALYT' }
+  - { tweet_id: 'TW16', text_length: 23, preview: 'SAMPLE TWEET #ANALYT' }
+  - { tweet_id: 'TW17', text_length: 23, preview: 'SAMPLE TWEET #ANALYT' }
+  - { tweet_id: 'TW23', text_length: 23, preview: 'SAMPLE TWEET #ANALYT' }
+  - { tweet_id: 'TW24', text_length: 23, preview: 'SAMPLE TWEET #ANALYT' }
+  - { tweet_id: 'TW26', text_length: 23, preview: 'SAMPLE TWEET #ANALYT' }
+  - { tweet_id: 'TW30', text_length: 23, preview: 'SAMPLE TWEET #ANALYT' }
+  - { tweet_id: 'TW32', text_length: 23, preview: 'SAMPLE TWEET #ANALYT' }
+type: trial
+tags:
+  - trial
+  - string_functions
+  - length
+  - substr
+  - upper
+category: Trials

@@ -1,0 +1,73 @@
+id: trial_running_total
+name: "Trial: Running Totals"
+tier: 3
+domain: trials
+description: "Calculate cumulative sums with window functions — essential for dashboards and reports."
+instructions: |-
+  *bleep* Cumulative analysis, human.
+  Using the business_retail dataset, calculate a running total of revenue ordered by date.
+  Show date, daily_revenue (SUM of total per date, rounded to 2),
+  and running_total (cumulative SUM of daily_revenue, rounded to 2).
+  Order by date ascending, LIMIT 15.
+skills:
+  - select
+  - group
+  - cte
+  - window
+  - sum
+  - order
+  - limit
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+prereq_cases:
+  - trial_window
+seedQuery: |-
+  -- Running total of daily revenue
+  SELECT 1;
+solutionQuery: |-
+  WITH DailyRevenue AS (
+    SELECT date, ROUND(SUM(total), 2) AS daily_revenue
+    FROM business_retail
+    GROUP BY date
+  )
+  SELECT
+    date,
+    daily_revenue,
+    ROUND(SUM(daily_revenue) OVER (ORDER BY date), 2) AS running_total
+  FROM DailyRevenue
+  ORDER BY date ASC
+  LIMIT 15;
+hints:
+  - "First GROUP BY date to get daily totals in a CTE"
+  - "SUM(...) OVER (ORDER BY date) computes a running total"
+  - "Window SUM without PARTITION BY accumulates across all rows"
+thoughtProcess:
+  - "Step 1: CTE to compute daily_revenue = SUM(total) GROUP BY date."
+  - "Step 2: SUM(daily_revenue) OVER (ORDER BY date) creates a cumulative sum — each row adds its value to all previous rows."
+  - "Without PARTITION BY, the running total spans the entire dataset. With PARTITION BY, it resets per group."
+  - "This running total pattern is used in financial reports, dashboards, and growth metrics."
+expected:
+  - { date: '2019-01-01', daily_revenue: 4745.18, running_total: 4745.18 }
+  - { date: '2019-01-02', daily_revenue: 1945.5, running_total: 6690.68 }
+  - { date: '2019-01-03', daily_revenue: 2078.13, running_total: 8768.81 }
+  - { date: '2019-01-04', daily_revenue: 1623.69, running_total: 10392.5 }
+  - { date: '2019-01-05', daily_revenue: 3536.68, running_total: 13929.18 }
+  - { date: '2019-01-06', daily_revenue: 3614.21, running_total: 17543.39 }
+  - { date: '2019-01-07', daily_revenue: 2834.24, running_total: 20377.63 }
+  - { date: '2019-01-08', daily_revenue: 5293.73, running_total: 25671.36 }
+  - { date: '2019-01-09', daily_revenue: 3021.34, running_total: 28692.7 }
+  - { date: '2019-01-10', daily_revenue: 3560.95, running_total: 32253.65 }
+  - { date: '2019-01-11', daily_revenue: 2114.96, running_total: 34368.61 }
+  - { date: '2019-01-12', daily_revenue: 5184.76, running_total: 39553.37 }
+  - { date: '2019-01-13', daily_revenue: 2451.2, running_total: 42004.57 }
+  - { date: '2019-01-14', daily_revenue: 3966.62, running_total: 45971.19 }
+  - { date: '2019-01-15', daily_revenue: 5944.26, running_total: 51915.45 }
+type: trial
+tags:
+  - trial
+  - running_total
+  - cumulative
+  - window_functions
+  - hard
+category: Trials

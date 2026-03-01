@@ -1,0 +1,84 @@
+id: trial_cross_domain
+name: "Trial: Cross-Domain Analysis"
+tier: 4
+domain: trials
+description: "Combine multiple CTEs from different domains into a single analytical query — real-world data integration."
+instructions: |-
+  *bleep* Data integration, human.
+  Using the farming_yield and soil_data tables, build a soil quality report.
+  CTE 1: Calculate avg_yield and avg_ndvi per soil_type from farming_yield.
+  CTE 2: Calculate avg_soil_ph per soil_type from soil_data.
+  JOIN both CTEs on soil_type.
+  Classify soil_quality:
+  - 'Excellent' if avg_yield > 500 AND avg_soil_ph BETWEEN 6 AND 7
+  - 'Good' if avg_yield > 300
+  - 'Poor' otherwise
+  Show soil_type, avg_yield (rounded to 2), avg_ndvi (rounded to 3), avg_soil_ph (rounded to 2), soil_quality.
+  Order by avg_yield descending.
+skills:
+  - select
+  - cte
+  - join
+  - case
+  - group
+  - order
+datasets:
+  - name: farming_yield
+    file: farming_yield.csv
+  - name: soil_data
+    file: soil_data.csv
+prereq_cases:
+  - trial_advanced
+seedQuery: |-
+  -- Soil quality report: combine yield data with soil chemistry
+  SELECT 1;
+solutionQuery: |-
+  WITH YieldStats AS (
+    SELECT
+      soil_type,
+      ROUND(AVG(yield), 2) AS avg_yield,
+      ROUND(AVG(ndvi), 3) AS avg_ndvi
+    FROM farming_yield
+    GROUP BY soil_type
+  ),
+  SoilStats AS (
+    SELECT
+      soil_type,
+      ROUND(AVG(soil_ph), 2) AS avg_soil_ph
+    FROM soil_data
+    GROUP BY soil_type
+  )
+  SELECT
+    y.soil_type,
+    y.avg_yield,
+    y.avg_ndvi,
+    s.avg_soil_ph,
+    CASE
+      WHEN y.avg_yield > 500 AND s.avg_soil_ph BETWEEN 6 AND 7 THEN 'Excellent'
+      WHEN y.avg_yield > 300 THEN 'Good'
+      ELSE 'Poor'
+    END AS soil_quality
+  FROM YieldStats y
+  INNER JOIN SoilStats s ON y.soil_type = s.soil_type
+  ORDER BY y.avg_yield DESC;
+hints:
+  - "Two independent CTEs, each aggregating from a different table"
+  - "JOIN the CTEs together on their common column: soil_type"
+  - "BETWEEN 6 AND 7 checks if soil_ph is in the optimal range"
+thoughtProcess:
+  - "Two CTEs aggregate independently: YieldStats from farming_yield, SoilStats from soil_data."
+  - "JOIN them on soil_type to get a combined view per soil type."
+  - "CASE classifies soil quality using data from BOTH CTEs — yield from one, pH from the other."
+  - "This pattern (independent CTEs → JOIN → CASE) is how analysts combine data from multiple sources."
+expected:
+  - { soil_type: 'clay', avg_yield: 3.5, avg_ndvi: 0.7, avg_soil_ph: 6.46, soil_quality: 'Poor' }
+  - { soil_type: 'peat', avg_yield: 3.5, avg_ndvi: 0.7, avg_soil_ph: 6.53, soil_quality: 'Poor' }
+  - { soil_type: 'sandy_loam', avg_yield: 3.5, avg_ndvi: 0.7, avg_soil_ph: 6.49, soil_quality: 'Poor' }
+type: trial
+tags:
+  - trial
+  - cte
+  - multi_cte
+  - cross_domain
+  - hard
+category: Trials

@@ -1,0 +1,62 @@
+id: trial_exists
+name: "Trial: EXISTS & NOT EXISTS"
+tier: 3
+domain: trials
+description: "Use EXISTS and NOT EXISTS for correlated subqueries — a powerful filtering technique."
+instructions: |-
+  *bleep* Correlated filtering, human.
+  Using the patients and treatments tables, find patients who have received at least one treatment.
+  Use EXISTS with a correlated subquery.
+  Show patient_id, age, gender.
+  Order by age descending, LIMIT 10.
+skills:
+  - select
+  - exists
+  - subquery
+  - order
+  - limit
+datasets:
+  - name: patients
+    file: patients.csv
+  - name: treatments
+    file: treatments.csv
+prereq_cases:
+  - trial_subquery
+seedQuery: |-
+  -- Find patients who have been treated
+  SELECT 1;
+solutionQuery: |-
+  SELECT p.patient_id, p.age, p.gender
+  FROM patients p
+  WHERE EXISTS (
+    SELECT 1 FROM treatments t WHERE t.patient_id = p.patient_id
+  )
+  ORDER BY p.age DESC
+  LIMIT 10;
+hints:
+  - "EXISTS returns TRUE if the subquery finds at least one row"
+  - "The subquery is correlated — it references p.patient_id from the outer query"
+  - "SELECT 1 inside EXISTS is convention — the actual value doesn't matter"
+thoughtProcess:
+  - "EXISTS checks if a correlated subquery returns any rows. It's like asking 'does this patient have any treatments?'"
+  - "The subquery WHERE t.patient_id = p.patient_id links inner to outer — this is a correlated subquery."
+  - "EXISTS vs IN: EXISTS stops at the first match (efficient), IN builds a full list. For large tables, EXISTS is often faster."
+  - "NOT EXISTS would find patients WITHOUT any treatments — equally common in interviews."
+expected:
+  - { patient_id: 'P1531', age: 113, gender: 'M' }
+  - { patient_id: 'P9112', age: 113, gender: 'F' }
+  - { patient_id: 'P216', age: 112, gender: 'F' }
+  - { patient_id: 'P326', age: 112, gender: 'M' }
+  - { patient_id: 'P348', age: 112, gender: 'F' }
+  - { patient_id: 'P372', age: 112, gender: 'F' }
+  - { patient_id: 'P569', age: 112, gender: 'M' }
+  - { patient_id: 'P664', age: 112, gender: 'M' }
+  - { patient_id: 'P699', age: 112, gender: 'F' }
+  - { patient_id: 'P742', age: 112, gender: 'M' }
+type: trial
+tags:
+  - trial
+  - exists
+  - correlated_subquery
+  - hard
+category: Trials

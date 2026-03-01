@@ -1,0 +1,69 @@
+id: trial_self_compare
+name: "Trial: Self-Join Comparison"
+tier: 4
+domain: trials
+description: "Compare rows within the same table using a self-join — an advanced technique for finding related records."
+instructions: |-
+  *bleep* Self-referencing queries, human.
+  Using the space_neo dataset, find pairs of NEOs that approached on the same date
+  but had different hazard classifications.
+  Self-join space_neo as a and b where a.close_approach_date = b.close_approach_date
+  AND a.is_potentially_hazardous != b.is_potentially_hazardous AND a.des < b.des (avoid duplicates).
+  Show a.des AS neo_1, b.des AS neo_2, a.close_approach_date,
+  a.is_potentially_hazardous AS neo1_hazardous, b.is_potentially_hazardous AS neo2_hazardous.
+  Order by a.close_approach_date, LIMIT 10.
+skills:
+  - select
+  - join
+  - where
+  - order
+  - limit
+datasets:
+  - name: space_neo
+    file: space_neo.csv
+prereq_cases:
+  - trial_joins
+seedQuery: |-
+  -- Find NEO pairs with different hazard levels on same date
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    a.des AS neo_1,
+    b.des AS neo_2,
+    a.close_approach_date,
+    a.is_potentially_hazardous AS neo1_hazardous,
+    b.is_potentially_hazardous AS neo2_hazardous
+  FROM space_neo a
+  INNER JOIN space_neo b
+    ON a.close_approach_date = b.close_approach_date
+    AND a.is_potentially_hazardous != b.is_potentially_hazardous
+    AND a.des < b.des
+  ORDER BY a.close_approach_date
+  LIMIT 10;
+hints:
+  - "A self-join joins a table to itself — use aliases (a and b) to distinguish"
+  - "a.des < b.des ensures each pair appears only once (not both AB and BA)"
+  - "Join on same date but different hazard status"
+thoughtProcess:
+  - "Self-join = joining a table to itself. You need two aliases (a and b) to reference the same table twice."
+  - "ON conditions: same date (a.close_approach_date = b.close_approach_date), different hazard (!=), and a.des < b.des to avoid duplicate pairs."
+  - "Without a.des < b.des, you'd get (NEO1, NEO2) AND (NEO2, NEO1) — the < trick ensures each pair appears once."
+  - "Self-joins are powerful for comparing records within the same table — common in employee-manager, flight connections, and time-series analysis."
+expected:
+  - { neo_1: 'NEO1530', neo_2: 'NEO1929', close_approach_date: '2025-01-02', neo1_hazardous: 'False', neo2_hazardous: 'True' }
+  - { neo_1: 'NEO1530', neo_2: 'NEO2116', close_approach_date: '2025-01-02', neo1_hazardous: 'False', neo2_hazardous: 'True' }
+  - { neo_1: 'NEO1530', neo_2: 'NEO2283', close_approach_date: '2025-01-02', neo1_hazardous: 'False', neo2_hazardous: 'True' }
+  - { neo_1: 'NEO1530', neo_2: 'NEO2584', close_approach_date: '2025-01-02', neo1_hazardous: 'False', neo2_hazardous: 'True' }
+  - { neo_1: 'NEO1530', neo_2: 'NEO769', close_approach_date: '2025-01-02', neo1_hazardous: 'False', neo2_hazardous: 'True' }
+  - { neo_1: 'NEO1530', neo_2: 'NEO995', close_approach_date: '2025-01-02', neo1_hazardous: 'False', neo2_hazardous: 'True' }
+  - { neo_1: 'NEO1547', neo_2: 'NEO1929', close_approach_date: '2025-01-02', neo1_hazardous: 'False', neo2_hazardous: 'True' }
+  - { neo_1: 'NEO1547', neo_2: 'NEO2116', close_approach_date: '2025-01-02', neo1_hazardous: 'False', neo2_hazardous: 'True' }
+  - { neo_1: 'NEO1547', neo_2: 'NEO2283', close_approach_date: '2025-01-02', neo1_hazardous: 'False', neo2_hazardous: 'True' }
+  - { neo_1: 'NEO1547', neo_2: 'NEO2584', close_approach_date: '2025-01-02', neo1_hazardous: 'False', neo2_hazardous: 'True' }
+type: trial
+tags:
+  - trial
+  - self_join
+  - comparison
+  - hard
+category: Trials

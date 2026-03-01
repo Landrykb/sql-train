@@ -1,0 +1,50 @@
+id: trial_count_case
+name: "Trial: Conditional Counting"
+tier: 2
+domain: trials
+description: "Count rows meeting different conditions in a single query using CASE inside COUNT/SUM."
+instructions: |-
+  *bleep* Multi-metric counting, human.
+  Using the space_neo dataset, calculate:
+  - total_neos: COUNT(*)
+  - hazardous_count: count where is_potentially_hazardous = 'True'
+  - safe_count: count where is_potentially_hazardous != 'True'
+  - hazardous_pct: percentage of hazardous NEOs (rounded to 1)
+  Return a single summary row (no GROUP BY needed).
+skills:
+  - select
+  - case
+  - count
+  - sum
+datasets:
+  - name: space_neo
+    file: space_neo.csv
+prereq_cases: []
+seedQuery: |-
+  -- Hazardous vs safe NEO summary
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    COUNT(*) AS total_neos,
+    SUM(CASE WHEN is_potentially_hazardous = 'True' THEN 1 ELSE 0 END) AS hazardous_count,
+    SUM(CASE WHEN is_potentially_hazardous != 'True' THEN 1 ELSE 0 END) AS safe_count,
+    ROUND(100.0 * SUM(CASE WHEN is_potentially_hazardous = 'True' THEN 1 ELSE 0 END) / COUNT(*), 1) AS hazardous_pct
+  FROM space_neo;
+hints:
+  - "SUM(CASE WHEN condition THEN 1 ELSE 0 END) counts rows matching the condition"
+  - "No GROUP BY means the entire table is one group — you get one summary row"
+  - "Divide hazardous by total and multiply by 100 for the percentage"
+thoughtProcess:
+  - "Without GROUP BY, aggregate functions summarize the entire table into one row."
+  - "SUM(CASE WHEN ... THEN 1 ELSE 0 END) is the standard conditional counting pattern."
+  - "You can have multiple CASE expressions in one SELECT — each counts a different condition."
+  - "hazardous_pct = 100.0 * hazardous / total. The 100.0 forces float division."
+expected:
+  - { total_neos: 5000, hazardous_count: 2497, safe_count: 2503, hazardous_pct: 49.9 }
+type: trial
+tags:
+  - trial
+  - conditional_count
+  - case
+  - summary
+category: Trials

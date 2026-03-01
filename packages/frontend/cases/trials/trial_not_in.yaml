@@ -1,0 +1,56 @@
+id: trial_not_in
+name: "Trial: NOT IN Exclusion"
+tier: 2
+domain: trials
+description: "Exclude rows matching a list using NOT IN — the inverse of IN filtering."
+instructions: |-
+  *bleep* Exclusion filtering, human.
+  Using the business_retail dataset, find all transactions where the payment method
+  is NOT IN ('Cash', 'Credit card').
+  Show invoice_id, product_line, payment, total.
+  Order by total descending, LIMIT 10.
+skills:
+  - select
+  - where
+  - not_in
+  - order
+  - limit
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+prereq_cases: []
+seedQuery: |-
+  -- Find non-cash, non-credit-card transactions
+  SELECT 1;
+solutionQuery: |-
+  SELECT invoice_id, product_line, payment, total
+  FROM business_retail
+  WHERE payment NOT IN ('Cash', 'Credit card')
+  ORDER BY total DESC
+  LIMIT 10;
+hints:
+  - "NOT IN excludes rows matching any value in the list"
+  - "It's the opposite of IN — same syntax, just add NOT"
+  - "Be careful: NOT IN with NULLs in the list can give unexpected results"
+thoughtProcess:
+  - "NOT IN ('Cash', 'Credit card') keeps only rows where payment is neither Cash nor Credit card."
+  - "This is equivalent to: WHERE payment != 'Cash' AND payment != 'Credit card'."
+  - "Important gotcha: if the list contains NULL, NOT IN returns no rows. Always exclude NULLs from NOT IN lists."
+expected:
+  - { invoice_id: '283-26-5248', product_line: 'Food and beverages', payment: 'Ewallet', total: 1034.46 }
+  - { invoice_id: '751-41-9720', product_line: 'Home and lifestyle', payment: 'Ewallet', total: 1023.75 }
+  - { invoice_id: '303-96-2227', product_line: 'Home and lifestyle', payment: 'Ewallet', total: 1022.49 }
+  - { invoice_id: '325-77-6186', product_line: 'Home and lifestyle', payment: 'Ewallet', total: 951.83 }
+  - { invoice_id: '751-69-0068', product_line: 'Sports and travel', payment: 'Ewallet', total: 937.82 }
+  - { invoice_id: '704-48-3927', product_line: 'Electronic accessories', payment: 'Ewallet', total: 931.03 }
+  - { invoice_id: '766-85-7061', product_line: 'Health and beauty', payment: 'Ewallet', total: 922.63 }
+  - { invoice_id: '139-32-4183', product_line: 'Sports and travel', payment: 'Ewallet', total: 921.19 }
+  - { invoice_id: '743-04-1105', product_line: 'Health and beauty', payment: 'Ewallet', total: 918.73 }
+  - { invoice_id: '574-22-5561', product_line: 'Fashion accessories', payment: 'Ewallet', total: 867.62 }
+type: trial
+tags:
+  - trial
+  - not_in
+  - exclusion
+  - filtering
+category: Trials

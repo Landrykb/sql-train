@@ -1,0 +1,60 @@
+id: trial_percentage
+name: "Trial: Percentage Calculations"
+tier: 3
+domain: trials
+description: "Calculate percentages from aggregated data — a bread-and-butter interview skill."
+instructions: |-
+  *bleep* Ratios and percentages, human.
+  Using the shot_zones dataset, calculate the shooting percentage per shot_zone.
+  For each zone, show:
+  - shot_zone
+  - total_shots (COUNT)
+  - made_shots (count where made = 'True')
+  - shooting_pct (percentage, rounded to 1 decimal)
+  Order by shooting_pct descending, LIMIT 10.
+skills:
+  - select
+  - group
+  - case
+  - count
+  - order
+  - limit
+datasets:
+  - name: shot_zones
+    file: shot_zones.csv
+prereq_cases:
+  - trial_aggregation
+seedQuery: |-
+  -- Shooting percentage per zone
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    shot_zone,
+    COUNT(*) AS total_shots,
+    SUM(CASE WHEN made = 'True' THEN 1 ELSE 0 END) AS made_shots,
+    ROUND(100.0 * SUM(CASE WHEN made = 'True' THEN 1 ELSE 0 END) / COUNT(*), 1) AS shooting_pct
+  FROM shot_zones
+  GROUP BY shot_zone
+  ORDER BY shooting_pct DESC
+  LIMIT 10;
+hints:
+  - "SUM(CASE WHEN made = 'True' THEN 1 ELSE 0 END) counts successful shots"
+  - "Multiply by 100.0 (not 100) to force decimal division"
+  - "Percentage = (part / whole) * 100"
+thoughtProcess:
+  - "CASE inside SUM is the standard pattern for conditional counting."
+  - "100.0 * forces float division — without it, integer division truncates decimals."
+  - "GROUP BY shot_zone gives one row per zone with its shooting percentage."
+  - "This percentage calculation pattern appears in almost every SQL interview."
+expected:
+  - { shot_zone: 'midrange', total_shots: 3271, made_shots: 1660, shooting_pct: 50.7 }
+  - { shot_zone: 'three_point', total_shots: 3408, made_shots: 1707, shooting_pct: 50.1 }
+  - { shot_zone: 'paint', total_shots: 3321, made_shots: 1646, shooting_pct: 49.6 }
+type: trial
+tags:
+  - trial
+  - percentage
+  - case
+  - aggregation
+  - medium
+category: Trials

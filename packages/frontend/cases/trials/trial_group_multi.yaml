@@ -1,0 +1,60 @@
+id: trial_group_multi
+name: "Trial: Multi-Column GROUP BY"
+tier: 2
+domain: trials
+description: "Group by multiple columns to create detailed breakdowns."
+instructions: |-
+  *bleep* Granular grouping, human.
+  Using the business_retail dataset, calculate total revenue per city AND payment method.
+  Show city, payment, ROUND(SUM(total), 2) AS total_revenue, and COUNT(*) AS transactions.
+  Order by city ASC, total_revenue DESC.
+  LIMIT 15.
+skills:
+  - select
+  - group
+  - sum
+  - count
+  - order
+  - limit
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+prereq_cases: []
+seedQuery: |-
+  -- Revenue breakdown by city and payment method
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    city,
+    payment,
+    ROUND(SUM(total), 2) AS total_revenue,
+    COUNT(*) AS transactions
+  FROM business_retail
+  GROUP BY city, payment
+  ORDER BY city ASC, total_revenue DESC
+  LIMIT 15;
+hints:
+  - "GROUP BY city, payment creates one row per unique city+payment combination"
+  - "SUM(total) gives revenue for each combination"
+  - "ORDER BY city ASC groups cities together, total_revenue DESC ranks within each city"
+thoughtProcess:
+  - "GROUP BY city, payment produces a cross-tabulation — one row for each unique combination."
+  - "SUM(total) and COUNT(*) aggregate within each group."
+  - "Multi-column ORDER BY: city ASC groups alphabetically, total_revenue DESC ranks within each city."
+expected:
+  - { city: 'Mandalay', payment: 'Credit card', total_revenue: 37344.86, transactions: 109 }
+  - { city: 'Mandalay', payment: 'Cash', total_revenue: 35339.46, transactions: 110 }
+  - { city: 'Mandalay', payment: 'Ewallet', total_revenue: 33513.35, transactions: 113 }
+  - { city: 'Naypyitaw', payment: 'Cash', total_revenue: 43085.86, transactions: 124 }
+  - { city: 'Naypyitaw', payment: 'Ewallet', total_revenue: 37155.38, transactions: 106 }
+  - { city: 'Naypyitaw', payment: 'Credit card', total_revenue: 30327.47, transactions: 98 }
+  - { city: 'Yangon', payment: 'Ewallet', total_revenue: 39324.37, transactions: 126 }
+  - { city: 'Yangon', payment: 'Cash', total_revenue: 33781.25, transactions: 110 }
+  - { city: 'Yangon', payment: 'Credit card', total_revenue: 33094.75, transactions: 104 }
+type: trial
+tags:
+  - trial
+  - group_by
+  - multi_column
+  - medium
+category: Trials

@@ -1,0 +1,68 @@
+id: trial_min_max_group
+name: "Trial: Daily Price Range"
+tier: 2
+domain: trials
+description: "Combine MIN, MAX, and AVG in a single GROUP BY to analyze daily stock ranges."
+instructions: |-
+  *bleep* Market analysis, human.
+  Using the finance_stocks dataset, calculate per date:
+  - avg_close (AVG of close, rounded to 2)
+  - highest_volume (MAX of volume)
+  - lowest_volume (MIN of volume)
+  - ticker_count (COUNT of DISTINCT tickers)
+  Order by avg_close descending, LIMIT 10.
+skills:
+  - select
+  - group
+  - avg
+  - max
+  - min
+  - count
+  - order
+  - limit
+datasets:
+  - name: finance_stocks
+    file: finance_stocks.csv
+prereq_cases: []
+seedQuery: |-
+  -- Daily market summary
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    date,
+    ROUND(AVG(close), 2) AS avg_close,
+    MAX(volume) AS highest_volume,
+    MIN(volume) AS lowest_volume,
+    COUNT(DISTINCT ticker) AS ticker_count
+  FROM finance_stocks
+  GROUP BY date
+  ORDER BY avg_close DESC
+  LIMIT 10;
+hints:
+  - "Multiple aggregates in one SELECT — AVG, MAX, MIN, COUNT all grouped by date"
+  - "COUNT(DISTINCT ticker) counts unique tickers per date"
+  - "GROUP BY date gives one row per trading day"
+thoughtProcess:
+  - "You can use multiple aggregate functions in a single query — they all operate on the same groups."
+  - "GROUP BY date means AVG, MAX, MIN, and COUNT each summarize all tickers for that date."
+  - "COUNT(DISTINCT ticker) avoids double-counting if a ticker appears multiple times on one date."
+expected:
+  - { date: '2024-01-10', avg_close: 181.77, highest_volume: 70232845, lowest_volume: 6685088, ticker_count: 5 }
+  - { date: '2023-03-21', avg_close: 177.33, highest_volume: 87748765, lowest_volume: 4697531, ticker_count: 8 }
+  - { date: '2023-06-01', avg_close: 175.28, highest_volume: 97172127, lowest_volume: 31965740, ticker_count: 7 }
+  - { date: '2023-01-19', avg_close: 173.14, highest_volume: 90348217, lowest_volume: 11845924, ticker_count: 10 }
+  - { date: '2024-04-16', avg_close: 173.01, highest_volume: 99572175, lowest_volume: 12888371, ticker_count: 8 }
+  - { date: '2024-12-16', avg_close: 172.33, highest_volume: 97183141, lowest_volume: 17552177, ticker_count: 11 }
+  - { date: '2023-05-07', avg_close: 171.08, highest_volume: 91666344, lowest_volume: 15810375, ticker_count: 19 }
+  - { date: '2023-05-08', avg_close: 168.59, highest_volume: 87912563, lowest_volume: 9985590, ticker_count: 14 }
+  - { date: '2023-06-29', avg_close: 168.58, highest_volume: 79489233, lowest_volume: 1858627, ticker_count: 18 }
+  - { date: '2023-08-13', avg_close: 168.22, highest_volume: 95552254, lowest_volume: 1384922, ticker_count: 9 }
+type: trial
+tags:
+  - trial
+  - multiple_aggregates
+  - min
+  - max
+  - avg
+  - medium
+category: Trials

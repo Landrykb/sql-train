@@ -1,0 +1,57 @@
+id: trial_ratio_calc
+name: "Trial: Ratio & Division"
+tier: 2
+domain: trials
+description: "Calculate ratios and avoid integer division — a common pitfall in SQL interviews."
+instructions: |-
+  *bleep* Math precision, human.
+  Using the business_retail dataset, calculate per product_line:
+  - total_revenue (SUM of total, rounded to 2)
+  - total_quantity (SUM of quantity)
+  - avg_price_per_unit: total_revenue / total_quantity (rounded to 2)
+  Show product_line, total_revenue, total_quantity, avg_price_per_unit.
+  Order by avg_price_per_unit descending.
+skills:
+  - select
+  - group
+  - sum
+  - division
+  - order
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+prereq_cases: []
+seedQuery: |-
+  -- Revenue per unit by product line
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    product_line,
+    ROUND(SUM(total), 2) AS total_revenue,
+    SUM(quantity) AS total_quantity,
+    ROUND(1.0 * SUM(total) / SUM(quantity), 2) AS avg_price_per_unit
+  FROM business_retail
+  GROUP BY product_line
+  ORDER BY avg_price_per_unit DESC;
+hints:
+  - "Use 1.0 * before division to force float division"
+  - "Without 1.0 *, integer / integer truncates the decimal"
+  - "SUM(total) / SUM(quantity) gives revenue per unit sold"
+thoughtProcess:
+  - "Integer division is a classic SQL trap: 5 / 2 = 2 (not 2.5). Multiply by 1.0 to force float division."
+  - "SUM(total) / SUM(quantity) = weighted average price per unit. ROUND to 2 decimals."
+  - "GROUP BY product_line gives one row per product category."
+expected:
+  - { product_line: 'Fashion accessories', total_revenue: 54305.9, total_quantity: 902, avg_price_per_unit: 60.21 }
+  - { product_line: 'Sports and travel', total_revenue: 55122.83, total_quantity: 920, avg_price_per_unit: 59.92 }
+  - { product_line: 'Home and lifestyle', total_revenue: 53861.91, total_quantity: 911, avg_price_per_unit: 59.12 }
+  - { product_line: 'Food and beverages', total_revenue: 56144.84, total_quantity: 952, avg_price_per_unit: 58.98 }
+  - { product_line: 'Health and beauty', total_revenue: 49193.74, total_quantity: 854, avg_price_per_unit: 57.6 }
+  - { product_line: 'Electronic accessories', total_revenue: 54337.53, total_quantity: 971, avg_price_per_unit: 55.96 }
+type: trial
+tags:
+  - trial
+  - division
+  - ratio
+  - math
+category: Trials

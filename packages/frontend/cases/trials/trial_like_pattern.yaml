@@ -1,0 +1,50 @@
+id: trial_like_pattern
+name: "Trial: LIKE Pattern Matching"
+tier: 2
+domain: trials
+description: "Filter text data with LIKE wildcards — essential for searching strings."
+instructions: |-
+  *bleep* Pattern matching time, human.
+  Using the business_retail dataset, find all transactions where the product_line
+  contains the word 'and' (case-sensitive).
+  Show product_line, COUNT(*) as match_count.
+  GROUP BY product_line, ORDER BY match_count DESC.
+skills:
+  - select
+  - where
+  - like
+  - group
+  - order
+datasets:
+  - name: business_retail
+    file: business_retail.csv
+prereq_cases: []
+seedQuery: |-
+  -- Find product lines containing 'and'
+  SELECT 1;
+solutionQuery: |-
+  SELECT product_line, COUNT(*) AS match_count
+  FROM business_retail
+  WHERE product_line LIKE '%and%'
+  GROUP BY product_line
+  ORDER BY match_count DESC;
+hints:
+  - "'%and%' matches any string containing 'and' anywhere"
+  - "% is the wildcard — matches zero or more characters"
+  - "GROUP BY to count per matching product line"
+thoughtProcess:
+  - "LIKE '%and%' finds rows where product_line contains 'and' anywhere in the string."
+  - "% is the multi-character wildcard. _ would match exactly one character."
+  - "GROUP BY product_line then COUNT(*) tells us how many transactions per matching line."
+expected:
+  - { product_line: 'Food and beverages', match_count: 174 }
+  - { product_line: 'Sports and travel', match_count: 166 }
+  - { product_line: 'Home and lifestyle', match_count: 160 }
+  - { product_line: 'Health and beauty', match_count: 152 }
+type: trial
+tags:
+  - trial
+  - like
+  - pattern_matching
+  - easy
+category: Trials

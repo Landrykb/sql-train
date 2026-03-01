@@ -1,0 +1,61 @@
+id: trial_date_math
+name: "Trial: Date Arithmetic"
+tier: 3
+domain: trials
+description: "Calculate durations between dates — essential for time-based analysis."
+instructions: |-
+  *bleep* Date math, human.
+  Using the admissions dataset, calculate each patient's length of stay in days.
+  Show admission_id, patient_id, admission_date, discharge_date,
+  and length_of_stay (JULIANDAY(discharge_date) - JULIANDAY(admission_date), cast as INTEGER).
+  Order by length_of_stay descending, LIMIT 10.
+skills:
+  - select
+  - date_functions
+  - order
+  - limit
+datasets:
+  - name: admissions
+    file: admissions.csv
+prereq_cases: []
+seedQuery: |-
+  -- Calculate length of hospital stay
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    admission_id,
+    patient_id,
+    admission_date,
+    discharge_date,
+    CAST(JULIANDAY(discharge_date) - JULIANDAY(admission_date) AS INTEGER) AS length_of_stay
+  FROM admissions
+  ORDER BY length_of_stay DESC
+  LIMIT 10;
+hints:
+  - "JULIANDAY() converts a date to a numeric Julian day number"
+  - "Subtracting two Julian days gives the difference in days"
+  - "CAST(... AS INTEGER) removes the decimal part"
+thoughtProcess:
+  - "SQLite doesn't have DATEDIFF — use JULIANDAY(end) - JULIANDAY(start) instead."
+  - "JULIANDAY converts a date string to a floating-point day number."
+  - "CAST AS INTEGER rounds down to whole days."
+  - "ORDER BY length_of_stay DESC shows the longest hospital stays first."
+expected:
+  - { admission_id: 'A3030', patient_id: 'P3105', admission_date: '2023-01-06', discharge_date: '2024-12-30', length_of_stay: 724 }
+  - { admission_id: 'A1033', patient_id: 'P8285', admission_date: '2023-01-10', discharge_date: '2024-12-29', length_of_stay: 719 }
+  - { admission_id: 'A2251', patient_id: 'P6463', admission_date: '2023-01-04', discharge_date: '2024-12-21', length_of_stay: 717 }
+  - { admission_id: 'A1236', patient_id: 'P340', admission_date: '2023-01-11', discharge_date: '2024-12-26', length_of_stay: 715 }
+  - { admission_id: 'A3118', patient_id: 'P6849', admission_date: '2023-01-10', discharge_date: '2024-12-25', length_of_stay: 715 }
+  - { admission_id: 'A1057', patient_id: 'P8753', admission_date: '2023-01-05', discharge_date: '2024-12-18', length_of_stay: 713 }
+  - { admission_id: 'A4802', patient_id: 'P3774', admission_date: '2023-01-21', discharge_date: '2024-12-31', length_of_stay: 710 }
+  - { admission_id: 'A4681', patient_id: 'P288', admission_date: '2023-01-04', discharge_date: '2024-12-13', length_of_stay: 709 }
+  - { admission_id: 'A4938', patient_id: 'P2000', admission_date: '2023-01-06', discharge_date: '2024-12-15', length_of_stay: 709 }
+  - { admission_id: 'A295', patient_id: 'P4472', admission_date: '2023-01-19', discharge_date: '2024-12-27', length_of_stay: 708 }
+type: trial
+tags:
+  - trial
+  - date
+  - julianday
+  - arithmetic
+  - medium
+category: Trials

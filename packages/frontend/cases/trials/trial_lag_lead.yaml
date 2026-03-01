@@ -1,0 +1,73 @@
+id: trial_lag_lead
+name: "Trial: LAG & LEAD"
+tier: 3
+domain: trials
+description: "Compare rows to their neighbors using LAG/LEAD window functions — a key analytics skill."
+instructions: |-
+  *bleep* Time-series comparison, human.
+  Using the market_index dataset, for each date show:
+  - date
+  - index_close (rounded to 2)
+  - prev_close: the previous day's index_close using LAG (rounded to 2)
+  - daily_change: index_close - prev_close (rounded to 2)
+  Filter out rows where prev_close IS NULL (first row).
+  Order by daily_change ASC (worst days first), LIMIT 10.
+skills:
+  - select
+  - window
+  - lag
+  - order
+  - limit
+datasets:
+  - name: market_index
+    file: market_index.csv
+prereq_cases:
+  - trial_window
+seedQuery: |-
+  -- Day-over-day market index change
+  SELECT 1;
+solutionQuery: |-
+  WITH DailyChange AS (
+    SELECT
+      date,
+      ROUND(index_close, 2) AS index_close,
+      ROUND(LAG(index_close) OVER (ORDER BY date), 2) AS prev_close
+    FROM market_index
+  )
+  SELECT
+    date,
+    index_close,
+    prev_close,
+    ROUND(index_close - prev_close, 2) AS daily_change
+  FROM DailyChange
+  WHERE prev_close IS NOT NULL
+  ORDER BY daily_change ASC
+  LIMIT 10;
+hints:
+  - "LAG(column) OVER (ORDER BY date) gets the previous row's value"
+  - "Window functions can't be filtered in the same SELECT — use a CTE"
+  - "The first row has no previous value, so LAG returns NULL"
+thoughtProcess:
+  - "LAG(index_close) OVER (ORDER BY date) looks at the previous row when sorted by date."
+  - "Window functions produce NULLs for the first row (no previous). Filter with WHERE in the outer query."
+  - "CTE pattern: compute window function in CTE, filter on it in outer query. This is required because WHERE can't reference window functions directly."
+  - "ORDER BY daily_change ASC shows the biggest market drops first."
+expected:
+  - { date: '2023-05-03', index_close: 4041.38, prev_close: 4980.15, daily_change: -938.77 }
+  - { date: '2024-02-14', index_close: 4050.25, prev_close: 4971.7, daily_change: -921.45 }
+  - { date: '2024-03-15', index_close: 4059.39, prev_close: 4967.04, daily_change: -907.65 }
+  - { date: '2024-09-06', index_close: 4066.42, prev_close: 4959.02, daily_change: -892.6 }
+  - { date: '2024-09-17', index_close: 4058.82, prev_close: 4947.83, daily_change: -889.01 }
+  - { date: '2024-07-13', index_close: 4115.88, prev_close: 4998.49, daily_change: -882.61 }
+  - { date: '2024-05-26', index_close: 4019.93, prev_close: 4895.96, daily_change: -876.03 }
+  - { date: '2023-06-15', index_close: 4024.12, prev_close: 4887.98, daily_change: -863.86 }
+  - { date: '2024-01-09', index_close: 4117.09, prev_close: 4966.62, daily_change: -849.53 }
+  - { date: '2024-05-12', index_close: 4126.05, prev_close: 4963.87, daily_change: -837.82 }
+type: trial
+tags:
+  - trial
+  - lag
+  - lead
+  - window_functions
+  - hard
+category: Trials

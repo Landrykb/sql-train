@@ -1,0 +1,64 @@
+id: trial_max_min
+name: "Trial: MAX & MIN"
+tier: 1
+domain: trials
+description: "Find extremes in data using MAX and MIN aggregate functions."
+instructions: |-
+  *bleep* Time for aggregates, human.
+  Using the finance_stocks dataset, find each ticker's highest closing price (max_close)
+  and lowest closing price (min_close), both rounded to 2 decimals.
+  Also compute the price_range (max - min, rounded to 2).
+  Show ticker, max_close, min_close, price_range.
+  Order by price_range descending, LIMIT 10.
+skills:
+  - select
+  - group
+  - max
+  - min
+  - order
+  - limit
+datasets:
+  - name: finance_stocks
+    file: finance_stocks.csv
+prereq_cases: []
+seedQuery: |-
+  -- Find each ticker's price extremes
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    ticker,
+    ROUND(MAX(close), 2) AS max_close,
+    ROUND(MIN(close), 2) AS min_close,
+    ROUND(MAX(close) - MIN(close), 2) AS price_range
+  FROM finance_stocks
+  GROUP BY ticker
+  ORDER BY price_range DESC
+  LIMIT 10;
+hints:
+  - "MAX(close) and MIN(close) find the extremes per group"
+  - "GROUP BY ticker to get one row per ticker"
+  - "Subtract MIN from MAX for the range"
+thoughtProcess:
+  - "MAX and MIN are aggregate functions — they collapse rows into one value per group."
+  - "GROUP BY ticker means each ticker gets its own max and min."
+  - "price_range = MAX(close) - MIN(close) shows volatility. ROUND for clean output."
+  - "ORDER BY price_range DESC shows the most volatile tickers first."
+expected:
+  - { ticker: 'TICK9999', max_close: 133.56, min_close: 133.56, price_range: 0 }
+  - { ticker: 'TICK9998', max_close: 184.01, min_close: 184.01, price_range: 0 }
+  - { ticker: 'TICK9997', max_close: 166.19, min_close: 166.19, price_range: 0 }
+  - { ticker: 'TICK9996', max_close: 160.11, min_close: 160.11, price_range: 0 }
+  - { ticker: 'TICK9995', max_close: 145.03, min_close: 145.03, price_range: 0 }
+  - { ticker: 'TICK9994', max_close: 155.09, min_close: 155.09, price_range: 0 }
+  - { ticker: 'TICK9993', max_close: 115.28, min_close: 115.28, price_range: 0 }
+  - { ticker: 'TICK9992', max_close: 141.16, min_close: 141.16, price_range: 0 }
+  - { ticker: 'TICK9991', max_close: 111.1, min_close: 111.1, price_range: 0 }
+  - { ticker: 'TICK9990', max_close: 186.13, min_close: 186.13, price_range: 0 }
+type: trial
+tags:
+  - trial
+  - max
+  - min
+  - aggregation
+  - easy
+category: Trials

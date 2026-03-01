@@ -1,0 +1,61 @@
+id: trial_cast_convert
+name: "Trial: CAST & Type Conversion"
+tier: 2
+domain: trials
+description: "Convert data types with CAST — needed when mixing numeric and text operations."
+instructions: |-
+  *bleep* Type conversion, human.
+  Using the finance_stocks dataset, calculate each ticker's average volume
+  and display it as an integer (no decimals).
+  Show ticker, CAST(AVG(volume) AS INTEGER) AS avg_volume,
+  CAST(MAX(volume) AS INTEGER) AS peak_volume.
+  Order by avg_volume descending, LIMIT 10.
+skills:
+  - select
+  - group
+  - cast
+  - avg
+  - max
+  - order
+  - limit
+datasets:
+  - name: finance_stocks
+    file: finance_stocks.csv
+prereq_cases: []
+seedQuery: |-
+  -- Average and peak volume per ticker as integers
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    ticker,
+    CAST(AVG(volume) AS INTEGER) AS avg_volume,
+    CAST(MAX(volume) AS INTEGER) AS peak_volume
+  FROM finance_stocks
+  GROUP BY ticker
+  ORDER BY avg_volume DESC
+  LIMIT 10;
+hints:
+  - "CAST(expression AS INTEGER) converts a float to an integer"
+  - "AVG returns a float — CAST makes it cleaner for volume numbers"
+  - "You can also use CAST(... AS TEXT), CAST(... AS REAL)"
+thoughtProcess:
+  - "AVG(volume) returns a float like 12345678.5. Volume should be a whole number — CAST AS INTEGER fixes this."
+  - "CAST(expression AS type) converts between types. Common types: INTEGER, REAL, TEXT."
+  - "GROUP BY ticker gives one row per ticker with its aggregated volume stats."
+expected:
+  - { ticker: 'TICK1242', avg_volume: 99993865, peak_volume: 99993865 }
+  - { ticker: 'TICK340', avg_volume: 99958276, peak_volume: 99958276 }
+  - { ticker: 'TICK3607', avg_volume: 99957052, peak_volume: 99957052 }
+  - { ticker: 'TICK7859', avg_volume: 99954959, peak_volume: 99954959 }
+  - { ticker: 'TICK5838', avg_volume: 99939701, peak_volume: 99939701 }
+  - { ticker: 'TICK7399', avg_volume: 99929724, peak_volume: 99929724 }
+  - { ticker: 'TICK7659', avg_volume: 99928262, peak_volume: 99928262 }
+  - { ticker: 'TICK1124', avg_volume: 99926829, peak_volume: 99926829 }
+  - { ticker: 'TICK303', avg_volume: 99923550, peak_volume: 99923550 }
+  - { ticker: 'TICK2713', avg_volume: 99906823, peak_volume: 99906823 }
+type: trial
+tags:
+  - trial
+  - cast
+  - type_conversion
+category: Trials

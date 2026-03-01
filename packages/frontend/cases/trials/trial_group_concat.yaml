@@ -1,0 +1,57 @@
+id: trial_group_concat
+name: "Trial: GROUP_CONCAT"
+tier: 3
+domain: trials
+description: "Aggregate text values into a single string using GROUP_CONCAT — great for creating comma-separated lists."
+instructions: |-
+  *bleep* String aggregation, human.
+  Using the crime_chicago dataset, for each primary_type, create a comma-separated list
+  of the distinct location_descriptions where that crime occurs.
+  Show primary_type, COUNT(*) AS crime_count, and GROUP_CONCAT(DISTINCT location_description) AS locations.
+  Order by crime_count descending, LIMIT 5.
+skills:
+  - select
+  - group
+  - group_concat
+  - count
+  - order
+  - limit
+datasets:
+  - name: crime_chicago
+    file: crime_chicago.csv
+prereq_cases:
+  - trial_aggregation
+seedQuery: |-
+  -- List locations per crime type
+  SELECT 1;
+solutionQuery: |-
+  SELECT
+    primary_type,
+    COUNT(*) AS crime_count,
+    GROUP_CONCAT(DISTINCT location_description) AS locations
+  FROM crime_chicago
+  GROUP BY primary_type
+  ORDER BY crime_count DESC
+  LIMIT 5;
+hints:
+  - "GROUP_CONCAT joins multiple values into one comma-separated string"
+  - "Add DISTINCT inside GROUP_CONCAT to avoid repeating locations"
+  - "This is SQLite's version of STRING_AGG (PostgreSQL) or GROUP_CONCAT (MySQL)"
+thoughtProcess:
+  - "GROUP_CONCAT(column) concatenates all values in a group into a single string, separated by commas."
+  - "DISTINCT inside GROUP_CONCAT removes duplicate locations per crime type."
+  - "This is useful for creating summary reports where you want a list, not multiple rows."
+  - "Different databases use different syntax: PostgreSQL uses STRING_AGG, SQL Server uses STRING_AGG or FOR XML PATH."
+expected:
+  - { primary_type: 'NARCOTICS', crime_count: 2052, locations: 'APARTMENT,SIDEWALK,RESIDENCE,BANK,STREET' }
+  - { primary_type: 'BATTERY', crime_count: 2042, locations: 'APARTMENT,RESIDENCE,BANK,STREET,SIDEWALK' }
+  - { primary_type: 'ASSAULT', crime_count: 1988, locations: 'RESIDENCE,STREET,APARTMENT,SIDEWALK,BANK' }
+  - { primary_type: 'ROBBERY', crime_count: 1984, locations: 'APARTMENT,STREET,RESIDENCE,BANK,SIDEWALK' }
+  - { primary_type: 'THEFT', crime_count: 1934, locations: 'APARTMENT,RESIDENCE,BANK,SIDEWALK,STREET' }
+type: trial
+tags:
+  - trial
+  - group_concat
+  - string_aggregation
+  - medium
+category: Trials
