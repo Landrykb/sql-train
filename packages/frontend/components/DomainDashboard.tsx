@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic';
 import DataGrid from './DataGrid';
 import ClientCaseGrid from './ClientCaseGrid';
 import { useProgress } from '@/lib/useProgress';
-import { caseOrder, fullCaseOrder } from '@/lib/constants';
+import { caseOrder, fullCaseOrder, visualizationConfigs, CASE_TIERS } from '@/lib/constants';
 import { pushPortfolioToGitHub } from '@/lib/githubPush';
 import { getGitHubUser, startGitHubLogin } from '@/lib/authClient';
 
@@ -169,17 +169,22 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
     skills: ['SQL'],
   }));
 
-  // Load solved entries from localStorage
+  // Load solved entries from localStorage — include ALL completed cases
   const solvedEntries = useMemo<SolvedEntry[]>(() => {
-    return cases.map((c) => {
-      try {
-        const raw = localStorage.getItem(`bleepx_solved_${domain}_${c.id}`);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        return { id: c.id, name: c.name, query: parsed.query, time: parsed.time, attempts: parsed.attempts, ts: parsed.ts };
-      } catch { return null; }
-    }).filter(Boolean) as SolvedEntry[];
-  }, [domain, completedCount]);
+    return cases
+      .filter((c) => progress.completed.has(c.id))
+      .map((c) => {
+        try {
+          const raw = localStorage.getItem(`bleepx_solved_${domain}_${c.id}`);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            return { id: c.id, name: c.name, query: parsed.query || '', time: parsed.time, attempts: parsed.attempts, ts: parsed.ts };
+          }
+        } catch { /* ignore */ }
+        // Case is completed but has no detailed solve data (completed before save feature)
+        return { id: c.id, name: c.name, query: '' };
+      });
+  }, [domain, completedCount, cases, progress.completed]);
 
   useEffect(() => {
     (async () => {
@@ -215,6 +220,116 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
     const builder = domainChartBuilders[domain];
     return builder ? builder(tableMap) : [];
   }, [tables, domain]);
+
+  // Build comprehensive portfolio files for GitHub push / download
+  const buildPortfolioFiles = () => {
+    const dt = domain.charAt(0).toUpperCase() + domain.slice(1);
+    const entriesWithQuery = solvedEntries.filter((e) => e.query);
+    const avgTime = entriesWithQuery.filter((e) => e.time).length > 0
+      ? Math.round(entriesWithQuery.filter((e) => e.time).reduce((s, e) => s + (e.time || 0), 0) / entriesWithQuery.filter((e) => e.time).length) : 0;
+    const bestTime = entriesWithQuery.filter((e) => e.time).length > 0
+      ? Math.min(...entriesWithQuery.filter((e) => e.time).map((e) => e.time!)) : 0;
+    const firstTryCount = entriesWithQuery.filter((e) => (e.attempts || 1) === 1).length;
+
+    const files: { path: string; content: string }[] = [];
+
+    // 1. Domain README.md — comprehensive portfolio summary
+    const vizConfigs = visualizationConfigs[domain] || {};
+    const caseList = solvedEntries.map((e, i) => {
+      const tier = CASE_TIERS[e.id] || 1;
+      const level = tier <= 1 ? 'Beginner' : tier === 2 ? 'Intermediate' : tier === 3 ? 'Advanced' : tier === 4 ? 'Expert' : 'Master';
+      const hasViz = !!vizConfigs[e.id];
+      return `### ${i + 1}. [${e.name}](./${e.id}/query.sql)${hasViz ? ' 📊' : ''}\n- **Level:** ${level} ${'⭐'.repeat(Math.min(tier, 5))}\n${e.attempts ? `- **Attempts:** ${e.attempts}${(e.attempts || 1) === 1 ? ' (first try!)' : ''}` : ''}\n${e.time ? `- **Solve Time:** ${Math.floor(e.time / 60)}m ${e.time % 60}s` : ''}\n${e.query ? `\n\`\`\`sql\n${e.query}\n\`\`\`\n` : '*(query data not available)*\n'}`;
+    }).join('\n');
+
+    files.push({
+      path: `${domain}/README.md`,
+      content: `# ${dt} SQL Analytics Portfolio\n\n## About\nSQL data analysis projects completed through the **BleepxQuery SwiftLink Training Program**.\n\n| Metric | Value |\n|--------|-------|\n| Domain | **${dt}** |\n| Challenges Solved | **${solvedEntries.length}/${totalCases}** (${pct}%) |\n${avgTime ? `| Avg Solve Time | **${Math.floor(avgTime / 60)}m ${avgTime % 60}s** |\n` : ''}${bestTime ? `| Best Solve Time | **${Math.floor(bestTime / 60)}m ${bestTime % 60}s** |\n` : ''}| First-Try Solves | **${firstTryCount}/${entriesWithQuery.length}** |\n| Visualizations | **${Object.keys(vizConfigs).filter(k => solvedEntries.some(e => e.id === k)).length}** charts |\n\n## Skills Demonstrated\n- **Core SQL:** SELECT, WHERE, ORDER BY, LIMIT, DISTINCT\n- **Aggregation:** GROUP BY, HAVING, COUNT, SUM, AVG, MAX, MIN\n- **Joins:** INNER JOIN, LEFT JOIN, multi-table joins\n- **Advanced:** Window Functions (RANK, LAG, LEAD), CTEs, Subqueries\n- **Analysis:** CASE expressions, date functions, percentage calculations\n- **Real-world:** ${dt} industry data analysis & problem solving\n\n## Datasets\n${tables.map((t) => `### ${t.name}\n- **Rows:** ${t.rowCount.toLocaleString()}\n- **Columns:** ${t.columns.length}\n- **Schema:** \`${t.columns.join('`, `')}\`\n- **Preview:**\n\n| ${t.columns.join(' | ')} |\n| ${t.columns.map(() => '---').join(' | ')} |\n${t.previewRows.slice(0, 3).map(r => `| ${t.columns.map(c => String(r[c] ?? '')).join(' | ')} |`).join('\n')}\n`).join('\n')}\n\n## Projects\n\n${caseList}\n\n## How to Run\n1. Load the CSV datasets into any SQL database (SQLite, PostgreSQL, etc.)\n2. Run each query against the loaded tables\n3. Each challenge folder contains: \`query.sql\`, \`README.md\`, and visualization code\n4. Run \`python run_all.py\` to execute all queries (requires Python + SQLite)\n\n---\n*Generated by [BleepxQuery](https://bleepxacademy.vercel.app) — SwiftLink Training Program*\n`,
+    });
+
+    // 2. Per-case files: README, query.sql, and visualization code
+    for (const e of solvedEntries) {
+      const caseName = e.name;
+      const tier = CASE_TIERS[e.id] || 1;
+      const level = tier <= 1 ? 'Beginner' : tier === 2 ? 'Intermediate' : tier === 3 ? 'Advanced' : tier === 4 ? 'Expert' : 'Master';
+      const caseViz = vizConfigs[e.id];
+
+      // query.sql
+      if (e.query) {
+        files.push({
+          path: `${domain}/${e.id}/query.sql`,
+          content: `-- ${caseName}\n-- Domain: ${dt}\n-- Level: ${level}\n-- BleepxQuery SwiftLink Training Program\n--\n${e.attempts ? `-- Attempts: ${e.attempts}${(e.attempts || 1) === 1 ? ' (first try!)' : ''}\n` : ''}${e.time ? `-- Solve Time: ${Math.floor(e.time / 60)}m ${e.time % 60}s\n` : ''}-- Date: ${e.ts ? new Date(e.ts).toLocaleDateString() : 'N/A'}\n\n${e.query}\n`,
+        });
+      }
+
+      // Per-case README.md
+      let caseReadme = `# ${dt} — ${caseName}\n\n**Level:** ${level} ${'⭐'.repeat(Math.min(tier, 5))}\n**Domain:** ${dt}\n`;
+      if (e.attempts) caseReadme += `**Attempts:** ${e.attempts}${(e.attempts || 1) === 1 ? ' (first try!)' : ''}\n`;
+      if (e.time) caseReadme += `**Solve Time:** ${Math.floor(e.time / 60)}m ${e.time % 60}s\n`;
+      if (e.query) caseReadme += `\n### My SQL Query\n\`\`\`sql\n${e.query}\n\`\`\`\n`;
+
+      // Add visualization info if available
+      if (caseViz && caseViz.length > 0) {
+        caseReadme += `\n### Visualizations\n`;
+        caseViz.forEach((v: any, vi: number) => {
+          const title = v.layout?.title?.text || `Chart ${vi + 1}`;
+          caseReadme += `\n#### ${title}\n\`\`\`sql\n${v.query}\n\`\`\`\n`;
+        });
+        caseReadme += `\n### How to Run Visualizations\n1. \`pip install pandas plotly\`\n2. \`python visualize.py\`\n3. Open the generated HTML file in your browser\n`;
+      }
+
+      caseReadme += `\n---\n*Generated by [BleepxQuery](https://bleepxacademy.vercel.app)*\n`;
+      files.push({ path: `${domain}/${e.id}/README.md`, content: caseReadme });
+
+      // Python visualization code (if viz config exists)
+      if (caseViz && caseViz.length > 0) {
+        const dsFile = datasets[0]?.file?.split('/').pop() || 'data.csv';
+        let pyCode = `"""\n${caseName} — ${dt} Domain\nBleepxQuery SwiftLink Training Program\n"""\nimport sqlite3\nimport pandas as pd\nimport plotly.graph_objects as go\nfrom plotly.subplots import make_subplots\n\n# Load datasets\nconn = sqlite3.connect(':memory:')\n`;
+        for (const ds of datasets) {
+          const fname = ds.file.split('/').pop() || ds.name + '.csv';
+          pyCode += `pd.read_csv('../../datasets/${fname}').to_sql('${ds.name}', conn, index=False, if_exists='replace')\n`;
+        }
+        pyCode += `\n`;
+        caseViz.forEach((v: any, vi: number) => {
+          const title = v.layout?.title?.text || `Chart ${vi + 1}`;
+          pyCode += `# ${title}\ndf${vi} = pd.read_sql_query("""${v.query}""", conn)\nprint(f"${title}: {len(df${vi})} rows")\nprint(df${vi}.head())\n\n`;
+        });
+        pyCode += `conn.close()\nprint("\\nDone! All queries executed successfully.")\n`;
+        files.push({ path: `${domain}/${e.id}/visualize.py`, content: pyCode });
+      }
+    }
+
+    // 3. CSV datasets
+    for (const t of tables) {
+      const csvHeader = t.columns.join(',');
+      const csvRows = t.fullData.slice(0, 100).map(r => t.columns.map(c => {
+        const v = r[c];
+        return typeof v === 'string' && (v.includes(',') || v.includes('"') || v.includes('\n')) ? `"${v.replace(/"/g, '""')}"` : String(v ?? '');
+      }).join(','));
+      files.push({
+        path: `${domain}/datasets/${t.name}_sample.csv`,
+        content: `${csvHeader}\n${csvRows.join('\n')}\n`,
+      });
+    }
+
+    // 4. Domain-level run_all.py script
+    let runAll = `"""\n${dt} Domain — Run All Solved Queries\nBleepxQuery SwiftLink Training Program\n"""\nimport sqlite3\nimport pandas as pd\nimport os\n\n# Load datasets\nconn = sqlite3.connect(':memory:')\ndatasets_dir = os.path.join(os.path.dirname(__file__), 'datasets')\n`;
+    for (const ds of datasets) {
+      const fname = ds.file.split('/').pop() || ds.name + '.csv';
+      runAll += `pd.read_csv(os.path.join(datasets_dir, '${fname.replace('.csv', '_sample.csv')}')).to_sql('${ds.name}', conn, index=False, if_exists='replace')\n`;
+    }
+    runAll += `\nprint("Datasets loaded. Running queries...\\n")\n\nqueries = {\n`;
+    for (const e of solvedEntries) {
+      if (e.query) {
+        const escaped = e.query.replace(/\\/g, '\\\\').replace(/"""/g, '\\"\\"\\"');
+        runAll += `    '${e.id}': """${escaped}""",\n`;
+      }
+    }
+    runAll += `}\n\nfor name, sql in queries.items():\n    try:\n        df = pd.read_sql_query(sql, conn)\n        print(f"✓ {name}: {len(df)} rows")\n    except Exception as e:\n        print(f"✗ {name}: {e}")\n\nconn.close()\nprint("\\nDone!")\n`;
+    files.push({ path: `${domain}/run_all.py`, content: runAll });
+
+    return files;
+  };
 
   if (loading) {
     return (
@@ -274,17 +389,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
                     onClick={async () => {
                       setPushing(true);
                       setPushResult(null);
-                      const domainTitle = domain.charAt(0).toUpperCase() + domain.slice(1);
-                      const files = [
-                        {
-                          path: `${domain}/README.md`,
-                          content: `# ${domainTitle} SQL Analytics Portfolio\n\n## About\nSQL data analysis projects completed through the **BleepxQuery SwiftLink Training Program**.\nDomain: **${domainTitle}** | Challenges Solved: **${solvedEntries.length}/${totalCases}** | Completion: **${pct}%**\n\n## Skills Demonstrated\n- SQL (SELECT, JOIN, GROUP BY, Window Functions, CTEs, Subqueries)\n- Data Analysis & Aggregation\n- Real-world problem solving with industry datasets\n\n## Projects\n\n${solvedEntries.map((e, i) => `### ${i + 1}. ${e.name}\n${e.attempts ? `- **Attempts:** ${e.attempts}` : ''}\n${e.time ? `- **Solve Time:** ${Math.floor(e.time / 60)}m ${e.time % 60}s` : ''}\n\n\`\`\`sql\n${e.query}\n\`\`\`\n`).join('\n')}\n---\n*Generated by [BleepxQuery](https://bleepxacademy.vercel.app) — SwiftLink Training Program*\n`,
-                        },
-                        ...solvedEntries.map((e) => ({
-                          path: `${domain}/${e.id}/query.sql`,
-                          content: `-- ${e.name}\n-- Domain: ${domainTitle}\n-- My solution query\n\n${e.query}\n`,
-                        })),
-                      ];
+                      const files = buildPortfolioFiles();
                       const result = await pushPortfolioToGitHub(domain, files, (msg) => setPushMsg(msg));
                       setPushResult(result);
                       setPushing(false);
@@ -426,20 +531,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
                   onClick={async () => {
                     setPushing(true);
                     setPushResult(null);
-                    const domainTitle = domain.charAt(0).toUpperCase() + domain.slice(1);
-                    const avgTime = solvedEntries.filter((e) => e.time).length > 0 ? Math.round(solvedEntries.filter((e) => e.time).reduce((s, e) => s + (e.time || 0), 0) / solvedEntries.filter((e) => e.time).length) : 0;
-                    const bestTime = solvedEntries.filter((e) => e.time).length > 0 ? Math.min(...solvedEntries.filter((e) => e.time).map((e) => e.time!)) : 0;
-                    const firstTryCount = solvedEntries.filter((e) => (e.attempts || 1) === 1).length;
-                    const files = [
-                      {
-                        path: `${domain}/README.md`,
-                        content: `# ${domainTitle} SQL Analytics Portfolio\n\n## About\nSQL data analysis projects completed through the **BleepxQuery SwiftLink Training Program**.\n\n| Metric | Value |\n|--------|-------|\n| Domain | **${domainTitle}** |\n| Challenges Solved | **${solvedEntries.length}/${totalCases}** (${pct}%) |\n${avgTime ? `| Avg Solve Time | **${Math.floor(avgTime / 60)}m ${avgTime % 60}s** |\n` : ''}${bestTime ? `| Best Solve Time | **${Math.floor(bestTime / 60)}m ${bestTime % 60}s** |\n` : ''}| First-Try Solves | **${firstTryCount}/${solvedEntries.length}** |\n\n## Skills Demonstrated\n- **Core SQL:** SELECT, WHERE, ORDER BY, LIMIT, DISTINCT\n- **Aggregation:** GROUP BY, HAVING, COUNT, SUM, AVG, MAX, MIN\n- **Joins:** INNER JOIN, LEFT JOIN, multi-table joins\n- **Advanced:** Window Functions (RANK, LAG, LEAD), CTEs, Subqueries\n- **Analysis:** CASE expressions, date functions, percentage calculations\n- **Real-world:** ${domainTitle} industry data analysis & problem solving\n\n## Datasets Used\n${tables.map((t) => `- **${t.name}** — ${t.rowCount.toLocaleString()} rows, ${t.columns.length} columns\n  - Columns: \`${t.columns.join('`, `')}\``).join('\n')}\n\n## Projects\n\n${solvedEntries.map((e, i) => `### ${i + 1}. [${e.name}](./${e.id}/query.sql)\n${e.attempts ? `- **Attempts:** ${e.attempts}` : ''}${(e.attempts || 1) === 1 ? ' (first try!)' : ''}\n${e.time ? `- **Solve Time:** ${Math.floor(e.time / 60)}m ${e.time % 60}s` : ''}\n\n\`\`\`sql\n${e.query}\n\`\`\`\n`).join('\n')}\n## How to Run\n1. Load the CSV datasets into any SQL database (SQLite, PostgreSQL, etc.)\n2. Run each query against the loaded tables\n3. Each challenge has its own folder with a \`query.sql\` file\n\n---\n*Generated by [BleepxQuery](https://bleepxacademy.vercel.app) — SwiftLink Training Program*\n`,
-                      },
-                      ...solvedEntries.map((e) => ({
-                        path: `${domain}/${e.id}/query.sql`,
-                        content: `-- ${e.name}\n-- Domain: ${domainTitle}\n-- BleepxQuery SwiftLink Training Program\n--\n${e.attempts ? `-- Attempts: ${e.attempts}${(e.attempts || 1) === 1 ? ' (first try!)' : ''}\n` : ''}${e.time ? `-- Solve Time: ${Math.floor(e.time / 60)}m ${e.time % 60}s\n` : ''}-- Date: ${e.ts ? new Date(e.ts).toLocaleDateString() : 'N/A'}\n\n${e.query}\n`,
-                      })),
-                    ];
+                    const files = buildPortfolioFiles();
                     const result = await pushPortfolioToGitHub(domain, files, (msg) => setPushMsg(msg));
                     setPushResult(result);
                     setPushing(false);
@@ -493,7 +585,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
               </p>
             )}
             {pushResult?.error && <p className="text-sm text-red-600">❌ {pushResult.error}</p>}
-            <p className="text-xs text-bleepx-text-secondary">Push creates a <code>sql-portfolio-{domain}</code> repo on your GitHub with a README.md and individual .sql files — perfect for showcasing your SQL skills.</p>
+            <p className="text-xs text-bleepx-text-secondary">Push creates a <code>sql-portfolio-{domain}</code> repo with README, SQL queries, per-case READMEs, Python visualization scripts, sample CSV datasets, and a run_all.py script.</p>
           </div>
         ) : (
           <p className="text-bleepx-text-secondary text-sm">Complete challenges to unlock portfolio export. Capstone and bonus missions make the strongest portfolio pieces!</p>
