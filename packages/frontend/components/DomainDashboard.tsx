@@ -170,18 +170,28 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
   }));
 
   // Load solved entries from localStorage — include ALL completed cases
+  // Fallback chain: bleepx_solved_ → bleepx_history_ (last successful query)
   const solvedEntries = useMemo<SolvedEntry[]>(() => {
     return cases
       .filter((c) => progress.completed.has(c.id))
       .map((c) => {
+        // Primary: bleepx_solved_ has full data
         try {
           const raw = localStorage.getItem(`bleepx_solved_${domain}_${c.id}`);
           if (raw) {
             const parsed = JSON.parse(raw);
-            return { id: c.id, name: c.name, query: parsed.query || '', time: parsed.time, attempts: parsed.attempts, ts: parsed.ts };
+            if (parsed.query) return { id: c.id, name: c.name, query: parsed.query, time: parsed.time, attempts: parsed.attempts, ts: parsed.ts };
           }
         } catch { /* ignore */ }
-        // Case is completed but has no detailed solve data (completed before save feature)
+        // Fallback: pull last successful query from history
+        try {
+          const hist = localStorage.getItem(`bleepx_history_${domain}_${c.id}`);
+          if (hist) {
+            const entries = JSON.parse(hist) as { query: string; ts: number; success: boolean | null }[];
+            const lastSuccess = entries.find((e) => e.success === true);
+            if (lastSuccess) return { id: c.id, name: c.name, query: lastSuccess.query, ts: lastSuccess.ts };
+          }
+        } catch { /* ignore */ }
         return { id: c.id, name: c.name, query: '' };
       });
   }, [domain, completedCount, cases, progress.completed]);

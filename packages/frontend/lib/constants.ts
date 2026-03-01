@@ -76,12 +76,12 @@
   ];
 
   // Progressive trial unlock: maps trial case tier to minimum lifetime points earned
-  // Aligns with FLAIR_TIERS: Basic(0), Standard(100), Pro(300), Elite(600)
+  // Tiers 1-2 are free so beginners can practice. Tiers 3-4 require some domain progress.
   export const TRIAL_TIER_UNLOCK: Record<number, { minPoints: number; label: string }> = {
-    1: { minPoints: 0, label: 'Basic' },       // always free
-    2: { minPoints: 100, label: 'Standard' },   // need 100 lifetime pts
-    3: { minPoints: 300, label: 'Pro' },         // need 300 lifetime pts
-    4: { minPoints: 600, label: 'Elite' },       // need 600 lifetime pts
+    1: { minPoints: 0, label: 'Starter' },       // always free
+    2: { minPoints: 0, label: 'Basic' },          // always free
+    3: { minPoints: 50, label: 'Intermediate' },  // need 50 lifetime pts
+    4: { minPoints: 150, label: 'Advanced' },     // need 150 lifetime pts
   };
 
   // Default time limits for test mode on regular challenges (in seconds)
