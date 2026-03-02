@@ -1,5 +1,5 @@
 id: trial_median_approx
-name: "Trial 43: Approximate Median"
+name: "Trial 45: Approximate Median"
 tier: 4
 domain: trials
 description: "Calculate an approximate median using NTILE or percentile logic — a tricky but common interview question."

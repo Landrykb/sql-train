@@ -3,7 +3,8 @@
 import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { useProgress } from '@/lib/useProgress';
-import { caseOrder, hiddenCaseOrder } from '@/lib/constants';
+import { caseOrder, hiddenCaseOrder, CASE_TIERS, TRIAL_TIER_UNLOCK } from '@/lib/constants';
+import { getStoreState } from '@/lib/pointsStore';
 
 interface CaseNode {
   id: string;
@@ -29,6 +30,8 @@ export default function PathMap({ domain, cases }: PathMapProps) {
 
   const regularIds = caseOrder[domain] || [];
   const hiddenIds = new Set(hiddenCaseOrder[domain] || []);
+  const isTrial = domain === 'trials';
+  const totalPointsEarned = isTrial ? (getStoreState().totalPointsEarned || 0) : 0;
 
   const nodes: CaseNode[] = useMemo(() => {
     return cases.map((c) => ({
@@ -42,6 +45,12 @@ export default function PathMap({ domain, cases }: PathMapProps) {
 
   const getStatus = (caseId: string, isHidden: boolean) => {
     if (completed?.has(caseId)) return 'completed';
+    // Trials use tier-based unlock, not sequential prereqs
+    if (isTrial) {
+      const tier = CASE_TIERS[caseId] || 1;
+      const req = TRIAL_TIER_UNLOCK[tier] || TRIAL_TIER_UNLOCK[1];
+      return totalPointsEarned >= req.minPoints ? 'unlocked' : 'locked';
+    }
     const idx = regularIds.indexOf(caseId);
     const prereqs = idx > 0 ? regularIds.slice(0, idx) : [];
     if (isHidden) {
@@ -151,6 +160,45 @@ export default function PathMap({ domain, cases }: PathMapProps) {
       </div>
 
       {/* Regular path */}
+      {isTrial ? (
+        <div className="max-h-[400px] overflow-y-auto pr-1 space-y-1">
+          {regularNodes.map((node, i) => {
+            const status = getStatus(node.id, false);
+            const colors = statusColors[status];
+            return (
+              <Link
+                key={node.id}
+                href={status !== 'locked' ? `/cases/${domain}/${node.id}` : '#'}
+                className={`
+                  flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200
+                  ${status === 'completed' ? 'bg-emerald-500/10 hover:bg-emerald-500/20' :
+                    status === 'unlocked' ? 'bg-blue-500/10 hover:bg-blue-500/20' :
+                    'bg-gray-800/50 opacity-60 cursor-not-allowed'}
+                `}
+              >
+                <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center border-2 text-xs font-bold
+                  ${colors.bg} ${colors.border} ${colors.text}
+                  ${colors.glow ? `shadow-md ${colors.glow}` : ''}
+                `}>
+                  {status === 'completed' ? <StatusIcon status={status} isHidden={false} /> : <span className="text-[10px]">{i + 1}</span>}
+                </span>
+                <span className={`text-sm font-medium truncate flex-1 ${
+                  status === 'completed' ? 'text-emerald-300' :
+                  status === 'unlocked' ? 'text-blue-300' :
+                  'text-gray-500'
+                }`}>
+                  {getCaseName(node.id)}
+                </span>
+                {status === 'locked' && (
+                  <span className="text-[10px] text-gray-500 flex-shrink-0">
+                    {(() => { const t = CASE_TIERS[node.id] || 1; const r = TRIAL_TIER_UNLOCK[t]; return r && r.minPoints > 0 ? `${r.minPoints} pts` : ''; })()}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      ) : (
       <div className="relative">
         {regularNodes.map((node, i) => {
           const status = getStatus(node.id, false);
@@ -212,6 +260,7 @@ export default function PathMap({ domain, cases }: PathMapProps) {
           );
         })}
       </div>
+      )}
 
       {/* Hidden path branch */}
       {hiddenNodes.length > 0 && (

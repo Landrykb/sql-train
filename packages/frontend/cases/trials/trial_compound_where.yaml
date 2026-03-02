@@ -1,5 +1,5 @@
 id: trial_compound_where
-name: "Trial 41: Compound WHERE Clauses"
+name: "Trial 12: Compound WHERE Clauses"
 tier: 2
 domain: trials
 description: "Combine multiple conditions with AND, OR, and parentheses — fundamental for precise filtering."

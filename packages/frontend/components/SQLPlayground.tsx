@@ -182,10 +182,10 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       const hist = localStorage.getItem(`bleepx_history_${domain}_${id}`);
       if (hist) setQueryHistory(JSON.parse(hist));
     } catch { /* ignore */ }
-    // Show trial briefing for trial challenges (don't auto-start)
-    if (isTrial) {
+    // Show trial briefing for trial challenges (don't auto-start), but skip if already completed
+    if (isTrial && !completed.has(id)) {
       setTrialBriefing(true);
-    } else {
+    } else if (!isTrial) {
       // For non-trial challenges, check test mode
       try {
         const profile = JSON.parse(localStorage.getItem('bleepx_profile') || '{}');

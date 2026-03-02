@@ -1,5 +1,5 @@
 id: trial_multi_join
-name: "Trial 7: Multi-Table Joins"
+name: "Trial 25: Multi-Table Joins"
 tier: 3
 domain: trials
 description: "Cross-domain multi-join trial — connect three tables under pressure."

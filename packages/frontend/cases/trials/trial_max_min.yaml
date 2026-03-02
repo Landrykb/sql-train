@@ -1,5 +1,5 @@
 id: trial_max_min
-name: "Trial 11: MAX & MIN"
+name: "Trial 2: MAX & MIN"
 tier: 1
 domain: trials
 description: "Find extremes in data using MAX and MIN aggregate functions."

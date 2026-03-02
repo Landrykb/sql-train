@@ -1,5 +1,5 @@
 id: trial_group_multi
-name: "Trial 23: Multi-Column GROUP BY"
+name: "Trial 15: Multi-Column GROUP BY"
 tier: 2
 domain: trials
 description: "Group by multiple columns to create detailed breakdowns."

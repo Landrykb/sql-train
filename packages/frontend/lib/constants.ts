@@ -31,17 +31,22 @@
     sports: ['match_select', 'score_by_team', 'player_joins', 'score_trend', 'cte_player', 'capstone_sports'],
     guide: ['guide'],
     trials: [
-    'trial_basics', 'trial_aggregation', 'trial_joins', 'trial_advanced', 'trial_window',
-    'trial_case_logic', 'trial_multi_join', 'trial_subquery', 'trial_date_grouping', 'trial_final_boss',
-    'trial_max_min', 'trial_distinct', 'trial_sum_avg', 'trial_count_distinct', 'trial_between',
-    'trial_like_pattern', 'trial_in_filter', 'trial_null_handling', 'trial_multi_order',
-    'trial_left_join', 'trial_percentage', 'trial_date_math', 'trial_group_multi',
-    'trial_string_funcs', 'trial_having_complex', 'trial_min_max_group',
-    'trial_lag_lead', 'trial_running_total', 'trial_dense_rank', 'trial_top_n_group',
-    'trial_exists', 'trial_self_compare', 'trial_coalesce', 'trial_cast_convert',
-    'trial_union_combine', 'trial_not_in', 'trial_ntile', 'trial_cross_domain',
-    'trial_avg_filter', 'trial_group_concat', 'trial_compound_where', 'trial_ratio_calc',
-    'trial_median_approx', 'trial_pivot_case', 'trial_date_extract', 'trial_count_case',
+    // Tier 1 — Starter (free)
+    'trial_distinct', 'trial_max_min', 'trial_sum_avg', 'trial_multi_order',
+    // Tier 2 — Basic (free)
+    'trial_basics', 'trial_between', 'trial_like_pattern', 'trial_in_filter',
+    'trial_null_handling', 'trial_count_distinct', 'trial_count_case', 'trial_compound_where',
+    'trial_date_extract', 'trial_aggregation', 'trial_group_multi', 'trial_min_max_group',
+    'trial_string_funcs', 'trial_cast_convert', 'trial_coalesce', 'trial_not_in',
+    'trial_ratio_calc', 'trial_case_logic',
+    // Tier 3 — Intermediate (50 pts)
+    'trial_joins', 'trial_left_join', 'trial_multi_join', 'trial_percentage',
+    'trial_date_math', 'trial_having_complex', 'trial_union_combine', 'trial_subquery',
+    'trial_avg_filter', 'trial_group_concat', 'trial_date_grouping', 'trial_advanced',
+    'trial_exists', 'trial_window', 'trial_lag_lead', 'trial_running_total', 'trial_ntile',
+    // Tier 4 — Advanced (150 pts)
+    'trial_dense_rank', 'trial_top_n_group', 'trial_self_compare', 'trial_pivot_case',
+    'trial_final_boss', 'trial_median_approx', 'trial_cross_domain',
   ],
   };
 

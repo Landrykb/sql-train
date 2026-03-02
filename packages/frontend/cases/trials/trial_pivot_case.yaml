@@ -1,5 +1,5 @@
 id: trial_pivot_case
-name: "Trial 44: Pivot with CASE"
+name: "Trial 43: Pivot with CASE"
 tier: 4
 domain: trials
 description: "Simulate a pivot table using CASE inside SUM — transforms rows into columns for cross-tabulation."

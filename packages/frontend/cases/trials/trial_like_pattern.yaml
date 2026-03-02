@@ -1,5 +1,5 @@
 id: trial_like_pattern
-name: "Trial 16: LIKE Pattern Matching"
+name: "Trial 7: LIKE Pattern Matching"
 tier: 2
 domain: trials
 description: "Filter text data with LIKE wildcards — essential for searching strings."

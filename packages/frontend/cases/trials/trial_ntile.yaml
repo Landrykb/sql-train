@@ -1,5 +1,5 @@
 id: trial_ntile
-name: "Trial 37: NTILE Buckets"
+name: "Trial 39: NTILE Buckets"
 tier: 3
 domain: trials
 description: "Divide rows into equal buckets using NTILE — perfect for percentile and quartile analysis."

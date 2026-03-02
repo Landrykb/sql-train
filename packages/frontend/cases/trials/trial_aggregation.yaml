@@ -1,5 +1,5 @@
 id: trial_aggregation
-name: "Trial 2: Aggregate Strike"
+name: "Trial 14: Aggregate Strike"
 tier: 2
 domain: trials
 description: "Cross-domain aggregation trial — GROUP BY, COUNT, AVG under pressure."

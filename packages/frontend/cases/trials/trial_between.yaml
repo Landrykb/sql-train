@@ -1,5 +1,5 @@
 id: trial_between
-name: "Trial 15: BETWEEN Ranges"
+name: "Trial 6: BETWEEN Ranges"
 tier: 2
 domain: trials
 description: "Filter data within a range using BETWEEN — a classic interview question."

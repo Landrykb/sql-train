@@ -1,5 +1,5 @@
 id: trial_union_combine
-name: "Trial 35: UNION Combine"
+name: "Trial 29: UNION Combine"
 tier: 3
 domain: trials
 description: "Combine results from multiple queries using UNION — useful for merging datasets or creating reports."

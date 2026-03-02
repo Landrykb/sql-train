@@ -1,5 +1,5 @@
 id: trial_count_case
-name: "Trial 46: Conditional Counting"
+name: "Trial 11: Conditional Counting"
 tier: 2
 domain: trials
 description: "Count rows meeting different conditions in a single query using CASE inside COUNT/SUM."

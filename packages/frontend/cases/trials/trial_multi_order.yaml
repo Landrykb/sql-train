@@ -1,5 +1,5 @@
 id: trial_multi_order
-name: "Trial 19: Multi-Column ORDER BY"
+name: "Trial 4: Multi-Column ORDER BY"
 tier: 1
 domain: trials
 description: "Sort results by multiple columns with mixed ASC/DESC directions."

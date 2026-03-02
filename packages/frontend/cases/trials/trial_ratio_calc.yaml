@@ -1,5 +1,5 @@
 id: trial_ratio_calc
-name: "Trial 42: Ratio & Division"
+name: "Trial 21: Ratio & Division"
 tier: 2
 domain: trials
 description: "Calculate ratios and avoid integer division — a common pitfall in SQL interviews."

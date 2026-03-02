@@ -1,5 +1,5 @@
 id: trial_subquery
-name: "Trial 8: Subquery Showdown"
+name: "Trial 30: Subquery Showdown"
 tier: 3
 domain: trials
 description: "Cross-domain subquery trial — filter with nested queries under pressure."

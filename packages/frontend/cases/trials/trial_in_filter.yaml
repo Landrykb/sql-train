@@ -1,5 +1,5 @@
 id: trial_in_filter
-name: "Trial 17: IN Operator"
+name: "Trial 8: IN Operator"
 tier: 2
 domain: trials
 description: "Filter rows matching a list of values using the IN operator."

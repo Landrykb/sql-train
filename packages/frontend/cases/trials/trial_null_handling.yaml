@@ -1,5 +1,5 @@
 id: trial_null_handling
-name: "Trial 18: NULL Handling"
+name: "Trial 9: NULL Handling"
 tier: 2
 domain: trials
 description: "Handle missing data with IS NULL and COALESCE — critical for real-world SQL."

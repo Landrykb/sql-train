@@ -1,5 +1,5 @@
 id: trial_cast_convert
-name: "Trial 34: CAST & Type Conversion"
+name: "Trial 18: CAST & Type Conversion"
 tier: 2
 domain: trials
 description: "Convert data types with CAST — needed when mixing numeric and text operations."

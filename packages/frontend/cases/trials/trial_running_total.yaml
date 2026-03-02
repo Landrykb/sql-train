@@ -1,5 +1,5 @@
 id: trial_running_total
-name: "Trial 28: Running Totals"
+name: "Trial 38: Running Totals"
 tier: 3
 domain: trials
 description: "Calculate cumulative sums with window functions — essential for dashboards and reports."

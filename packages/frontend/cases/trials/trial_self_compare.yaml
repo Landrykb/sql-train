@@ -1,5 +1,5 @@
 id: trial_self_compare
-name: "Trial 32: Self-Join Comparison"
+name: "Trial 42: Self-Join Comparison"
 tier: 4
 domain: trials
 description: "Compare rows within the same table using a self-join — an advanced technique for finding related records."

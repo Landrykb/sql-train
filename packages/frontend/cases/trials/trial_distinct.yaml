@@ -1,5 +1,5 @@
 id: trial_distinct
-name: "Trial 12: DISTINCT Values"
+name: "Trial 1: DISTINCT Values"
 tier: 1
 domain: trials
 description: "Extract unique values from a dataset using DISTINCT."

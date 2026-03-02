@@ -1,5 +1,5 @@
 id: trial_lag_lead
-name: "Trial 27: LAG & LEAD"
+name: "Trial 37: LAG & LEAD"
 tier: 3
 domain: trials
 description: "Compare rows to their neighbors using LAG/LEAD window functions — a key analytics skill."

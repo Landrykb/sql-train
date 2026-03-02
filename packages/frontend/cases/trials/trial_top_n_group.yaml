@@ -1,5 +1,5 @@
 id: trial_top_n_group
-name: "Trial 30: Top N Per Group"
+name: "Trial 41: Top N Per Group"
 tier: 4
 domain: trials
 description: "Find the top N records within each group — one of the hardest common interview patterns."
