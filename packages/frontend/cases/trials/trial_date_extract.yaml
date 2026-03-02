@@ -1,5 +1,5 @@
 id: trial_date_extract
-name: "Trial: Date Part Extraction"
+name: "Trial 45: Date Part Extraction"
 tier: 2
 domain: trials
 description: "Extract year, month, or day from date strings using strftime — essential for time-based grouping."

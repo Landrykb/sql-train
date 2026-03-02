@@ -1,5 +1,5 @@
 id: trial_coalesce
-name: "Trial: COALESCE & Default Values"
+name: "Trial 33: COALESCE & Default Values"
 tier: 2
 domain: trials
 description: "Replace NULLs with default values using COALESCE — critical for clean output in real-world queries."

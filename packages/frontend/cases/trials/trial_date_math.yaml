@@ -1,5 +1,5 @@
 id: trial_date_math
-name: "Trial: Date Arithmetic"
+name: "Trial 22: Date Arithmetic"
 tier: 3
 domain: trials
 description: "Calculate durations between dates — essential for time-based analysis."

@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import DataGrid from './DataGrid';
 import DiffGrid from './DiffGrid';
 import SqlDiff from './SqlDiff';
@@ -98,6 +99,7 @@ type ValidDomain = 'business' | 'crime' | 'healthcare' | 'farming' | 'space' | '
 export default function SQLPlayground({ caseData, guideData }: { caseData: CaseData; guideData?: any }) {
   const { id, name, description, instructions, hints = [], thoughtProcess = [], skills = [], datasets, seedQuery = '', templateQuery = '', expected = [], solutionQuery = '', domain: rawDomain, prerequisites = [], tier } = caseData;
   const domain = normalizeDomain(rawDomain) as ValidDomain;
+  const router = useRouter();
   const { markComplete, completed, isUnlocked, points, spendPoints } = useProgress();
 
   const currentOrder = fullCaseOrder[domain] || caseOrder[domain] || [];
@@ -233,7 +235,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       countdownRef.current = setInterval(() => {
         setCountdown((c) => {
           if (c <= 1) {
-            window.location.href = nextDestination.url;
+            router.push(nextDestination.url);
             return 0;
           }
           return c - 1;
@@ -1205,7 +1207,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <button
-                    onClick={() => { if (countdownRef.current) clearInterval(countdownRef.current); window.location.href = nextDestination.url; }}
+                    onClick={() => { if (countdownRef.current) clearInterval(countdownRef.current); router.push(nextDestination.url); }}
                     className="px-5 py-2.5 rounded-full bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors shadow-md"
                   >
                     {nextDestination.label} →

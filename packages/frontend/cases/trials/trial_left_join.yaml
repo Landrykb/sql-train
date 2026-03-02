@@ -1,5 +1,5 @@
 id: trial_left_join
-name: "Trial: LEFT JOIN Gaps"
+name: "Trial 20: LEFT JOIN Gaps"
 tier: 3
 domain: trials
 description: "Use LEFT JOIN to find records that exist in one table but not another."

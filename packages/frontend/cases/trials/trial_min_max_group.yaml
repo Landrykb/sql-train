@@ -1,5 +1,5 @@
 id: trial_min_max_group
-name: "Trial: Daily Price Range"
+name: "Trial 26: Daily Price Range"
 tier: 2
 domain: trials
 description: "Combine MIN, MAX, and AVG in a single GROUP BY to analyze daily stock ranges."

@@ -1,5 +1,5 @@
 id: trial_string_funcs
-name: "Trial: String Functions"
+name: "Trial 24: String Functions"
 tier: 2
 domain: trials
 description: "Use LENGTH, UPPER, SUBSTR and other string functions to analyze text data."

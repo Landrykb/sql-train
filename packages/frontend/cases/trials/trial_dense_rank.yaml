@@ -1,5 +1,5 @@
 id: trial_dense_rank
-name: "Trial: DENSE_RANK vs RANK"
+name: "Trial 29: DENSE_RANK vs RANK"
 tier: 4
 domain: trials
 description: "Understand the difference between RANK, DENSE_RANK, and ROW_NUMBER — a classic interview distinction."

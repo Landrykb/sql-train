@@ -1,5 +1,5 @@
 id: trial_avg_filter
-name: "Trial: Filter by Aggregate"
+name: "Trial 39: Filter by Aggregate"
 tier: 3
 domain: trials
 description: "Find records above or below an aggregate threshold — combines subqueries with comparisons."

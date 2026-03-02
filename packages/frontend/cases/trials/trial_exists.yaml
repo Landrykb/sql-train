@@ -1,5 +1,5 @@
 id: trial_exists
-name: "Trial: EXISTS & NOT EXISTS"
+name: "Trial 31: EXISTS & NOT EXISTS"
 tier: 3
 domain: trials
 description: "Use EXISTS and NOT EXISTS for correlated subqueries — a powerful filtering technique."

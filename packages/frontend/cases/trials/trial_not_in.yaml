@@ -1,5 +1,5 @@
 id: trial_not_in
-name: "Trial: NOT IN Exclusion"
+name: "Trial 36: NOT IN Exclusion"
 tier: 2
 domain: trials
 description: "Exclude rows matching a list using NOT IN — the inverse of IN filtering."

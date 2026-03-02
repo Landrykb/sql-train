@@ -1,5 +1,5 @@
 id: trial_count_distinct
-name: "Trial: COUNT DISTINCT"
+name: "Trial 14: COUNT DISTINCT"
 tier: 2
 domain: trials
 description: "Use COUNT(DISTINCT ...) to count unique values within groups."

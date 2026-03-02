@@ -1,5 +1,5 @@
 id: trial_sum_avg
-name: "Trial: SUM & AVG"
+name: "Trial 13: SUM & AVG"
 tier: 1
 domain: trials
 description: "Combine SUM and AVG aggregates to analyze revenue and ratings."

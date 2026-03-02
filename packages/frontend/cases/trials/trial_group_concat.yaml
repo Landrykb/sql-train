@@ -1,5 +1,5 @@
 id: trial_group_concat
-name: "Trial: GROUP_CONCAT"
+name: "Trial 40: GROUP_CONCAT"
 tier: 3
 domain: trials
 description: "Aggregate text values into a single string using GROUP_CONCAT — great for creating comma-separated lists."

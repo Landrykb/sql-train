@@ -1,5 +1,5 @@
 id: trial_having_complex
-name: "Trial: HAVING vs WHERE"
+name: "Trial 25: HAVING vs WHERE"
 tier: 3
 domain: trials
 description: "Understand the difference between WHERE and HAVING — a top interview question."
