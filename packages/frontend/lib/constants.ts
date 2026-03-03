@@ -45,8 +45,8 @@
     'trial_avg_filter', 'trial_group_concat', 'trial_date_grouping', 'trial_advanced',
     'trial_exists', 'trial_window', 'trial_lag_lead', 'trial_running_total', 'trial_ntile',
     // Tier 4 — Advanced (150 pts)
-    'trial_dense_rank', 'trial_top_n_group', 'trial_self_compare', 'trial_pivot_case',
-    'trial_final_boss', 'trial_median_approx', 'trial_cross_domain',
+    'trial_dense_rank', 'trial_top_n_group', 'trial_self_compare',
+    'trial_median_approx', 'trial_pivot_case', 'trial_cross_domain', 'trial_final_boss',
   ],
   };
 

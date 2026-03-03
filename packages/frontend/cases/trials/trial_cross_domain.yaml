@@ -1,5 +1,5 @@
 id: trial_cross_domain
-name: "Trial 46: Cross-Domain Analysis"
+name: "Trial 45: Cross-Domain Analysis"
 tier: 4
 domain: trials
 description: "Combine multiple CTEs from different domains into a single analytical query — real-world data integration."

@@ -1,5 +1,5 @@
 id: trial_final_boss
-name: "Trial 44: The Final Boss"
+name: "Trial 46: The Final Boss"
 tier: 4
 domain: trials
 description: "The ultimate cross-domain trial — CTEs, JOINs, CASE, and window functions in one query. Prove you've mastered SQL."
