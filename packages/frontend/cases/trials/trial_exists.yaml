@@ -21,7 +21,6 @@ datasets:
   - name: treatments
     file: treatments.csv
 prereq_cases: []
-  - trial_subquery
 seedQuery: |-
   -- Find patients who have been treated
   SELECT 1;

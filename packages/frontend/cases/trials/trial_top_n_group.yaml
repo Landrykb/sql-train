@@ -20,7 +20,6 @@ datasets:
   - name: nba_games
     file: nba_games.csv
 prereq_cases: []
-  - trial_window
 seedQuery: |-
   -- Top scorer per game date
   SELECT 1;

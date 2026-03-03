@@ -21,7 +21,6 @@ datasets:
   - name: nba_games
     file: nba_games.csv
 prereq_cases: []
-  - trial_aggregation
 seedQuery: |-
   -- Find high-scoring players using HAVING
   SELECT 1;

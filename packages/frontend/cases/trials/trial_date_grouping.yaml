@@ -21,7 +21,6 @@ datasets:
   - name: finance_stocks
     file: finance_stocks.csv
 prereq_cases: []
-  - trial_aggregation
 seedQuery: |-
   -- TRIAL 9: Temporal Analysis
   -- Find high-volume trading dates

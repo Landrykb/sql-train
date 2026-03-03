@@ -21,7 +21,6 @@ datasets:
   - name: finance_stocks
     file: finance_stocks.csv
 prereq_cases: []
-  - trial_advanced
 seedQuery: |-
   -- TRIAL 5: Window Mastery
   -- Rank tickers by avg close using a CTE + window function

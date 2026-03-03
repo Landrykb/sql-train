@@ -21,7 +21,6 @@ datasets:
   - name: nba_games
     file: nba_games.csv
 prereq_cases: []
-  - trial_window
 seedQuery: |-
   -- Compare RANK, DENSE_RANK, ROW_NUMBER
   SELECT 1;

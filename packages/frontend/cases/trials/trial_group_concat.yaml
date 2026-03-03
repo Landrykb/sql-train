@@ -20,7 +20,6 @@ datasets:
   - name: crime_chicago
     file: crime_chicago.csv
 prereq_cases: []
-  - trial_aggregation
 seedQuery: |-
   -- List locations per crime type
   SELECT 1;

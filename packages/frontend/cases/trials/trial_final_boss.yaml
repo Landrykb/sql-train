@@ -29,7 +29,6 @@ datasets:
   - name: shot_zones
     file: shot_zones.csv
 prereq_cases: []
-  - trial_window
 seedQuery: |-
   -- TRIAL 10: The Final Boss
   -- Combine everything: CTE + JOIN + CASE + RANK

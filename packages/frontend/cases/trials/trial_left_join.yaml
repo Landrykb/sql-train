@@ -22,7 +22,6 @@ datasets:
   - name: tweets
     file: tweets.csv
 prereq_cases: []
-  - trial_joins
 seedQuery: |-
   -- Find most active tweeters
   SELECT 1;

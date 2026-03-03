@@ -18,7 +18,6 @@ datasets:
   - name: nba_games
     file: nba_games.csv
 prereq_cases: []
-  - trial_aggregation
 seedQuery: |-
   -- TRIAL 8: Subquery Showdown
   -- Find players scoring above league average

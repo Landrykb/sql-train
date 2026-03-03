@@ -20,7 +20,6 @@ datasets:
   - name: nba_games
     file: nba_games.csv
 prereq_cases: []
-  - trial_window
 seedQuery: |-
   -- Find the approximate median of points scored
   SELECT 1;

@@ -22,7 +22,6 @@ datasets:
   - name: space_neo
     file: space_neo.csv
 prereq_cases: []
-  - trial_joins
 seedQuery: |-
   -- Find NEO pairs with different hazard levels on same date
   SELECT 1;

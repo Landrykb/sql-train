@@ -24,7 +24,6 @@ datasets:
   - name: treatments
     file: treatments.csv
 prereq_cases: []
-  - trial_joins
 seedQuery: |-
   -- TRIAL 7: Multi-Table Joins
   -- Find top 5 diagnoses by unique patient count

@@ -22,7 +22,6 @@ datasets:
   - name: admissions
     file: admissions.csv
 prereq_cases: []
-  - trial_aggregation
 seedQuery: |-
   -- Combine crime and admission events into one feed
   SELECT 1;

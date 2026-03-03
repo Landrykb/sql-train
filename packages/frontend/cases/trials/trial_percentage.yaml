@@ -23,7 +23,6 @@ datasets:
   - name: shot_zones
     file: shot_zones.csv
 prereq_cases: []
-  - trial_aggregation
 seedQuery: |-
   -- Shooting percentage per zone
   SELECT 1;
