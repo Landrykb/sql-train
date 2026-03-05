@@ -5,6 +5,7 @@ import Link from 'next/link';
 import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
 import BleepxLogo from '@/components/BleepxLogo';
+import { BleepxWave, BleepxGhost, BleepxSpark, BleepxFace, BleepxCode, BleepxSignal } from '@/components/BleepxIcons';
 import { useProgress } from '@/lib/useProgress';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
 
@@ -34,6 +35,7 @@ export default function HomePage() {
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-bleepx-blue via-indigo-600 to-bleepx-pink p-6 sm:p-10 text-white">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+        <div className="absolute -bottom-2 right-4 sm:right-10 opacity-20 hidden sm:block"><BleepxWave size={120} /></div>
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">
             <BleepxLogo />
@@ -91,7 +93,7 @@ export default function HomePage() {
         >
           <div className="absolute inset-0 bg-[url('/bleepx-logo.png')] bg-center bg-no-repeat opacity-5 bg-contain" />
           <div className="relative p-5 sm:p-6 flex items-center gap-4">
-            <div className="text-3xl sm:text-4xl flex-shrink-0">🧪</div>
+            <div className="flex-shrink-0"><BleepxGhost size={48} /></div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <h3 className="font-extrabold text-white text-lg sm:text-xl group-hover:text-indigo-300 transition-colors">
@@ -121,7 +123,7 @@ export default function HomePage() {
       {/* Or divider */}
       <div className="flex items-center gap-4">
         <div className="flex-1 h-px bg-bleepx-border" />
-        <span className="text-sm font-medium text-bleepx-text-secondary uppercase tracking-wider">Or</span>
+        <span className="text-sm font-medium text-bleepx-text-secondary uppercase tracking-wider flex items-center gap-1.5"><BleepxFace size={18} /> Or</span>
         <div className="flex-1 h-px bg-bleepx-border" />
       </div>
 
@@ -185,22 +187,22 @@ export default function HomePage() {
         <h2 className="text-lg font-bold text-bleepx-text mb-4">What You Get</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
           <div>
-            <div className="text-2xl mb-1">🧩</div>
+            <div className="flex justify-center mb-1"><BleepxSignal size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">Progressive Difficulty</div>
             <div className="text-[10px] text-bleepx-text-secondary mt-0.5">Beginner to Expert</div>
           </div>
           <div>
-            <div className="text-2xl mb-1">📊</div>
+            <div className="flex justify-center mb-1"><BleepxSpark size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">Data Visualizations</div>
             <div className="text-[10px] text-bleepx-text-secondary mt-0.5">Plotly charts per case</div>
           </div>
           <div>
-            <div className="text-2xl mb-1">🏆</div>
+            <div className="flex justify-center mb-1"><BleepxFace size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">Hidden Bonus Missions</div>
             <div className="text-[10px] text-bleepx-text-secondary mt-0.5">Real-world scenarios</div>
           </div>
           <div>
-            <div className="text-2xl mb-1">📦</div>
+            <div className="flex justify-center mb-1"><BleepxCode size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">Portfolio Export</div>
             <div className="text-[10px] text-bleepx-text-secondary mt-0.5">GitHub-ready projects</div>
           </div>

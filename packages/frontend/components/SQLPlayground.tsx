@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import DataGrid from './DataGrid';
 import DiffGrid from './DiffGrid';
 import SqlDiff from './SqlDiff';
+import { BleepxTrophy, BleepxLock, BleepxGhost } from '@/components/BleepxIcons';
 import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { compareResults } from '@/lib/compare';
 import { useProgress } from '@/lib/useProgress';
@@ -587,7 +588,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       <div className="max-w-3xl mx-auto px-4 sm:px-8 py-8 sm:py-16 min-h-screen flex flex-col items-center justify-center bg-bleepx-bg text-bleepx-text">
         <div className="w-full bg-bleepx-white rounded-2xl shadow-2xl p-6 sm:p-10 border border-bleepx-border">
           <div className="flex items-center gap-3 mb-6">
-            <img src="/bleepx-logo.png" alt="Bleepx" className="h-10 w-10 animate-pulse-logo" />
+            <div className="animate-pulse-logo"><BleepxGhost size={40} /></div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-gray">{name}</h1>
               <p className="text-sm text-bleepx-text-secondary">Trial Challenge</p>
@@ -1188,7 +1189,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
         {showSuccess && nextDestination && (
           <div ref={successRef} className="p-4 sm:p-6 rounded-xl shadow-xl bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 border-2 border-green-400 dark:border-green-600 animate-fade-in ring-2 ring-green-300 dark:ring-green-700">
             <div className="flex items-start gap-3">
-              <img src="/bleepx-logo.png" alt="Bleepx" className="h-12 w-12 flex-shrink-0 animate-bounce rounded-full ring-2 ring-green-400" />
+              <div className="flex-shrink-0 animate-bounce"><BleepxTrophy size={48} /></div>
               <div className="flex-1">
                 <h2 className="text-lg sm:text-xl font-bold text-green-900 dark:text-green-200 mb-2">*bleep* Outstanding work, human!</h2>
                 <p className="text-sm text-green-800 dark:text-green-300 mb-2">

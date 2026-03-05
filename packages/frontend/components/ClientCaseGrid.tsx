@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useProgress } from '@/lib/useProgress';
 import { caseOrder, hiddenCaseOrder, CASE_TIERS, TRIAL_TIER_UNLOCK } from '@/lib/constants';
 import { getStoreState } from '@/lib/pointsStore';
+import { BleepxLock, BleepxSpark } from '@/components/BleepxIcons';
 
 interface Case {
   id: string;
@@ -185,11 +186,11 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
                 ))}
               </div>
               {isNext && (
-                <p className="text-xs sm:text-sm text-bleepx-blue mt-2">*bleep* Tackle this next.</p>
+                <p className="text-xs sm:text-sm text-bleepx-blue mt-2 flex items-center gap-1"><BleepxSpark size={14} /> *bleep* Tackle this next.</p>
               )}
               {isEffectivelyLocked && isTrial && (
-                <div className="text-xs text-bleepx-gray mt-2">
-                  🔒 Requires <strong>{getTrialLockLabel(c.id)}</strong> portfolio level
+                <div className="text-xs text-bleepx-gray mt-2 flex items-center gap-1.5">
+                  <BleepxLock size={16} /> Requires <strong>{getTrialLockLabel(c.id)}</strong> portfolio level
                 </div>
               )}
               {isEffectivelyLocked && !isTrial && c.prereq_cases && c.prereq_cases.length > 0 && (

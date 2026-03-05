@@ -9,6 +9,7 @@ import { caseOrder, fullCaseOrder } from '@/lib/constants';
 import { playBleep } from '@/lib/audio';
 import PointsShop from '@/components/PointsShop';
 import { getStoreState, getActivePerks, TITLES, BADGES, type StoreState } from '@/lib/pointsStore';
+import { BleepxHead, BleepxTrophy, BleepxLock, BleepxSpark } from '@/components/BleepxIcons';
 
 const DOMAINS = ['business', 'crime', 'farming', 'finance', 'healthcare', 'social', 'space', 'sports'] as const;
 
@@ -154,7 +155,9 @@ export default function ProfilePage() {
               {ghUser?.avatar ? (
                 <img src={ghUser.avatar} alt="" className="w-full h-full object-cover" />
               ) : (
-                <img src="/bleepx-icon.png" alt="Bleepx" className="w-full h-full object-cover blur-[2px] opacity-60" />
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+                  <BleepxHead size={56} />
+                </div>
               )}
             </div>
             <div className="flex-1 min-w-0 mb-1">
@@ -325,7 +328,7 @@ export default function ProfilePage() {
       {tab === 'achievements' && (
         <div className="space-y-6">
           <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
-            <h2 className="text-lg font-bold mb-4 text-bleepx-text">🏆 Achievements</h2>
+            <h2 className="text-lg font-bold mb-4 text-bleepx-text flex items-center gap-2"><BleepxTrophy size={28} /> Achievements</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
                 { id: 'first_query', icon: '🎯', title: 'First Query', desc: 'Solve your first challenge', unlocked: stats.totalSolved >= 1 },
@@ -431,7 +434,7 @@ export default function ProfilePage() {
 
           {/* Danger Zone */}
           <div className="rounded-xl shadow-lg p-4 sm:p-6 border-2 bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800">
-            <h2 className="text-lg font-bold mb-2 text-red-700 dark:text-red-400">⚠️ Danger Zone</h2>
+            <h2 className="text-lg font-bold mb-2 text-red-700 dark:text-red-400 flex items-center gap-2"><BleepxLock size={24} /> Danger Zone</h2>
             <p className="text-sm text-bleepx-text-secondary mb-4">
               *bleep* These actions are irreversible. Even I can't undo them.
             </p>

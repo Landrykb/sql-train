@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 import { domainFolderMap, fullCaseOrder } from '@/lib/constants';
 import BleepxLogo from '@/components/BleepxLogo';
+import { BleepxFace } from '@/components/BleepxIcons';
 import AchievementNotification from '@/components/AchievementNotification';
 
 export const metadata: Metadata = {
@@ -37,7 +38,7 @@ export default function CasesPage() {
         <BleepxLogo />
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text">SwiftLink Training Program</h1>
-          <p className="text-xs sm:text-sm text-bleepx-text-secondary">*bleep* Pick a domain. Show me what you&apos;ve got.</p>
+          <p className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1"><BleepxFace size={16} /> *bleep* Pick a domain. Show me what you&apos;ve got.</p>
         </div>
       </div>
 
