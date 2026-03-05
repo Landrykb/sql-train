@@ -420,8 +420,10 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
 
         const allCompleted = currentOrder.length > 0 && currentOrder.every((caseId) => completed.has(caseId) || caseId === id);
 
-        if (allCompleted && currentOrder.length > 0) {
-          setNextDestination({ url: isTrial ? `/cases/${domain}/${id}/quiz` : `/cases/${domain}/dashboard`, label: isTrial ? '🧠 Take Quiz' : 'View Dashboard' });
+        if (isTrial) {
+          setNextDestination({ url: `/cases/${domain}/${id}/quiz`, label: '🧠 Take Quiz' });
+        } else if (allCompleted && currentOrder.length > 0) {
+          setNextDestination({ url: `/cases/${domain}/dashboard`, label: 'View Dashboard' });
         } else if (nextCaseId) {
           const nextName = nextCaseId.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
           setNextDestination({ url: `/cases/${domain}/${nextCaseId}`, label: `Next: ${nextName}` });
@@ -712,13 +714,18 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             )}
           </div>
           <div className="flex items-center gap-2">
+            {isTrial && (
+              <Link href={`/cases/${domain}/${id}/quiz`}>
+                <button className="px-4 py-1.5 rounded-full bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm">🧠 Quiz</button>
+              </Link>
+            )}
             {nextCaseId ? (
               <Link href={`/cases/${domain}/${nextCaseId}`}>
                 <button className="px-4 py-1.5 rounded-full bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors shadow-sm">Next Case →</button>
               </Link>
             ) : (
-              <Link href={isTrial ? `/cases/${domain}/${id}/quiz` : `/cases/${domain}/dashboard`}>
-                <button className="px-4 py-1.5 rounded-full bg-bleepx-blue text-white text-sm font-bold hover:bg-bleepx-blue/90 transition-colors shadow-sm">{isTrial ? '🧠 Take Quiz' : 'View Dashboard'}</button>
+              <Link href={isTrial ? `/cases/${domain}` : `/cases/${domain}/dashboard`}>
+                <button className="px-4 py-1.5 rounded-full bg-bleepx-blue text-white text-sm font-bold hover:bg-bleepx-blue/90 transition-colors shadow-sm">{isTrial ? 'All Trials' : 'View Dashboard'}</button>
               </Link>
             )}
           </div>

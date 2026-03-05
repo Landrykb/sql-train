@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface IconProps {
   size?: number;
@@ -9,8 +9,21 @@ interface IconProps {
 
 const CYAN = '#57ECF4';
 const TEAL = '#0DB5BE';
-const DARK = '#1C2129';
-const DARK2 = '#2B333C';
+
+function useBleepxColors() {
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    const check = () => setDark(document.documentElement.classList.contains('dark'));
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+  return {
+    DARK: dark ? '#4B5563' : '#1C2129',
+    DARK2: dark ? '#6B7280' : '#2B333C',
+  };
+}
 
 // ─── Bleepx Face: just eyes + smirk (inline in messages, tooltips) ───
 export function BleepxFace({ size = 24, className = '' }: IconProps) {
@@ -28,6 +41,7 @@ export function BleepxFace({ size = 24, className = '' }: IconProps) {
 
 // ─── Bleepx Head: face inside hooded head + antenna ───
 export function BleepxHead({ size = 32, className = '' }: IconProps) {
+  const { DARK, DARK2 } = useBleepxColors();
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none" className={className} aria-hidden="true">
       {/* Antenna curl */}
@@ -48,6 +62,7 @@ export function BleepxHead({ size = 32, className = '' }: IconProps) {
 
 // ─── Bleepx Ghost: full body ghost shape ───
 export function BleepxGhost({ size = 48, className = '' }: IconProps) {
+  const { DARK, DARK2 } = useBleepxColors();
   return (
     <svg width={size} height={size} viewBox="0 0 64 80" fill="none" className={className} aria-hidden="true">
       {/* Antenna */}
@@ -70,6 +85,7 @@ export function BleepxGhost({ size = 48, className = '' }: IconProps) {
 
 // ─── Bleepx Wave: waving hand with signal arcs ───
 export function BleepxWave({ size = 48, className = '' }: IconProps) {
+  const { DARK, DARK2 } = useBleepxColors();
   return (
     <svg width={size} height={size} viewBox="0 0 72 80" fill="none" className={className} aria-hidden="true">
       {/* Antenna */}
@@ -95,6 +111,7 @@ export function BleepxWave({ size = 48, className = '' }: IconProps) {
 
 // ─── Bleepx Think: with thought dots ───
 export function BleepxThink({ size = 48, className = '' }: IconProps) {
+  const { DARK, DARK2 } = useBleepxColors();
   return (
     <svg width={size} height={size} viewBox="0 0 72 64" fill="none" className={className} aria-hidden="true">
       {/* Antenna */}
@@ -119,6 +136,7 @@ export function BleepxThink({ size = 48, className = '' }: IconProps) {
 
 // ─── Bleepx Code: with SQL/code symbol on chest ───
 export function BleepxCode({ size = 40, className = '' }: IconProps) {
+  const { DARK, DARK2 } = useBleepxColors();
   return (
     <svg width={size} height={size} viewBox="0 0 48 56" fill="none" className={className} aria-hidden="true">
       {/* Antenna */}
@@ -140,6 +158,7 @@ export function BleepxCode({ size = 40, className = '' }: IconProps) {
 
 // ─── Bleepx Lock: for locked/gated content ───
 export function BleepxLock({ size = 32, className = '' }: IconProps) {
+  const { DARK, DARK2 } = useBleepxColors();
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none" className={className} aria-hidden="true">
       {/* Antenna */}
@@ -159,6 +178,7 @@ export function BleepxLock({ size = 32, className = '' }: IconProps) {
 
 // ─── Bleepx Trophy: for achievements/completion ───
 export function BleepxTrophy({ size = 40, className = '' }: IconProps) {
+  const { DARK, DARK2 } = useBleepxColors();
   return (
     <svg width={size} height={size} viewBox="0 0 56 64" fill="none" className={className} aria-hidden="true">
       {/* Antenna */}
@@ -200,6 +220,7 @@ export function BleepxSignal({ size = 20, className = '' }: IconProps) {
 
 // ─── Bleepx Eye: single glowing eye ───
 export function BleepxEye({ size = 16, className = '' }: IconProps) {
+  const { DARK } = useBleepxColors();
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className} aria-hidden="true">
       <path d="M2 7 L8 4 L14 7 L8 12 Z" fill={CYAN} opacity="0.8" />
@@ -210,6 +231,7 @@ export function BleepxEye({ size = 16, className = '' }: IconProps) {
 
 // ─── Bleepx Git: ghost with "Git" on chest (portfolio export) ───
 export function BleepxGit({ size = 40, className = '' }: IconProps) {
+  const { DARK, DARK2 } = useBleepxColors();
   return (
     <svg width={size} height={size} viewBox="0 0 48 56" fill="none" className={className} aria-hidden="true">
       {/* Antenna */}
@@ -231,6 +253,7 @@ export function BleepxGit({ size = 40, className = '' }: IconProps) {
 
 // ─── Bleepx GitHub: BleepX head with branch/merge symbol ───
 export function BleepxGitHub({ size = 32, className = '' }: IconProps) {
+  const { DARK, DARK2 } = useBleepxColors();
   return (
     <svg width={size} height={size} viewBox="0 0 56 48" fill="none" className={className} aria-hidden="true">
       {/* Antenna */}
