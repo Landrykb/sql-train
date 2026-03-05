@@ -157,11 +157,10 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
           </div>
         </div>
         <div className="flex gap-2 items-center flex-wrap">
-          <DashboardButton domainKey={domainKey} />
+          {domainKey !== 'trials' && <DashboardButton domainKey={domainKey} />}
           <Link href="/" className="px-3 py-1.5 text-sm text-bleepx-blue hover:text-bleepx-blue-hover rounded-lg hover:bg-bleepx-blue/5 transition-colors">
             Home
           </Link>
-          {/* Reset button removed to prevent accidental progress loss */}
         </div>
       </div>
       <ProgressSummary caseIds={caseOrder[domainKey] || []} />
