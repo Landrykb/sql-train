@@ -6,7 +6,7 @@ import { BleepxHead, BleepxTrophy, BleepxFace } from '@/components/BleepxIcons';
 
 // ─── Question bank keyed by SQL skill ────────────────────────────────────────
 
-interface QuizQuestion {
+export interface QuizQuestion {
   type: 'multiple_choice' | 'fill_blank';
   question: string;
   /** For multiple_choice */
@@ -16,7 +16,7 @@ interface QuizQuestion {
   explanation: string;
 }
 
-const SKILL_QUESTIONS: Record<string, QuizQuestion[]> = {
+export const SKILL_QUESTIONS: Record<string, QuizQuestion[]> = {
   select: [
     { type: 'multiple_choice', question: 'What does the SELECT statement do in SQL?', options: ['Deletes rows from a table', 'Retrieves data from a table', 'Creates a new table', 'Updates existing rows'], answer: 'Retrieves data from a table', explanation: 'SELECT is used to query and retrieve data from one or more tables.' },
     { type: 'fill_blank', question: 'Write the keyword to select all columns from a table: ___ * FROM employees;', answer: 'SELECT', explanation: 'SELECT * retrieves all columns from the specified table.' },
@@ -144,7 +144,7 @@ const SKILL_QUESTIONS: Record<string, QuizQuestion[]> = {
 
 // ─── Fallback generic questions ──────────────────────────────────────────────
 
-const GENERIC_QUESTIONS: QuizQuestion[] = [
+export const GENERIC_QUESTIONS: QuizQuestion[] = [
   { type: 'multiple_choice', question: 'Which SQL clause is processed first by the database engine?', options: ['SELECT', 'FROM', 'WHERE', 'ORDER BY'], answer: 'FROM', explanation: 'Logical processing order: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY.' },
   { type: 'multiple_choice', question: 'What does DISTINCT do?', options: ['Sorts results', 'Removes duplicate rows from the result', 'Counts unique values', 'Joins tables'], answer: 'Removes duplicate rows from the result', explanation: 'DISTINCT eliminates duplicate rows from the query output.' },
   { type: 'fill_blank', question: 'Round a number to 2 decimals: SELECT ___(price, 2) FROM products;', answer: 'ROUND', explanation: 'ROUND(value, decimals) rounds a number to the specified decimal places.' },

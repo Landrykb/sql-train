@@ -158,6 +158,11 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
         </div>
         <div className="flex gap-2 items-center flex-wrap">
           {domainKey !== 'trials' && <DashboardButton domainKey={domainKey} />}
+          {domainKey === 'trials' && (
+            <Link href="/cases/trials/master-quiz" className="px-3 py-1.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">
+              🧠 Master Quiz
+            </Link>
+          )}
           <Link href="/" className="px-3 py-1.5 text-sm text-bleepx-blue hover:text-bleepx-blue-hover rounded-lg hover:bg-bleepx-blue/5 transition-colors">
             Home
           </Link>
