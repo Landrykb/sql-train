@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useSyncExternalStore } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface IconProps {
   size?: number;
@@ -8,16 +8,15 @@ interface IconProps {
 }
 
 // ─── Theme-aware color palette ───
-function subscribeToTheme(cb: () => void) {
-  const observer = new MutationObserver(cb);
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-  return () => observer.disconnect();
-}
-function getIsDark() {
-  return typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
-}
 function useBleepxColors() {
-  const dark = useSyncExternalStore(subscribeToTheme, getIsDark, () => false);
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    const check = () => setDark(document.documentElement.classList.contains('dark'));
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
   return dark
     ? { body: '#EAECEF', face: '#CDD1D6', cyan: '#57ECF4', teal: '#0DB5BE', stroke: '#F0F1F3' }
     : { body: '#1C2129', face: '#2B333C', cyan: '#57ECF4', teal: '#0DB5BE', stroke: '#1C2129' };
@@ -226,6 +225,54 @@ export function BleepxEye({ size = 16, className = '' }: IconProps) {
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className} aria-hidden="true">
       <path d="M2 7 L8 4 L14 7 L8 12 Z" fill={c.cyan} opacity="0.8" />
       <circle cx="8" cy="7.5" r="1.5" fill={c.body} />
+    </svg>
+  );
+}
+
+// ─── Bleepx Git: ghost with "Git" on chest (portfolio export) ───
+export function BleepxGit({ size = 40, className = '' }: IconProps) {
+  const c = useBleepxColors();
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 56" fill="none" className={className} aria-hidden="true">
+      {/* Antenna */}
+      <path d="M24 3 Q27 1 26 5 Q25 9 24 11" stroke={c.stroke} strokeWidth="2" fill="none" strokeLinecap="round" />
+      {/* Body */}
+      <path d="M24 11 C12 11 6 21 6 32 C6 43 9 50 15 55 Q19 56 21 52 Q24 56 27 52 Q29 56 33 55 C39 50 42 43 42 32 C42 21 36 11 24 11Z" fill={c.body} />
+      {/* Face */}
+      <ellipse cx="24" cy="24" rx="11" ry="11" fill={c.face} />
+      {/* Eyes */}
+      <path d="M17 22 L21 20.5 L22 24 L18 25 Z" fill={c.cyan} />
+      <path d="M26 22 L30 20.5 L29 25 L25 24 Z" fill={c.cyan} />
+      {/* Smirk */}
+      <path d="M19 28 Q24 31 29 28" stroke={c.cyan} strokeWidth="1.2" fill="none" strokeLinecap="round" />
+      {/* Git text on chest */}
+      <text x="14.5" y="45" fill={c.teal} fontSize="10" fontFamily="monospace" fontWeight="bold">Git</text>
+    </svg>
+  );
+}
+
+// ─── Bleepx GitHub: BleepX head with branch/merge symbol ───
+export function BleepxGitHub({ size = 32, className = '' }: IconProps) {
+  const c = useBleepxColors();
+  return (
+    <svg width={size} height={size} viewBox="0 0 56 48" fill="none" className={className} aria-hidden="true">
+      {/* Antenna */}
+      <path d="M20 4 Q23 2 22 6 Q21 10 20 12" stroke={c.stroke} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      {/* Head */}
+      <ellipse cx="20" cy="26" rx="16" ry="18" fill={c.body} />
+      {/* Face */}
+      <ellipse cx="20" cy="25" rx="12" ry="13" fill={c.face} />
+      {/* Eyes */}
+      <path d="M11 22 L16 20 L17 25 L12 26 Z" fill={c.cyan} opacity="0.9" />
+      <path d="M23 22 L28 20 L27 26 L22 25 Z" fill={c.cyan} opacity="0.9" />
+      {/* Smirk */}
+      <path d="M15 30 Q20 34 25 30" stroke={c.cyan} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.8" />
+      {/* Git branch symbol beside head */}
+      <circle cx="44" cy="14" r="2.5" fill={c.teal} />
+      <circle cx="44" cy="28" r="2.5" fill={c.teal} />
+      <circle cx="52" cy="21" r="2.5" fill={c.teal} />
+      <line x1="44" y1="16.5" x2="44" y2="25.5" stroke={c.teal} strokeWidth="2" strokeLinecap="round" />
+      <path d="M44 20 Q44 21 52 18.5" stroke={c.teal} strokeWidth="2" fill="none" strokeLinecap="round" />
     </svg>
   );
 }

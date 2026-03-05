@@ -5,7 +5,7 @@ import Link from 'next/link';
 import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
 import BleepxLogo from '@/components/BleepxLogo';
-import { BleepxWave, BleepxGhost, BleepxSpark, BleepxFace, BleepxCode, BleepxSignal } from '@/components/BleepxIcons';
+import { BleepxWave, BleepxGhost, BleepxSpark, BleepxFace, BleepxGit, BleepxSignal } from '@/components/BleepxIcons';
 import { useProgress } from '@/lib/useProgress';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
 
@@ -202,7 +202,7 @@ export default function HomePage() {
             <div className="text-[10px] text-bleepx-text-secondary mt-0.5">Real-world scenarios</div>
           </div>
           <div>
-            <div className="flex justify-center mb-1"><BleepxCode size={28} /></div>
+            <div className="flex justify-center mb-1"><BleepxGit size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">Portfolio Export</div>
             <div className="text-[10px] text-bleepx-text-secondary mt-0.5">GitHub-ready projects</div>
           </div>
