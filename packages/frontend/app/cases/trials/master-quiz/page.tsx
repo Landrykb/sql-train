@@ -8,7 +8,7 @@ import BleepxLogo from '@/components/BleepxLogo';
 import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
 import MasterQuiz from '@/components/MasterQuiz';
-import { caseOrder, fullCaseOrder } from '@/lib/constants';
+import { caseOrder, fullCaseOrder, CASE_TIERS } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Master SQL Quiz — BleepxQuery',
@@ -19,6 +19,7 @@ interface TrialInfo {
   id: string;
   name: string;
   skills: string[];
+  tier: number;
 }
 
 async function loadAllTrials(): Promise<TrialInfo[]> {
@@ -33,7 +34,7 @@ async function loadAllTrials(): Promise<TrialInfo[]> {
       if (!doc?.id || !doc?.name) continue;
       const skills = (doc.skills || [])
         .filter((s: any) => typeof s === 'string' && !s.startsWith('name:'));
-      trials.push({ id: doc.id, name: doc.name, skills });
+      trials.push({ id: doc.id, name: doc.name, skills, tier: CASE_TIERS[doc.id] || 2 });
     } catch {
       // skip missing files
     }

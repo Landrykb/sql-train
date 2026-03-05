@@ -13,11 +13,12 @@ interface TrialInfo {
   id: string;
   name: string;
   skills: string[];
+  tier: number;
 }
 
 interface MasterQuestion extends QuizQuestion {
   skill: string;
-  relatedTrials: { id: string; name: string }[];
+  relatedTrials: { id: string; name: string; tier: number }[];
   level: number;
   levelLabel: string;
 }
@@ -62,15 +63,27 @@ const LEVEL_LABELS = [
   '🟣 Advanced Analytics',
 ];
 
+// Curriculum level → max trial tier allowed for redirects
+// This prevents fundamentals questions from sending users to advanced trials
+const LEVEL_MAX_TIER: Record<number, number> = {
+  [-1]: 1,  // Warm-Up → Tier 1 (starter) only
+  0: 2,     // Fundamentals → Tier 1-2
+  1: 2,     // Aggregation → Tier 1-2
+  2: 2,     // Filtering → Tier 2
+  3: 2,     // Data Manipulation → Tier 2
+  4: 3,     // Joins & Subqueries → Tier 3
+  5: 4,     // Advanced → Tier 3-4
+};
+
 function buildMasterPool(trials: TrialInfo[]): MasterQuestion[] {
-  // Map skill → trials that use it
-  const skillToTrials: Record<string, { id: string; name: string }[]> = {};
+  // Map skill → trials that use it (with tier info)
+  const skillToTrials: Record<string, { id: string; name: string; tier: number }[]> = {};
   for (const t of trials) {
     for (const s of t.skills) {
       const key = s.toLowerCase();
       if (!skillToTrials[key]) skillToTrials[key] = [];
       if (!skillToTrials[key].find((x) => x.id === t.id)) {
-        skillToTrials[key].push({ id: t.id, name: t.name });
+        skillToTrials[key].push({ id: t.id, name: t.name, tier: t.tier });
       }
     }
   }
@@ -80,17 +93,20 @@ function buildMasterPool(trials: TrialInfo[]): MasterQuestion[] {
 
   // Walk the curriculum in order: level by level, skill by skill
   for (let lvl = 0; lvl < SKILL_CURRICULUM.length; lvl++) {
+    const maxTier = LEVEL_MAX_TIER[lvl] ?? 4;
     const levelQuestions: MasterQuestion[] = [];
     for (const skill of SKILL_CURRICULUM[lvl]) {
       const questions = SKILL_QUESTIONS[skill];
       if (!questions) continue;
+      // Filter related trials to only those at or below this level's max tier
+      const appropriateTrials = (skillToTrials[skill] || []).filter(t => t.tier <= maxTier);
       for (const q of questions) {
         if (!seen.has(q.question)) {
           seen.add(q.question);
           levelQuestions.push({
             ...q,
             skill,
-            relatedTrials: skillToTrials[skill] || [],
+            relatedTrials: appropriateTrials,
             level: lvl,
             levelLabel: LEVEL_LABELS[lvl],
           });
@@ -102,7 +118,8 @@ function buildMasterPool(trials: TrialInfo[]): MasterQuestion[] {
     pool.push(...levelQuestions);
   }
 
-  // Add generic questions at the start (warm-up)
+  // Add generic questions at the start (warm-up) — link to tier 1 trials only
+  const tier1Trials = trials.filter(t => t.tier <= 1).map(t => ({ id: t.id, name: t.name, tier: t.tier }));
   const warmup: MasterQuestion[] = [];
   for (const q of GENERIC_QUESTIONS) {
     if (!seen.has(q.question)) {
@@ -110,7 +127,7 @@ function buildMasterPool(trials: TrialInfo[]): MasterQuestion[] {
       warmup.push({
         ...q,
         skill: 'general',
-        relatedTrials: [],
+        relatedTrials: tier1Trials,
         level: -1,
         levelLabel: '⚪ Warm-Up',
       });

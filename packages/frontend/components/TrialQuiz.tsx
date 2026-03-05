@@ -41,6 +41,7 @@ export const SKILL_QUESTIONS: Record<string, QuizQuestion[]> = {
   count: [
     { type: 'multiple_choice', question: 'What is the difference between COUNT(*) and COUNT(column)?', options: ['No difference', 'COUNT(*) counts all rows; COUNT(column) skips NULLs', 'COUNT(column) is faster', 'COUNT(*) only works with integers'], answer: 'COUNT(*) counts all rows; COUNT(column) skips NULLs', explanation: 'COUNT(*) counts every row. COUNT(column) only counts rows where that column is not NULL.' },
     { type: 'fill_blank', question: 'Count unique values: SELECT COUNT(_____ email) FROM users;', answer: 'DISTINCT', explanation: 'COUNT(DISTINCT column) counts unique non-NULL values.' },
+    { type: 'multiple_choice', question: 'What does COUNT(1) do?', options: ['Counts only the first column', 'Same as COUNT(*) — counts all rows', 'Returns 1', 'Counts NULL values'], answer: 'Same as COUNT(*) — counts all rows', explanation: 'COUNT(1) and COUNT(*) are equivalent — both count every row regardless of NULL values.' },
   ],
   limit: [
     { type: 'multiple_choice', question: 'What does LIMIT do in a SQL query?', options: ['Restricts column count', 'Caps the number of returned rows', 'Sets a maximum value', 'Limits JOIN depth'], answer: 'Caps the number of returned rows', explanation: 'LIMIT restricts how many rows the query returns. Useful for top-N queries.' },
@@ -62,6 +63,7 @@ export const SKILL_QUESTIONS: Record<string, QuizQuestion[]> = {
   having: [
     { type: 'multiple_choice', question: 'What is the difference between WHERE and HAVING?', options: ['No difference', 'WHERE filters before GROUP BY; HAVING filters after', 'HAVING is faster', 'WHERE works on aggregates'], answer: 'WHERE filters before GROUP BY; HAVING filters after', explanation: 'WHERE filters individual rows before grouping. HAVING filters groups after aggregation.' },
     { type: 'fill_blank', question: 'Filter groups: SELECT dept, COUNT(*) AS c FROM emp GROUP BY dept ___ c > 5;', answer: 'HAVING', explanation: 'HAVING filters on aggregate results after GROUP BY.' },
+    { type: 'multiple_choice', question: 'Can you use both WHERE and HAVING in the same query?', options: ['No, pick one', 'Yes — WHERE filters rows first, then HAVING filters groups', 'Only in subqueries', 'Only with DISTINCT'], answer: 'Yes — WHERE filters rows first, then HAVING filters groups', explanation: 'WHERE narrows the rows before grouping; HAVING narrows the groups after aggregation. Both can coexist.' },
   ],
   case: [
     { type: 'multiple_choice', question: 'What does a CASE expression do in SQL?', options: ['Creates a loop', 'Defines conditional logic (if/then/else)', 'Joins tables', 'Casts data types'], answer: 'Defines conditional logic (if/then/else)', explanation: 'CASE evaluates conditions sequentially and returns the first matching THEN value.' },
@@ -71,18 +73,30 @@ export const SKILL_QUESTIONS: Record<string, QuizQuestion[]> = {
   subquery: [
     { type: 'multiple_choice', question: 'Where can a subquery be used?', options: ['Only in WHERE', 'Only in SELECT', 'In SELECT, WHERE, FROM, and HAVING', 'Only in JOIN'], answer: 'In SELECT, WHERE, FROM, and HAVING', explanation: 'Subqueries can appear in multiple clauses depending on what they return.' },
     { type: 'fill_blank', question: 'Find above-average prices: SELECT * FROM products WHERE price > (SELECT ___(price) FROM products);', answer: 'AVG', explanation: 'A scalar subquery returning AVG(price) is compared against each row\'s price.' },
+    { type: 'multiple_choice', question: 'What is a correlated subquery?', options: ['A subquery that runs once', 'A subquery that references columns from the outer query', 'A subquery with JOIN', 'A subquery in the SELECT clause'], answer: 'A subquery that references columns from the outer query', explanation: 'A correlated subquery references the outer query — it re-executes for each row of the outer query.' },
   ],
   cte: [
     { type: 'multiple_choice', question: 'What does CTE stand for?', options: ['Common Table Expression', 'Conditional Table Extract', 'Cross Table Evaluation', 'Computed Temporary Entity'], answer: 'Common Table Expression', explanation: 'A CTE (Common Table Expression) defines a temporary named result set using WITH.' },
     { type: 'fill_blank', question: 'Start a CTE: ___ monthly_sales AS (SELECT ... ) SELECT * FROM monthly_sales;', answer: 'WITH', explanation: 'CTEs begin with the WITH keyword followed by the CTE name and query.' },
+    { type: 'multiple_choice', question: 'Can you define multiple CTEs in one query?', options: ['No, only one CTE per query', 'Yes, separated by commas after WITH', 'Yes, each needs its own WITH', 'Only with UNION'], answer: 'Yes, separated by commas after WITH', explanation: 'WITH cte1 AS (...), cte2 AS (...) SELECT ... — multiple CTEs are comma-separated after a single WITH.' },
+    { type: 'multiple_choice', question: 'What is a key advantage of CTEs over subqueries?', options: ['CTEs are always faster', 'CTEs can be referenced multiple times in the same query', 'CTEs persist across queries', 'CTEs support more data types'], answer: 'CTEs can be referenced multiple times in the same query', explanation: 'A CTE is defined once and can be referenced multiple times, unlike a subquery which must be repeated.' },
+    { type: 'multiple_choice', question: 'A CTE that references itself is called what?', options: ['Self-join CTE', 'Recursive CTE', 'Circular CTE', 'Loop CTE'], answer: 'Recursive CTE', explanation: 'A recursive CTE references its own name in the CTE body — used for hierarchical or iterative data.' },
+    { type: 'fill_blank', question: 'Use a CTE for daily totals then query it: WITH daily AS (SELECT date, SUM(total) AS rev FROM sales GROUP BY date) SELECT * FROM ___;', answer: 'daily', explanation: 'After defining a CTE, reference it by name in the main SELECT as if it were a table.' },
   ],
   window: [
     { type: 'multiple_choice', question: 'What makes window functions different from GROUP BY aggregations?', options: ['They are faster', 'They don\'t collapse rows — each row keeps its identity', 'They only work with ORDER BY', 'They require a WHERE clause'], answer: 'They don\'t collapse rows — each row keeps its identity', explanation: 'Window functions compute values across a set of rows without collapsing them into one.' },
     { type: 'fill_blank', question: 'Complete: SELECT name, salary, RANK() ___ (ORDER BY salary DESC) FROM employees;', answer: 'OVER', explanation: 'OVER() defines the window frame for the window function.' },
+    { type: 'multiple_choice', question: 'What does PARTITION BY do inside a window function?', options: ['Filters rows', 'Divides rows into groups for separate window calculations', 'Sorts the output', 'Limits the result set'], answer: 'Divides rows into groups for separate window calculations', explanation: 'PARTITION BY splits the window into groups — the window function resets for each partition.' },
+    { type: 'fill_blank', question: 'Running total per department: SELECT dept, date, SUM(sales) OVER (___ ___ dept ORDER BY date) FROM revenue;', answer: 'PARTITION BY', explanation: 'PARTITION BY dept makes the running total restart for each department.' },
+    { type: 'multiple_choice', question: 'What does SUM(amount) OVER (ORDER BY date) compute?', options: ['Total of all amounts', 'A running (cumulative) total ordered by date', 'Amount for each date only', 'The maximum amount'], answer: 'A running (cumulative) total ordered by date', explanation: 'SUM() with OVER(ORDER BY ...) and no PARTITION BY creates a running total across all rows.' },
+    { type: 'multiple_choice', question: 'What does ROW_NUMBER() OVER (ORDER BY score DESC) produce?', options: ['Random numbers', 'Sequential numbers 1, 2, 3... with no gaps or ties', 'Same number for ties', 'The row count'], answer: 'Sequential numbers 1, 2, 3... with no gaps or ties', explanation: 'ROW_NUMBER() assigns a unique sequential integer — even tied values get different numbers.' },
+    { type: 'multiple_choice', question: 'Without PARTITION BY, a window function operates over what?', options: ['Nothing — it errors', 'The first row only', 'The entire result set as one partition', 'Only grouped rows'], answer: 'The entire result set as one partition', explanation: 'Without PARTITION BY, the window spans all rows. With it, the function resets per group.' },
   ],
   rank: [
     { type: 'multiple_choice', question: 'What happens with RANK() when there are ties?', options: ['Values are averaged', 'Same rank is given, next rank is skipped', 'Same rank, no gap', 'Error is thrown'], answer: 'Same rank is given, next rank is skipped', explanation: 'RANK() assigns the same rank to ties, then skips. E.g., 1, 1, 3 (not 1, 1, 2).' },
     { type: 'multiple_choice', question: 'What is the difference between RANK() and DENSE_RANK()?', options: ['No difference', 'DENSE_RANK() doesn\'t skip numbers after ties', 'RANK() is faster', 'DENSE_RANK() only works with integers'], answer: 'DENSE_RANK() doesn\'t skip numbers after ties', explanation: 'DENSE_RANK() assigns 1, 1, 2 for ties. RANK() assigns 1, 1, 3.' },
+    { type: 'multiple_choice', question: 'For the values 100, 90, 90, 80 — what does DENSE_RANK() assign?', options: ['1, 2, 2, 3', '1, 2, 2, 4', '1, 2, 3, 4', '1, 1, 1, 2'], answer: '1, 2, 2, 3', explanation: 'DENSE_RANK: 100→1, 90→2, 90→2, 80→3. No gap after the tie at rank 2.' },
+    { type: 'fill_blank', question: 'Rank players per team: SELECT team, name, RANK() OVER (PARTITION BY team ___ ___ ___ score DESC) FROM players;', answer: 'ORDER BY', explanation: 'RANK() OVER (PARTITION BY team ORDER BY score DESC) ranks players within each team by score.' },
   ],
   date_functions: [
     { type: 'multiple_choice', question: 'Which function extracts the year from a date?', options: ['YEAR()', 'EXTRACT(YEAR FROM date)', 'DATE_PART(\'year\', date)', 'All of the above (varies by database)'], answer: 'All of the above (varies by database)', explanation: 'Date extraction syntax varies: YEAR(), EXTRACT(), DATE_PART() all work in different SQL dialects.' },
@@ -90,9 +104,11 @@ export const SKILL_QUESTIONS: Record<string, QuizQuestion[]> = {
   ],
   min: [
     { type: 'fill_blank', question: 'Find the lowest price: SELECT ___(price) FROM products;', answer: 'MIN', explanation: 'MIN() returns the smallest value in a column.' },
+    { type: 'multiple_choice', question: 'Does MIN() work on text/string columns?', options: ['No, only numbers', 'Yes — it returns the alphabetically first value', 'It throws an error', 'Only with CAST'], answer: 'Yes — it returns the alphabetically first value', explanation: 'MIN() works on strings too — it returns the value that comes first alphabetically.' },
   ],
   max: [
     { type: 'fill_blank', question: 'Find the highest score: SELECT ___(score) FROM games;', answer: 'MAX', explanation: 'MAX() returns the largest value in a column.' },
+    { type: 'multiple_choice', question: 'Can you use MAX() and MIN() in the same SELECT?', options: ['No, only one aggregate per query', 'Yes, you can use multiple aggregates', 'Only with GROUP BY', 'Only in subqueries'], answer: 'Yes, you can use multiple aggregates', explanation: 'You can combine any number of aggregate functions in one SELECT: SELECT MIN(x), MAX(x), AVG(x) FROM t.' },
   ],
   like: [
     { type: 'multiple_choice', question: 'What does the % wildcard mean in LIKE?', options: ['Exactly one character', 'Zero or more characters', 'Only numbers', 'End of string'], answer: 'Zero or more characters', explanation: '% matches any sequence of zero or more characters. _ matches exactly one character.' },
@@ -116,30 +132,42 @@ export const SKILL_QUESTIONS: Record<string, QuizQuestion[]> = {
   ],
   exists: [
     { type: 'multiple_choice', question: 'What does EXISTS return?', options: ['The matching rows', 'TRUE if subquery returns any rows, FALSE otherwise', 'The count of matching rows', 'NULL if no match'], answer: 'TRUE if subquery returns any rows, FALSE otherwise', explanation: 'EXISTS is a boolean test — it returns TRUE as soon as the subquery finds at least one row.' },
+    { type: 'multiple_choice', question: 'Why is EXISTS often preferred over IN for large datasets?', options: ['EXISTS is newer', 'EXISTS can stop early once it finds a match; IN must evaluate the entire list', 'EXISTS supports more data types', 'No real difference'], answer: 'EXISTS can stop early once it finds a match; IN must evaluate the entire list', explanation: 'EXISTS uses short-circuit evaluation — it returns TRUE as soon as one matching row is found.' },
   ],
   not_in: [
     { type: 'multiple_choice', question: 'What is a danger of NOT IN with NULL values?', options: ['It\'s slower', 'If the list contains NULL, no rows are returned', 'It ignores the NULL', 'It throws an error'], answer: 'If the list contains NULL, no rows are returned', explanation: 'NOT IN with a NULL in the list evaluates to UNKNOWN for every row, returning no results. Use NOT EXISTS instead.' },
+    { type: 'multiple_choice', question: 'What is the safer alternative to NOT IN when NULLs might be present?', options: ['NOT LIKE', 'NOT EXISTS with a correlated subquery', 'EXCEPT', 'COALESCE'], answer: 'NOT EXISTS with a correlated subquery', explanation: 'NOT EXISTS handles NULLs correctly because it tests for row existence, not value comparison.' },
   ],
   is_null: [
     { type: 'multiple_choice', question: 'Why can\'t you use = NULL to check for NULL?', options: ['NULL is not a value — it\'s the absence of a value', 'It\'s just a syntax rule', 'You actually can', 'NULL equals empty string'], answer: 'NULL is not a value — it\'s the absence of a value', explanation: 'Any comparison with NULL using = returns UNKNOWN, not TRUE. Use IS NULL instead.' },
+    { type: 'fill_blank', question: 'Find rows with missing email: SELECT * FROM users WHERE email ___ ___;', answer: 'IS NULL', explanation: 'IS NULL is the only correct way to test for NULL values in SQL.' },
   ],
   lag: [
     { type: 'multiple_choice', question: 'What does the LAG() function do?', options: ['Returns the next row value', 'Returns the previous row value in the partition', 'Counts rows', 'Calculates running total'], answer: 'Returns the previous row value in the partition', explanation: 'LAG(column, offset) accesses a value from a previous row in the window frame.' },
+    { type: 'fill_blank', question: 'Get previous day price: SELECT date, price, ___(price, 1) OVER (ORDER BY date) AS prev_price FROM stocks;', answer: 'LAG', explanation: 'LAG(column, 1) returns the value from the previous row based on the ORDER BY.' },
+    { type: 'multiple_choice', question: 'What does LEAD() do compared to LAG()?', options: ['Same thing', 'LEAD looks at the next row; LAG looks at the previous row', 'LEAD is faster', 'LEAD only works with numbers'], answer: 'LEAD looks at the next row; LAG looks at the previous row', explanation: 'LAG = look back, LEAD = look forward. Both use OVER(ORDER BY ...) to define row order.' },
+    { type: 'multiple_choice', question: 'What does LAG(price, 1, 0) return when there is no previous row?', options: ['NULL', '0 (the default value provided)', 'An error', 'The current row value'], answer: '0 (the default value provided)', explanation: 'The third argument to LAG/LEAD is the default value when no row exists at the offset. Without it, NULL is returned.' },
   ],
   ntile: [
     { type: 'multiple_choice', question: 'What does NTILE(4) do?', options: ['Divides rows into 4 roughly equal buckets', 'Returns every 4th row', 'Multiplies values by 4', 'Groups by 4 columns'], answer: 'Divides rows into 4 roughly equal buckets', explanation: 'NTILE(n) distributes rows into n roughly equal numbered buckets (quartiles for n=4).' },
+    { type: 'fill_blank', question: 'Split students into 3 performance tiers: SELECT name, score, ___(3) OVER (ORDER BY score DESC) AS tier FROM students;', answer: 'NTILE', explanation: 'NTILE(3) divides ordered rows into 3 buckets: top third gets 1, middle gets 2, bottom gets 3.' },
   ],
   union: [
     { type: 'multiple_choice', question: 'What is the difference between UNION and UNION ALL?', options: ['No difference', 'UNION removes duplicates; UNION ALL keeps all rows', 'UNION ALL is slower', 'UNION works across databases'], answer: 'UNION removes duplicates; UNION ALL keeps all rows', explanation: 'UNION deduplicates the combined result. UNION ALL simply appends all rows — faster.' },
+    { type: 'multiple_choice', question: 'What must be true about the queries combined with UNION?', options: ['Same table names', 'Same number of columns with compatible types', 'Same WHERE clause', 'Same number of rows'], answer: 'Same number of columns with compatible types', explanation: 'All SELECT statements in a UNION must have the same number of columns with compatible data types.' },
   ],
   string_functions: [
     { type: 'fill_blank', question: 'Convert to uppercase: SELECT ___(name) FROM users;', answer: 'UPPER', explanation: 'UPPER() converts all characters in a string to uppercase.' },
+    { type: 'multiple_choice', question: 'Which function extracts part of a string?', options: ['EXTRACT()', 'SUBSTRING()', 'SPLIT()', 'SLICE()'], answer: 'SUBSTRING()', explanation: 'SUBSTRING(string, start, length) extracts a portion of a string. Also called SUBSTR() in some dialects.' },
+    { type: 'fill_blank', question: 'Combine first and last name: SELECT ___(first_name, \' \', last_name) AS full_name FROM users;', answer: 'CONCAT', explanation: 'CONCAT() joins two or more strings together. Some dialects also use the || operator.' },
   ],
   division: [
     { type: 'multiple_choice', question: 'What happens when you divide two integers in SQL?', options: ['You get a decimal result', 'Integer division — decimal part is truncated', 'An error', 'It depends on the database'], answer: 'Integer division — decimal part is truncated', explanation: 'In most SQL dialects, integer/integer = integer. CAST one to FLOAT for decimal results.' },
+    { type: 'fill_blank', question: 'Get decimal division: SELECT CAST(revenue AS ___) / total_orders FROM sales;', answer: 'FLOAT', explanation: 'CAST to FLOAT (or DECIMAL/REAL) before dividing to avoid integer truncation.' },
   ],
   group_concat: [
     { type: 'multiple_choice', question: 'What does GROUP_CONCAT() do?', options: ['Counts groups', 'Concatenates values from multiple rows into a single string', 'Groups by concatenation', 'Combines tables'], answer: 'Concatenates values from multiple rows into a single string', explanation: 'GROUP_CONCAT() aggregates values from multiple rows into one comma-separated string.' },
+    { type: 'multiple_choice', question: 'How do you change the separator in GROUP_CONCAT()?', options: ['SEP keyword', 'SEPARATOR keyword', 'DELIMIT keyword', 'You cannot change it'], answer: 'SEPARATOR keyword', explanation: 'GROUP_CONCAT(col SEPARATOR \'; \') changes the default comma separator to semicolon.' },
   ],
 };
 
@@ -155,29 +183,38 @@ export const GENERIC_QUESTIONS: QuizQuestion[] = [
 
 // ─── Build quiz from skills ──────────────────────────────────────────────────
 
-function buildQuiz(skills: string[], count: number = 5): QuizQuestion[] {
-  const pool: QuizQuestion[] = [];
-
+function buildQuiz(skills: string[], count: number = 7): QuizQuestion[] {
+  // 1. Collect ALL skill-specific questions first (these are the priority)
+  const skillPool: QuizQuestion[] = [];
   for (const skill of skills) {
     const questions = SKILL_QUESTIONS[skill.toLowerCase()];
-    if (questions) pool.push(...questions);
+    if (questions) skillPool.push(...questions);
   }
 
-  // Add some generic questions to pad if needed
-  pool.push(...GENERIC_QUESTIONS);
+  // Shuffle skill-specific questions
+  skillPool.sort(() => Math.random() - 0.5);
 
-  // Shuffle
-  const shuffled = pool.sort(() => Math.random() - 0.5);
-
-  // Deduplicate by question text and take `count`
+  // 2. Deduplicate and take skill-specific first, up to count
   const seen = new Set<string>();
   const result: QuizQuestion[] = [];
-  for (const q of shuffled) {
+  for (const q of skillPool) {
     if (!seen.has(q.question) && result.length < count) {
       seen.add(q.question);
       result.push(q);
     }
   }
+
+  // 3. Only pad with generics if we still need more questions
+  if (result.length < count) {
+    const genericPool = [...GENERIC_QUESTIONS].sort(() => Math.random() - 0.5);
+    for (const q of genericPool) {
+      if (!seen.has(q.question) && result.length < count) {
+        seen.add(q.question);
+        result.push(q);
+      }
+    }
+  }
+
   return result;
 }
 
