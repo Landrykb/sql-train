@@ -255,7 +255,7 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
         setPreviousScore(data.score || 0);
       } catch { /* ignore */ }
     }
-    setQuestions(buildQuiz(skills, 5));
+    setQuestions(buildQuiz(skills));
   }, [caseId, skills]);
 
   const currentQ = questions[currentIdx];
@@ -310,7 +310,7 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
   }, [currentIdx, totalQuestions, score, caseId]);
 
   const handleRetake = useCallback(() => {
-    setQuestions(buildQuiz(skills, 5));
+    setQuestions(buildQuiz(skills));
     setCurrentIdx(0);
     setSelected(null);
     setTextInput('');
