@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { BleepxHead, BleepxTrophy, BleepxFace, BleepxGhost } from '@/components/BleepxIcons';
 import { SKILL_QUESTIONS, GENERIC_QUESTIONS, type QuizQuestion } from '@/components/TrialQuiz';
+import { syncCurrentProgress } from '@/lib/progressSync';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -158,6 +159,8 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
           ts: Date.now(),
         }));
         window.dispatchEvent(new Event('storage'));
+        // Push to Supabase (tied to GitHub profile)
+        syncCurrentProgress().catch(() => {});
       } catch { /* ignore */ }
     } else {
       setCurrentIdx((i) => i + 1);

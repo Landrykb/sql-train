@@ -6,7 +6,7 @@ import {
   isUnlocked as isUnlockedRaw,
 } from './progress';
 import { playBleep } from './audio';
-import { syncProgress, pushProgress } from './progressSync';
+import { syncProgress, pushProgress, syncCurrentProgress } from './progressSync';
 import { supabase } from './supabase';
 import { updateTotalPointsEarned, getActivePerks, getStoreState, saveStoreState } from './pointsStore';
 import { CASE_TIERS } from './constants';
@@ -75,13 +75,50 @@ export function useProgress() {
         const localCompleted = JSON.parse(localStorage.getItem('completedCases') || localStorage.getItem('completed') || '[]');
         const localPoints = parseInt(localStorage.getItem('bleepxPoints') || '0', 10);
         const localAchievements = JSON.parse(localStorage.getItem('bleepxAchievements') || '[]');
-        const merged = await syncProgress({ completed: localCompleted, points: localPoints, achievements: localAchievements });
+
+        // Collect local store state and quiz scores for sync
+        let localStoreState: Record<string, unknown> = {};
+        try { const raw = localStorage.getItem('bleepx_store'); if (raw) localStoreState = JSON.parse(raw); } catch { /* ignore */ }
+
+        const localQuizScores: Record<string, unknown> = {};
+        try {
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('bleepx_quiz_') || key === 'bleepx_master_quiz')) {
+              const val = localStorage.getItem(key);
+              if (val) localQuizScores[key] = JSON.parse(val);
+            }
+          }
+        } catch { /* ignore */ }
+
+        const merged = await syncProgress({
+          completed: localCompleted,
+          points: localPoints,
+          achievements: localAchievements,
+          store_state: localStoreState,
+          quiz_scores: localQuizScores,
+        });
         setCompleted(new Set(merged.completed));
         setPoints(merged.points);
         setAchievements(merged.achievements);
         writeLocalStorage(merged.completed, merged.points, merged.achievements);
+
+        // Restore store state from merged data
+        if (merged.store_state && Object.keys(merged.store_state).length > 0) {
+          try { localStorage.setItem('bleepx_store', JSON.stringify(merged.store_state)); } catch { /* ignore */ }
+        }
+
+        // Restore quiz scores from merged data
+        if (merged.quiz_scores) {
+          try {
+            for (const [key, val] of Object.entries(merged.quiz_scores)) {
+              localStorage.setItem(key, JSON.stringify(val));
+            }
+          } catch { /* ignore */ }
+        }
+
         syncedRef.current = true;
-        console.log('[useProgress] Synced with Supabase:', merged);
+        console.log('[useProgress] Synced with Supabase (incl. store + quiz):', merged);
       } catch (err) {
         console.error('[useProgress] Supabase sync failed:', err);
       }
@@ -207,8 +244,8 @@ export function useProgress() {
         // Track lifetime points (never decreases)
         updateTotalPointsEarned(newPoints);
 
-        // Push to Supabase in background
-        pushProgress({ completed: [...next], points: newPoints, achievements: newAchievements }).catch(() => {});
+        // Push full state to Supabase (incl. store state + quiz scores)
+        syncCurrentProgress().catch(() => {});
       }
       return next;
     });
@@ -230,7 +267,8 @@ export function useProgress() {
     const store = getStoreState();
     store.totalPointsSpent = (store.totalPointsSpent || 0) + amount;
     saveStoreState(store);
-    pushProgress({ completed: [...completed], points: newPoints, achievements }).catch(() => {});
+    // Sync full state including store purchases to Supabase
+    syncCurrentProgress().catch(() => {});
     return true;
   }, [points, completed, achievements]);
 

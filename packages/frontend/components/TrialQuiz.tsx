@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { BleepxHead, BleepxTrophy, BleepxFace } from '@/components/BleepxIcons';
+import { syncCurrentProgress } from '@/lib/progressSync';
 
 // ─── Question bank keyed by SQL skill ────────────────────────────────────────
 
@@ -259,6 +260,8 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
 
         // Trigger storage event for other components
         window.dispatchEvent(new Event('storage'));
+        // Push to Supabase (tied to GitHub profile)
+        syncCurrentProgress().catch(() => {});
       } catch { /* ignore */ }
     } else {
       setCurrentIdx((i) => i + 1);

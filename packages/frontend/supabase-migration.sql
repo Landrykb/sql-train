@@ -6,8 +6,14 @@ CREATE TABLE IF NOT EXISTS user_progress (
   completed TEXT[] DEFAULT '{}',
   points INTEGER DEFAULT 0,
   achievements TEXT[] DEFAULT '{}',
+  store_state JSONB DEFAULT '{}',
+  quiz_scores JSONB DEFAULT '{}',
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- If table already exists, add new columns:
+ALTER TABLE user_progress ADD COLUMN IF NOT EXISTS store_state JSONB DEFAULT '{}';
+ALTER TABLE user_progress ADD COLUMN IF NOT EXISTS quiz_scores JSONB DEFAULT '{}';
 
 -- Enable Row Level Security
 ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
