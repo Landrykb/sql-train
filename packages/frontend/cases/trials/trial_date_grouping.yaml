@@ -4,7 +4,7 @@ tier: 3
 domain: trials
 description: "Cross-domain date trial — group and analyze data by time periods under pressure."
 instructions: |-
-  *bleep* Trial 9, human. Time-based analysis.
+  *bleep* Trial 33, human. Time-based analysis.
   Using the finance_stocks dataset, find the average closing price and total volume
   per date. Show date, avg_close (rounded to 2), and total_volume.
   Only include dates where total_volume exceeds 500,000,000.
@@ -22,7 +22,7 @@ datasets:
     file: finance_stocks.csv
 prereq_cases: []
 seedQuery: |-
-  -- TRIAL 9: Temporal Analysis
+  -- TRIAL 33: Temporal Analysis
   -- Find high-volume trading dates
   SELECT 1;
 solutionQuery: |-

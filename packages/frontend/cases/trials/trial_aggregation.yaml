@@ -4,7 +4,7 @@ tier: 2
 domain: trials
 description: "Cross-domain aggregation trial — GROUP BY, COUNT, AVG under pressure."
 instructions: |-
-  *bleep* Trial 2, human. You have the crime_chicago dataset.
+  *bleep* Trial 14, human. You have the crime_chicago dataset.
   Write a query to find the top 5 crime types (primary_type) by total count,
   showing the primary_type and crime_count, ordered by crime_count descending.
 skills:
@@ -18,7 +18,7 @@ datasets:
     file: crime_chicago.csv
 prereq_cases: []
 seedQuery: |-
-  -- TRIAL 2: Aggregate Strike
+  -- TRIAL 14: Aggregate Strike
   -- Find top 5 crime types by count
   SELECT 1;
 solutionQuery: |-

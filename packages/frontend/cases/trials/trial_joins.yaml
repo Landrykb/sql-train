@@ -4,7 +4,7 @@ tier: 3
 domain: trials
 description: "Cross-domain JOIN trial — link tables under time pressure."
 instructions: |-
-  *bleep* Trial 3. This one requires joining tables, human.
+  *bleep* Trial 23. This one requires joining tables, human.
   Using the business_retail and returns tables, find the top 5 product lines
   with the most returns. Show product_line and return_count, ordered by return_count descending.
 skills:
@@ -21,7 +21,7 @@ datasets:
     file: returns.csv
 prereq_cases: []
 seedQuery: |-
-  -- TRIAL 3: Join Operations
+  -- TRIAL 23: Join Operations
   -- Find top 5 product lines with most returns
   SELECT 1;
 solutionQuery: |-

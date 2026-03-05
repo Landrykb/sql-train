@@ -4,7 +4,7 @@ tier: 2
 domain: trials
 description: "Cross-domain CASE trial — classify data with conditional logic under pressure."
 instructions: |-
-  *bleep* Trial 6, human. Time to think conditionally.
+  *bleep* Trial 22, human. Time to think conditionally.
   Using the space_neo dataset, classify each near-Earth object into a threat category:
   - 'DANGEROUS' if is_potentially_hazardous = 'True' AND relative_velocity_km_s > 15
   - 'WATCH' if is_potentially_hazardous = 'True'
@@ -21,7 +21,7 @@ datasets:
     file: space_neo.csv
 prereq_cases: []
 seedQuery: |-
-  -- TRIAL 6: Conditional Logic
+  -- TRIAL 22: Conditional Logic
   -- Classify NEOs by threat category
   SELECT 1;
 solutionQuery: |-

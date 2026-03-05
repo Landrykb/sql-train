@@ -4,7 +4,7 @@ tier: 3
 domain: trials
 description: "Cross-domain subquery trial — filter with nested queries under pressure."
 instructions: |-
-  *bleep* Trial 8, human. Queries inside queries.
+  *bleep* Trial 30, human. Queries inside queries.
   Using the nba_games dataset, find all players who scored above the league average points.
   Show player_id, points, assists, rebounds, and game_date.
   Order by points descending, LIMIT 10.
@@ -19,7 +19,7 @@ datasets:
     file: nba_games.csv
 prereq_cases: []
 seedQuery: |-
-  -- TRIAL 8: Subquery Showdown
+  -- TRIAL 30: Subquery Showdown
   -- Find players scoring above league average
   SELECT 1;
 solutionQuery: |-

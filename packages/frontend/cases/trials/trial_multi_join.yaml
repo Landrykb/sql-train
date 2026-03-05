@@ -4,7 +4,7 @@ tier: 3
 domain: trials
 description: "Cross-domain multi-join trial — connect three tables under pressure."
 instructions: |-
-  *bleep* Trial 7, human. Multiple tables, one query.
+  *bleep* Trial 25, human. Multiple tables, one query.
   Using the patients, admissions, and treatments tables, find the top 5 diagnoses
   by number of unique patients. Show diagnosis and patient_count,
   ordered by patient_count descending.
@@ -25,7 +25,7 @@ datasets:
     file: treatments.csv
 prereq_cases: []
 seedQuery: |-
-  -- TRIAL 7: Multi-Table Joins
+  -- TRIAL 25: Multi-Table Joins
   -- Find top 5 diagnoses by unique patient count
   SELECT 1;
 solutionQuery: |-

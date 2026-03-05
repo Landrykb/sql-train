@@ -421,7 +421,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
         const allCompleted = currentOrder.length > 0 && currentOrder.every((caseId) => completed.has(caseId) || caseId === id);
 
         if (allCompleted && currentOrder.length > 0) {
-          setNextDestination({ url: `/cases/${domain}/dashboard`, label: 'View Dashboard' });
+          setNextDestination({ url: isTrial ? `/cases/${domain}` : `/cases/${domain}/dashboard`, label: isTrial ? 'Back to Trials' : 'View Dashboard' });
         } else if (nextCaseId) {
           const nextName = nextCaseId.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
           setNextDestination({ url: `/cases/${domain}/${nextCaseId}`, label: `Next: ${nextName}` });
@@ -717,8 +717,8 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 <button className="px-4 py-1.5 rounded-full bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors shadow-sm">Next Case →</button>
               </Link>
             ) : (
-              <Link href={`/cases/${domain}/dashboard`}>
-                <button className="px-4 py-1.5 rounded-full bg-bleepx-blue text-white text-sm font-bold hover:bg-bleepx-blue/90 transition-colors shadow-sm">View Dashboard</button>
+              <Link href={isTrial ? `/cases/${domain}` : `/cases/${domain}/dashboard`}>
+                <button className="px-4 py-1.5 rounded-full bg-bleepx-blue text-white text-sm font-bold hover:bg-bleepx-blue/90 transition-colors shadow-sm">{isTrial ? 'Back to Trials' : 'View Dashboard'}</button>
               </Link>
             )}
           </div>
