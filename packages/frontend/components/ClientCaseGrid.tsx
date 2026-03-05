@@ -185,6 +185,14 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
                   </span>
                 ))}
               </div>
+              {isTrial && !isEffectivelyLocked && (
+                <span
+                  className="inline-flex items-center gap-1 mt-2 mr-2 px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-bold hover:bg-indigo-200 dark:hover:bg-indigo-800/40 transition-colors cursor-pointer"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/cases/${domain}/${c.id}/quiz`); }}
+                >
+                  🧠 Quiz
+                </span>
+              )}
               {isNext && (
                 <p className="text-xs sm:text-sm text-bleepx-blue mt-2 flex items-center gap-1"><BleepxSpark size={14} /> *bleep* Tackle this next.</p>
               )}

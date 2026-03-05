@@ -674,7 +674,9 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             <Link href={`/cases/${domain}`}>
               <button className="px-4 py-2 rounded-full border border-bleepx-border text-sm text-bleepx-text-secondary hover:bg-bleepx-blue/5 transition-colors">← Back to Trials</button>
             </Link>
-            <p className="text-xs text-bleepx-text-secondary">*bleep* Practice freely or test yourself, human.</p>
+            <Link href={`/cases/${domain}/${id}/quiz`}>
+              <button className="px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm">🧠 Take Quiz</button>
+            </Link>
           </div>
         </div>
       </div>
@@ -734,6 +736,11 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
 
       {/* Toolbar */}
       <div className="flex items-center justify-end gap-2 text-xs relative">
+        {isTrial && (
+          <Link href={`/cases/${domain}/${id}/quiz`}>
+            <button className="px-3 py-1.5 rounded-full bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors shadow-sm">🧠 Quiz</button>
+          </Link>
+        )}
         {!isTrial && (
           <button onClick={() => {
             if (timerEnabled) { setTimerEnabled(false); setTimeLimit(0); setTimerSeconds(0); }
