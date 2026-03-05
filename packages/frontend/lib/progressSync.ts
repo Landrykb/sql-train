@@ -183,7 +183,7 @@ export async function syncCurrentProgress(): Promise<void> {
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('bleepx_quiz_') || key === 'bleepx_master_quiz')) {
+        if (key && (key.startsWith('bleepx_quiz_') || key === 'bleepx_master_quiz' || key === 'bleepx_master_quiz_progress')) {
           const val = localStorage.getItem(key);
           if (val) quiz_scores[key] = JSON.parse(val);
         }

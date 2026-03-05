@@ -137,29 +137,104 @@ function buildMasterPool(trials: TrialInfo[]): MasterQuestion[] {
   return [...warmup, ...pool];
 }
 
+// ─── Persistence ─────────────────────────────────────────────────────────────
+
+const PROGRESS_KEY = 'bleepx_master_quiz_progress';
+
+interface AnswerRecord {
+  userAnswer: string;
+  correct: boolean;
+}
+
+interface SavedProgress {
+  questionKeys: string[];
+  answers: (AnswerRecord | null)[];
+  currentIdx: number;
+  score: number;
+  ts: number;
+}
+
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function MasterQuiz({ trials }: MasterQuizProps) {
   const router = useRouter();
   const [questions, setQuestions] = useState<MasterQuestion[]>([]);
+  const [answers, setAnswers] = useState<(AnswerRecord | null)[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [textInput, setTextInput] = useState('');
-  const [answered, setAnswered] = useState(false);
-  const [correct, setCorrect] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [redirectTarget, setRedirectTarget] = useState<{ id: string; name: string } | null>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Build pool on mount
+  // Derive answered/correct from the answers array
+  const currentAnswer = answers[currentIdx] ?? null;
+  const answered = currentAnswer !== null;
+  const correct = currentAnswer?.correct ?? false;
+
+  // Build pool on mount — restore saved progress if available
   useEffect(() => {
-    setQuestions(buildMasterPool(trials));
+    const pool = buildMasterPool(trials);
+    try {
+      const raw = localStorage.getItem(PROGRESS_KEY);
+      if (raw) {
+        const saved: SavedProgress = JSON.parse(raw);
+        if (Date.now() - saved.ts < 7 * 24 * 60 * 60 * 1000) {
+          const qMap = new Map(pool.map(q => [q.question, q]));
+          const restored: MasterQuestion[] = [];
+          for (const key of saved.questionKeys) {
+            const q = qMap.get(key);
+            if (q) { restored.push(q); qMap.delete(key); }
+          }
+          for (const q of qMap.values()) restored.push(q);
+          const restoredAnswers = [
+            ...saved.answers,
+            ...new Array(Math.max(0, restored.length - saved.answers.length)).fill(null),
+          ];
+          setQuestions(restored);
+          setAnswers(restoredAnswers);
+          setCurrentIdx(saved.currentIdx);
+          setScore(saved.score);
+          // Restore input state for current question
+          const cur = restoredAnswers[saved.currentIdx];
+          if (cur) {
+            setSelected(cur.userAnswer);
+            setTextInput(cur.userAnswer);
+          }
+          return;
+        }
+      }
+    } catch { /* fresh start */ }
+    setQuestions(pool);
+    setAnswers(new Array(pool.length).fill(null));
   }, [trials]);
 
   const currentQ = questions[currentIdx];
   const totalQuestions = questions.length;
+  const answeredCount = answers.filter(a => a !== null).length;
+  const progress = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
+
+  // Persist progress to localStorage + Supabase
+  const saveProgress = useCallback((
+    qs: MasterQuestion[],
+    ans: (AnswerRecord | null)[],
+    idx: number,
+    sc: number,
+  ) => {
+    try {
+      const data: SavedProgress = {
+        questionKeys: qs.map(q => q.question),
+        answers: ans,
+        currentIdx: idx,
+        score: sc,
+        ts: Date.now(),
+      };
+      localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+      syncCurrentProgress().catch(() => {});
+    } catch { /* ignore */ }
+  }, []);
 
   // Countdown effect
   useEffect(() => {
@@ -179,8 +254,23 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
     setRedirectTarget(null);
   }, []);
 
+  // Navigate to a question index, restoring its input state
+  const goToQuestion = useCallback((idx: number) => {
+    cancelRedirect();
+    setCurrentIdx(idx);
+    const ans = answers[idx];
+    if (ans) {
+      setSelected(ans.userAnswer);
+      setTextInput(ans.userAnswer);
+    } else {
+      setSelected(null);
+      setTextInput('');
+    }
+    setRedirectTarget(null);
+  }, [answers, cancelRedirect]);
+
   const handleAnswer = useCallback(() => {
-    if (!currentQ) return;
+    if (!currentQ || answered) return;
     const userAnswer = currentQ.type === 'multiple_choice' ? selected : textInput.trim();
     if (!userAnswer) return;
 
@@ -188,9 +278,15 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
       ? userAnswer.toUpperCase() === currentQ.answer.toUpperCase()
       : userAnswer === currentQ.answer;
 
-    setCorrect(isCorrect);
-    setAnswered(true);
-    if (isCorrect) setScore((s) => s + POINTS_PER_CORRECT);
+    const newAnswers = [...answers];
+    newAnswers[currentIdx] = { userAnswer, correct: isCorrect };
+    setAnswers(newAnswers);
+
+    const newScore = isCorrect ? score + POINTS_PER_CORRECT : score;
+    if (isCorrect) setScore(newScore);
+
+    // Save progress after each answer
+    saveProgress(questions, newAnswers, currentIdx, newScore);
 
     // Start redirect countdown if there's a related trial
     if (currentQ.relatedTrials.length > 0) {
@@ -198,7 +294,7 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
       setRedirectTarget(randomTrial);
       setCountdown(REDIRECT_SECONDS);
     }
-  }, [currentQ, selected, textInput]);
+  }, [currentQ, answered, selected, textInput, answers, currentIdx, score, questions, saveProgress]);
 
   const handleNext = useCallback(() => {
     cancelRedirect();
@@ -217,19 +313,18 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
           total: totalQuestions,
           ts: Date.now(),
         }));
+        localStorage.removeItem(PROGRESS_KEY);
         window.dispatchEvent(new Event('storage'));
-        // Push to Supabase (tied to GitHub profile)
         syncCurrentProgress().catch(() => {});
       } catch { /* ignore */ }
     } else {
-      setCurrentIdx((i) => i + 1);
-      setSelected(null);
-      setTextInput('');
-      setAnswered(false);
-      setCorrect(false);
-      setRedirectTarget(null);
+      goToQuestion(currentIdx + 1);
     }
-  }, [currentIdx, totalQuestions, score, cancelRedirect]);
+  }, [currentIdx, totalQuestions, score, cancelRedirect, goToQuestion]);
+
+  const handlePrev = useCallback(() => {
+    if (currentIdx > 0) goToQuestion(currentIdx - 1);
+  }, [currentIdx, goToQuestion]);
 
   const handleTryTrial = useCallback(() => {
     if (redirectTarget) {
@@ -239,19 +334,19 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
   }, [redirectTarget, cancelRedirect, router]);
 
   const handleRestart = useCallback(() => {
-    setQuestions(buildMasterPool(trials));
+    const pool = buildMasterPool(trials);
+    setQuestions(pool);
+    setAnswers(new Array(pool.length).fill(null));
     setCurrentIdx(0);
     setSelected(null);
     setTextInput('');
-    setAnswered(false);
-    setCorrect(false);
     setScore(0);
     setFinished(false);
     setRedirectTarget(null);
     setCountdown(0);
+    try { localStorage.removeItem(PROGRESS_KEY); } catch { /* ignore */ }
+    syncCurrentProgress().catch(() => {});
   }, [trials]);
-
-  const progress = totalQuestions > 0 ? ((currentIdx + (answered ? 1 : 0)) / totalQuestions) * 100 : 0;
 
   // ─── Loading ────────────────────────────────────────────────────────────
 
@@ -320,9 +415,14 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
           <BleepxFace size={24} />
           <h2 className="text-lg font-bold text-bleepx-gray">Master Quiz</h2>
         </div>
-        <span className="text-sm text-bleepx-text-secondary font-medium">
-          {currentIdx + 1} / {totalQuestions}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-bleepx-text-secondary">
+            {answeredCount}/{totalQuestions} answered
+          </span>
+          <span className="text-sm text-bleepx-text-secondary font-medium">
+            Q{currentIdx + 1}
+          </span>
+        </div>
       </div>
 
       {/* Progress bar */}
@@ -343,6 +443,11 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
           <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium uppercase tracking-wide">
             {currentQ.skill.replace(/_/g, ' ')}
           </span>
+          {answered && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${correct ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'}`}>
+              {correct ? '✅ Mastered' : '❌ Review'}
+            </span>
+          )}
           {currentQ.relatedTrials.length > 0 && (
             <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary">
               {currentQ.relatedTrials.length} trial{currentQ.relatedTrials.length > 1 ? 's' : ''}
@@ -457,6 +562,13 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
 
         {/* Action buttons */}
         <div className="mt-6 flex justify-between items-center">
+          <button
+            onClick={handlePrev}
+            disabled={currentIdx === 0}
+            className="px-4 py-2 rounded-full border-2 border-bleepx-border text-sm font-bold text-bleepx-text-secondary hover:bg-bleepx-blue/5 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            ← Prev
+          </button>
           <div className="text-sm text-bleepx-text-secondary">
             Score: <span className="font-bold text-indigo-600 dark:text-indigo-400">{score} pts</span>
           </div>

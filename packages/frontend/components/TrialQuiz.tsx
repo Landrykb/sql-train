@@ -232,17 +232,26 @@ interface TrialQuizProps {
   domain: string;
 }
 
+interface TrialAnswerRecord {
+  userAnswer: string;
+  correct: boolean;
+}
+
 export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQuizProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [answers, setAnswers] = useState<(TrialAnswerRecord | null)[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [textInput, setTextInput] = useState('');
-  const [answered, setAnswered] = useState(false);
-  const [correct, setCorrect] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
   const [previousScore, setPreviousScore] = useState(0);
+
+  // Derive answered/correct from answers array
+  const currentAnswer = answers[currentIdx] ?? null;
+  const answered = currentAnswer !== null;
+  const correct = currentAnswer?.correct ?? false;
 
   // Build quiz on mount
   useEffect(() => {
@@ -255,14 +264,29 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
         setPreviousScore(data.score || 0);
       } catch { /* ignore */ }
     }
-    setQuestions(buildQuiz(skills));
+    const built = buildQuiz(skills);
+    setQuestions(built);
+    setAnswers(new Array(built.length).fill(null));
   }, [caseId, skills]);
 
   const currentQ = questions[currentIdx];
   const totalQuestions = questions.length;
 
+  // Navigate to a question index, restoring its input state
+  const goToQuestion = useCallback((idx: number) => {
+    setCurrentIdx(idx);
+    const ans = answers[idx];
+    if (ans) {
+      setSelected(ans.userAnswer);
+      setTextInput(ans.userAnswer);
+    } else {
+      setSelected(null);
+      setTextInput('');
+    }
+  }, [answers]);
+
   const handleAnswer = useCallback(() => {
-    if (!currentQ) return;
+    if (!currentQ || answered) return;
     const userAnswer = currentQ.type === 'multiple_choice' ? selected : textInput.trim();
     if (!userAnswer) return;
 
@@ -270,10 +294,11 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
       ? userAnswer.toUpperCase() === currentQ.answer.toUpperCase()
       : userAnswer === currentQ.answer;
 
-    setCorrect(isCorrect);
-    setAnswered(true);
+    const newAnswers = [...answers];
+    newAnswers[currentIdx] = { userAnswer, correct: isCorrect };
+    setAnswers(newAnswers);
     if (isCorrect) setScore((s) => s + POINTS_PER_CORRECT);
-  }, [currentQ, selected, textInput]);
+  }, [currentQ, answered, selected, textInput, answers, currentIdx]);
 
   const handleNext = useCallback(() => {
     if (currentIdx + 1 >= totalQuestions) {
@@ -301,27 +326,28 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
         syncCurrentProgress().catch(() => {});
       } catch { /* ignore */ }
     } else {
-      setCurrentIdx((i) => i + 1);
-      setSelected(null);
-      setTextInput('');
-      setAnswered(false);
-      setCorrect(false);
+      goToQuestion(currentIdx + 1);
     }
-  }, [currentIdx, totalQuestions, score, caseId]);
+  }, [currentIdx, totalQuestions, score, caseId, goToQuestion]);
+
+  const handlePrev = useCallback(() => {
+    if (currentIdx > 0) goToQuestion(currentIdx - 1);
+  }, [currentIdx, goToQuestion]);
 
   const handleRetake = useCallback(() => {
-    setQuestions(buildQuiz(skills));
+    const built = buildQuiz(skills);
+    setQuestions(built);
+    setAnswers(new Array(built.length).fill(null));
     setCurrentIdx(0);
     setSelected(null);
     setTextInput('');
-    setAnswered(false);
-    setCorrect(false);
     setScore(0);
     setFinished(false);
     setAlreadyCompleted(false);
   }, [skills]);
 
-  const progress = totalQuestions > 0 ? ((currentIdx + (answered ? 1 : 0)) / totalQuestions) * 100 : 0;
+  const answeredCount = answers.filter(a => a !== null).length;
+  const progress = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
 
   if (questions.length === 0) {
     return (
@@ -419,11 +445,16 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
 
       {/* Question card */}
       <div className="bg-bleepx-white rounded-2xl shadow-xl p-5 sm:p-8">
-        {/* Skill tag */}
+        {/* Skill tag + status */}
         <div className="flex flex-wrap gap-2 mb-3">
           {skills.map((s) => (
             <span key={s} className="text-xs px-2 py-0.5 rounded-full bg-bleepx-blue/10 text-bleepx-blue font-medium uppercase tracking-wide">{s}</span>
           ))}
+          {answered && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${correct ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'}`}>
+              {correct ? '✅ Mastered' : '❌ Review'}
+            </span>
+          )}
         </div>
 
         {/* Question */}
@@ -507,6 +538,13 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
 
         {/* Action buttons */}
         <div className="mt-6 flex justify-between items-center">
+          <button
+            onClick={handlePrev}
+            disabled={currentIdx === 0}
+            className="px-4 py-2 rounded-full border-2 border-bleepx-border text-sm font-bold text-bleepx-text-secondary hover:bg-bleepx-blue/5 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            ← Prev
+          </button>
           <div className="text-sm text-bleepx-text-secondary">
             Score: <span className="font-bold text-bleepx-blue">{score} pts</span>
           </div>
