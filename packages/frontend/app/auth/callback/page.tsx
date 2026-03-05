@@ -3,11 +3,12 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { setGitHubUser } from '@/lib/authClient';
+import { BleepxGitHub } from '@/components/BleepxIcons';
 import { supabase } from '@/lib/supabase';
 
 export default function AuthCallbackPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="text-4xl animate-pulse">🐙</div></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-pulse"><BleepxGitHub size={48} /></div></div>}>
       <AuthCallbackInner />
     </Suspense>
   );
@@ -107,7 +108,7 @@ function AuthCallbackInner() {
       <div className="text-center p-8 rounded-xl shadow-lg bg-bleepx-white max-w-md mx-4">
         {status === 'loading' && (
           <>
-            <div className="text-4xl mb-4 animate-pulse">🐙</div>
+            <div className="mb-4 animate-pulse flex justify-center"><BleepxGitHub size={48} /></div>
             <h2 className="text-lg font-bold text-bleepx-text mb-2">Connecting to GitHub...</h2>
             <p className="text-sm text-bleepx-text-secondary">*bleep* Processing your authentication, human.</p>
           </>

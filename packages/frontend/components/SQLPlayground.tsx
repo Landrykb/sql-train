@@ -421,7 +421,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
         const allCompleted = currentOrder.length > 0 && currentOrder.every((caseId) => completed.has(caseId) || caseId === id);
 
         if (allCompleted && currentOrder.length > 0) {
-          setNextDestination({ url: isTrial ? `/cases/${domain}` : `/cases/${domain}/dashboard`, label: isTrial ? 'Back to Trials' : 'View Dashboard' });
+          setNextDestination({ url: isTrial ? `/cases/${domain}/${id}/quiz` : `/cases/${domain}/dashboard`, label: isTrial ? '🧠 Take Quiz' : 'View Dashboard' });
         } else if (nextCaseId) {
           const nextName = nextCaseId.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
           setNextDestination({ url: `/cases/${domain}/${nextCaseId}`, label: `Next: ${nextName}` });
@@ -484,7 +484,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       <div className="max-w-6xl mx-auto p-8 bg-bleepx-bg min-h-screen">
         <div className="p-6 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded-xl shadow-lg" role="alert">
           <div className="flex items-center gap-2">
-            <img src="/bleepx-logo.png" alt="Bleepx" className="h-5 w-5" />
+            <img src="/bleepx-icon.png" alt="Bleepx" className="h-5 w-5" />
             <span>{getLockedMessage(prerequisites)}</span>
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
@@ -686,7 +686,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       {timeExpired && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
           <div className="bg-bleepx-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full text-center">
-            <img src="/bleepx-logo.png" alt="Bleepx" className="h-12 w-12 mx-auto mb-4 opacity-60" />
+            <img src="/bleepx-icon.png" alt="Bleepx" className="h-12 w-12 mx-auto mb-4 opacity-60" />
             <h2 className="text-2xl font-bold text-red-600 mb-2">Time&apos;s Up!</h2>
             <p className="text-sm text-bleepx-text-secondary mb-4">
               *bleep* The clock has spoken, human. {selectedDifficulty ? `${selectedDifficulty.label} difficulty — ${selectedDifficulty.description.split('—')[0].trim()}.` : 'Time limit reached.'}
@@ -717,8 +717,8 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 <button className="px-4 py-1.5 rounded-full bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors shadow-sm">Next Case →</button>
               </Link>
             ) : (
-              <Link href={isTrial ? `/cases/${domain}` : `/cases/${domain}/dashboard`}>
-                <button className="px-4 py-1.5 rounded-full bg-bleepx-blue text-white text-sm font-bold hover:bg-bleepx-blue/90 transition-colors shadow-sm">{isTrial ? 'Back to Trials' : 'View Dashboard'}</button>
+              <Link href={isTrial ? `/cases/${domain}/${id}/quiz` : `/cases/${domain}/dashboard`}>
+                <button className="px-4 py-1.5 rounded-full bg-bleepx-blue text-white text-sm font-bold hover:bg-bleepx-blue/90 transition-colors shadow-sm">{isTrial ? '🧠 Take Quiz' : 'View Dashboard'}</button>
               </Link>
             )}
           </div>
@@ -834,7 +834,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       <header className="bg-gradient-to-r from-bleepx-blue/10 to-bleepx-pink/10 p-4 sm:p-6 rounded-xl shadow-lg">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
           <div className="flex items-center gap-2">
-            <img src="/bleepx-logo.png" alt="Bleepx" className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse-logo" />
+            <img src="/bleepx-icon.png" alt="Bleepx" className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse-logo" />
             <h1 className="text-xl sm:text-3xl font-bold text-bleepx-gray">{name}</h1>
           </div>
           <span className="text-xs sm:text-sm text-bleepx-gray">Mission {currentIndex >= 0 ? currentIndex + 1 : '?'} of {currentOrder.length || '?'} — {tier <= 1 ? 'Beginner' : tier === 2 ? 'Intermediate' : tier === 3 ? 'Advanced' : tier === 4 ? 'Expert' : 'Master'} {'⭐'.repeat(Math.min(tier || 1, 5))}</span>
@@ -984,7 +984,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           </div>
           {message && (
             <div className="mt-4 flex items-start gap-2.5" role="status">
-              <img src="/bleepx-logo.png" alt="Bleepx" className="h-7 w-7 rounded-full ring-2 ring-bleepx-blue/30 flex-shrink-0 mt-0.5" />
+              <img src="/bleepx-icon.png" alt="Bleepx" className="h-7 w-7 rounded-full ring-2 ring-bleepx-blue/30 flex-shrink-0 mt-0.5" />
               <div
                 className={`relative px-4 py-3 rounded-2xl rounded-tl-sm shadow-md max-w-[90%] text-sm font-medium transition-all duration-500 ${
                   message.includes('Correct') || message.includes('Moving') || message.includes('cleared')
