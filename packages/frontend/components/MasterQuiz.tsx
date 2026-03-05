@@ -18,6 +18,8 @@ interface TrialInfo {
 interface MasterQuestion extends QuizQuestion {
   skill: string;
   relatedTrials: { id: string; name: string }[];
+  level: number;
+  levelLabel: string;
 }
 
 interface MasterQuizProps {
@@ -31,6 +33,34 @@ const PERFECT_BONUS = 10;
 const REDIRECT_SECONDS = 6;
 
 // ─── Build master question pool ─────────────────────────────────────────────
+
+// ─── Strategic skill progression (beginner → advanced) ──────────────────────
+// Each level groups related skills. Questions follow this curriculum order
+// so beginners start with SELECT/WHERE and build up to CTEs/window functions.
+
+const SKILL_CURRICULUM: string[][] = [
+  // Level 1 — Fundamentals: read data, filter, sort
+  ['select', 'where', 'order', 'limit'],
+  // Level 2 — Basic aggregation: counting & grouping
+  ['count', 'sum', 'avg', 'min', 'max', 'group'],
+  // Level 3 — Filtering & null handling
+  ['like', 'in', 'between', 'is_null', 'not_in', 'coalesce'],
+  // Level 4 — Data manipulation & conditional logic
+  ['case', 'cast', 'string_functions', 'date_functions', 'division'],
+  // Level 5 — Intermediate: joins, subqueries, set operations
+  ['join', 'having', 'subquery', 'union', 'exists', 'group_concat'],
+  // Level 6 — Advanced: CTEs, window functions, ranking
+  ['cte', 'window', 'rank', 'lag', 'ntile'],
+];
+
+const LEVEL_LABELS = [
+  '🟢 Fundamentals',
+  '🔵 Aggregation',
+  '🟡 Filtering & Nulls',
+  '🟠 Data Manipulation',
+  '🔴 Joins & Subqueries',
+  '🟣 Advanced Analytics',
+];
 
 function buildMasterPool(trials: TrialInfo[]): MasterQuestion[] {
   // Map skill → trials that use it
@@ -48,34 +78,46 @@ function buildMasterPool(trials: TrialInfo[]): MasterQuestion[] {
   const pool: MasterQuestion[] = [];
   const seen = new Set<string>();
 
-  // Add all skill questions
-  for (const [skill, questions] of Object.entries(SKILL_QUESTIONS)) {
-    for (const q of questions) {
-      if (!seen.has(q.question)) {
-        seen.add(q.question);
-        pool.push({
-          ...q,
-          skill,
-          relatedTrials: skillToTrials[skill] || [],
-        });
+  // Walk the curriculum in order: level by level, skill by skill
+  for (let lvl = 0; lvl < SKILL_CURRICULUM.length; lvl++) {
+    const levelQuestions: MasterQuestion[] = [];
+    for (const skill of SKILL_CURRICULUM[lvl]) {
+      const questions = SKILL_QUESTIONS[skill];
+      if (!questions) continue;
+      for (const q of questions) {
+        if (!seen.has(q.question)) {
+          seen.add(q.question);
+          levelQuestions.push({
+            ...q,
+            skill,
+            relatedTrials: skillToTrials[skill] || [],
+            level: lvl,
+            levelLabel: LEVEL_LABELS[lvl],
+          });
+        }
       }
     }
+    // Light shuffle within each level for variety, but keep levels in order
+    levelQuestions.sort(() => Math.random() - 0.5);
+    pool.push(...levelQuestions);
   }
 
-  // Add generic questions
+  // Add generic questions at the start (warm-up)
+  const warmup: MasterQuestion[] = [];
   for (const q of GENERIC_QUESTIONS) {
     if (!seen.has(q.question)) {
       seen.add(q.question);
-      pool.push({
+      warmup.push({
         ...q,
         skill: 'general',
         relatedTrials: [],
+        level: -1,
+        levelLabel: '⚪ Warm-Up',
       });
     }
   }
 
-  // Shuffle
-  return pool.sort(() => Math.random() - 0.5);
+  return [...warmup, ...pool];
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -276,8 +318,11 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
 
       {/* Question card */}
       <div className="bg-bleepx-white rounded-2xl shadow-xl p-5 sm:p-8">
-        {/* Skill tag */}
+        {/* Level + Skill tags */}
         <div className="flex flex-wrap gap-2 mb-3">
+          <span className="text-xs px-2.5 py-0.5 rounded-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 font-bold tracking-wide">
+            {currentQ.levelLabel}
+          </span>
           <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium uppercase tracking-wide">
             {currentQ.skill.replace(/_/g, ' ')}
           </span>
