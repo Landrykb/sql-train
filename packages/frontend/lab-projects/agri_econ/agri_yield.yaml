@@ -5,7 +5,7 @@ project: "Agriculture Economics & Food Security"
 step_number: 3
 tier: 2
 skills: [regression, random_forest, climate_data, prediction]
-language: python
+language: "Python / R"
 dataset_url: "https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset"
 description: "Build models to predict crop yields from weather, soil, and input data — essential for food security planning and agricultural insurance."
 prereq_cases: [agri_prices]
@@ -25,6 +25,18 @@ sections:
       print(f"Merged dataset: {merged.shape}")
       print(f"\nCorrelation with yield:")
       print(merged[features + ['yield_per_ha']].corr()['yield_per_ha'].drop('yield_per_ha').sort_values())
+    r_code: |
+      library(dplyr)
+
+      climate <- read.csv('climate_data.csv')
+      merged <- inner_join(production, climate, by = c('country', 'year'))
+
+      features <- c('avg_temp','total_rainfall','drought_index','soil_quality',
+                     'fertilizer_use','irrigation_pct')
+      cat(sprintf("Merged dataset: %d x %d\n", nrow(merged), ncol(merged)))
+      cat("\nCorrelation with yield:\n")
+      corr_vals <- sapply(merged[features], function(x) cor(x, merged$yield_per_ha, use = 'complete.obs'))
+      print(sort(corr_vals))
     explanation: "Rainfall and temperature are the primary climate drivers of yield. Irrigation and fertilizer represent human inputs that buffer against climate variability."
   - title: "Train Yield Prediction Model"
     content: "Predict crop yield from environmental and input variables."
@@ -49,6 +61,26 @@ sections:
       plt.title('Yield Prediction — Feature Importance')
       plt.tight_layout()
       plt.show()
+    r_code: |
+      library(randomForest)
+      library(caret)
+
+      X <- merged[, features]
+      y <- merged$yield_per_ha
+      set.seed(42)
+      idx <- createDataPartition(y, p = 0.8, list = FALSE)
+      X_train <- X[idx, ]; y_train <- y[idx]
+      X_test <- X[-idx, ]; y_test <- y[-idx]
+
+      model <- randomForest(x = X_train, y = y_train, ntree = 200)
+      y_pred <- predict(model, X_test)
+
+      r2 <- 1 - sum((y_test - y_pred)^2) / sum((y_test - mean(y_test))^2)
+      mae <- mean(abs(y_test - y_pred))
+      cat(sprintf("R²: %.3f\n", r2))
+      cat(sprintf("MAE: %.2f MT/ha\n", mae))
+
+      varImpPlot(model, main = 'Yield Prediction — Feature Importance')
     explanation: "Feature importance reveals whether yields are more climate-driven or input-driven. In developing countries, inputs dominate; in developed countries, climate variability matters more."
 schema:
   - country

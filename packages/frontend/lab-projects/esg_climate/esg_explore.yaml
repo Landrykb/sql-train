@@ -5,7 +5,7 @@ project: "ESG & Climate Risk Analytics"
 step_number: 1
 tier: 1
 skills: [pandas, eda, visualization, sustainability]
-language: python
+language: "Python / R"
 dataset_url: "https://www.kaggle.com/datasets/debashish311601/esg-scores-and-ratings"
 description: "Load ESG ratings and climate risk datasets to understand how companies perform on Environmental, Social, and Governance metrics."
 prereq_cases: []
@@ -43,6 +43,30 @@ sections:
       print(f"Companies: {df['company_id'].nunique()}")
       print(f"\nESG Score Summary:")
       print(df[['environmental_score', 'social_score', 'governance_score', 'total_esg']].describe())
+    r_code: |
+      library(dplyr)
+      library(ggplot2)
+
+      # Generate synthetic ESG data (real data: see Dataset Source above)
+      set.seed(42)
+      n <- 200
+      sectors <- sample(c('Energy','Tech','Finance','Healthcare','Materials','Utilities'), n, replace = TRUE)
+      df <- data.frame(
+        company_id = 1:n,
+        company_name = paste0('Corp_', 1:n),
+        sector = sectors,
+        environmental_score = round(runif(n, 10, 95), 1),
+        social_score = round(runif(n, 15, 90), 1),
+        governance_score = round(runif(n, 20, 95), 1),
+        annual_return = round(rnorm(n, 10, 15), 2),
+        volatility = round(runif(n, 5, 40), 2),
+        market_cap = round(rlnorm(n, 10, 1.5), 0),
+        co2_emissions_mt = round(rlnorm(n, 3, 2), 1),
+        revenue = round(rlnorm(n, 8, 1), 0)
+      )
+      df$total_esg <- (df$environmental_score + df$social_score + df$governance_score) / 3
+      cat(paste0("Companies: ", length(unique(df$company_id)), "\n"))
+      summary(df[, c('environmental_score','social_score','governance_score','total_esg')])
     explanation: "ESG scores typically range 0-100. The three pillars (E, S, G) capture different sustainability dimensions. Merging with financials lets us study the ESG-performance relationship."
   - title: "Sector Analysis"
     content: "Compare ESG performance across industry sectors."
@@ -54,6 +78,21 @@ sections:
       plt.legend(title='Pillar')
       plt.tight_layout()
       plt.show()
+    r_code: |
+      sector_esg <- df %>%
+        group_by(sector) %>%
+        summarise(
+          Environmental = mean(environmental_score),
+          Social = mean(social_score),
+          Governance = mean(governance_score)
+        ) %>%
+        tidyr::pivot_longer(-sector, names_to = "Pillar", values_to = "Score")
+
+      ggplot(sector_esg, aes(x = Score, y = sector, fill = Pillar)) +
+        geom_col(position = "dodge") +
+        scale_fill_manual(values = c('#2ecc71','#3498db','#9b59b6')) +
+        labs(title = 'Average ESG Scores by Sector', x = 'Score') +
+        theme_minimal()
     explanation: "Energy and materials sectors often have lower environmental scores but may excel in governance. Understanding sector baselines is essential for fair ESG comparison."
   - title: "ESG vs Financial Performance"
     content: "Explore whether higher ESG scores correlate with better financial returns."
@@ -75,6 +114,23 @@ sections:
 
       corr = df[['total_esg', 'annual_return', 'volatility', 'market_cap']].corr()
       print(corr['total_esg'].round(3))
+    r_code: |
+      library(gridExtra)
+
+      p1 <- ggplot(df, aes(x = total_esg, y = annual_return)) +
+        geom_point(alpha = 0.3, size = 1, color = 'teal') +
+        labs(x = 'Total ESG Score', y = 'Annual Return (%)', title = 'ESG Score vs Return') +
+        theme_minimal()
+
+      p2 <- ggplot(df, aes(x = environmental_score, y = volatility)) +
+        geom_point(alpha = 0.3, size = 1, color = 'coral') +
+        labs(x = 'Environmental Score', y = 'Volatility', title = 'E-Score vs Risk') +
+        theme_minimal()
+
+      grid.arrange(p1, p2, ncol = 2)
+
+      corr_cols <- df[, c('total_esg','annual_return','volatility','market_cap')]
+      round(cor(corr_cols)[, 'total_esg'], 3)
     explanation: "Research shows higher ESG companies tend to have lower volatility (risk). The return relationship is debated — ESG may protect downside more than boost upside."
 schema:
   - company_id

@@ -5,7 +5,7 @@ project: "Agriculture Economics & Food Security"
 step_number: 4
 tier: 3
 skills: [policy_analysis, scenario_modeling, visualization, reporting]
-language: python
+language: "Python / R"
 dataset_url: "https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset"
 description: "Model food security scenarios under climate change, analyze trade policy impacts, and create actionable policy recommendations."
 prereq_cases: [agri_yield]
@@ -28,6 +28,36 @@ sections:
 
       print("Food Security Dashboard:")
       print(df_country.nlargest(10, 'per_capita_kg')[['country', 'self_sufficiency', 'per_capita_kg']].to_string(index=False))
+    r_code: |
+      library(dplyr)
+
+      df_country <- production %>%
+        group_by(country) %>%
+        summarise(
+          total_production = sum(production_mt),
+          population = first(population),
+          .groups = 'drop'
+        )
+
+      imports_df <- trade %>%
+        group_by(importer) %>%
+        summarise(imports = sum(quantity_mt), .groups = 'drop')
+
+      df_country <- df_country %>%
+        left_join(imports_df, by = c('country' = 'importer')) %>%
+        mutate(imports = ifelse(is.na(imports), 0, imports))
+
+      df_country$self_sufficiency <- df_country$total_production /
+        (df_country$total_production + df_country$imports) * 100
+      df_country$per_capita_kg <- (df_country$total_production + df_country$imports) /
+        df_country$population * 1000
+
+      cat("Food Security Dashboard:\n")
+      df_country %>%
+        arrange(desc(per_capita_kg)) %>%
+        head(10) %>%
+        select(country, self_sufficiency, per_capita_kg) %>%
+        print()
     explanation: "Self-sufficiency ratio shows domestic production vs total supply. Per-capita availability below ~400 kg/year signals food insecurity risk. Import-dependent nations are vulnerable to trade shocks."
   - title: "Climate Scenario Impact"
     content: "Project how warming affects crop yields and food availability."
@@ -42,6 +72,20 @@ sections:
           print(f"  Avg per-capita change: {yield_change*100:+.0f}%")
           print(f"  Countries below threshold: {at_risk} / {len(df_country)}")
           print(f"  Most affected: {df_country.loc[adjusted.nsmallest(3).index, 'country'].tolist()}")
+    r_code: |
+      scenarios <- list('+1.5C' = -0.05, '+2.0C' = -0.10, '+3.0C' = -0.20)
+
+      cat("=== CLIMATE IMPACT ON FOOD SECURITY ===\n")
+      for (name in names(scenarios)) {
+        yield_change <- scenarios[[name]]
+        adjusted <- df_country$per_capita_kg * (1 + yield_change)
+        at_risk <- sum(adjusted < 300)
+        most_affected <- df_country$country[order(adjusted)][1:3]
+        cat(sprintf("\n%s warming:\n", name))
+        cat(sprintf("  Avg per-capita change: %+.0f%%\n", yield_change * 100))
+        cat(sprintf("  Countries below threshold: %d / %d\n", at_risk, nrow(df_country)))
+        cat(sprintf("  Most affected: %s\n", paste(most_affected, collapse = ", ")))
+      }
     explanation: "Each degree of warming reduces global yields by roughly 5-10%. The impacts are uneven — tropical developing nations face the largest losses, deepening existing food inequality."
 schema:
   - country

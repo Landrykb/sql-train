@@ -5,7 +5,7 @@ project: "ESG & Climate Risk Analytics"
 step_number: 3
 tier: 2
 skills: [risk_modeling, scenario_analysis, regression, climate]
-language: python
+language: "Python / R"
 dataset_url: "https://www.kaggle.com/datasets/debashish311601/esg-scores-and-ratings"
 description: "Model physical and transition climate risks — how temperature scenarios, carbon pricing, and regulatory changes affect portfolio value."
 prereq_cases: [esg_scoring]
@@ -26,6 +26,23 @@ sections:
       plt.xlabel('Revenue Impact (%)')
       plt.tight_layout()
       plt.show()
+    r_code: |
+      library(dplyr)
+      library(ggplot2)
+
+      df$carbon_cost <- df$co2_emissions_mt * 75
+      df$carbon_impact_pct <- (df$carbon_cost / df$revenue) * 100
+
+      sector_impact <- df %>%
+        group_by(sector) %>%
+        summarise(avg_impact = mean(carbon_impact_pct)) %>%
+        arrange(desc(avg_impact))
+
+      ggplot(sector_impact, aes(x = avg_impact, y = reorder(sector, avg_impact))) +
+        geom_col(fill = 'coral') +
+        labs(title = 'Revenue Impact of $75/ton Carbon Price by Sector',
+             x = 'Revenue Impact (%)') +
+        theme_minimal()
     explanation: "Energy and materials face 5-15% revenue impact; tech faces <1%. This drives the 'stranded asset' narrative — high-carbon companies lose value as carbon prices rise."
   - title: "Scenario Analysis"
     content: "Model portfolio value under different temperature pathways."
@@ -44,6 +61,20 @@ sections:
           physical = params.get('physical_damage', 0)
           df[f'impact_{name[:4]}'] = -carbon_hit + green_boost - physical
           print(f"{name}: Avg portfolio impact = {df[f'impact_{name[:4]}'].mean()*100:.2f}%")
+    r_code: |
+      scenarios <- list(
+        '1.5C' = list(carbon_price = 150, green_premium = 0.03, physical_damage = 0),
+        '2C'   = list(carbon_price = 100, green_premium = 0.01, physical_damage = 0),
+        '3C'   = list(carbon_price = 50,  green_premium = 0,    physical_damage = 0.05)
+      )
+
+      for (name in names(scenarios)) {
+        p <- scenarios[[name]]
+        carbon_hit <- df$co2_emissions_mt * p$carbon_price / df$revenue
+        green_boost <- p$green_premium * df$environmental_score / 100
+        impact <- -carbon_hit + green_boost - p$physical_damage
+        cat(sprintf("%s: Avg portfolio impact = %.2f%%\n", name, mean(impact) * 100))
+      }
     explanation: "Scenario analysis is how regulators (TCFD) require climate risk disclosure. The 1.5°C scenario has the highest carbon price but also rewards green leaders."
 schema:
   - company_id

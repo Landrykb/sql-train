@@ -13,6 +13,7 @@ interface Section {
   title: string;
   content: string;
   code: string;
+  r_code?: string;
   explanation: string;
 }
 
@@ -130,6 +131,8 @@ export default function LabProjectViewer({
   const [showThoughtProcess, setShowThoughtProcess] = useState(false);
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
   const [stepSolved, setStepSolved] = useState(false);
+  const isDualLang = language.toLowerCase().includes('r');
+  const [codeLang, setCodeLang] = useState<'python' | 'r'>('python');
   const { markComplete: markProgressComplete } = useProgress();
 
   // Restore completion state from localStorage
@@ -204,11 +207,8 @@ export default function LabProjectViewer({
             <span className="text-teal-100 text-xs">{project}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/lab/guide" className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors font-medium">
-              📖 Guide
-            </Link>
-            <Link href="/lab/quiz" className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors font-medium">
-              🧠 Quiz
+            <Link href={`/lab/${domain}`} className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors font-medium">
+              📋 All Steps
             </Link>
           </div>
         </div>
@@ -287,6 +287,71 @@ export default function LabProjectViewer({
         </div>
       </div>
 
+      {/* Python/R language toggle for dual-language domains */}
+      {isDualLang && (
+        <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border p-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold text-bleepx-text uppercase tracking-wide flex items-center gap-1.5">
+              <span>💻</span> Code Language
+            </h4>
+            <div className="inline-flex rounded-full bg-gray-100 dark:bg-gray-800 p-0.5 border border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setCodeLang('python')}
+                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                  codeLang === 'python'
+                    ? 'bg-teal-600 text-white shadow-sm'
+                    : 'text-bleepx-text-secondary hover:text-bleepx-text'
+                }`}
+              >
+                🐍 Python
+              </button>
+              <button
+                onClick={() => setCodeLang('r')}
+                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                  codeLang === 'r'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-bleepx-text-secondary hover:text-bleepx-text'
+                }`}
+              >
+                📐 R
+              </button>
+            </div>
+          </div>
+          {codeLang === 'r' && (
+            <p className="text-[10px] text-blue-600 dark:text-blue-400 mt-2">
+              R equivalents shown where available. Some advanced steps are Python-only.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Python Terminal — Try It Yourself */}
+      <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border overflow-hidden">
+        <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-5 py-3 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <span className="text-lg">🐍</span> Try It Yourself
+          </h3>
+          <div className="flex items-center gap-2">
+            {stepSolved && (
+              <span className="text-[10px] font-bold text-green-400 px-2 py-0.5 rounded-full bg-green-900/40 border border-green-700">
+                Solved
+              </span>
+            )}
+            <BleepxGhost size={16} />
+          </div>
+        </div>
+        <div className="p-4 sm:p-5">
+          <PythonTerminal
+            initialCode={`# Write your solution here\n# Follow the steps below and produce the expected output\n${datasetUrl ? `# Dataset: ${datasetUrl}\n` : ''}\nimport pandas as pd\nimport numpy as np\n`}
+            expectedOutput={expectedOutput}
+            solutionCode={solutionCode}
+            hints={hints}
+            onSolved={handleStepSolved}
+            height="250px"
+          />
+        </div>
+      </div>
+
       {/* Progress bar */}
       <div className="flex items-center gap-3 px-1">
         <BleepxFace size={16} />
@@ -348,7 +413,20 @@ export default function LabProjectViewer({
                 <p className="text-sm text-bleepx-text-secondary leading-relaxed">{section.content}</p>
 
                 {/* Code block — HIDDEN behind reveal button */}
-                <SpoilerCodeBlock code={section.code.trim()} language={language} />
+                {isDualLang && codeLang === 'r' ? (
+                  section.r_code ? (
+                    <SpoilerCodeBlock code={section.r_code.trim()} language="R" />
+                  ) : (
+                    <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 text-center">
+                      <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                        📐 R code not yet available for this section — showing Python below
+                      </p>
+                      <SpoilerCodeBlock code={section.code.trim()} language={language} />
+                    </div>
+                  )
+                ) : (
+                  <SpoilerCodeBlock code={section.code.trim()} language={language} />
+                )}
 
                 {/* Bleepx explanation */}
                 <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800">
@@ -380,33 +458,6 @@ export default function LabProjectViewer({
           </div>
         );
       })}
-
-      {/* Python Terminal — Try It Yourself */}
-      <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border overflow-hidden">
-        <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-5 py-3 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <span className="text-lg">🐍</span> Try It Yourself
-          </h3>
-          <div className="flex items-center gap-2">
-            {stepSolved && (
-              <span className="text-[10px] font-bold text-green-400 px-2 py-0.5 rounded-full bg-green-900/40 border border-green-700">
-                Solved
-              </span>
-            )}
-            <BleepxGhost size={16} />
-          </div>
-        </div>
-        <div className="p-4 sm:p-5">
-          <PythonTerminal
-            initialCode={`# Write your solution here\n# Follow the steps above and produce the expected output\n${datasetUrl ? `# Dataset: ${datasetUrl}\n` : ''}\nimport pandas as pd\nimport numpy as np\n`}
-            expectedOutput={expectedOutput}
-            solutionCode={solutionCode}
-            hints={hints}
-            onSolved={handleStepSolved}
-            height="250px"
-          />
-        </div>
-      </div>
 
       {/* Thought Process — collapsible */}
       {thoughtProcess && thoughtProcess.length > 0 && (

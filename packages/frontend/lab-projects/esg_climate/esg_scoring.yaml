@@ -5,7 +5,7 @@ project: "ESG & Climate Risk Analytics"
 step_number: 2
 tier: 2
 skills: [scoring, weighting, normalization, sklearn]
-language: python
+language: "Python / R"
 dataset_url: "https://www.kaggle.com/datasets/debashish311601/esg-scores-and-ratings"
 description: "Create a custom ESG scoring methodology with weighted pillars, sector-adjusted benchmarks, and percentile rankings."
 prereq_cases: [esg_explore]
@@ -28,6 +28,24 @@ sections:
       df['esg_percentile'] = df['custom_esg'].rank(pct=True) * 100
 
       print(f"Top 5 ESG companies:\n{df.nlargest(5, 'custom_esg')[['company_name', 'sector', 'custom_esg', 'esg_percentile']]}")
+    r_code: |
+      library(dplyr)
+
+      pillars <- c('environmental_score', 'social_score', 'governance_score')
+      # MinMax normalization
+      for (col in pillars) {
+        rng <- range(df[[col]], na.rm = TRUE)
+        df[[col]] <- (df[[col]] - rng[1]) / (rng[2] - rng[1])
+      }
+
+      weights <- c(environmental_score = 0.4, social_score = 0.3, governance_score = 0.3)
+      df$custom_esg <- df$environmental_score * 0.4 + df$social_score * 0.3 + df$governance_score * 0.3
+      df$esg_percentile <- rank(df$custom_esg) / nrow(df) * 100
+
+      top5 <- df %>% arrange(desc(custom_esg)) %>% head(5) %>%
+        select(company_name, sector, custom_esg, esg_percentile)
+      cat("Top 5 ESG companies:\n")
+      print(top5)
     explanation: "Weighting E higher (40%) reflects the growing importance of climate. MinMaxScaler ensures all pillars contribute on the same 0-1 scale. Percentile ranking makes scores interpretable."
   - title: "Sector-Adjusted Benchmarks"
     content: "Compare companies to their sector peers, not the universe."
@@ -40,6 +58,22 @@ sections:
                                 labels=['CCC', 'B', 'BB', 'A', 'AA'])
 
       print(df['esg_rating'].value_counts().sort_index())
+    r_code: |
+      library(dplyr)
+
+      df <- df %>%
+        group_by(sector) %>%
+        mutate(
+          sector_esg_mean = mean(custom_esg),
+          sector_esg_std = sd(custom_esg),
+          esg_z_score = (custom_esg - sector_esg_mean) / sector_esg_std,
+          esg_rating = cut(esg_z_score,
+            breaks = c(-Inf, -1, -0.5, 0.5, 1, Inf),
+            labels = c('CCC', 'B', 'BB', 'A', 'AA'))
+        ) %>%
+        ungroup()
+
+      table(df$esg_rating)
     explanation: "Z-scores compare each company to its sector average. A mining company with a modest E-score may still be 'AA' relative to peers. This avoids penalizing entire sectors."
 schema:
   - company_id

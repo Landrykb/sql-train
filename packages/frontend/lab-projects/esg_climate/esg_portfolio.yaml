@@ -5,7 +5,7 @@ project: "ESG & Climate Risk Analytics"
 step_number: 4
 tier: 3
 skills: [portfolio_optimization, esg_integration, visualization, reporting]
-language: python
+language: "Python / R"
 dataset_url: "https://www.kaggle.com/datasets/debashish311601/esg-scores-and-ratings"
 description: "Build an ESG-integrated investment portfolio that balances financial returns with sustainability goals."
 prereq_cases: [esg_risk]
@@ -27,6 +27,17 @@ sections:
       print(f"ESG Portfolio Return: {esg_return:.2f}%")
       print(f"Market Portfolio Return: {market_return:.2f}%")
       print(f"ESG Premium: {esg_return - market_return:.2f}%")
+    r_code: |
+      df$esg_weight <- df$custom_esg / sum(df$custom_esg)
+      df$market_weight <- df$market_cap / sum(df$market_cap)
+      df$tilt <- 0.5 * df$market_weight + 0.5 * df$esg_weight
+      df$tilt <- df$tilt / sum(df$tilt)
+
+      esg_return <- sum(df$tilt * df$annual_return)
+      market_return <- sum(df$market_weight * df$annual_return)
+      cat(sprintf("ESG Portfolio Return: %.2f%%\n", esg_return))
+      cat(sprintf("Market Portfolio Return: %.2f%%\n", market_return))
+      cat(sprintf("ESG Premium: %.2f%%\n", esg_return - market_return))
     explanation: "A 50/50 tilt blends market-cap weighting with ESG scores. High-ESG companies get more weight. The ESG premium (or discount) varies by period and methodology."
   - title: "Climate Risk Dashboard"
     content: "Create a summary report of portfolio climate exposure."
@@ -39,6 +50,13 @@ sections:
       for col in [c for c in df.columns if c.startswith('impact_')]:
           impact = (df['tilt'] * df[col]).sum() * 100
           print(f"  {col}: {impact:+.2f}%")
+    r_code: |
+      cat("=== PORTFOLIO CLIMATE RISK REPORT ===\n")
+      cat(sprintf("Weighted Avg ESG Score: %.1f\n", sum(df$tilt * df$custom_esg)))
+      cat(sprintf("Weighted Avg Carbon Intensity: %.4f\n",
+        sum(df$tilt * df$co2_emissions_mt / df$revenue)))
+      high_carbon <- df[df$sector %in% c('Energy','Materials'), ]
+      cat(sprintf("%% in High-Carbon Sectors: %.1f%%\n", sum(high_carbon$tilt) * 100))
     explanation: "This report follows TCFD (Task Force on Climate-related Financial Disclosures) recommendations. Institutional investors increasingly require this level of climate transparency."
 schema:
   - company_id

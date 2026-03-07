@@ -88,6 +88,7 @@ export default async function LabProjectPage({ params }: { params: Promise<{ dom
           title: s.title || '',
           content: s.content || '',
           code: s.code || '',
+          r_code: s.r_code || '',
           explanation: s.explanation || '',
         }))}
         hints={doc.hints || []}

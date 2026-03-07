@@ -5,7 +5,7 @@ project: "Agriculture Economics & Food Security"
 step_number: 1
 tier: 1
 skills: [pandas, eda, visualization, economics]
-language: python
+language: "Python / R"
 dataset_url: "https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset"
 description: "Load FAO and USDA agricultural datasets to understand global crop production, trade flows, and food price dynamics."
 prereq_cases: []
@@ -29,6 +29,25 @@ sections:
       print(f"Crops: {production['crop'].unique().tolist()}")
       print(f"\nTop producers (wheat):")
       print(production[production['crop']=='wheat'].groupby('country')['production_mt'].sum().nlargest(5))
+    r_code: |
+      library(dplyr)
+
+      production <- read.csv('crop_production.csv')
+      prices <- read.csv('food_prices.csv')
+      prices$date <- as.Date(prices$date)
+      trade <- read.csv('trade_flows.csv')
+
+      cat(sprintf("Production records: %s\n", format(nrow(production), big.mark = ",")))
+      cat(sprintf("Countries: %d\n", n_distinct(production$country)))
+      cat(paste("Crops:", paste(unique(production$crop), collapse = ", "), "\n"))
+      cat("\nTop producers (wheat):\n")
+      production %>%
+        filter(crop == 'wheat') %>%
+        group_by(country) %>%
+        summarise(total = sum(production_mt)) %>%
+        arrange(desc(total)) %>%
+        head(5) %>%
+        print()
     explanation: "FAO provides global crop production data. Understanding who produces what and how much is the foundation of agricultural economics and food security analysis."
   - title: "Production Trends"
     content: "Visualize how global crop production has changed over time."
@@ -51,6 +70,32 @@ sections:
 
       plt.tight_layout()
       plt.show()
+    r_code: |
+      library(ggplot2)
+      library(dplyr)
+      library(gridExtra)
+
+      prod_yearly <- production %>%
+        filter(crop %in% c('wheat','rice','maize','soybeans')) %>%
+        group_by(year, crop) %>%
+        summarise(total = sum(production_mt) / 1e6, .groups = 'drop')
+
+      p1 <- ggplot(prod_yearly, aes(x = year, y = total, color = crop)) +
+        geom_line(linewidth = 1) +
+        labs(title = 'Global Crop Production', y = 'Million MT') +
+        theme_minimal()
+
+      yield_yearly <- production %>%
+        filter(crop %in% c('wheat','rice','maize')) %>%
+        group_by(year, crop) %>%
+        summarise(avg_yield = mean(yield_per_ha), .groups = 'drop')
+
+      p2 <- ggplot(yield_yearly, aes(x = year, y = avg_yield, color = crop)) +
+        geom_line(linewidth = 1) +
+        labs(title = 'Average Yield Per Hectare', y = 'MT/ha') +
+        theme_minimal()
+
+      grid.arrange(p1, p2, ncol = 2)
     explanation: "Global production has grown through both area expansion and yield improvement. Yield growth is slowing in many regions — a key food security concern."
 schema:
   - country
