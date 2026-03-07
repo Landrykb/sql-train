@@ -6,6 +6,7 @@ step_number: 1
 tier: 1
 skills: [pandas, eda, visualization, climate]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/unitednations/international-greenhouse-gas-emissions"
 description: "Load global and corporate emissions data to understand emission sources, sector breakdowns, and historical trends."
 prereq_cases: []
 learning_objectives:

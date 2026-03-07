@@ -6,6 +6,7 @@ step_number: 3
 tier: 2
 skills: [risk_modeling, scenario_analysis, regression, climate]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/debashish311601/esg-scores-and-ratings"
 description: "Model physical and transition climate risks — how temperature scenarios, carbon pricing, and regulatory changes affect portfolio value."
 prereq_cases: [esg_scoring]
 learning_objectives:

@@ -6,6 +6,7 @@ step_number: 2
 tier: 1
 skills: [pandas, data_cleaning, preprocessing, imputation]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/khushikyad001/public-transport-delays-with-weather-and-events"
 description: "Handle missing values, fix data types, remove outliers, and prepare the dataset for feature engineering."
 prereq_cases: [transport_explore]
 learning_objectives:

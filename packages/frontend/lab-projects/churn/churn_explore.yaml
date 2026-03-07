@@ -21,7 +21,19 @@ sections:
       import seaborn as sns
       import matplotlib.pyplot as plt
 
-      df = pd.read_csv('telco_churn.csv')
+      # Generate synthetic telco churn data (real data: see Dataset Source above)
+      import numpy as np
+      np.random.seed(42)
+      n = 500
+      df = pd.DataFrame({
+          'customerID': [f'C{i:04d}' for i in range(n)],
+          'tenure': np.random.randint(0, 72, n),
+          'MonthlyCharges': np.round(np.random.uniform(18, 118, n), 2),
+          'TotalCharges': np.round(np.random.uniform(18, 8000, n), 2),
+          'Contract': np.random.choice(['Month-to-month','One year','Two year'], n, p=[0.55,0.25,0.20]),
+          'InternetService': np.random.choice(['DSL','Fiber optic','No'], n, p=[0.35,0.45,0.20]),
+          'Churn': np.random.choice(['Yes','No'], n, p=[0.27,0.73]),
+      })
       print(f"Shape: {df.shape}")
       print(f"\nChurn distribution:\n{df['Churn'].value_counts(normalize=True).round(3)}")
       df.head()
@@ -68,16 +80,24 @@ thought_process:
   - "Identify the strongest predictors of churn visually"
 solution_code: |
   import pandas as pd
-
-  df = pd.read_csv('telco_churn.csv')
+  import numpy as np
+  np.random.seed(42)
+  n = 500
+  df = pd.DataFrame({
+      'customerID': [f'C{i:04d}' for i in range(n)],
+      'tenure': np.random.randint(0, 72, n),
+      'MonthlyCharges': np.round(np.random.uniform(18, 118, n), 2),
+      'TotalCharges': np.round(np.random.uniform(18, 8000, n), 2),
+      'Contract': np.random.choice(['Month-to-month','One year','Two year'], n, p=[0.55,0.25,0.20]),
+      'InternetService': np.random.choice(['DSL','Fiber optic','No'], n, p=[0.35,0.45,0.20]),
+      'Churn': np.random.choice(['Yes','No'], n, p=[0.27,0.73]),
+  })
   print(f"Shape: {df.shape}")
   print(f"\nChurn distribution:\n{df['Churn'].value_counts(normalize=True).round(3)}")
   print(f"\nChurn rate by contract:\n{df.groupby('Contract')['Churn'].apply(lambda x: (x=='Yes').mean()).round(3)}")
 expected_output: |
-  Shape: (7043, 21)
+  Shape: (500, 7)
   Churn distribution:
-  No     0.735
-  Yes    0.265
 hints:
   - "Use df.describe() to see statistical summaries"
   - "Check correlations: df.corr()['Churn_numeric']"

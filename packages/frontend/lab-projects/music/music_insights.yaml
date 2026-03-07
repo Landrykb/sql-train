@@ -6,6 +6,7 @@ step_number: 4
 tier: 2
 skills: [regression, feature_importance, storytelling, visualization]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset"
 description: "Build a popularity prediction model and extract actionable insights about what makes songs successful."
 prereq_cases: [music_clustering]
 learning_objectives:

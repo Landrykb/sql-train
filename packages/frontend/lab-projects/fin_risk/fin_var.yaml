@@ -6,6 +6,7 @@ step_number: 2
 tier: 2
 skills: [var, risk_modeling, monte_carlo, statistics]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/szrlee/stock-time-series-20050101-to-20171231"
 description: "Calculate Value-at-Risk using three methods — Historical, Parametric, and Monte Carlo simulation — to quantify potential portfolio losses."
 prereq_cases: [fin_explore]
 learning_objectives:

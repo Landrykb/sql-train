@@ -6,6 +6,7 @@ step_number: 4
 tier: 2
 skills: [sklearn, random_forest, xgboost, regression, model_training]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/khushikyad001/public-transport-delays-with-weather-and-events"
 description: "Train and compare multiple regression models to predict transport delay duration."
 prereq_cases: [transport_features]
 learning_objectives:

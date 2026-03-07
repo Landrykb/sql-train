@@ -6,6 +6,7 @@ step_number: 4
 tier: 2
 skills: [model_evaluation, roc_curve, confusion_matrix, business_impact]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/blastchar/telco-customer-churn"
 description: "Evaluate your churn model with ROC curves, confusion matrices, and translate predictions into business value."
 prereq_cases: [churn_model]
 learning_objectives:

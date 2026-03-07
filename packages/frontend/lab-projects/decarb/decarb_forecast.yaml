@@ -6,6 +6,7 @@ step_number: 3
 tier: 3
 skills: [forecasting, scenario_modeling, optimization, net_zero]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/unitednations/international-greenhouse-gas-emissions"
 description: "Model emission reduction pathways to net-zero — forecast future emissions under different intervention scenarios and identify optimal decarbonization strategies."
 prereq_cases: [decarb_emissions]
 learning_objectives:

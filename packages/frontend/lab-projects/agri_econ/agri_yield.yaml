@@ -6,6 +6,7 @@ step_number: 3
 tier: 2
 skills: [regression, random_forest, climate_data, prediction]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset"
 description: "Build models to predict crop yields from weather, soil, and input data — essential for food security planning and agricultural insurance."
 prereq_cases: [agri_prices]
 learning_objectives:

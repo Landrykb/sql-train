@@ -6,6 +6,7 @@ step_number: 1
 tier: 1
 skills: [pandas, eda, visualization, imbalanced_data]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud"
 description: "Load credit card transaction data and understand the extreme class imbalance inherent in fraud detection."
 prereq_cases: []
 learning_objectives:
@@ -20,7 +21,14 @@ sections:
       import matplotlib.pyplot as plt
       import seaborn as sns
 
-      df = pd.read_csv('creditcard.csv')
+      # Generate synthetic credit card data (real data: see Dataset Source above)
+      import numpy as np
+      np.random.seed(42)
+      n = 1000
+      df = pd.DataFrame({'Amount': np.abs(np.random.normal(88, 250, n)), 'Class': 0})
+      df.loc[np.random.choice(n, 5, replace=False), 'Class'] = 1
+      for i in range(1, 29): df[f'V{i}'] = np.random.normal(0, 1, n)
+      df['Time'] = np.sort(np.random.uniform(0, 172792, n))
       print(f"Shape: {df.shape}")
       print(f"\nFraud distribution:")
       print(df['Class'].value_counts())
@@ -62,17 +70,22 @@ thought_process:
   - "Visualize feature correlations with the Class target"
 solution_code: |
   import pandas as pd
-
-  df = pd.read_csv('creditcard.csv')
+  import numpy as np
+  np.random.seed(42)
+  n = 1000
+  df = pd.DataFrame({'Amount': np.abs(np.random.normal(88, 250, n)), 'Class': 0})
+  df.loc[np.random.choice(n, 5, replace=False), 'Class'] = 1
+  for i in range(1, 29): df[f'V{i}'] = np.random.normal(0, 1, n)
+  df['Time'] = np.sort(np.random.uniform(0, 172792, n))
   print(f"Shape: {df.shape}")
   print(f"Fraud rate: {df['Class'].mean()*100:.3f}%")
-  print(f"Fraud count: {df['Class'].sum()}")
+  print(f"Fraud count: {int(df['Class'].sum())}")
   print(f"Avg fraud amount: ${df[df['Class']==1]['Amount'].mean():.2f}")
   print(f"Avg legit amount: ${df[df['Class']==0]['Amount'].mean():.2f}")
 expected_output: |
-  Shape: (284807, 31)
-  Fraud rate: 0.173%
-  Fraud count: 492
+  Shape: (1000, 31)
+  Fraud rate: 0.500%
+  Fraud count: 5
 hints:
   - "Features V1-V28 are PCA components — already preprocessed"
   - "Use log transform on Amount for better distribution"

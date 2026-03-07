@@ -6,6 +6,7 @@ step_number: 4
 tier: 3
 skills: [portfolio_optimization, esg_integration, visualization, reporting]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/debashish311601/esg-scores-and-ratings"
 description: "Build an ESG-integrated investment portfolio that balances financial returns with sustainability goals."
 prereq_cases: [esg_risk]
 learning_objectives:

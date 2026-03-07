@@ -6,6 +6,7 @@ step_number: 3
 tier: 2
 skills: [clustering, kmeans, pca, unsupervised_learning]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset"
 description: "Use K-Means clustering and PCA to discover natural groupings in songs based on their audio features."
 prereq_cases: [music_eda]
 learning_objectives:

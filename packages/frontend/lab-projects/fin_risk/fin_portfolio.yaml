@@ -6,6 +6,7 @@ step_number: 3
 tier: 3
 skills: [portfolio_optimization, efficient_frontier, scipy, markowitz]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/szrlee/stock-time-series-20050101-to-20171231"
 description: "Implement Modern Portfolio Theory — construct the efficient frontier, find the optimal portfolio, and understand the risk-return tradeoff."
 prereq_cases: [fin_var]
 learning_objectives:

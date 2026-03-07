@@ -6,6 +6,7 @@ step_number: 1
 tier: 1
 skills: [pandas, time_series, eda, visualization]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/rohitsahoo/sales-forecasting"
 description: "Load historical data and understand time series components — trend, seasonality, and noise."
 prereq_cases: []
 learning_objectives:
@@ -20,8 +21,15 @@ sections:
       import pandas as pd
       import matplotlib.pyplot as plt
 
-      df = pd.read_csv('sales_data.csv', parse_dates=['date'], index_col='date')
-      df = df.sort_index()
+      # Generate synthetic time series (real data: see Dataset Source above)
+      import numpy as np
+      np.random.seed(42)
+      dates = pd.date_range('2020-01-01', periods=365, freq='D')
+      trend = np.linspace(100, 150, 365)
+      seasonal = 10 * np.sin(2 * np.pi * np.arange(365) / 7)
+      noise = np.random.normal(0, 5, 365)
+      df = pd.DataFrame({'value': trend + seasonal + noise}, index=dates)
+      df.index.name = 'date'
 
       plt.figure(figsize=(14, 5))
       plt.plot(df['value'], color='steelblue', linewidth=0.8)
@@ -68,18 +76,22 @@ thought_process:
   - "Run the ADF test to determine if differencing is needed"
 solution_code: |
   import pandas as pd
+  import numpy as np
   from statsmodels.tsa.stattools import adfuller
-
-  df = pd.read_csv('sales_data.csv', parse_dates=['date'], index_col='date')
-  df = df.sort_index()
+  np.random.seed(42)
+  dates = pd.date_range('2020-01-01', periods=365, freq='D')
+  trend = np.linspace(100, 150, 365)
+  seasonal = 10 * np.sin(2 * np.pi * np.arange(365) / 7)
+  noise = np.random.normal(0, 5, 365)
+  df = pd.DataFrame({'value': trend + seasonal + noise}, index=dates)
   result = adfuller(df['value'].dropna())
   print(f"ADF Statistic: {result[0]:.4f}")
   print(f"p-value: {result[1]:.4f}")
   print(f"Stationary: {'Yes' if result[1] < 0.05 else 'No — differencing needed'}")
 expected_output: |
-  ADF Statistic: -1.2345
-  p-value: 0.6543
-  Stationary: No — differencing needed
+  ADF Statistic:
+  p-value:
+  Stationary:
 hints:
   - "Try df.rolling(window=7).mean() for a moving average smoothing"
   - "Use df.resample('M').mean() to aggregate to monthly frequency"

@@ -100,6 +100,7 @@ export const LAB_DOMAIN_META: Record<string, {
     difficulty: 'Intermediate',
     stars: 2,
     language: 'Python',
+    dataset_url: 'https://www.kaggle.com/datasets/rohitsahoo/sales-forecasting',
   },
   churn: {
     icon: '🔄',
@@ -129,6 +130,7 @@ export const LAB_DOMAIN_META: Record<string, {
     difficulty: 'Intermediate',
     stars: 2,
     language: 'Python',
+    dataset_url: 'https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud',
   },
   esg_climate: {
     icon: '🌍',
@@ -138,6 +140,7 @@ export const LAB_DOMAIN_META: Record<string, {
     difficulty: 'Intermediate',
     stars: 2,
     language: 'Python / R',
+    dataset_url: 'https://www.kaggle.com/datasets/debashish311601/esg-scores-and-ratings',
   },
   decarb: {
     icon: '♻️',
@@ -147,6 +150,7 @@ export const LAB_DOMAIN_META: Record<string, {
     difficulty: 'Advanced',
     stars: 3,
     language: 'Python',
+    dataset_url: 'https://www.kaggle.com/datasets/unitednations/international-greenhouse-gas-emissions',
   },
   agri_econ: {
     icon: '🌾',
@@ -156,6 +160,7 @@ export const LAB_DOMAIN_META: Record<string, {
     difficulty: 'Intermediate',
     stars: 2,
     language: 'Python / R',
+    dataset_url: 'https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset',
   },
   fin_risk: {
     icon: '💹',
@@ -165,6 +170,7 @@ export const LAB_DOMAIN_META: Record<string, {
     difficulty: 'Advanced',
     stars: 3,
     language: 'Python',
+    dataset_url: 'https://www.kaggle.com/datasets/szrlee/stock-time-series-20050101-to-20171231',
   },
 };
 

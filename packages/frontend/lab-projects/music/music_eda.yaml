@@ -6,6 +6,7 @@ step_number: 2
 tier: 1
 skills: [eda, correlation, visualization, seaborn]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset"
 description: "Perform deep exploratory analysis on audio features — correlations, distributions by genre, and what makes songs popular."
 prereq_cases: [music_explore]
 learning_objectives:

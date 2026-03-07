@@ -6,6 +6,7 @@ step_number: 2
 tier: 2
 skills: [scoring, weighting, normalization, sklearn]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/debashish311601/esg-scores-and-ratings"
 description: "Create a custom ESG scoring methodology with weighted pillars, sector-adjusted benchmarks, and percentile rankings."
 prereq_cases: [esg_explore]
 learning_objectives:

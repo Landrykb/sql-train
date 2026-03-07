@@ -6,6 +6,7 @@ step_number: 4
 tier: 3
 skills: [stress_testing, scenario_analysis, risk_reporting, visualization]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/szrlee/stock-time-series-20050101-to-20171231"
 description: "Perform portfolio stress tests under historical crisis scenarios and create a comprehensive risk report."
 prereq_cases: [fin_portfolio]
 learning_objectives:

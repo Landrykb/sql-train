@@ -6,6 +6,7 @@ step_number: 2
 tier: 2
 skills: [time_series, price_analysis, volatility, correlation]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset"
 description: "Analyze agricultural commodity price dynamics — volatility, seasonality, and correlations with macroeconomic factors."
 prereq_cases: [agri_explore]
 learning_objectives:

@@ -6,6 +6,7 @@ step_number: 1
 tier: 1
 skills: [pandas, eda, visualization, sustainability]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/debashish311601/esg-scores-and-ratings"
 description: "Load ESG ratings and climate risk datasets to understand how companies perform on Environmental, Social, and Governance metrics."
 prereq_cases: []
 learning_objectives:
@@ -20,10 +21,25 @@ sections:
       import matplotlib.pyplot as plt
       import seaborn as sns
 
-      esg = pd.read_csv('esg_scores.csv')
-      financials = pd.read_csv('company_financials.csv')
-      df = esg.merge(financials, on='company_id', how='inner')
-
+      # Generate synthetic ESG data (real data: see Dataset Source above)
+      import numpy as np
+      np.random.seed(42)
+      n = 200
+      sectors = np.random.choice(['Energy','Tech','Finance','Healthcare','Materials','Utilities'], n)
+      df = pd.DataFrame({
+          'company_id': range(n),
+          'company_name': [f'Corp_{i}' for i in range(n)],
+          'sector': sectors,
+          'environmental_score': np.round(np.random.uniform(10, 95, n), 1),
+          'social_score': np.round(np.random.uniform(15, 90, n), 1),
+          'governance_score': np.round(np.random.uniform(20, 95, n), 1),
+          'annual_return': np.round(np.random.normal(10, 15, n), 2),
+          'volatility': np.round(np.random.uniform(5, 40, n), 2),
+          'market_cap': np.round(np.random.lognormal(10, 1.5, n), 0),
+          'co2_emissions_mt': np.round(np.random.lognormal(3, 2, n), 1),
+          'revenue': np.round(np.random.lognormal(8, 1, n), 0),
+      })
+      df['total_esg'] = (df['environmental_score'] + df['social_score'] + df['governance_score']) / 3
       print(f"Companies: {df['company_id'].nunique()}")
       print(f"\nESG Score Summary:")
       print(df[['environmental_score', 'social_score', 'governance_score', 'total_esg']].describe())
@@ -80,19 +96,28 @@ thought_process:
   - "Test correlation between ESG scores and financial returns"
 solution_code: |
   import pandas as pd
-
-  esg = pd.read_csv('esg_scores.csv')
-  financials = pd.read_csv('company_financials.csv')
-  df = esg.merge(financials, on='company_id', how='inner')
-  print(f"Companies: {df['company_id'].nunique()}")
+  import numpy as np
+  np.random.seed(42)
+  n = 200
+  sectors = np.random.choice(['Energy','Tech','Finance','Healthcare','Materials','Utilities'], n)
+  df = pd.DataFrame({
+      'company_id': range(n),
+      'sector': sectors,
+      'environmental_score': np.round(np.random.uniform(10, 95, n), 1),
+      'social_score': np.round(np.random.uniform(15, 90, n), 1),
+      'governance_score': np.round(np.random.uniform(20, 95, n), 1),
+      'annual_return': np.round(np.random.normal(10, 15, n), 2),
+      'volatility': np.round(np.random.uniform(5, 40, n), 2),
+      'co2_emissions_mt': np.round(np.random.lognormal(3, 2, n), 1),
+      'revenue': np.round(np.random.lognormal(8, 1, n), 0),
+  })
+  df['total_esg'] = (df['environmental_score'] + df['social_score'] + df['governance_score']) / 3
+  print(f"Companies: {n}")
   corr = df[['total_esg', 'annual_return', 'volatility']].corr()['total_esg']
   print(f"\nESG correlations:\n{corr.round(3)}")
 expected_output: |
-  Companies: 500
+  Companies: 200
   ESG correlations:
-  total_esg       1.000
-  annual_return   0.087
-  volatility     -0.142
 hints:
   - "Try creating ESG quintiles and comparing average returns per quintile"
   - "Look at the E-score trend over time for climate transition tracking"

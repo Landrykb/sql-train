@@ -6,6 +6,7 @@ step_number: 3
 tier: 2
 skills: [classification, logistic_regression, random_forest, xgboost]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/blastchar/telco-customer-churn"
 description: "Train and compare classification models — Logistic Regression, Random Forest, and Gradient Boosting — to predict customer churn."
 prereq_cases: [churn_features]
 learning_objectives:

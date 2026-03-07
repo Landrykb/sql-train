@@ -6,6 +6,7 @@ step_number: 4
 tier: 3
 skills: [policy_analysis, scenario_modeling, visualization, reporting]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset"
 description: "Model food security scenarios under climate change, analyze trade policy impacts, and create actionable policy recommendations."
 prereq_cases: [agri_yield]
 learning_objectives:

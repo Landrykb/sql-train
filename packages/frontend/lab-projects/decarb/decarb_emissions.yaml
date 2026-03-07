@@ -6,6 +6,7 @@ step_number: 2
 tier: 2
 skills: [carbon_accounting, regression, lifecycle_analysis]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/unitednations/international-greenhouse-gas-emissions"
 description: "Build a carbon footprint model that estimates emissions from operational data — energy use, transport, supply chain activities."
 prereq_cases: [decarb_explore]
 learning_objectives:

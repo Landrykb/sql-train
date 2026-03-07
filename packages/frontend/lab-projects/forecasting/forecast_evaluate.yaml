@@ -6,6 +6,7 @@ step_number: 5
 tier: 3
 skills: [model_evaluation, comparison, visualization, backtesting]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/rohitsahoo/sales-forecasting"
 description: "Compare ARIMA, Prophet, and LSTM using proper time series evaluation metrics and backtesting."
 prereq_cases: [forecast_prophet]
 learning_objectives:

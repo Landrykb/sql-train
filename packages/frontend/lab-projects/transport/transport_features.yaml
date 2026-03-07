@@ -6,6 +6,7 @@ step_number: 3
 tier: 2
 skills: [feature_engineering, pandas, sklearn]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/khushikyad001/public-transport-delays-with-weather-and-events"
 description: "Create meaningful features from raw data — weather encodings, time-based features, event flags, and interaction terms."
 prereq_cases: [transport_clean]
 learning_objectives:

@@ -6,6 +6,7 @@ step_number: 1
 tier: 1
 skills: [pandas, eda, visualization, economics]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset"
 description: "Load FAO and USDA agricultural datasets to understand global crop production, trade flows, and food price dynamics."
 prereq_cases: []
 learning_objectives:

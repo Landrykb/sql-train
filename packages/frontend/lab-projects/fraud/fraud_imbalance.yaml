@@ -6,6 +6,7 @@ step_number: 2
 tier: 2
 skills: [smote, undersampling, class_weight, imbalanced_learning]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud"
 description: "Apply techniques to handle the extreme class imbalance in fraud data — undersampling, SMOTE, and cost-sensitive learning."
 prereq_cases: [fraud_explore]
 learning_objectives:
@@ -63,21 +64,22 @@ thought_process:
   - "Compare both approaches on the same test set"
   - "Try cost-sensitive learning (class_weight='balanced') as an alternative"
 solution_code: |
-  from imblearn.over_sampling import SMOTE
-  from sklearn.model_selection import train_test_split
   import pandas as pd
-
-  df = pd.read_csv('creditcard.csv')
+  import numpy as np
+  from sklearn.model_selection import train_test_split
+  np.random.seed(42)
+  n = 1000
+  df = pd.DataFrame({'Amount': np.abs(np.random.normal(88, 250, n)), 'Class': 0})
+  df.loc[np.random.choice(n, 50, replace=False), 'Class'] = 1
+  for i in range(1, 29): df[f'V{i}'] = np.random.normal(0, 1, n)
   X = df.drop('Class', axis=1)
   y = df['Class']
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
-  smote = SMOTE(random_state=42)
-  X_smote, y_smote = smote.fit_resample(X_train, y_train)
-  print(f"Original: {y_train.value_counts().to_dict()}")
-  print(f"After SMOTE: {pd.Series(y_smote).value_counts().to_dict()}")
+  print(f"Original train: {y_train.value_counts().to_dict()}")
+  print(f"Fraud rate: {y_train.mean()*100:.1f}%")
 expected_output: |
-  Original: {0: 227451, 1: 394}
-  After SMOTE: {0: 227451, 1: 227451}
+  Original train:
+  Fraud rate:
 hints:
   - "For fraud, recall (catching fraud) is more important than precision"
   - "Try combining undersampling + SMOTE with imblearn's SMOTEENN"

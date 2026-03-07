@@ -6,6 +6,7 @@ step_number: 4
 tier: 3
 skills: [model_evaluation, precision_recall, comparison, visualization]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud"
 description: "Compare supervised and unsupervised fraud detectors using precision-recall curves and business-relevant metrics."
 prereq_cases: [fraud_anomaly]
 learning_objectives:

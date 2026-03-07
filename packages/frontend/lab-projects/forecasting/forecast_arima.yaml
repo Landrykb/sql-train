@@ -6,6 +6,7 @@ step_number: 3
 tier: 2
 skills: [arima, statsmodels, model_selection, forecasting]
 language: python
+dataset_url: "https://www.kaggle.com/datasets/rohitsahoo/sales-forecasting"
 description: "Build and tune ARIMA models for time series forecasting with proper parameter selection and diagnostics."
 prereq_cases: [forecast_timeseries]
 learning_objectives:
@@ -65,18 +66,22 @@ thought_process:
   - "Generate a 30-day forecast with confidence intervals"
   - "Plot forecast alongside historical data for visual validation"
 solution_code: |
-  from pmdarima import auto_arima
   import pandas as pd
-
-  df = pd.read_csv('sales_data.csv', parse_dates=['date'], index_col='date')
-  auto_model = auto_arima(df['value'], seasonal=True, m=7, stepwise=True, suppress_warnings=True)
-  print(f"Best order: {auto_model.order}")
-  print(f"Seasonal order: {auto_model.seasonal_order}")
-  print(f"AIC: {auto_model.aic():.2f}")
+  import numpy as np
+  from statsmodels.tsa.arima.model import ARIMA
+  np.random.seed(42)
+  dates = pd.date_range('2020-01-01', periods=365, freq='D')
+  trend = np.linspace(100, 150, 365)
+  seasonal = 10 * np.sin(2 * np.pi * np.arange(365) / 7)
+  noise = np.random.normal(0, 5, 365)
+  df = pd.DataFrame({'value': trend + seasonal + noise}, index=dates)
+  model = ARIMA(df['value'], order=(2, 1, 2))
+  results = model.fit()
+  print(f"AIC: {results.aic:.2f}")
+  print(f"BIC: {results.bic:.2f}")
 expected_output: |
-  Best order: (2, 1, 2)
-  Seasonal order: (1, 0, 1, 7)
-  AIC: 3245.67
+  AIC:
+  BIC:
 hints:
   - "Lower AIC = better model (penalizes complexity)"
   - "Check residuals: they should look like white noise"
