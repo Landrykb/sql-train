@@ -1,0 +1,52 @@
+id: churn_explore
+name: "Explore Churn Data"
+domain: churn
+project: "Customer Churn Prediction"
+step_number: 1
+tier: 1
+skills: [pandas, eda, visualization, business_understanding]
+language: python
+dataset_url: "https://www.kaggle.com/datasets/blastchar/telco-customer-churn"
+description: "Load the Telco customer churn dataset and understand which customer attributes correlate with churning."
+prereq_cases: []
+learning_objectives:
+  - Understand the business context of churn prediction
+  - Explore class imbalance in the target variable
+  - Identify key features correlated with churn
+sections:
+  - title: "Load & Inspect"
+    content: "Load the dataset and understand its structure."
+    code: |
+      import pandas as pd
+      import seaborn as sns
+      import matplotlib.pyplot as plt
+
+      df = pd.read_csv('telco_churn.csv')
+      print(f"Shape: {df.shape}")
+      print(f"\nChurn distribution:\n{df['Churn'].value_counts(normalize=True).round(3)}")
+      df.head()
+    explanation: "Churn datasets are typically imbalanced — fewer churners than non-churners. Understanding this ratio is critical for choosing the right evaluation metric."
+  - title: "Visualize Key Patterns"
+    content: "Explore which customer attributes differ between churners and non-churners."
+    code: |
+      fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+      df.groupby('Churn')['tenure'].plot(kind='hist', ax=axes[0,0], alpha=0.6, legend=True)
+      axes[0,0].set_title('Tenure Distribution by Churn')
+
+      df.groupby('Churn')['MonthlyCharges'].plot(kind='hist', ax=axes[0,1], alpha=0.6, legend=True)
+      axes[0,1].set_title('Monthly Charges by Churn')
+
+      pd.crosstab(df['Contract'], df['Churn'], normalize='index').plot(kind='bar', ax=axes[1,0])
+      axes[1,0].set_title('Churn Rate by Contract Type')
+
+      pd.crosstab(df['InternetService'], df['Churn'], normalize='index').plot(kind='bar', ax=axes[1,1])
+      axes[1,1].set_title('Churn Rate by Internet Service')
+
+      plt.tight_layout()
+      plt.show()
+    explanation: "Short tenure + high monthly charges + month-to-month contracts = high churn risk. These patterns guide feature engineering and business interventions."
+hints:
+  - "Use df.describe() to see statistical summaries"
+  - "Check correlations: df.corr()['Churn_numeric']"
+  - "Try sns.countplot for categorical breakdowns"

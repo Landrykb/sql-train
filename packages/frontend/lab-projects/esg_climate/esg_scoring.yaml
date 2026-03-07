@@ -1,0 +1,46 @@
+id: esg_scoring
+name: "Build ESG Scoring Model"
+domain: esg_climate
+project: "ESG & Climate Risk Analytics"
+step_number: 2
+tier: 2
+skills: [scoring, weighting, normalization, sklearn]
+language: python
+description: "Create a custom ESG scoring methodology with weighted pillars, sector-adjusted benchmarks, and percentile rankings."
+prereq_cases: [esg_explore]
+learning_objectives:
+  - Normalize ESG metrics across different scales
+  - Build weighted composite scores
+  - Create sector-adjusted ESG benchmarks
+sections:
+  - title: "Normalize & Weight Pillars"
+    content: "Create a weighted composite score from the three ESG pillars."
+    code: |
+      from sklearn.preprocessing import MinMaxScaler
+
+      pillars = ['environmental_score', 'social_score', 'governance_score']
+      scaler = MinMaxScaler()
+      df[pillars] = scaler.fit_transform(df[pillars])
+
+      weights = {'environmental_score': 0.4, 'social_score': 0.3, 'governance_score': 0.3}
+      df['custom_esg'] = sum(df[col] * w for col, w in weights.items())
+      df['esg_percentile'] = df['custom_esg'].rank(pct=True) * 100
+
+      print(f"Top 5 ESG companies:\n{df.nlargest(5, 'custom_esg')[['company_name', 'sector', 'custom_esg', 'esg_percentile']]}")
+    explanation: "Weighting E higher (40%) reflects the growing importance of climate. MinMaxScaler ensures all pillars contribute on the same 0-1 scale. Percentile ranking makes scores interpretable."
+  - title: "Sector-Adjusted Benchmarks"
+    content: "Compare companies to their sector peers, not the universe."
+    code: |
+      df['sector_esg_mean'] = df.groupby('sector')['custom_esg'].transform('mean')
+      df['sector_esg_std'] = df.groupby('sector')['custom_esg'].transform('std')
+      df['esg_z_score'] = (df['custom_esg'] - df['sector_esg_mean']) / df['sector_esg_std']
+
+      df['esg_rating'] = pd.cut(df['esg_z_score'], bins=[-float('inf'), -1, -0.5, 0.5, 1, float('inf')],
+                                labels=['CCC', 'B', 'BB', 'A', 'AA'])
+
+      print(df['esg_rating'].value_counts().sort_index())
+    explanation: "Z-scores compare each company to its sector average. A mining company with a modest E-score may still be 'AA' relative to peers. This avoids penalizing entire sectors."
+hints:
+  - "Try different weight schemes and compare their impact on rankings"
+  - "Use df.pivot_table for sector × rating crosstabs"
+  - "Consider using PCA to create data-driven ESG components"

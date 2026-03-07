@@ -1,0 +1,50 @@
+id: fraud_explore
+name: "Explore Transaction Data"
+domain: fraud
+project: "Fraud Detection"
+step_number: 1
+tier: 1
+skills: [pandas, eda, visualization, imbalanced_data]
+language: python
+description: "Load credit card transaction data and understand the extreme class imbalance inherent in fraud detection."
+prereq_cases: []
+learning_objectives:
+  - Understand fraud detection as an anomaly detection problem
+  - Explore extreme class imbalance (fraud < 1% of transactions)
+  - Identify statistical differences between fraud and legitimate transactions
+sections:
+  - title: "Load & Inspect"
+    content: "Load the dataset and understand its structure."
+    code: |
+      import pandas as pd
+      import matplotlib.pyplot as plt
+      import seaborn as sns
+
+      df = pd.read_csv('creditcard.csv')
+      print(f"Shape: {df.shape}")
+      print(f"\nFraud distribution:")
+      print(df['Class'].value_counts())
+      print(f"\nFraud rate: {df['Class'].mean()*100:.3f}%")
+    explanation: "Real fraud datasets are extremely imbalanced — often less than 0.5% fraud. This makes accuracy a useless metric (99.5% accuracy by always predicting 'not fraud')."
+  - title: "Compare Fraud vs Legitimate"
+    content: "Visualize how transaction features differ between classes."
+    code: |
+      fig, axes = plt.subplots(1, 3, figsize=(16, 4))
+
+      df.groupby('Class')['Amount'].mean().plot(kind='bar', ax=axes[0], color=['steelblue', 'coral'])
+      axes[0].set_title('Avg Amount by Class')
+
+      axes[1].hist(df[df['Class']==0]['Amount'], bins=50, alpha=0.6, label='Legit', color='steelblue')
+      axes[1].hist(df[df['Class']==1]['Amount'], bins=50, alpha=0.6, label='Fraud', color='coral')
+      axes[1].set_title('Amount Distribution')
+      axes[1].legend()
+
+      sns.heatmap(df[['V1','V2','V3','V4','V5','Amount','Class']].corr(), annot=True, cmap='RdBu_r', ax=axes[2], fmt='.2f')
+      axes[2].set_title('Feature Correlations')
+      plt.tight_layout()
+      plt.show()
+    explanation: "PCA-transformed features (V1-V28) are already anonymized. Amount and Time are the only interpretable features. Fraud transactions often have different amount distributions."
+hints:
+  - "Features V1-V28 are PCA components — already preprocessed"
+  - "Use log transform on Amount for better distribution"
+  - "Try t-SNE for 2D visualization of fraud vs legitimate clusters"

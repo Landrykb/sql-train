@@ -1,0 +1,58 @@
+id: transport_clean
+name: "Clean & Preprocess Data"
+domain: transport
+project: "Predict Public Transport Delays"
+step_number: 2
+tier: 1
+skills: [pandas, data_cleaning, preprocessing, imputation]
+language: python
+description: "Handle missing values, fix data types, remove outliers, and prepare the dataset for feature engineering."
+prereq_cases: [transport_explore]
+learning_objectives:
+  - Handle missing values with appropriate strategies
+  - Convert data types (dates, categoricals)
+  - Detect and handle outliers
+  - Encode categorical variables
+sections:
+  - title: "Handle Missing Values"
+    content: "Choose the right imputation strategy for each column based on the data type and distribution."
+    code: |
+      # Numerical: fill with median (robust to outliers)
+      num_cols = df.select_dtypes(include=[np.number]).columns
+      df[num_cols] = df[num_cols].fillna(df[num_cols].median())
+
+      # Categorical: fill with mode
+      cat_cols = df.select_dtypes(include=['object']).columns
+      for col in cat_cols:
+          df[col] = df[col].fillna(df[col].mode()[0])
+
+      print(f"Remaining nulls: {df.isnull().sum().sum()}")
+    explanation: "Median imputation is preferred for skewed numerical data. Mode works well for categorical columns. Never drop rows blindly — you lose valuable data."
+  - title: "Fix Data Types & Parse Dates"
+    content: "Convert date strings to datetime objects and ensure proper types."
+    code: |
+      df['date'] = pd.to_datetime(df['date'])
+      df['hour'] = df['date'].dt.hour
+      df['day_of_week'] = df['date'].dt.dayofweek
+      df['month'] = df['date'].dt.month
+      df['is_weekend'] = df['day_of_week'].isin([5, 6]).astype(int)
+
+      print(df.dtypes)
+    explanation: "Extracting time components (hour, day, month) from dates creates powerful temporal features for the model."
+  - title: "Remove Outliers"
+    content: "Use the IQR method to cap extreme delay values."
+    code: |
+      Q1 = df['delay_minutes'].quantile(0.25)
+      Q3 = df['delay_minutes'].quantile(0.75)
+      IQR = Q3 - Q1
+      lower = Q1 - 1.5 * IQR
+      upper = Q3 + 1.5 * IQR
+
+      before = len(df)
+      df = df[(df['delay_minutes'] >= lower) & (df['delay_minutes'] <= upper)]
+      print(f"Removed {before - len(df)} outlier rows")
+    explanation: "IQR-based outlier removal keeps 99.3% of normally distributed data. Extreme delays may be data errors or rare events that hurt model generalization."
+hints:
+  - "Use df.duplicated().sum() to check for duplicate rows"
+  - "Consider pd.get_dummies() for one-hot encoding categoricals"
+  - "Always check df.shape before and after cleaning to track data loss"

@@ -1,0 +1,69 @@
+id: decarb_forecast
+name: "Forecast Emission Reduction Pathways"
+domain: decarb
+project: "Decarbonization Modeling"
+step_number: 3
+tier: 3
+skills: [forecasting, scenario_modeling, optimization, net_zero]
+language: python
+description: "Model emission reduction pathways to net-zero — forecast future emissions under different intervention scenarios and identify optimal decarbonization strategies."
+prereq_cases: [decarb_emissions]
+learning_objectives:
+  - Forecast baseline emissions trajectory
+  - Model reduction scenarios (renewable energy, efficiency, offsets)
+  - Calculate net-zero target year under each scenario
+sections:
+  - title: "Baseline Forecast"
+    content: "Project future emissions assuming business-as-usual."
+    code: |
+      import numpy as np
+      from sklearn.linear_model import LinearRegression
+
+      yearly = emissions.groupby('year')['total_footprint'].sum().reset_index()
+      X = yearly['year'].values.reshape(-1, 1)
+      y = yearly['total_footprint'].values
+
+      model = LinearRegression().fit(X, y)
+      future_years = np.arange(2024, 2051).reshape(-1, 1)
+      baseline = model.predict(future_years)
+
+      plt.figure(figsize=(12, 5))
+      plt.plot(yearly['year'], y, 'bo-', label='Historical')
+      plt.plot(future_years, baseline, 'r--', label='BAU Forecast', linewidth=2)
+      plt.axhline(0, color='green', linestyle=':', alpha=0.5)
+      plt.title('Emission Trajectory — Business as Usual')
+      plt.ylabel('MT CO2e')
+      plt.legend()
+      plt.show()
+    explanation: "The BAU (business-as-usual) baseline shows where emissions are heading without intervention. The gap between this line and zero is the decarbonization challenge."
+  - title: "Reduction Scenarios"
+    content: "Model three intervention pathways."
+    code: |
+      scenarios = {
+          'Aggressive (1.5°C aligned)': {'annual_reduction': 0.07, 'offsets_pct': 0.10},
+          'Moderate (2°C aligned)': {'annual_reduction': 0.04, 'offsets_pct': 0.15},
+          'Conservative': {'annual_reduction': 0.02, 'offsets_pct': 0.20},
+      }
+
+      plt.figure(figsize=(12, 6))
+      plt.plot(yearly['year'], y, 'ko-', label='Historical')
+
+      for name, params in scenarios.items():
+          trajectory = [y[-1]]
+          for yr in range(2024, 2051):
+              reduced = trajectory[-1] * (1 - params['annual_reduction'])
+              offset = reduced * params['offsets_pct']
+              trajectory.append(max(0, reduced - offset))
+          net_zero_year = 2024 + next((i for i, v in enumerate(trajectory) if v < y[-1]*0.05), len(trajectory))
+          plt.plot(range(2023, 2051), trajectory, linewidth=2, label=f'{name} (net-zero ~{net_zero_year})')
+
+      plt.axhline(0, color='green', linestyle=':', alpha=0.5)
+      plt.title('Decarbonization Pathways')
+      plt.ylabel('MT CO2e')
+      plt.legend()
+      plt.show()
+    explanation: "The aggressive pathway targets 7% annual reduction (SBTi 1.5°C aligned). Net-zero means residual emissions <5% of baseline, with offsets covering the rest."
+hints:
+  - "Consider technology adoption curves (S-curves) for realistic modeling"
+  - "Add cost estimates per ton of CO2 reduced for each intervention"
+  - "Use marginal abatement cost curves (MACCs) for optimization"

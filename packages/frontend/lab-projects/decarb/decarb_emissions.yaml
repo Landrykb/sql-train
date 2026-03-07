@@ -1,0 +1,57 @@
+id: decarb_emissions
+name: "Model Carbon Footprint"
+domain: decarb
+project: "Decarbonization Modeling"
+step_number: 2
+tier: 2
+skills: [carbon_accounting, regression, lifecycle_analysis]
+language: python
+description: "Build a carbon footprint model that estimates emissions from operational data — energy use, transport, supply chain activities."
+prereq_cases: [decarb_explore]
+learning_objectives:
+  - Calculate carbon footprint using emission factors
+  - Model the relationship between operational metrics and emissions
+  - Identify the largest emission hotspots
+sections:
+  - title: "Emission Factor Calculations"
+    content: "Convert operational data to CO2 equivalents using standard emission factors."
+    code: |
+      emission_factors = {
+          'electricity_kwh': 0.000417,   # MT CO2e per kWh (US grid avg)
+          'natural_gas_mmbtu': 0.0531,   # MT CO2e per MMBtu
+          'diesel_liters': 0.00267,      # MT CO2e per liter
+          'flight_km': 0.000121,         # MT CO2e per passenger-km
+      }
+
+      for source, factor in emission_factors.items():
+          if source in df.columns:
+              df[f'co2_{source}'] = df[source] * factor
+
+      co2_cols = [c for c in df.columns if c.startswith('co2_')]
+      df['total_footprint'] = df[co2_cols].sum(axis=1)
+
+      print("Carbon Footprint Breakdown:")
+      print(df[co2_cols].sum().sort_values(ascending=False).round(1))
+    explanation: "Emission factors convert activity data (kWh, liters, km) to CO2 equivalents. These are published by EPA, DEFRA, and IEA. The total footprint is the sum of all sources."
+  - title: "Hotspot Analysis"
+    content: "Identify the largest emission sources for targeted reduction."
+    code: |
+      breakdown = df[co2_cols].sum()
+      breakdown_pct = (breakdown / breakdown.sum() * 100).round(1)
+
+      fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+      breakdown.plot(kind='pie', ax=axes[0], autopct='%1.1f%%', colors=plt.cm.RdYlGn_r(range(0, 256, 256//len(breakdown))))
+      axes[0].set_title('Emission Sources')
+      axes[0].set_ylabel('')
+
+      df.groupby('facility')['total_footprint'].sum().nlargest(10).plot(kind='barh', ax=axes[1], color='coral')
+      axes[1].set_title('Top 10 Emitting Facilities')
+      axes[1].set_xlabel('MT CO2e')
+
+      plt.tight_layout()
+      plt.show()
+    explanation: "The 80/20 rule often applies: 20% of facilities/sources cause 80% of emissions. Focusing reduction efforts on hotspots maximizes impact per dollar spent."
+hints:
+  - "Use location-based vs market-based factors for Scope 2"
+  - "Consider Scope 3 categories: purchased goods, business travel, employee commuting"
+  - "Emission factors vary by country — use regional data when available"

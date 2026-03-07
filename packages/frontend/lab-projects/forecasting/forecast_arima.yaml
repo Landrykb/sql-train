@@ -1,0 +1,61 @@
+id: forecast_arima
+name: "ARIMA Modeling"
+domain: forecasting
+project: "Time Series Forecasting"
+step_number: 3
+tier: 2
+skills: [arima, statsmodels, model_selection, forecasting]
+language: python
+description: "Build and tune ARIMA models for time series forecasting with proper parameter selection and diagnostics."
+prereq_cases: [forecast_timeseries]
+learning_objectives:
+  - Fit ARIMA models with selected (p,d,q) parameters
+  - Use auto_arima for automatic parameter selection
+  - Diagnose model residuals
+  - Generate forecasts with confidence intervals
+sections:
+  - title: "Fit ARIMA Model"
+    content: "Use the parameters identified from ACF/PACF analysis."
+    code: |
+      from statsmodels.tsa.arima.model import ARIMA
+
+      model = ARIMA(df['value'], order=(2, 1, 2))
+      results = model.fit()
+      print(results.summary())
+    explanation: "ARIMA(p,d,q): p=AR lags, d=differencing order, q=MA lags. The summary shows coefficient estimates, AIC/BIC for model comparison, and diagnostic test results."
+  - title: "Auto-Select Parameters"
+    content: "Let pmdarima find the best (p,d,q) automatically."
+    code: |
+      from pmdarima import auto_arima
+
+      auto_model = auto_arima(
+          df['value'], seasonal=True, m=7,
+          stepwise=True, suppress_warnings=True,
+          information_criterion='aic'
+      )
+      print(auto_model.summary())
+      print(f"\nBest order: {auto_model.order}")
+      print(f"Seasonal order: {auto_model.seasonal_order}")
+    explanation: "auto_arima tests multiple (p,d,q) combinations and picks the one with lowest AIC. Set m=7 for weekly seasonality, m=12 for monthly, m=365 for daily with yearly patterns."
+  - title: "Forecast & Visualize"
+    content: "Generate predictions with confidence intervals."
+    code: |
+      forecast_steps = 30
+      forecast = auto_model.predict(n_periods=forecast_steps, return_conf_int=True)
+      fc_values = forecast[0]
+      fc_conf = forecast[1]
+
+      fc_index = pd.date_range(df.index[-1], periods=forecast_steps+1, freq='D')[1:]
+
+      plt.figure(figsize=(14, 5))
+      plt.plot(df['value'][-90:], label='Historical', color='steelblue')
+      plt.plot(fc_index, fc_values, label='Forecast', color='coral', linewidth=2)
+      plt.fill_between(fc_index, fc_conf[:, 0], fc_conf[:, 1], alpha=0.2, color='coral')
+      plt.legend()
+      plt.title('30-Day ARIMA Forecast')
+      plt.show()
+    explanation: "The shaded region shows the 95% confidence interval — it widens as we forecast further ahead because uncertainty grows. Narrow bands = more confident predictions."
+hints:
+  - "Lower AIC = better model (penalizes complexity)"
+  - "Check residuals: they should look like white noise"
+  - "SARIMA adds seasonal components: ARIMA(p,d,q)(P,D,Q,m)"

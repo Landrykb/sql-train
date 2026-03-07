@@ -1,0 +1,48 @@
+id: fraud_evaluate
+name: "Evaluate & Compare Detectors"
+domain: fraud
+project: "Fraud Detection"
+step_number: 4
+tier: 3
+skills: [model_evaluation, precision_recall, comparison, visualization]
+language: python
+description: "Compare supervised and unsupervised fraud detectors using precision-recall curves and business-relevant metrics."
+prereq_cases: [fraud_anomaly]
+learning_objectives:
+  - Use precision-recall curves for imbalanced evaluation
+  - Compare Isolation Forest, LOF, Autoencoder, and Random Forest
+  - Calculate dollar-value impact of fraud detection
+sections:
+  - title: "Precision-Recall Comparison"
+    content: "PR curves are more informative than ROC for imbalanced datasets."
+    code: |
+      from sklearn.metrics import precision_recall_curve, average_precision_score
+
+      fig, ax = plt.subplots(figsize=(8, 6))
+      for name, scores in [('Random Forest', rf_proba), ('Isolation Forest', iso_scores), ('Autoencoder', mse_scores)]:
+          precision, recall, _ = precision_recall_curve(y_test, scores)
+          ap = average_precision_score(y_test, scores)
+          ax.plot(recall, precision, label=f'{name} (AP={ap:.3f})')
+
+      ax.set_xlabel('Recall')
+      ax.set_ylabel('Precision')
+      ax.set_title('Precision-Recall Curves')
+      ax.legend()
+      plt.show()
+    explanation: "Average Precision (AP) summarizes the PR curve. Higher AP = better. For fraud, we want high recall (catch fraud) without too many false alarms (precision)."
+  - title: "Business Impact"
+    content: "Translate detection rates into financial impact."
+    code: |
+      avg_fraud_amount = df[df['Class']==1]['Amount'].mean()
+      total_fraud = y_test.sum()
+      detected = (y_pred == 1) & (y_test == 1)
+
+      print(f"Total fraud in test set: {total_fraud}")
+      print(f"Detected: {detected.sum()} ({detected.sum()/total_fraud*100:.1f}%)")
+      print(f"Avg fraud amount: ${avg_fraud_amount:.2f}")
+      print(f"Estimated savings: ${detected.sum() * avg_fraud_amount:,.2f}")
+    explanation: "Every detected fraud prevents a financial loss. This analysis justifies the ML system's deployment and helps set the detection threshold based on cost-benefit analysis."
+hints:
+  - "Consider the cost of investigating false positives"
+  - "Ensemble methods often outperform individual detectors"
+  - "Monitor model performance over time — fraud patterns evolve"

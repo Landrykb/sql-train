@@ -1,0 +1,49 @@
+id: music_insights
+name: "Popularity Prediction & Insights"
+domain: music
+project: "Spotify Music Analysis"
+step_number: 4
+tier: 2
+skills: [regression, feature_importance, storytelling, visualization]
+language: python
+description: "Build a popularity prediction model and extract actionable insights about what makes songs successful."
+prereq_cases: [music_clustering]
+learning_objectives:
+  - Predict song popularity from audio features
+  - Extract and communicate key insights
+  - Create a data-driven music recommendation framework
+sections:
+  - title: "Predict Popularity"
+    content: "Train a model to predict popularity score from audio features."
+    code: |
+      from sklearn.ensemble import GradientBoostingRegressor
+      from sklearn.model_selection import train_test_split
+      from sklearn.metrics import r2_score, mean_absolute_error
+
+      X = df[features]
+      y = df['popularity']
+      X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+      model = GradientBoostingRegressor(n_estimators=200, max_depth=5, random_state=42)
+      model.fit(X_train, y_train)
+      y_pred = model.predict(X_test)
+
+      print(f"R²: {r2_score(y_test, y_pred):.3f}")
+      print(f"MAE: {mean_absolute_error(y_test, y_pred):.1f} popularity points")
+    explanation: "Popularity is hard to predict from audio alone (many external factors like marketing, artist fame). Even modest R² values reveal which audio qualities matter."
+  - title: "Key Insights Summary"
+    content: "Synthesize findings into a compelling narrative."
+    code: |
+      importances = pd.Series(model.feature_importances_, index=features).sort_values()
+
+      print("=== SPOTIFY DATA INSIGHTS ===")
+      print(f"1. Top popularity drivers: {importances.tail(3).index.tolist()}")
+      print(f"2. Most popular genre: {df.groupby('track_genre')['popularity'].mean().idxmax()}")
+      print(f"3. Sweet spot tempo: {df[df['popularity'] > 70]['tempo'].median():.0f} BPM")
+      print(f"4. Discovered {df['cluster'].nunique()} distinct audio profiles")
+      print(f"5. Danceability-popularity correlation: {df['danceability'].corr(df['popularity']):.3f}")
+    explanation: "Data storytelling is a critical skill. Present findings as numbered insights that a non-technical music producer could act on."
+hints:
+  - "Try building a simple recommendation system using cluster similarity"
+  - "Analyze trends over time if the dataset includes release dates"
+  - "Consider creating a Streamlit dashboard for interactive exploration"

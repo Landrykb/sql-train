@@ -1,0 +1,49 @@
+id: decarb_explore
+name: "Explore Carbon Emissions Data"
+domain: decarb
+project: "Decarbonization Modeling"
+step_number: 1
+tier: 1
+skills: [pandas, eda, visualization, climate]
+language: python
+description: "Load global and corporate emissions data to understand emission sources, sector breakdowns, and historical trends."
+prereq_cases: []
+learning_objectives:
+  - Understand Scope 1, 2, and 3 emissions categories
+  - Explore emissions by sector and geography
+  - Visualize historical emission trends
+sections:
+  - title: "Load Emissions Data"
+    content: "Load corporate emissions reporting data."
+    code: |
+      import pandas as pd
+      import matplotlib.pyplot as plt
+
+      emissions = pd.read_csv('corporate_emissions.csv')
+      print(f"Companies: {emissions['company'].nunique()}")
+      print(f"Years: {emissions['year'].min()}-{emissions['year'].max()}")
+      print(f"\nScope breakdown (avg MT CO2e):")
+      print(emissions[['scope1', 'scope2', 'scope3']].mean().round(0))
+    explanation: "Scope 1 = direct emissions (own facilities). Scope 2 = purchased electricity. Scope 3 = supply chain (often 80%+ of total). Understanding scopes is fundamental to decarbonization strategy."
+  - title: "Sector & Trend Analysis"
+    content: "Visualize which sectors emit the most and track progress over time."
+    code: |
+      fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+      sector_total = emissions.groupby('sector')[['scope1','scope2','scope3']].mean()
+      sector_total.plot(kind='barh', stacked=True, ax=axes[0], color=['#e74c3c','#f39c12','#3498db'])
+      axes[0].set_title('Avg Emissions by Sector & Scope')
+      axes[0].set_xlabel('MT CO2e')
+
+      yearly = emissions.groupby('year')[['scope1','scope2','scope3']].sum()
+      yearly.plot(ax=axes[1], linewidth=2)
+      axes[1].set_title('Total Emissions Over Time')
+      axes[1].set_ylabel('MT CO2e')
+
+      plt.tight_layout()
+      plt.show()
+    explanation: "Stacked bars show the scope composition per sector. Time trends reveal whether corporate decarbonization pledges are translating into actual reductions."
+hints:
+  - "Calculate carbon intensity: emissions / revenue for fair comparison"
+  - "Look for companies with Science Based Targets (SBTi)"
+  - "Try grouping by region to see geographic patterns"

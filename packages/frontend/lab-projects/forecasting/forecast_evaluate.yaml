@@ -1,0 +1,55 @@
+id: forecast_evaluate
+name: "Evaluate & Compare Models"
+domain: forecasting
+project: "Time Series Forecasting"
+step_number: 5
+tier: 3
+skills: [model_evaluation, comparison, visualization, backtesting]
+language: python
+description: "Compare ARIMA, Prophet, and LSTM using proper time series evaluation metrics and backtesting."
+prereq_cases: [forecast_prophet]
+learning_objectives:
+  - Evaluate forecasts with MAPE, RMSE, and MAE
+  - Perform walk-forward validation (backtesting)
+  - Visualize model comparison
+  - Select the best model for production
+sections:
+  - title: "Metrics Comparison"
+    content: "Evaluate all three models on the same test period."
+    code: |
+      from sklearn.metrics import mean_absolute_error, mean_squared_error
+
+      def mape(y_true, y_pred):
+          return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+
+      comparison = pd.DataFrame({
+          'Model': ['ARIMA', 'Prophet', 'LSTM'],
+          'MAE': [mae_arima, mae_prophet, mae_lstm],
+          'RMSE': [rmse_arima, rmse_prophet, rmse_lstm],
+          'MAPE (%)': [mape_arima, mape_prophet, mape_lstm],
+      })
+      print(comparison.to_string(index=False))
+    explanation: "MAPE is intuitive (percentage error), MAE is in original units, RMSE penalizes large errors more. Choose based on your use case — if big errors are costly, minimize RMSE."
+  - title: "Walk-Forward Validation"
+    content: "The gold standard for time series: train on past, predict next period, slide window forward."
+    code: |
+      from sklearn.model_selection import TimeSeriesSplit
+
+      tscv = TimeSeriesSplit(n_splits=5)
+      fold_scores = []
+
+      for fold, (train_idx, test_idx) in enumerate(tscv.split(df)):
+          train = df.iloc[train_idx]['value']
+          test = df.iloc[test_idx]['value']
+          model = ARIMA(train, order=auto_model.order).fit()
+          pred = model.forecast(len(test))
+          score = mean_absolute_error(test, pred)
+          fold_scores.append(score)
+          print(f"Fold {fold+1}: MAE = {score:.2f}")
+
+      print(f"\nAvg MAE: {np.mean(fold_scores):.2f} ± {np.std(fold_scores):.2f}")
+    explanation: "TimeSeriesSplit respects temporal order — each fold uses only past data for training. This gives realistic performance estimates for production deployment."
+hints:
+  - "MAPE fails when actual values are near zero"
+  - "Plot all model predictions overlaid on the same chart for visual comparison"
+  - "Consider ensemble: average predictions from multiple models"

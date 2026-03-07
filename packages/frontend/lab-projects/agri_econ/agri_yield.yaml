@@ -1,0 +1,55 @@
+id: agri_yield
+name: "Crop Yield Prediction"
+domain: agri_econ
+project: "Agriculture Economics & Food Security"
+step_number: 3
+tier: 2
+skills: [regression, random_forest, climate_data, prediction]
+language: python
+description: "Build models to predict crop yields from weather, soil, and input data — essential for food security planning and agricultural insurance."
+prereq_cases: [agri_prices]
+learning_objectives:
+  - Merge weather and soil data with production records
+  - Train yield prediction models
+  - Identify climate variables most affecting yields
+sections:
+  - title: "Merge Climate & Production Data"
+    content: "Combine weather variables with crop production records."
+    code: |
+      climate = pd.read_csv('climate_data.csv')
+      merged = production.merge(climate, on=['country', 'year'], how='inner')
+
+      features = ['avg_temp', 'total_rainfall', 'drought_index', 'soil_quality',
+                   'fertilizer_use', 'irrigation_pct']
+      print(f"Merged dataset: {merged.shape}")
+      print(f"\nCorrelation with yield:")
+      print(merged[features + ['yield_per_ha']].corr()['yield_per_ha'].drop('yield_per_ha').sort_values())
+    explanation: "Rainfall and temperature are the primary climate drivers of yield. Irrigation and fertilizer represent human inputs that buffer against climate variability."
+  - title: "Train Yield Prediction Model"
+    content: "Predict crop yield from environmental and input variables."
+    code: |
+      from sklearn.ensemble import RandomForestRegressor
+      from sklearn.model_selection import train_test_split
+      from sklearn.metrics import r2_score, mean_absolute_error
+
+      X = merged[features]
+      y = merged['yield_per_ha']
+      X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+      model = RandomForestRegressor(n_estimators=200, random_state=42)
+      model.fit(X_train, y_train)
+      y_pred = model.predict(X_test)
+
+      print(f"R²: {r2_score(y_test, y_pred):.3f}")
+      print(f"MAE: {mean_absolute_error(y_test, y_pred):.2f} MT/ha")
+
+      importances = pd.Series(model.feature_importances_, index=features).sort_values()
+      importances.plot(kind='barh', color='forestgreen', figsize=(8, 4))
+      plt.title('Yield Prediction — Feature Importance')
+      plt.tight_layout()
+      plt.show()
+    explanation: "Feature importance reveals whether yields are more climate-driven or input-driven. In developing countries, inputs dominate; in developed countries, climate variability matters more."
+hints:
+  - "Try adding lag features (last year's yield, cumulative rainfall)"
+  - "Use SHAP values for per-prediction explanations"
+  - "Consider separate models per crop for better accuracy"

@@ -1,0 +1,66 @@
+id: fin_explore
+name: "Explore Financial Market Data"
+domain: fin_risk
+project: "Financial Risk & Portfolio Optimization"
+step_number: 1
+tier: 1
+skills: [pandas, finance, visualization, returns]
+language: python
+description: "Load stock price and market data to understand return distributions, volatility patterns, and risk metrics."
+prereq_cases: []
+learning_objectives:
+  - Load and process financial time series data
+  - Calculate returns, volatility, and Sharpe ratio
+  - Visualize return distributions and drawdowns
+sections:
+  - title: "Load & Calculate Returns"
+    content: "Load price data and compute daily/monthly returns."
+    code: |
+      import pandas as pd
+      import numpy as np
+      import matplotlib.pyplot as plt
+
+      prices = pd.read_csv('stock_prices.csv', parse_dates=['date'], index_col='date')
+      returns = prices.pct_change().dropna()
+
+      print(f"Assets: {prices.columns.tolist()}")
+      print(f"Period: {prices.index[0].date()} to {prices.index[-1].date()}")
+      print(f"\nAnnualized Stats:")
+      stats = pd.DataFrame({
+          'Ann. Return': returns.mean() * 252 * 100,
+          'Ann. Volatility': returns.std() * np.sqrt(252) * 100,
+          'Sharpe Ratio': (returns.mean() / returns.std()) * np.sqrt(252),
+      }).round(2)
+      print(stats)
+    explanation: "Daily returns = (P_t - P_{t-1}) / P_{t-1}. Annualize by multiplying mean by 252 (trading days) and std by √252. Sharpe ratio measures return per unit of risk."
+  - title: "Return Distribution & Tail Risk"
+    content: "Examine whether returns follow a normal distribution (spoiler: they don't)."
+    code: |
+      from scipy import stats
+
+      fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+      asset = returns.columns[0]
+      axes[0].hist(returns[asset], bins=100, density=True, color='steelblue', alpha=0.7, edgecolor='white')
+      x = np.linspace(returns[asset].min(), returns[asset].max(), 100)
+      axes[0].plot(x, stats.norm.pdf(x, returns[asset].mean(), returns[asset].std()), 'r-', linewidth=2, label='Normal')
+      axes[0].set_title(f'{asset} Return Distribution')
+      axes[0].legend()
+
+      cumulative = (1 + returns[asset]).cumprod()
+      drawdown = cumulative / cumulative.cummax() - 1
+      axes[1].fill_between(drawdown.index, drawdown.values, 0, color='coral', alpha=0.5)
+      axes[1].set_title(f'{asset} Drawdowns')
+      axes[1].set_ylabel('Drawdown (%)')
+
+      print(f"Skewness: {returns[asset].skew():.3f}")
+      print(f"Kurtosis: {returns[asset].kurtosis():.3f}")
+      print(f"Max Drawdown: {drawdown.min()*100:.1f}%")
+
+      plt.tight_layout()
+      plt.show()
+    explanation: "Real returns have fat tails (excess kurtosis) and negative skew — extreme losses are more likely than a normal distribution predicts. This is why VaR and stress testing matter."
+hints:
+  - "Use QQ plots (stats.probplot) to visualize departure from normality"
+  - "Try rolling volatility to see how risk changes over time"
+  - "Compare Sharpe ratios across assets for relative performance"

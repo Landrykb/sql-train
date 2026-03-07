@@ -1,0 +1,54 @@
+id: fraud_imbalance
+name: "Handle Extreme Imbalance"
+domain: fraud
+project: "Fraud Detection"
+step_number: 2
+tier: 2
+skills: [smote, undersampling, class_weight, imbalanced_learning]
+language: python
+description: "Apply techniques to handle the extreme class imbalance in fraud data — undersampling, SMOTE, and cost-sensitive learning."
+prereq_cases: [fraud_explore]
+learning_objectives:
+  - Apply random undersampling and SMOTE
+  - Use cost-sensitive learning with class weights
+  - Compare strategies on evaluation metrics
+sections:
+  - title: "Sampling Strategies"
+    content: "Balance the dataset using undersampling and oversampling."
+    code: |
+      from imblearn.over_sampling import SMOTE
+      from imblearn.under_sampling import RandomUnderSampler
+      from sklearn.model_selection import train_test_split
+
+      X = df.drop('Class', axis=1)
+      y = df['Class']
+      X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+
+      # Undersampling
+      rus = RandomUnderSampler(random_state=42)
+      X_under, y_under = rus.fit_resample(X_train, y_train)
+      print(f"Undersampled: {pd.Series(y_under).value_counts().to_dict()}")
+
+      # SMOTE
+      smote = SMOTE(random_state=42)
+      X_smote, y_smote = smote.fit_resample(X_train, y_train)
+      print(f"SMOTE: {pd.Series(y_smote).value_counts().to_dict()}")
+    explanation: "Undersampling discards majority samples (fast but loses data). SMOTE creates synthetic minority samples (preserves data but may introduce noise). Both have tradeoffs."
+  - title: "Cost-Sensitive Learning"
+    content: "Instead of resampling, adjust the model to penalize fraud misclassification more."
+    code: |
+      from sklearn.ensemble import RandomForestClassifier
+      from sklearn.metrics import classification_report
+
+      # Balanced class weights: automatically adjusts for imbalance
+      model_balanced = RandomForestClassifier(
+          n_estimators=100, class_weight='balanced', random_state=42
+      )
+      model_balanced.fit(X_train, y_train)
+      y_pred = model_balanced.predict(X_test)
+      print(classification_report(y_test, y_pred))
+    explanation: "class_weight='balanced' increases the penalty for misclassifying the minority class proportionally to the imbalance ratio. No resampling needed."
+hints:
+  - "For fraud, recall (catching fraud) is more important than precision"
+  - "Try combining undersampling + SMOTE with imblearn's SMOTEENN"
+  - "Always evaluate on the original imbalanced test set, never resampled"

@@ -1,0 +1,75 @@
+id: fin_portfolio
+name: "Portfolio Optimization"
+domain: fin_risk
+project: "Financial Risk & Portfolio Optimization"
+step_number: 3
+tier: 3
+skills: [portfolio_optimization, efficient_frontier, scipy, markowitz]
+language: python
+description: "Implement Modern Portfolio Theory — construct the efficient frontier, find the optimal portfolio, and understand the risk-return tradeoff."
+prereq_cases: [fin_var]
+learning_objectives:
+  - Calculate portfolio expected return and volatility
+  - Generate the efficient frontier with random portfolios
+  - Find the maximum Sharpe ratio portfolio
+  - Implement minimum variance portfolio
+sections:
+  - title: "Portfolio Metrics"
+    content: "Calculate expected return and risk for any weight combination."
+    code: |
+      import numpy as np
+
+      mean_returns = returns.mean() * 252
+      cov_matrix = returns.cov() * 252
+
+      def portfolio_metrics(weights):
+          ret = np.dot(weights, mean_returns)
+          vol = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
+          sharpe = ret / vol
+          return ret, vol, sharpe
+
+      # Equal weight baseline
+      n = len(returns.columns)
+      eq_weights = np.ones(n) / n
+      ret, vol, sharpe = portfolio_metrics(eq_weights)
+      print(f"Equal-Weight Portfolio:")
+      print(f"  Return: {ret*100:.1f}%, Volatility: {vol*100:.1f}%, Sharpe: {sharpe:.2f}")
+    explanation: "Portfolio return is the weighted average of individual returns. Portfolio risk depends on the covariance matrix — diversification reduces risk when assets aren't perfectly correlated."
+  - title: "Efficient Frontier"
+    content: "Generate thousands of random portfolios to map the risk-return space."
+    code: |
+      n_portfolios = 5000
+      results = np.zeros((n_portfolios, 3))
+      all_weights = []
+
+      for i in range(n_portfolios):
+          w = np.random.dirichlet(np.ones(n))
+          all_weights.append(w)
+          results[i] = portfolio_metrics(w)
+
+      plt.figure(figsize=(10, 7))
+      scatter = plt.scatter(results[:, 1]*100, results[:, 0]*100, c=results[:, 2],
+                           cmap='RdYlGn', s=5, alpha=0.5)
+      plt.colorbar(scatter, label='Sharpe Ratio')
+
+      # Mark optimal portfolio
+      max_sharpe_idx = results[:, 2].argmax()
+      plt.scatter(results[max_sharpe_idx, 1]*100, results[max_sharpe_idx, 0]*100,
+                 marker='*', color='red', s=300, label='Max Sharpe')
+      plt.xlabel('Volatility (%)')
+      plt.ylabel('Expected Return (%)')
+      plt.title('Efficient Frontier')
+      plt.legend()
+      plt.show()
+
+      print(f"\nOptimal Portfolio (Max Sharpe):")
+      print(f"  Return: {results[max_sharpe_idx, 0]*100:.1f}%")
+      print(f"  Volatility: {results[max_sharpe_idx, 1]*100:.1f}%")
+      print(f"  Sharpe: {results[max_sharpe_idx, 2]:.2f}")
+      optimal_weights = pd.Series(all_weights[max_sharpe_idx], index=returns.columns).round(3)
+      print(f"  Weights:\n{optimal_weights}")
+    explanation: "The efficient frontier is the upper boundary of the scatter cloud — portfolios with the highest return for each risk level. Points below it are suboptimal (same risk, less return)."
+hints:
+  - "Use scipy.optimize.minimize for exact optimization instead of random sampling"
+  - "Add constraints: max 30% per asset, min 5% per asset"
+  - "Try adding a risk-free rate to compute the Capital Market Line"

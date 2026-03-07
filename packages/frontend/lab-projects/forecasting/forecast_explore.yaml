@@ -1,0 +1,62 @@
+id: forecast_explore
+name: "Explore Time Series Data"
+domain: forecasting
+project: "Time Series Forecasting"
+step_number: 1
+tier: 1
+skills: [pandas, time_series, eda, visualization]
+language: python
+description: "Load historical data and understand time series components — trend, seasonality, and noise."
+prereq_cases: []
+learning_objectives:
+  - Load and parse time series data
+  - Identify trend and seasonality visually
+  - Perform stationarity tests
+  - Decompose time series into components
+sections:
+  - title: "Load & Plot Time Series"
+    content: "Load your historical data and create an initial time series plot."
+    code: |
+      import pandas as pd
+      import matplotlib.pyplot as plt
+
+      df = pd.read_csv('sales_data.csv', parse_dates=['date'], index_col='date')
+      df = df.sort_index()
+
+      plt.figure(figsize=(14, 5))
+      plt.plot(df['value'], color='steelblue', linewidth=0.8)
+      plt.title('Historical Data Over Time')
+      plt.xlabel('Date')
+      plt.ylabel('Value')
+      plt.grid(alpha=0.3)
+      plt.show()
+    explanation: "Setting the date column as the index is crucial for time series operations. The plot reveals overall trend direction and any obvious seasonal patterns."
+  - title: "Decompose the Time Series"
+    content: "Separate trend, seasonality, and residual components."
+    code: |
+      from statsmodels.tsa.seasonal import seasonal_decompose
+
+      decomposition = seasonal_decompose(df['value'], model='additive', period=30)
+
+      fig, axes = plt.subplots(4, 1, figsize=(14, 10), sharex=True)
+      decomposition.observed.plot(ax=axes[0], title='Observed')
+      decomposition.trend.plot(ax=axes[1], title='Trend')
+      decomposition.seasonal.plot(ax=axes[2], title='Seasonal')
+      decomposition.resid.plot(ax=axes[3], title='Residual')
+      plt.tight_layout()
+      plt.show()
+    explanation: "Additive decomposition: Observed = Trend + Seasonal + Residual. If amplitude grows with level, use 'multiplicative' instead. The period depends on your data frequency."
+  - title: "Test for Stationarity"
+    content: "Use the Augmented Dickey-Fuller test to check if the series is stationary."
+    code: |
+      from statsmodels.tsa.stattools import adfuller
+
+      result = adfuller(df['value'].dropna())
+      print(f"ADF Statistic: {result[0]:.4f}")
+      print(f"p-value: {result[1]:.4f}")
+      print(f"Stationary: {'Yes' if result[1] < 0.05 else 'No — differencing needed'}")
+    explanation: "ARIMA requires stationary data (constant mean and variance). If p > 0.05, the series is non-stationary and needs differencing (d parameter in ARIMA)."
+hints:
+  - "Try df.rolling(window=7).mean() for a moving average smoothing"
+  - "Use df.resample('M').mean() to aggregate to monthly frequency"
+  - "ACF and PACF plots help determine ARIMA parameters"

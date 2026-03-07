@@ -1,0 +1,48 @@
+id: agri_policy
+name: "Food Security & Policy Analysis"
+domain: agri_econ
+project: "Agriculture Economics & Food Security"
+step_number: 4
+tier: 3
+skills: [policy_analysis, scenario_modeling, visualization, reporting]
+language: python
+description: "Model food security scenarios under climate change, analyze trade policy impacts, and create actionable policy recommendations."
+prereq_cases: [agri_yield]
+learning_objectives:
+  - Define and calculate food security indicators
+  - Model climate change impact on future food availability
+  - Analyze trade policy scenarios (tariffs, export bans)
+sections:
+  - title: "Food Security Indicators"
+    content: "Calculate key metrics: self-sufficiency ratio, import dependency, caloric availability."
+    code: |
+      df_country = production.groupby('country').agg(
+          total_production=('production_mt', 'sum'),
+          population=('population', 'first'),
+      ).reset_index()
+      df_country = df_country.merge(trade.groupby('importer')['quantity_mt'].sum().rename('imports'), left_on='country', right_index=True, how='left').fillna(0)
+
+      df_country['self_sufficiency'] = df_country['total_production'] / (df_country['total_production'] + df_country['imports']) * 100
+      df_country['per_capita_kg'] = (df_country['total_production'] + df_country['imports']) / df_country['population'] * 1000
+
+      print("Food Security Dashboard:")
+      print(df_country.nlargest(10, 'per_capita_kg')[['country', 'self_sufficiency', 'per_capita_kg']].to_string(index=False))
+    explanation: "Self-sufficiency ratio shows domestic production vs total supply. Per-capita availability below ~400 kg/year signals food insecurity risk. Import-dependent nations are vulnerable to trade shocks."
+  - title: "Climate Scenario Impact"
+    content: "Project how warming affects crop yields and food availability."
+    code: |
+      scenarios = {'+1.5°C': -0.05, '+2.0°C': -0.10, '+3.0°C': -0.20}
+
+      print("=== CLIMATE IMPACT ON FOOD SECURITY ===")
+      for scenario, yield_change in scenarios.items():
+          adjusted = df_country['per_capita_kg'] * (1 + yield_change)
+          at_risk = (adjusted < 300).sum()
+          print(f"\n{scenario} warming:")
+          print(f"  Avg per-capita change: {yield_change*100:+.0f}%")
+          print(f"  Countries below threshold: {at_risk} / {len(df_country)}")
+          print(f"  Most affected: {df_country.loc[adjusted.nsmallest(3).index, 'country'].tolist()}")
+    explanation: "Each degree of warming reduces global yields by roughly 5-10%. The impacts are uneven — tropical developing nations face the largest losses, deepening existing food inequality."
+hints:
+  - "Add trade disruption scenarios (e.g., major exporter ban)"
+  - "Consider nutritional quality, not just caloric quantity"
+  - "Use Gini coefficient for measuring food distribution inequality"

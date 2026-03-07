@@ -1,0 +1,53 @@
+id: agri_prices
+name: "Commodity Price Analysis"
+domain: agri_econ
+project: "Agriculture Economics & Food Security"
+step_number: 2
+tier: 2
+skills: [time_series, price_analysis, volatility, correlation]
+language: python
+description: "Analyze agricultural commodity price dynamics — volatility, seasonality, and correlations with macroeconomic factors."
+prereq_cases: [agri_explore]
+learning_objectives:
+  - Analyze price volatility and seasonality in commodity markets
+  - Identify price correlations between crops and energy
+  - Model price drivers with regression
+sections:
+  - title: "Price Trends & Volatility"
+    content: "Visualize price history and measure volatility."
+    code: |
+      prices_monthly = prices.set_index('date').resample('M').mean()
+
+      fig, axes = plt.subplots(2, 1, figsize=(14, 8), sharex=True)
+      for crop in ['wheat', 'corn', 'soybeans']:
+          axes[0].plot(prices_monthly.index, prices_monthly[crop], label=crop, linewidth=1.5)
+      axes[0].set_title('Monthly Commodity Prices')
+      axes[0].set_ylabel('USD/MT')
+      axes[0].legend()
+
+      rolling_vol = prices_monthly[['wheat','corn','soybeans']].pct_change().rolling(12).std() * 100
+      rolling_vol.plot(ax=axes[1], linewidth=1.5)
+      axes[1].set_title('12-Month Rolling Volatility (%)')
+      axes[1].set_ylabel('Volatility (%)')
+
+      plt.tight_layout()
+      plt.show()
+    explanation: "Commodity prices spike during supply shocks (droughts, conflicts). Volatility clustering shows periods of high uncertainty — critical for food security planning and hedging."
+  - title: "Cross-Commodity Correlations"
+    content: "Explore how crop prices move together and with energy."
+    code: |
+      import seaborn as sns
+
+      price_cols = ['wheat', 'corn', 'soybeans', 'rice', 'oil_price', 'fertilizer_index']
+      corr = prices_monthly[price_cols].corr()
+
+      plt.figure(figsize=(8, 6))
+      sns.heatmap(corr, annot=True, cmap='RdYlGn', center=0, fmt='.2f')
+      plt.title('Commodity Price Correlations')
+      plt.tight_layout()
+      plt.show()
+    explanation: "Corn-soybean correlation is high (competing for the same land). Oil prices drive fertilizer costs which drive crop prices. These linkages create systemic food price risk."
+hints:
+  - "Try Granger causality tests for lead-lag relationships"
+  - "Add weather indices (El Niño/La Niña) as explanatory variables"
+  - "Use seasonal decomposition to isolate harvest cycle effects"

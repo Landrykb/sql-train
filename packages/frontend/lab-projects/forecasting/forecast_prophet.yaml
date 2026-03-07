@@ -1,0 +1,68 @@
+id: forecast_prophet
+name: "Prophet & Advanced Models"
+domain: forecasting
+project: "Time Series Forecasting"
+step_number: 4
+tier: 3
+skills: [prophet, lstm, deep_learning, comparison]
+language: python
+description: "Use Facebook Prophet for automatic trend/seasonality detection and explore LSTM neural networks for complex patterns."
+prereq_cases: [forecast_arima]
+learning_objectives:
+  - Fit Prophet models with holidays and changepoints
+  - Understand LSTM architecture for sequences
+  - Compare ARIMA vs Prophet vs LSTM
+sections:
+  - title: "Prophet Forecasting"
+    content: "Prophet handles trend changes, multiple seasonalities, and holidays automatically."
+    code: |
+      from prophet import Prophet
+
+      prophet_df = df.reset_index().rename(columns={'date': 'ds', 'value': 'y'})
+      m = Prophet(yearly_seasonality=True, weekly_seasonality=True)
+      m.fit(prophet_df)
+
+      future = m.make_future_dataframe(periods=30)
+      forecast = m.predict(future)
+
+      fig = m.plot(forecast)
+      plt.title('Prophet Forecast')
+      plt.show()
+
+      fig2 = m.plot_components(forecast)
+      plt.show()
+    explanation: "Prophet decomposes the forecast into trend + weekly + yearly seasonality. The component plots show each effect independently — very useful for understanding what drives the data."
+  - title: "LSTM Neural Network (Advanced)"
+    content: "For complex non-linear patterns, LSTM networks can capture long-range dependencies."
+    code: |
+      from tensorflow.keras.models import Sequential
+      from tensorflow.keras.layers import LSTM, Dense
+      from sklearn.preprocessing import MinMaxScaler
+
+      scaler = MinMaxScaler()
+      scaled = scaler.fit_transform(df[['value']])
+
+      # Create sequences of 30 days to predict next day
+      def create_sequences(data, seq_length=30):
+          X, y = [], []
+          for i in range(len(data) - seq_length):
+              X.append(data[i:i+seq_length])
+              y.append(data[i+seq_length])
+          return np.array(X), np.array(y)
+
+      X, y = create_sequences(scaled)
+      split = int(0.8 * len(X))
+
+      model = Sequential([
+          LSTM(50, return_sequences=True, input_shape=(30, 1)),
+          LSTM(50),
+          Dense(1)
+      ])
+      model.compile(optimizer='adam', loss='mse')
+      model.fit(X[:split], y[:split], epochs=20, batch_size=32, verbose=0)
+      print(f"Test MSE: {model.evaluate(X[split:], y[split:], verbose=0):.6f}")
+    explanation: "LSTM (Long Short-Term Memory) networks remember patterns across long sequences. They excel when data has complex non-linear dependencies that ARIMA and Prophet miss."
+hints:
+  - "Prophet is best for business data with clear weekly/yearly patterns"
+  - "LSTM requires more data and tuning but handles non-linear patterns"
+  - "Always compare simple models first — complexity isn't always better"

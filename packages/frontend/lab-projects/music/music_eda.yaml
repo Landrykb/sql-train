@@ -1,0 +1,55 @@
+id: music_eda
+name: "Deep EDA & Audio Feature Analysis"
+domain: music
+project: "Spotify Music Analysis"
+step_number: 2
+tier: 1
+skills: [eda, correlation, visualization, seaborn]
+language: python
+description: "Perform deep exploratory analysis on audio features — correlations, distributions by genre, and what makes songs popular."
+prereq_cases: [music_explore]
+learning_objectives:
+  - Build correlation heatmaps for audio features
+  - Compare feature distributions across genres
+  - Identify features that predict popularity
+sections:
+  - title: "Correlation Analysis"
+    content: "Discover relationships between audio features."
+    code: |
+      audio_features = ['danceability', 'energy', 'loudness', 'speechiness',
+                        'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo', 'popularity']
+
+      plt.figure(figsize=(10, 8))
+      sns.heatmap(df[audio_features].corr(), annot=True, cmap='RdYlGn', center=0, fmt='.2f')
+      plt.title('Audio Feature Correlations')
+      plt.tight_layout()
+      plt.show()
+    explanation: "Energy and loudness are strongly correlated (loud = energetic). Acousticness is negatively correlated with energy. These relationships guide feature selection for ML."
+  - title: "Genre Audio Profiles"
+    content: "Compare how audio features differ across genres using radar charts."
+    code: |
+      from math import pi
+
+      genres = ['pop', 'rock', 'hip-hop', 'classical', 'electronic']
+      features = ['danceability', 'energy', 'acousticness', 'valence', 'instrumentalness']
+
+      fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
+      angles = [n / len(features) * 2 * pi for n in range(len(features))]
+      angles += angles[:1]
+
+      for genre in genres:
+          vals = df[df['track_genre'] == genre][features].mean().tolist()
+          vals += vals[:1]
+          ax.plot(angles, vals, linewidth=2, label=genre)
+          ax.fill(angles, vals, alpha=0.1)
+
+      ax.set_xticks(angles[:-1])
+      ax.set_xticklabels(features)
+      ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1))
+      plt.title('Genre Audio Profiles')
+      plt.show()
+    explanation: "Radar charts reveal genre fingerprints — classical is high acousticness/low energy, electronic is the opposite. These profiles help clustering algorithms separate genres."
+hints:
+  - "Use sns.violinplot for richer distribution comparisons"
+  - "Try df.groupby('track_genre')[audio_features].mean() for a summary table"
+  - "Look for non-linear relationships with scatter plots"

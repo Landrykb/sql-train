@@ -1,0 +1,65 @@
+id: transport_features
+name: "Feature Engineering"
+domain: transport
+project: "Predict Public Transport Delays"
+step_number: 3
+tier: 2
+skills: [feature_engineering, pandas, sklearn]
+language: python
+description: "Create meaningful features from raw data — weather encodings, time-based features, event flags, and interaction terms."
+prereq_cases: [transport_clean]
+learning_objectives:
+  - Create time-based features from datetime columns
+  - Encode categorical variables for ML models
+  - Build interaction features
+  - Scale numerical features
+sections:
+  - title: "Encode Categorical Variables"
+    content: "Convert weather conditions and event types into numerical representations."
+    code: |
+      from sklearn.preprocessing import LabelEncoder, StandardScaler
+
+      le = LabelEncoder()
+      df['weather_encoded'] = le.fit_transform(df['weather_condition'])
+      df['event_encoded'] = le.fit_transform(df['event_type'].fillna('none'))
+
+      # One-hot encode for tree-based models
+      weather_dummies = pd.get_dummies(df['weather_condition'], prefix='weather')
+      df = pd.concat([df, weather_dummies], axis=1)
+      print(f"Features after encoding: {df.shape[1]}")
+    explanation: "Label encoding works for ordinal data; one-hot encoding is better for nominal categories. Tree models handle label encoding well; linear models prefer one-hot."
+  - title: "Create Interaction Features"
+    content: "Combine features to capture non-linear relationships."
+    code: |
+      # Rush hour flag (7-9am, 5-7pm)
+      df['is_rush_hour'] = df['hour'].isin([7, 8, 9, 17, 18, 19]).astype(int)
+
+      # Weather × rush hour interaction
+      df['weather_rush'] = df['weather_encoded'] * df['is_rush_hour']
+
+      # Event during peak hours
+      df['event_peak'] = (df['event_encoded'] > 0).astype(int) * df['is_rush_hour']
+
+      print("New interaction features created")
+      df[['is_rush_hour', 'weather_rush', 'event_peak']].describe()
+    explanation: "Interaction features capture combined effects — rain during rush hour likely causes worse delays than rain at midnight. These help the model learn conditional patterns."
+  - title: "Scale & Prepare Final Feature Matrix"
+    content: "Standardize numerical features and prepare X, y for modeling."
+    code: |
+      feature_cols = ['hour', 'day_of_week', 'month', 'is_weekend',
+                      'is_rush_hour', 'weather_encoded', 'event_encoded',
+                      'weather_rush', 'event_peak', 'temperature', 'humidity']
+
+      X = df[feature_cols].copy()
+      y = df['delay_minutes']
+
+      scaler = StandardScaler()
+      X_scaled = pd.DataFrame(scaler.fit_transform(X), columns=feature_cols)
+
+      print(f"Feature matrix: {X_scaled.shape}")
+      print(f"Target: {y.shape}")
+    explanation: "StandardScaler normalizes features to zero mean and unit variance. This is essential for linear models and helpful for gradient-based methods."
+hints:
+  - "Try creating a 'season' feature from month (winter=Dec-Feb, etc.)"
+  - "Lag features (yesterday's delay) can be very predictive for time series"
+  - "Use df.corr()['delay_minutes'].sort_values() to find top correlating features"

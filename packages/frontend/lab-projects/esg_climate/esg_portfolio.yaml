@@ -1,0 +1,45 @@
+id: esg_portfolio
+name: "ESG-Integrated Portfolio"
+domain: esg_climate
+project: "ESG & Climate Risk Analytics"
+step_number: 4
+tier: 3
+skills: [portfolio_optimization, esg_integration, visualization, reporting]
+language: python
+description: "Build an ESG-integrated investment portfolio that balances financial returns with sustainability goals."
+prereq_cases: [esg_risk]
+learning_objectives:
+  - Construct ESG-tilted portfolios
+  - Compare ESG vs conventional portfolio performance
+  - Generate TCFD-aligned climate risk reports
+sections:
+  - title: "ESG-Tilted Portfolio Construction"
+    content: "Overweight high-ESG companies and underweight low-ESG ones."
+    code: |
+      df['esg_weight'] = df['custom_esg'] / df['custom_esg'].sum()
+      df['market_weight'] = df['market_cap'] / df['market_cap'].sum()
+      df['tilt'] = 0.5 * df['market_weight'] + 0.5 * df['esg_weight']
+      df['tilt'] = df['tilt'] / df['tilt'].sum()
+
+      esg_return = (df['tilt'] * df['annual_return']).sum()
+      market_return = (df['market_weight'] * df['annual_return']).sum()
+      print(f"ESG Portfolio Return: {esg_return:.2f}%")
+      print(f"Market Portfolio Return: {market_return:.2f}%")
+      print(f"ESG Premium: {esg_return - market_return:.2f}%")
+    explanation: "A 50/50 tilt blends market-cap weighting with ESG scores. High-ESG companies get more weight. The ESG premium (or discount) varies by period and methodology."
+  - title: "Climate Risk Dashboard"
+    content: "Create a summary report of portfolio climate exposure."
+    code: |
+      print("=== PORTFOLIO CLIMATE RISK REPORT ===")
+      print(f"Weighted Avg ESG Score: {(df['tilt'] * df['custom_esg']).sum():.1f}")
+      print(f"Weighted Avg Carbon Intensity: {(df['tilt'] * df['co2_emissions_mt']/df['revenue']).sum():.4f}")
+      print(f"% in High-Carbon Sectors: {df[df['sector'].isin(['Energy','Materials'])]['tilt'].sum()*100:.1f}%")
+      print(f"\nScenario Impacts:")
+      for col in [c for c in df.columns if c.startswith('impact_')]:
+          impact = (df['tilt'] * df[col]).sum() * 100
+          print(f"  {col}: {impact:+.2f}%")
+    explanation: "This report follows TCFD (Task Force on Climate-related Financial Disclosures) recommendations. Institutional investors increasingly require this level of climate transparency."
+hints:
+  - "Try mean-variance optimization with ESG constraints"
+  - "Add a carbon budget constraint: max X tons CO2 per $M invested"
+  - "Backtest the ESG portfolio over 5-10 years vs benchmark"

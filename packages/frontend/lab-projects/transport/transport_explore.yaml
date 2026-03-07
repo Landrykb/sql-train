@@ -1,0 +1,62 @@
+id: transport_explore
+name: "Explore Transport Delay Data"
+domain: transport
+project: "Predict Public Transport Delays"
+step_number: 1
+tier: 1
+skills: [pandas, eda, data_loading, visualization]
+language: python
+dataset_url: "https://www.kaggle.com/datasets/khushikyad001/public-transport-delays-with-weather-and-events"
+description: "Load the public transport delays dataset and perform exploratory data analysis to understand delay patterns, weather effects, and event impacts."
+prereq_cases: []
+learning_objectives:
+  - Load CSV data with pandas
+  - Examine dataset structure and data types
+  - Identify missing values and outliers
+  - Create initial visualizations of delay patterns
+sections:
+  - title: "Import Libraries & Load Data"
+    content: "Start by importing the core data science libraries and loading the dataset."
+    code: |
+      import pandas as pd
+      import numpy as np
+      import matplotlib.pyplot as plt
+      import seaborn as sns
+
+      df = pd.read_csv('transport_delays.csv')
+      print(f"Shape: {df.shape}")
+      print(f"Columns: {df.columns.tolist()}")
+      df.head()
+    explanation: "pandas handles tabular data, numpy does numerical ops, and matplotlib/seaborn create visualizations. Always start by checking shape and column names."
+  - title: "Check Data Quality"
+    content: "Before any analysis, assess missing values, data types, and basic statistics."
+    code: |
+      df.info()
+
+      missing = df.isnull().sum()
+      missing_pct = (missing / len(df) * 100).round(2)
+      print("Missing values (%):")
+      print(missing_pct[missing_pct > 0])
+
+      df.describe()
+    explanation: "df.info() shows data types and non-null counts. df.describe() gives statistical summaries. Missing value analysis guides your cleaning strategy."
+  - title: "Visualize Delay Distribution"
+    content: "Understand how delays are distributed and which weather conditions cause the most delays."
+    code: |
+      fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+      axes[0].hist(df['delay_minutes'], bins=50, color='steelblue', edgecolor='white')
+      axes[0].set_title('Distribution of Delay Duration')
+      axes[0].set_xlabel('Delay (minutes)')
+
+      df.groupby('weather_condition')['delay_minutes'].mean().sort_values().plot(
+          kind='barh', ax=axes[1], color='coral'
+      )
+      axes[1].set_title('Avg Delay by Weather')
+      plt.tight_layout()
+      plt.show()
+    explanation: "Histograms reveal the delay distribution shape. Bar charts show which weather conditions correlate with longer delays — key for feature engineering later."
+hints:
+  - "Use sns.heatmap(df.corr(), annot=True) for a correlation matrix"
+  - "Try df.value_counts() on categorical columns"
+  - "Box plots help identify outliers: sns.boxplot(x='weather', y='delay', data=df)"

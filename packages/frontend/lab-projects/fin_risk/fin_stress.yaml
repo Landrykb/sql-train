@@ -1,0 +1,76 @@
+id: fin_stress
+name: "Stress Testing & Risk Reporting"
+domain: fin_risk
+project: "Financial Risk & Portfolio Optimization"
+step_number: 4
+tier: 3
+skills: [stress_testing, scenario_analysis, risk_reporting, visualization]
+language: python
+description: "Perform portfolio stress tests under historical crisis scenarios and create a comprehensive risk report."
+prereq_cases: [fin_portfolio]
+learning_objectives:
+  - Replay historical crisis scenarios on your portfolio
+  - Calculate maximum drawdown and recovery time
+  - Build an executive risk dashboard
+sections:
+  - title: "Historical Stress Tests"
+    content: "Replay major market crises on your portfolio."
+    code: |
+      crisis_periods = {
+          'COVID Crash (2020)': ('2020-02-19', '2020-03-23'),
+          'GFC (2008)': ('2008-09-15', '2009-03-09'),
+          'Dot-com (2000)': ('2000-03-10', '2002-10-09'),
+      }
+
+      optimal_w = all_weights[max_sharpe_idx]
+      portfolio_value = (returns @ optimal_w)
+
+      print("=== STRESS TEST RESULTS ===")
+      for name, (start, end) in crisis_periods.items():
+          try:
+              period = portfolio_value.loc[start:end]
+              cum = (1 + period).cumprod()
+              loss = (cum.iloc[-1] / cum.iloc[0] - 1) * 100
+              print(f"{name}: {loss:+.1f}%")
+          except:
+              print(f"{name}: No data available")
+    explanation: "Stress tests answer 'what if 2008 happens again?' They reveal how your portfolio would perform in extreme conditions that VaR may miss."
+  - title: "Risk Dashboard"
+    content: "Create an executive-level risk summary."
+    code: |
+      fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+      # Cumulative performance
+      cum_returns = (1 + portfolio_value).cumprod()
+      axes[0,0].plot(cum_returns.index, cum_returns.values, color='steelblue', linewidth=1.5)
+      axes[0,0].set_title('Cumulative Portfolio Performance')
+      axes[0,0].set_ylabel('Growth of $1')
+
+      # Drawdown chart
+      drawdown = cum_returns / cum_returns.cummax() - 1
+      axes[0,1].fill_between(drawdown.index, drawdown.values * 100, 0, color='coral', alpha=0.5)
+      axes[0,1].set_title('Portfolio Drawdowns')
+      axes[0,1].set_ylabel('Drawdown (%)')
+
+      # Rolling Sharpe
+      rolling_sharpe = portfolio_value.rolling(252).mean() / portfolio_value.rolling(252).std() * np.sqrt(252)
+      axes[1,0].plot(rolling_sharpe.index, rolling_sharpe.values, color='teal', linewidth=1.5)
+      axes[1,0].axhline(0, color='red', linestyle='--', alpha=0.3)
+      axes[1,0].set_title('Rolling 1Y Sharpe Ratio')
+
+      # Asset allocation
+      axes[1,1].pie(optimal_w, labels=returns.columns, autopct='%1.0f%%', colors=plt.cm.Set3.colors)
+      axes[1,1].set_title('Optimal Allocation')
+
+      plt.suptitle('Portfolio Risk Dashboard', fontsize=14, fontweight='bold')
+      plt.tight_layout()
+      plt.show()
+
+      print(f"\nMax Drawdown: {drawdown.min()*100:.1f}%")
+      print(f"VaR (95%): {np.percentile(portfolio_value, 5)*100:.2f}%")
+      print(f"Sharpe Ratio: {portfolio_value.mean()/portfolio_value.std()*np.sqrt(252):.2f}")
+    explanation: "The four-panel dashboard tells the complete story: performance, risk (drawdowns), risk-adjusted returns (Sharpe), and allocation. This format is standard in institutional asset management."
+hints:
+  - "Add a 'worst month' and 'best month' to the summary stats"
+  - "Consider adding regime detection (bull/bear market identification)"
+  - "Try Black-Litterman model for incorporating market views"

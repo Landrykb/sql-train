@@ -1,0 +1,50 @@
+id: churn_model
+name: "Build Churn Classification Models"
+domain: churn
+project: "Customer Churn Prediction"
+step_number: 3
+tier: 2
+skills: [classification, logistic_regression, random_forest, xgboost]
+language: python
+description: "Train and compare classification models — Logistic Regression, Random Forest, and Gradient Boosting — to predict customer churn."
+prereq_cases: [churn_features]
+learning_objectives:
+  - Train classification models for binary prediction
+  - Interpret feature importance for business insights
+  - Understand precision vs recall tradeoff for churn
+sections:
+  - title: "Train Multiple Classifiers"
+    content: "Fit three models and compare performance."
+    code: |
+      from sklearn.linear_model import LogisticRegression
+      from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+      from sklearn.metrics import classification_report
+
+      models = {
+          'Logistic Regression': LogisticRegression(max_iter=1000, random_state=42),
+          'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42),
+          'Gradient Boosting': GradientBoostingClassifier(n_estimators=100, random_state=42),
+      }
+
+      for name, model in models.items():
+          model.fit(X_train_bal, y_train_bal)
+          y_pred = model.predict(X_test)
+          print(f"\n=== {name} ===")
+          print(classification_report(y_test, y_pred))
+    explanation: "For churn, recall on the 'churn' class matters most — missing a churner costs more than a false alarm. Precision tells you how many flagged customers actually churned."
+  - title: "Feature Importance"
+    content: "Understand which factors drive churn predictions."
+    code: |
+      best = models['Gradient Boosting']
+      importances = pd.Series(best.feature_importances_, index=X.columns).sort_values(ascending=True).tail(15)
+
+      importances.plot(kind='barh', figsize=(10, 6), color='coral')
+      plt.title('Top 15 Churn Predictors')
+      plt.xlabel('Feature Importance')
+      plt.tight_layout()
+      plt.show()
+    explanation: "Tenure, contract type, and monthly charges typically dominate. These insights help retention teams target the right customers with the right offers."
+hints:
+  - "Use ROC AUC score for comparing models on imbalanced data"
+  - "Try adjusting the classification threshold (default 0.5) for better recall"
+  - "Logistic Regression coefficients show direction: positive = increases churn probability"

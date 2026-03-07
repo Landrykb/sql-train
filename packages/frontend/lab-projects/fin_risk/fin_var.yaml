@@ -1,0 +1,66 @@
+id: fin_var
+name: "Value-at-Risk (VaR) Modeling"
+domain: fin_risk
+project: "Financial Risk & Portfolio Optimization"
+step_number: 2
+tier: 2
+skills: [var, risk_modeling, monte_carlo, statistics]
+language: python
+description: "Calculate Value-at-Risk using three methods — Historical, Parametric, and Monte Carlo simulation — to quantify potential portfolio losses."
+prereq_cases: [fin_explore]
+learning_objectives:
+  - Implement Historical VaR from return data
+  - Calculate Parametric (Gaussian) VaR
+  - Run Monte Carlo VaR simulation
+  - Compare methods and understand their limitations
+sections:
+  - title: "Historical VaR"
+    content: "Use actual historical returns to estimate worst-case losses."
+    code: |
+      confidence = 0.95
+      portfolio_returns = returns.mean(axis=1)  # equal-weight portfolio
+
+      var_hist = np.percentile(portfolio_returns, (1 - confidence) * 100)
+      cvar_hist = portfolio_returns[portfolio_returns <= var_hist].mean()
+
+      print(f"Historical VaR (95%): {var_hist*100:.2f}%")
+      print(f"Conditional VaR (Expected Shortfall): {cvar_hist*100:.2f}%")
+      print(f"Interpretation: 95% of days, losses won't exceed {abs(var_hist)*100:.2f}%")
+    explanation: "VaR answers: 'What's the worst loss in 95% of cases?' CVaR goes further: 'If we're in the worst 5%, how bad is it on average?' CVaR is more conservative and captures tail risk."
+  - title: "Parametric VaR"
+    content: "Assume returns are normally distributed and use mean/std."
+    code: |
+      from scipy.stats import norm
+
+      mu = portfolio_returns.mean()
+      sigma = portfolio_returns.std()
+      var_param = norm.ppf(1 - confidence, mu, sigma)
+
+      print(f"Parametric VaR (95%): {var_param*100:.2f}%")
+      print(f"Note: Assumes normal distribution — underestimates tail risk!")
+    explanation: "Parametric VaR is fast but assumes normality. Since real returns have fat tails, it underestimates extreme losses. Good for quick estimates, not for regulatory reporting."
+  - title: "Monte Carlo VaR"
+    content: "Simulate thousands of possible return scenarios."
+    code: |
+      n_simulations = 10000
+      simulated = np.random.normal(mu, sigma, n_simulations)
+      var_mc = np.percentile(simulated, (1 - confidence) * 100)
+
+      plt.figure(figsize=(10, 5))
+      plt.hist(simulated * 100, bins=100, color='steelblue', alpha=0.7, edgecolor='white')
+      plt.axvline(var_mc * 100, color='red', linewidth=2, label=f'VaR 95% = {var_mc*100:.2f}%')
+      plt.axvline(var_hist * 100, color='orange', linewidth=2, linestyle='--', label=f'Historical VaR = {var_hist*100:.2f}%')
+      plt.title('Monte Carlo VaR Simulation (10,000 scenarios)')
+      plt.xlabel('Daily Return (%)')
+      plt.legend()
+      plt.show()
+
+      print(f"\nVaR Comparison:")
+      print(f"  Historical:  {var_hist*100:.2f}%")
+      print(f"  Parametric:  {var_param*100:.2f}%")
+      print(f"  Monte Carlo: {var_mc*100:.2f}%")
+    explanation: "Monte Carlo generates random scenarios from the estimated distribution. With enough simulations, it converges to the parametric result. Use t-distribution instead of normal for fatter tails."
+hints:
+  - "Try Student-t distribution for more realistic fat tails"
+  - "Scale daily VaR to 10-day: VaR_10d = VaR_1d × √10"
+  - "Backtest VaR by counting how often actual losses exceed the VaR estimate"

@@ -1,0 +1,47 @@
+id: music_explore
+name: "Explore Spotify Data"
+domain: music
+project: "Spotify Music Analysis"
+step_number: 1
+tier: 1
+skills: [pandas, eda, visualization]
+language: python
+dataset_url: "https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset"
+description: "Load the Spotify tracks dataset and explore audio features, popularity patterns, and genre distributions."
+prereq_cases: []
+learning_objectives:
+  - Load and inspect the Spotify dataset
+  - Understand audio features (danceability, energy, valence, tempo)
+  - Visualize popularity distributions across genres
+sections:
+  - title: "Load & Overview"
+    content: "Load the dataset and understand its structure."
+    code: |
+      import pandas as pd
+      import matplotlib.pyplot as plt
+      import seaborn as sns
+
+      df = pd.read_csv('spotify_tracks.csv')
+      print(f"Shape: {df.shape}")
+      print(f"\nAudio features: {['danceability', 'energy', 'loudness', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']}")
+      df.head()
+    explanation: "Spotify's audio features are numerical scores (0-1 scale for most). These make excellent ML features because they quantify subjective musical qualities."
+  - title: "Popularity Distribution"
+    content: "Understand how popularity is distributed and what makes a hit."
+    code: |
+      fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+      axes[0].hist(df['popularity'], bins=50, color='#1DB954', edgecolor='white')
+      axes[0].set_title('Popularity Distribution')
+      axes[0].set_xlabel('Popularity Score')
+
+      top_genres = df.groupby('track_genre')['popularity'].mean().nlargest(15)
+      top_genres.plot(kind='barh', ax=axes[1], color='#1DB954')
+      axes[1].set_title('Top 15 Genres by Avg Popularity')
+      plt.tight_layout()
+      plt.show()
+    explanation: "Most tracks have low popularity — the music industry follows a power law. Understanding genre trends helps focus the analysis."
+hints:
+  - "Use df.describe() for statistical overview of audio features"
+  - "Try sns.pairplot for relationships between audio features"
+  - "Filter to popular tracks (popularity > 70) for focused analysis"

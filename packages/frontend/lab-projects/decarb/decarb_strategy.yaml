@@ -1,0 +1,76 @@
+id: decarb_strategy
+name: "Net-Zero Strategy & Reporting"
+domain: decarb
+project: "Decarbonization Modeling"
+step_number: 4
+tier: 3
+skills: [strategy, reporting, visualization, communication]
+language: python
+description: "Develop a comprehensive net-zero strategy with milestones, KPIs, and a stakeholder-ready decarbonization report."
+prereq_cases: [decarb_forecast]
+learning_objectives:
+  - Define science-based interim targets (2030, 2040, 2050)
+  - Create a decarbonization action plan with cost-benefit analysis
+  - Build a visual executive summary dashboard
+sections:
+  - title: "Interim Targets & Milestones"
+    content: "Set concrete reduction milestones aligned with science-based targets."
+    code: |
+      base_year_emissions = y[0]
+      targets = {
+          2025: base_year_emissions * 0.85,
+          2030: base_year_emissions * 0.55,
+          2040: base_year_emissions * 0.20,
+          2050: base_year_emissions * 0.05,
+      }
+
+      print("=== NET-ZERO ROADMAP ===")
+      print(f"Base Year ({yearly['year'].iloc[0]}): {base_year_emissions:,.0f} MT CO2e")
+      for year, target in targets.items():
+          reduction = (1 - target/base_year_emissions) * 100
+          print(f"  {year}: {target:,.0f} MT CO2e (-{reduction:.0f}%)")
+      print(f"  2050: Net-Zero (residual <5% + verified offsets)")
+    explanation: "SBTi requires 42% reduction by 2030 for 1.5°C alignment. Interim targets create accountability and allow course correction. Each milestone should have specific actions attached."
+  - title: "Executive Dashboard"
+    content: "Create a visual summary for leadership and stakeholders."
+    code: |
+      fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+      # Emissions trajectory
+      axes[0,0].plot(yearly['year'], y, 'bo-')
+      for yr, tgt in targets.items():
+          axes[0,0].plot(yr, tgt, 'r*', markersize=15)
+          axes[0,0].annotate(f'{yr}\n-{(1-tgt/base_year_emissions)*100:.0f}%', (yr, tgt), fontsize=8)
+      axes[0,0].set_title('Emission Reduction Pathway')
+
+      # Scope breakdown pie
+      scope_totals = emissions[['scope1','scope2','scope3']].sum()
+      axes[0,1].pie(scope_totals, labels=['Scope 1','Scope 2','Scope 3'], autopct='%1.0f%%',
+                    colors=['#e74c3c','#f39c12','#3498db'])
+      axes[0,1].set_title('Current Emission Profile')
+
+      # Top actions
+      actions = pd.DataFrame({
+          'Action': ['Renewable Energy', 'Fleet Electrification', 'Efficiency', 'Supply Chain', 'Offsets'],
+          'Reduction_MT': [500, 300, 200, 400, 100],
+          'Cost_per_MT': [30, 80, 20, 50, 15],
+      })
+      axes[1,0].barh(actions['Action'], actions['Reduction_MT'], color='teal')
+      axes[1,0].set_title('Reduction Potential by Action')
+      axes[1,0].set_xlabel('MT CO2e Reduction')
+
+      # Cost curve
+      actions_sorted = actions.sort_values('Cost_per_MT')
+      axes[1,1].bar(actions_sorted['Action'], actions_sorted['Cost_per_MT'], color='coral')
+      axes[1,1].set_title('Marginal Abatement Cost')
+      axes[1,1].set_ylabel('$/MT CO2e')
+      axes[1,1].tick_params(axis='x', rotation=30)
+
+      plt.suptitle('Decarbonization Executive Summary', fontsize=14, fontweight='bold')
+      plt.tight_layout()
+      plt.show()
+    explanation: "The four-panel dashboard tells the complete story: where we are, where we're going, what actions to take, and what they cost. This format works for board presentations and sustainability reports."
+hints:
+  - "Add a 'traffic light' status for each milestone (on track / at risk / behind)"
+  - "Include Scope 3 engagement strategy with key suppliers"
+  - "Reference GHG Protocol and SBTi standards for credibility"

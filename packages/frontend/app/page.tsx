@@ -55,6 +55,18 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Verse Toggle */}
+      <div className="flex items-center justify-center">
+        <div className="inline-flex rounded-full bg-bleepx-white border border-bleepx-border shadow-sm p-1">
+          <span className="px-4 py-1.5 rounded-full text-sm font-bold bg-bleepx-blue text-white">
+            🔷 BleepxQuery
+          </span>
+          <Link href="/lab" className="px-4 py-1.5 rounded-full text-sm font-medium text-bleepx-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+            🔬 BleepxLab
+          </Link>
+        </div>
+      </div>
+
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-bleepx-white rounded-xl p-4 text-center shadow-sm border border-bleepx-border">
@@ -180,6 +192,39 @@ export default function HomePage() {
             );
           })}
         </div>
+      </div>
+
+      {/* BleepxLab Promo */}
+      <div>
+        <Link
+          href="/lab"
+          className="group block relative overflow-hidden bg-gradient-to-br from-teal-900 via-emerald-800 to-cyan-900 border-2 border-teal-500/30 rounded-xl shadow-lg hover:shadow-teal-500/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+        >
+          <div className="absolute inset-0 bg-[url('/bleepx-logo.png')] bg-center bg-no-repeat opacity-5 bg-contain" />
+          <div className="relative p-5 sm:p-6 flex items-center gap-4">
+            <div className="flex-shrink-0 text-3xl">🔬</div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-white text-lg sm:text-xl group-hover:text-teal-300 transition-colors">
+                  BleepxLab
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 uppercase tracking-wider">
+                  Data Science
+                </span>
+              </div>
+              <p className="text-sm text-gray-400 mt-1">
+                *bleep* {overallPct >= 50 ? 'You\'ve proven your SQL skills. Ready for the next verse?' : '9 real-world data science projects. Python & R. From EDA to ML models.'}
+              </p>
+              <div className="mt-3 flex items-center gap-3">
+                <span className="text-xs text-gray-500">9 projects · 38 steps</span>
+                <span className="text-teal-400 text-xs">🐍 Python + R</span>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-teal-400 group-hover:translate-x-1 transition-transform flex-shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
       </div>
 
       {/* Features */}

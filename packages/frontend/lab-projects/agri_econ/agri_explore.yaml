@@ -1,0 +1,57 @@
+id: agri_explore
+name: "Explore Agricultural Economics Data"
+domain: agri_econ
+project: "Agriculture Economics & Food Security"
+step_number: 1
+tier: 1
+skills: [pandas, eda, visualization, economics]
+language: python
+description: "Load FAO and USDA agricultural datasets to understand global crop production, trade flows, and food price dynamics."
+prereq_cases: []
+learning_objectives:
+  - Load and merge agricultural datasets from multiple sources
+  - Explore global crop production and yield trends
+  - Understand food price indices and their drivers
+sections:
+  - title: "Load Agricultural Data"
+    content: "Load crop production and food price data."
+    code: |
+      import pandas as pd
+      import matplotlib.pyplot as plt
+
+      production = pd.read_csv('crop_production.csv')
+      prices = pd.read_csv('food_prices.csv', parse_dates=['date'])
+      trade = pd.read_csv('trade_flows.csv')
+
+      print(f"Production records: {len(production):,}")
+      print(f"Countries: {production['country'].nunique()}")
+      print(f"Crops: {production['crop'].unique().tolist()}")
+      print(f"\nTop producers (wheat):")
+      print(production[production['crop']=='wheat'].groupby('country')['production_mt'].sum().nlargest(5))
+    explanation: "FAO provides global crop production data. Understanding who produces what and how much is the foundation of agricultural economics and food security analysis."
+  - title: "Production Trends"
+    content: "Visualize how global crop production has changed over time."
+    code: |
+      fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+      for crop in ['wheat', 'rice', 'maize', 'soybeans']:
+          yearly = production[production['crop']==crop].groupby('year')['production_mt'].sum()
+          axes[0].plot(yearly.index, yearly.values / 1e6, label=crop, linewidth=2)
+      axes[0].set_title('Global Crop Production')
+      axes[0].set_ylabel('Million MT')
+      axes[0].legend()
+
+      for crop in ['wheat', 'rice', 'maize']:
+          yearly = production[production['crop']==crop].groupby('year')['yield_per_ha'].mean()
+          axes[1].plot(yearly.index, yearly.values, label=crop, linewidth=2)
+      axes[1].set_title('Average Yield Per Hectare')
+      axes[1].set_ylabel('MT/ha')
+      axes[1].legend()
+
+      plt.tight_layout()
+      plt.show()
+    explanation: "Global production has grown through both area expansion and yield improvement. Yield growth is slowing in many regions — a key food security concern."
+hints:
+  - "Compare developed vs developing country yield trends"
+  - "Look at production variability (std) as a food security indicator"
+  - "Merge with climate data to explore weather-yield relationships"

@@ -1,0 +1,48 @@
+id: churn_features
+name: "Feature Engineering for Churn"
+domain: churn
+project: "Customer Churn Prediction"
+step_number: 2
+tier: 1
+skills: [feature_engineering, encoding, pandas, sklearn]
+language: python
+description: "Transform raw customer data into ML-ready features — encode categoricals, create interaction terms, and handle class imbalance."
+prereq_cases: [churn_explore]
+learning_objectives:
+  - Encode categorical variables (label + one-hot)
+  - Handle class imbalance with SMOTE
+  - Create business-meaningful features
+sections:
+  - title: "Encode & Transform"
+    content: "Convert all categorical columns to numerical representations."
+    code: |
+      from sklearn.preprocessing import LabelEncoder
+      import pandas as pd
+
+      df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce').fillna(0)
+      df['Churn_binary'] = (df['Churn'] == 'Yes').astype(int)
+
+      cat_cols = df.select_dtypes(include='object').columns.drop(['customerID', 'Churn'])
+      df_encoded = pd.get_dummies(df.drop(['customerID', 'Churn'], axis=1), columns=cat_cols, drop_first=True)
+      print(f"Features: {df_encoded.shape[1]}")
+    explanation: "One-hot encoding with drop_first avoids multicollinearity. TotalCharges often has whitespace entries that need numeric conversion."
+  - title: "Handle Class Imbalance"
+    content: "Use SMOTE to oversample the minority class (churners)."
+    code: |
+      from imblearn.over_sampling import SMOTE
+      from sklearn.model_selection import train_test_split
+
+      X = df_encoded.drop('Churn_binary', axis=1)
+      y = df_encoded['Churn_binary']
+
+      X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+
+      smote = SMOTE(random_state=42)
+      X_train_bal, y_train_bal = smote.fit_resample(X_train, y_train)
+      print(f"Before SMOTE: {y_train.value_counts().to_dict()}")
+      print(f"After SMOTE:  {pd.Series(y_train_bal).value_counts().to_dict()}")
+    explanation: "SMOTE creates synthetic minority samples by interpolating between existing ones. Only apply to training data — never the test set."
+hints:
+  - "Try creating a 'charge_per_month' = TotalCharges / tenure feature"
+  - "stratify=y ensures train/test have the same churn ratio"
+  - "Consider class_weight='balanced' as an alternative to SMOTE"

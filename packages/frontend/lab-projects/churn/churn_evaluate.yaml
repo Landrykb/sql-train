@@ -1,0 +1,55 @@
+id: churn_evaluate
+name: "Evaluate & Deploy Churn Model"
+domain: churn
+project: "Customer Churn Prediction"
+step_number: 4
+tier: 2
+skills: [model_evaluation, roc_curve, confusion_matrix, business_impact]
+language: python
+description: "Evaluate your churn model with ROC curves, confusion matrices, and translate predictions into business value."
+prereq_cases: [churn_model]
+learning_objectives:
+  - Plot and interpret ROC curves
+  - Analyze confusion matrix for business decisions
+  - Estimate monetary impact of churn predictions
+sections:
+  - title: "ROC Curve & AUC"
+    content: "Visualize the tradeoff between true positive and false positive rates."
+    code: |
+      from sklearn.metrics import roc_curve, roc_auc_score
+
+      y_proba = best.predict_proba(X_test)[:, 1]
+      fpr, tpr, thresholds = roc_curve(y_test, y_proba)
+      auc = roc_auc_score(y_test, y_proba)
+
+      plt.figure(figsize=(8, 6))
+      plt.plot(fpr, tpr, color='coral', linewidth=2, label=f'AUC = {auc:.3f}')
+      plt.plot([0, 1], [0, 1], 'k--', alpha=0.3)
+      plt.xlabel('False Positive Rate')
+      plt.ylabel('True Positive Rate')
+      plt.title('ROC Curve — Churn Prediction')
+      plt.legend()
+      plt.show()
+    explanation: "AUC of 0.5 = random guessing, 1.0 = perfect. Above 0.8 is generally good for churn. The curve shows how adjusting the threshold trades off precision and recall."
+  - title: "Business Impact Analysis"
+    content: "Estimate the financial value of catching churners early."
+    code: |
+      from sklearn.metrics import confusion_matrix
+
+      y_pred = best.predict(X_test)
+      tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+
+      avg_revenue = df['MonthlyCharges'].mean() * 12
+      saved = tp * avg_revenue * 0.3  # assume 30% retention rate with intervention
+      cost = fp * 50  # cost of unnecessary retention offer
+
+      print(f"True Positives (caught churners): {tp}")
+      print(f"False Negatives (missed churners): {fn}")
+      print(f"Estimated annual revenue saved: ${saved:,.0f}")
+      print(f"Cost of false alarms: ${cost:,.0f}")
+      print(f"Net value: ${saved - cost:,.0f}")
+    explanation: "Translating ML metrics into dollars makes the model's value clear to stakeholders. This analysis justifies the project and guides threshold selection."
+hints:
+  - "Try precision_recall_curve for imbalanced classes"
+  - "Use SHAP for per-customer explanations"
+  - "Save model: joblib.dump(best, 'churn_model.pkl')"
