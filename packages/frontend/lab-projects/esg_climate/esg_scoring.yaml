@@ -40,6 +40,40 @@ sections:
 
       print(df['esg_rating'].value_counts().sort_index())
     explanation: "Z-scores compare each company to its sector average. A mining company with a modest E-score may still be 'AA' relative to peers. This avoids penalizing entire sectors."
+schema:
+  - company_id
+  - company_name
+  - sector
+  - environmental_score
+  - social_score
+  - governance_score
+  - custom_esg
+  - esg_percentile
+  - esg_z_score
+  - esg_rating
+thought_process:
+  - "Normalize all ESG pillar scores to 0-1 range with MinMaxScaler"
+  - "Apply custom weights: E=40%, S=30%, G=30%"
+  - "Compute percentile ranks for interpretability"
+  - "Calculate sector-adjusted z-scores for fair peer comparison"
+  - "Assign letter ratings (CCC to AA) based on z-score bins"
+solution_code: |
+  from sklearn.preprocessing import MinMaxScaler
+  import pandas as pd
+
+  df = pd.read_csv('esg_scores.csv')
+  pillars = ['environmental_score', 'social_score', 'governance_score']
+  scaler = MinMaxScaler()
+  df[pillars] = scaler.fit_transform(df[pillars])
+  weights = {'environmental_score': 0.4, 'social_score': 0.3, 'governance_score': 0.3}
+  df['custom_esg'] = sum(df[col] * w for col, w in weights.items())
+  df['esg_percentile'] = df['custom_esg'].rank(pct=True) * 100
+  print(f"Custom ESG stats:\n{df['custom_esg'].describe().round(3)}")
+  print(f"\nTop 3:\n{df.nlargest(3, 'custom_esg')[['company_name', 'custom_esg', 'esg_percentile']]}")
+expected_output: |
+  Custom ESG stats:
+  count    500.000
+  mean       0.500
 hints:
   - "Try different weight schemes and compare their impact on rankings"
   - "Use df.pivot_table for sector × rating crosstabs"

@@ -70,6 +70,34 @@ sections:
       plt.tight_layout()
       plt.show()
     explanation: "The four-panel dashboard tells the complete story: where we are, where we're going, what actions to take, and what they cost. This format works for board presentations and sustainability reports."
+schema:
+  - year
+  - total_footprint
+  - scope1
+  - scope2
+  - scope3
+thought_process:
+  - "Set interim reduction targets for 2025, 2030, 2040, 2050"
+  - "Align targets with SBTi 1.5°C pathway (42% by 2030)"
+  - "Build a 4-panel executive dashboard: trajectory, scopes, actions, costs"
+  - "Translate into a stakeholder-ready report"
+solution_code: |
+  base_year_emissions = 5000
+  targets = {2025: 4250, 2030: 2750, 2040: 1000, 2050: 250}
+  print("=== NET-ZERO ROADMAP ===")
+  print(f"Base Year: {base_year_emissions:,} MT CO2e")
+  for year, target in targets.items():
+      reduction = (1 - target/base_year_emissions) * 100
+      print(f"  {year}: {target:,} MT CO2e (-{reduction:.0f}%)")
+  print("  2050: Net-Zero (residual <5% + verified offsets)")
+expected_output: |
+  === NET-ZERO ROADMAP ===
+  Base Year: 5,000 MT CO2e
+    2025: 4,250 MT CO2e (-15%)
+    2030: 2,750 MT CO2e (-45%)
+    2040: 1,000 MT CO2e (-80%)
+    2050: 250 MT CO2e (-95%)
+  2050: Net-Zero (residual <5% + verified offsets)
 hints:
   - "Add a 'traffic light' status for each milestone (on track / at risk / behind)"
   - "Include Scope 3 engagement strategy with key suppliers"

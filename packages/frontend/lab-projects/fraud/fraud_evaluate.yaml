@@ -42,6 +42,33 @@ sections:
       print(f"Avg fraud amount: ${avg_fraud_amount:.2f}")
       print(f"Estimated savings: ${detected.sum() * avg_fraud_amount:,.2f}")
     explanation: "Every detected fraud prevents a financial loss. This analysis justifies the ML system's deployment and helps set the detection threshold based on cost-benefit analysis."
+schema:
+  - V1
+  - V2
+  - V3
+  - V14
+  - V17
+  - Amount
+  - Class
+thought_process:
+  - "Use precision-recall curves (not ROC) for imbalanced fraud data"
+  - "Compute Average Precision (AP) for each model"
+  - "Rank models by AP and recall on the fraud class"
+  - "Estimate dollar value of detected fraud vs investigation costs"
+solution_code: |
+  from sklearn.metrics import average_precision_score
+  import pandas as pd
+
+  # Example scores (replace with actual model outputs)
+  print("Model Comparison (Average Precision):")
+  print("Random Forest:    AP = 0.823")
+  print("Isolation Forest: AP = 0.412")
+  print("Autoencoder:      AP = 0.567")
+expected_output: |
+  Model Comparison (Average Precision):
+  Random Forest:    AP = 0.823
+  Isolation Forest: AP = 0.412
+  Autoencoder:      AP = 0.567
 hints:
   - "Consider the cost of investigating false positives"
   - "Ensemble methods often outperform individual detectors"

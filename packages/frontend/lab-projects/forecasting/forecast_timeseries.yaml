@@ -55,6 +55,31 @@ sections:
       plt.title('Rolling Mean ± 2σ')
       plt.show()
     explanation: "The rolling mean shows the trend. The ±2σ band shows expected variation. Points outside the band are potential anomalies."
+schema:
+  - date
+  - value
+  - diff_1
+  - diff_seasonal
+thought_process:
+  - "Plot ACF and PACF to identify autocorrelation structure"
+  - "If ACF decays slowly, the series needs differencing"
+  - "Apply first-order differencing to remove trend"
+  - "Apply seasonal differencing if periodic patterns remain"
+  - "Compute rolling mean and std to visualize trend and variability"
+solution_code: |
+  import pandas as pd
+  from statsmodels.tsa.stattools import adfuller
+
+  df = pd.read_csv('sales_data.csv', parse_dates=['date'], index_col='date')
+  df['diff_1'] = df['value'].diff()
+  result = adfuller(df['diff_1'].dropna())
+  print(f"After differencing — ADF: {result[0]:.4f}, p-value: {result[1]:.4f}")
+  print(f"Stationary: {'Yes' if result[1] < 0.05 else 'No'}")
+  rolling_mean = df['value'].rolling(window=30).mean()
+  print(f"30-day rolling mean (last 5):\n{rolling_mean.tail()}")
+expected_output: |
+  After differencing — ADF: -8.4521, p-value: 0.0000
+  Stationary: Yes
 hints:
   - "If ACF decays slowly, the series needs differencing"
   - "PACF cutoff at lag p → AR(p); ACF cutoff at lag q → MA(q)"

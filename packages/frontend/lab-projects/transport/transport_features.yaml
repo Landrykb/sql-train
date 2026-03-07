@@ -59,6 +59,48 @@ sections:
       print(f"Feature matrix: {X_scaled.shape}")
       print(f"Target: {y.shape}")
     explanation: "StandardScaler normalizes features to zero mean and unit variance. This is essential for linear models and helpful for gradient-based methods."
+schema:
+  - hour
+  - day_of_week
+  - month
+  - is_weekend
+  - is_rush_hour
+  - weather_encoded
+  - event_encoded
+  - weather_rush
+  - event_peak
+  - temperature
+  - delay_minutes
+thought_process:
+  - "Encode categorical variables — weather and event types — into numerical form"
+  - "Create time-based features like rush hour flags and weekend indicators"
+  - "Build interaction terms that capture combined effects (weather × rush hour)"
+  - "Scale all numerical features with StandardScaler for model readiness"
+  - "Verify the final feature matrix shape and target vector"
+solution_code: |
+  from sklearn.preprocessing import LabelEncoder, StandardScaler
+  import pandas as pd
+  import numpy as np
+
+  le = LabelEncoder()
+  df['weather_encoded'] = le.fit_transform(df['weather_condition'])
+  df['event_encoded'] = le.fit_transform(df['event_type'].fillna('none'))
+  df['is_rush_hour'] = df['hour'].isin([7, 8, 9, 17, 18, 19]).astype(int)
+  df['weather_rush'] = df['weather_encoded'] * df['is_rush_hour']
+  df['event_peak'] = (df['event_encoded'] > 0).astype(int) * df['is_rush_hour']
+
+  feature_cols = ['hour', 'day_of_week', 'month', 'is_weekend',
+                  'is_rush_hour', 'weather_encoded', 'event_encoded',
+                  'weather_rush', 'event_peak', 'temperature']
+  X = df[feature_cols]
+  y = df['delay_minutes']
+  scaler = StandardScaler()
+  X_scaled = pd.DataFrame(scaler.fit_transform(X), columns=feature_cols)
+  print(f"Feature matrix: {X_scaled.shape}")
+  print(f"Target: {y.shape}")
+expected_output: |
+  Feature matrix: (4750, 10)
+  Target: (4750,)
 hints:
   - "Try creating a 'season' feature from month (winter=Dec-Feb, etc.)"
   - "Lag features (yesterday's delay) can be very predictive for time series"

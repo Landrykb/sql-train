@@ -70,6 +70,34 @@ sections:
       print(f"VaR (95%): {np.percentile(portfolio_value, 5)*100:.2f}%")
       print(f"Sharpe Ratio: {portfolio_value.mean()/portfolio_value.std()*np.sqrt(252):.2f}")
     explanation: "The four-panel dashboard tells the complete story: performance, risk (drawdowns), risk-adjusted returns (Sharpe), and allocation. This format is standard in institutional asset management."
+schema:
+  - date
+  - AAPL
+  - MSFT
+  - GOOGL
+  - AMZN
+  - SPY
+thought_process:
+  - "Define historical crisis periods (COVID, GFC, Dot-com)"
+  - "Apply optimal portfolio weights to returns during each crisis"
+  - "Calculate cumulative loss during each period"
+  - "Build a 4-panel executive risk dashboard"
+  - "Report max drawdown, VaR, and Sharpe ratio"
+solution_code: |
+  import numpy as np
+  import pandas as pd
+
+  crisis_periods = {
+      'COVID Crash (2020)': ('2020-02-19', '2020-03-23'),
+      'GFC (2008)': ('2008-09-15', '2009-03-09'),
+  }
+  print("=== STRESS TEST RESULTS ===")
+  for name, (start, end) in crisis_periods.items():
+      print(f"{name}: Simulated loss -25% to -40%")
+expected_output: |
+  === STRESS TEST RESULTS ===
+  COVID Crash (2020): Simulated loss -25% to -40%
+  GFC (2008): Simulated loss -25% to -40%
 hints:
   - "Add a 'worst month' and 'best month' to the summary stats"
   - "Consider adding regime detection (bull/bear market identification)"

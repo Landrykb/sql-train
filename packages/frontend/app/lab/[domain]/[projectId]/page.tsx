@@ -92,6 +92,10 @@ export default async function LabProjectPage({ params }: { params: Promise<{ dom
         }))}
         hints={doc.hints || []}
         learningObjectives={doc.learning_objectives || []}
+        thoughtProcess={doc.thought_process || []}
+        solutionCode={doc.solution_code || ''}
+        expectedOutput={doc.expected_output || ''}
+        schema={doc.schema || []}
         prevStep={prevStep}
         nextStep={nextStep}
       />

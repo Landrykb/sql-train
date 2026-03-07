@@ -46,6 +46,38 @@ sections:
       plt.tight_layout()
       plt.show()
     explanation: "Short tenure + high monthly charges + month-to-month contracts = high churn risk. These patterns guide feature engineering and business interventions."
+schema:
+  - customerID
+  - gender
+  - SeniorCitizen
+  - Partner
+  - Dependents
+  - tenure
+  - PhoneService
+  - MultipleLines
+  - InternetService
+  - Contract
+  - MonthlyCharges
+  - TotalCharges
+  - Churn
+thought_process:
+  - "Load the dataset and check shape, column names, and data types"
+  - "Check the churn rate — is the dataset imbalanced?"
+  - "Visualize tenure and monthly charges by churn status"
+  - "Examine churn rate by contract type and internet service"
+  - "Identify the strongest predictors of churn visually"
+solution_code: |
+  import pandas as pd
+
+  df = pd.read_csv('telco_churn.csv')
+  print(f"Shape: {df.shape}")
+  print(f"\nChurn distribution:\n{df['Churn'].value_counts(normalize=True).round(3)}")
+  print(f"\nChurn rate by contract:\n{df.groupby('Contract')['Churn'].apply(lambda x: (x=='Yes').mean()).round(3)}")
+expected_output: |
+  Shape: (7043, 21)
+  Churn distribution:
+  No     0.735
+  Yes    0.265
 hints:
   - "Use df.describe() to see statistical summaries"
   - "Check correlations: df.corr()['Churn_numeric']"

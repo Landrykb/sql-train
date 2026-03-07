@@ -51,6 +51,35 @@ sections:
       plt.tight_layout()
       plt.show()
     explanation: "The 80/20 rule often applies: 20% of facilities/sources cause 80% of emissions. Focusing reduction efforts on hotspots maximizes impact per dollar spent."
+schema:
+  - company
+  - facility
+  - electricity_kwh
+  - natural_gas_mmbtu
+  - diesel_liters
+  - flight_km
+  - total_footprint
+thought_process:
+  - "Define emission factors for each energy/activity source"
+  - "Multiply activity data by emission factors to get CO2 equivalents"
+  - "Sum all sources for total carbon footprint per facility"
+  - "Identify the largest emission hotspots (80/20 rule)"
+solution_code: |
+  import pandas as pd
+
+  df = pd.read_csv('corporate_emissions.csv')
+  emission_factors = {'electricity_kwh': 0.000417, 'natural_gas_mmbtu': 0.0531, 'diesel_liters': 0.00267}
+  for source, factor in emission_factors.items():
+      if source in df.columns:
+          df[f'co2_{source}'] = df[source] * factor
+  co2_cols = [c for c in df.columns if c.startswith('co2_')]
+  df['total_footprint'] = df[co2_cols].sum(axis=1)
+  print(f"Carbon Footprint Breakdown:\n{df[co2_cols].sum().sort_values(ascending=False).round(1)}")
+expected_output: |
+  Carbon Footprint Breakdown:
+  co2_natural_gas_mmbtu    4500.3
+  co2_electricity_kwh      2100.8
+  co2_diesel_liters         890.2
 hints:
   - "Use location-based vs market-based factors for Scope 2"
   - "Consider Scope 3 categories: purchased goods, business travel, employee commuting"

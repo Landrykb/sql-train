@@ -43,6 +43,35 @@ sections:
       plt.tight_layout()
       plt.show()
     explanation: "Stacked bars show the scope composition per sector. Time trends reveal whether corporate decarbonization pledges are translating into actual reductions."
+schema:
+  - company
+  - sector
+  - year
+  - scope1
+  - scope2
+  - scope3
+  - revenue
+  - region
+thought_process:
+  - "Load emissions data and check unique companies and year range"
+  - "Understand Scope 1/2/3 breakdown — Scope 3 is usually largest"
+  - "Visualize emissions by sector with stacked bars"
+  - "Track total emissions over time to see trends"
+solution_code: |
+  import pandas as pd
+
+  emissions = pd.read_csv('corporate_emissions.csv')
+  print(f"Companies: {emissions['company'].nunique()}")
+  print(f"Years: {emissions['year'].min()}-{emissions['year'].max()}")
+  print(f"\nScope breakdown (avg MT CO2e):")
+  print(emissions[['scope1', 'scope2', 'scope3']].mean().round(0))
+expected_output: |
+  Companies: 200
+  Years: 2015-2023
+  Scope breakdown (avg MT CO2e):
+  scope1     450.0
+  scope2     180.0
+  scope3    2100.0
 hints:
   - "Calculate carbon intensity: emissions / revenue for fair comparison"
   - "Look for companies with Science Based Targets (SBTi)"

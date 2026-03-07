@@ -61,6 +61,44 @@ sections:
       plt.tight_layout()
       plt.show()
     explanation: "Feature importance reveals what matters most — is weather more predictive than time of day? This insight is valuable for operations teams to prioritize their response strategies."
+schema:
+  - hour
+  - day_of_week
+  - month
+  - is_weekend
+  - is_rush_hour
+  - weather_encoded
+  - event_encoded
+  - weather_rush
+  - event_peak
+  - temperature
+  - delay_minutes
+thought_process:
+  - "Split data 80/20 with a fixed random_state for reproducibility"
+  - "Train a simple baseline (Linear Regression) first"
+  - "Train ensemble models (Random Forest, XGBoost) for comparison"
+  - "Compare MAE and R² across all models"
+  - "Examine feature importance to understand what drives predictions"
+solution_code: |
+  from sklearn.model_selection import train_test_split
+  from sklearn.linear_model import LinearRegression
+  from sklearn.ensemble import RandomForestRegressor
+  from sklearn.metrics import mean_absolute_error, r2_score
+
+  X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+  models = {
+      'Linear Regression': LinearRegression(),
+      'Random Forest': RandomForestRegressor(n_estimators=100, random_state=42),
+  }
+  for name, model in models.items():
+      model.fit(X_train, y_train)
+      y_pred = model.predict(X_test)
+      mae = mean_absolute_error(y_test, y_pred)
+      r2 = r2_score(y_test, y_pred)
+      print(f"{name}: MAE={mae:.2f}, R²={r2:.4f}")
+expected_output: |
+  Linear Regression: MAE=8.45, R²=0.4523
+  Random Forest: MAE=5.12, R²=0.7891
 hints:
   - "Try GridSearchCV for hyperparameter tuning"
   - "Use cross_val_score for more robust evaluation"

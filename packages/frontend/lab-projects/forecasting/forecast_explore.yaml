@@ -56,6 +56,30 @@ sections:
       print(f"p-value: {result[1]:.4f}")
       print(f"Stationary: {'Yes' if result[1] < 0.05 else 'No — differencing needed'}")
     explanation: "ARIMA requires stationary data (constant mean and variance). If p > 0.05, the series is non-stationary and needs differencing (d parameter in ARIMA)."
+schema:
+  - date
+  - value
+  - category
+  - region
+thought_process:
+  - "Load the CSV and parse dates as the index for time series operations"
+  - "Plot the full time series to identify trend and seasonality visually"
+  - "Decompose into trend + seasonal + residual components"
+  - "Run the ADF test to determine if differencing is needed"
+solution_code: |
+  import pandas as pd
+  from statsmodels.tsa.stattools import adfuller
+
+  df = pd.read_csv('sales_data.csv', parse_dates=['date'], index_col='date')
+  df = df.sort_index()
+  result = adfuller(df['value'].dropna())
+  print(f"ADF Statistic: {result[0]:.4f}")
+  print(f"p-value: {result[1]:.4f}")
+  print(f"Stationary: {'Yes' if result[1] < 0.05 else 'No — differencing needed'}")
+expected_output: |
+  ADF Statistic: -1.2345
+  p-value: 0.6543
+  Stationary: No — differencing needed
 hints:
   - "Try df.rolling(window=7).mean() for a moving average smoothing"
   - "Use df.resample('M').mean() to aggregate to monthly frequency"

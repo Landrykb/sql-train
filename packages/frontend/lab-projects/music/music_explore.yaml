@@ -41,6 +41,40 @@ sections:
       plt.tight_layout()
       plt.show()
     explanation: "Most tracks have low popularity — the music industry follows a power law. Understanding genre trends helps focus the analysis."
+schema:
+  - track_id
+  - artists
+  - album_name
+  - track_name
+  - popularity
+  - duration_ms
+  - danceability
+  - energy
+  - loudness
+  - speechiness
+  - acousticness
+  - instrumentalness
+  - liveness
+  - valence
+  - tempo
+  - track_genre
+thought_process:
+  - "Load the dataset and check its shape and column names"
+  - "Understand the audio feature scales (most are 0-1)"
+  - "Check the popularity distribution — is it normal or skewed?"
+  - "Identify top genres by average popularity"
+solution_code: |
+  import pandas as pd
+
+  df = pd.read_csv('spotify_tracks.csv')
+  print(f"Shape: {df.shape}")
+  print(f"Popularity stats:\n{df['popularity'].describe()}")
+  print(f"\nTop 5 genres by avg popularity:\n{df.groupby('track_genre')['popularity'].mean().nlargest(5)}")
+expected_output: |
+  Shape: (114000, 20)
+  Popularity stats:
+  count    114000.0
+  mean         33.2
 hints:
   - "Use df.describe() for statistical overview of audio features"
   - "Try sns.pairplot for relationships between audio features"

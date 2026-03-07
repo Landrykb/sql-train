@@ -42,6 +42,28 @@ sections:
           print(f"  Countries below threshold: {at_risk} / {len(df_country)}")
           print(f"  Most affected: {df_country.loc[adjusted.nsmallest(3).index, 'country'].tolist()}")
     explanation: "Each degree of warming reduces global yields by roughly 5-10%. The impacts are uneven — tropical developing nations face the largest losses, deepening existing food inequality."
+schema:
+  - country
+  - total_production
+  - population
+  - imports
+  - self_sufficiency
+  - per_capita_kg
+thought_process:
+  - "Calculate self-sufficiency ratio per country"
+  - "Compute per-capita food availability"
+  - "Model yield reduction under 1.5°C, 2°C, 3°C warming scenarios"
+  - "Identify most vulnerable countries under each scenario"
+solution_code: |
+  scenarios = {'+1.5°C': -0.05, '+2.0°C': -0.10, '+3.0°C': -0.20}
+  print("=== CLIMATE IMPACT ON FOOD SECURITY ===")
+  for scenario, yield_change in scenarios.items():
+      print(f"{scenario}: Avg yield change {yield_change*100:+.0f}%")
+expected_output: |
+  === CLIMATE IMPACT ON FOOD SECURITY ===
+  +1.5°C: Avg yield change -5%
+  +2.0°C: Avg yield change -10%
+  +3.0°C: Avg yield change -20%
 hints:
   - "Add trade disruption scenarios (e.g., major exporter ban)"
   - "Consider nutritional quality, not just caloric quantity"

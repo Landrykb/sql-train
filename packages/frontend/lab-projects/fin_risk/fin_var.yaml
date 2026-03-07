@@ -60,6 +60,34 @@ sections:
       print(f"  Parametric:  {var_param*100:.2f}%")
       print(f"  Monte Carlo: {var_mc*100:.2f}%")
     explanation: "Monte Carlo generates random scenarios from the estimated distribution. With enough simulations, it converges to the parametric result. Use t-distribution instead of normal for fatter tails."
+schema:
+  - date
+  - AAPL
+  - MSFT
+  - GOOGL
+  - AMZN
+  - SPY
+thought_process:
+  - "Create equal-weight portfolio returns"
+  - "Calculate Historical VaR at 95% confidence (5th percentile)"
+  - "Calculate CVaR (Expected Shortfall) — avg of worst 5%"
+  - "Compute Parametric VaR assuming normal distribution"
+  - "Run Monte Carlo simulation with 10,000 scenarios"
+  - "Compare all three VaR methods"
+solution_code: |
+  import numpy as np
+  import pandas as pd
+
+  prices = pd.read_csv('stock_prices.csv', parse_dates=['date'], index_col='date')
+  returns = prices.pct_change().dropna()
+  portfolio_returns = returns.mean(axis=1)
+  var_hist = np.percentile(portfolio_returns, 5)
+  cvar_hist = portfolio_returns[portfolio_returns <= var_hist].mean()
+  print(f"Historical VaR (95%): {var_hist*100:.2f}%")
+  print(f"CVaR (Expected Shortfall): {cvar_hist*100:.2f}%")
+expected_output: |
+  Historical VaR (95%): -1.82%
+  CVaR (Expected Shortfall): -2.94%
 hints:
   - "Try Student-t distribution for more realistic fat tails"
   - "Scale daily VaR to 10-day: VaR_10d = VaR_1d × √10"

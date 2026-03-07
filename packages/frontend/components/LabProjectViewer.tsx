@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { BleepxFace, BleepxGhost } from '@/components/BleepxIcons';
+import PythonTerminal from '@/components/PythonTerminal';
+import { useProgress } from '@/lib/useProgress';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -26,6 +28,10 @@ interface LabProjectViewerProps {
   sections: Section[];
   hints: string[];
   learningObjectives: string[];
+  thoughtProcess?: string[];
+  solutionCode?: string;
+  expectedOutput?: string;
+  schema?: string[];
   prevStep?: { id: string; name: string } | null;
   nextStep?: { id: string; name: string } | null;
 }
@@ -75,12 +81,45 @@ export default function LabProjectViewer({
   sections,
   hints,
   learningObjectives,
+  thoughtProcess,
+  solutionCode,
+  expectedOutput,
+  schema,
   prevStep,
   nextStep,
 }: LabProjectViewerProps) {
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set([0]));
   const [showHints, setShowHints] = useState(false);
+  const [showThoughtProcess, setShowThoughtProcess] = useState(false);
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
+  const [stepSolved, setStepSolved] = useState(false);
+  const { markComplete: markProgressComplete } = useProgress();
+
+  // Restore completion state from localStorage
+  useEffect(() => {
+    const key = `bleepx_lab_step_${projectId}`;
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.completed) setCompletedSections(new Set(data.completedSections || []));
+        if (data.solved) setStepSolved(true);
+      } catch { /* ignore */ }
+    }
+  }, [projectId]);
+
+  // Save completion state
+  useEffect(() => {
+    if (completedSections.size > 0 || stepSolved) {
+      const key = `bleepx_lab_step_${projectId}`;
+      localStorage.setItem(key, JSON.stringify({
+        completed: completedSections.size >= sections.length,
+        completedSections: Array.from(completedSections),
+        solved: stepSolved,
+        ts: Date.now(),
+      }));
+    }
+  }, [completedSections, stepSolved, projectId, sections.length]);
 
   const toggleSection = (idx: number) => {
     setExpandedSections((prev) => {
@@ -91,7 +130,7 @@ export default function LabProjectViewer({
     });
   };
 
-  const markComplete = (idx: number) => {
+  const markSectionComplete = (idx: number) => {
     setCompletedSections((prev) => {
       const next = new Set(prev);
       next.add(idx);
@@ -102,6 +141,16 @@ export default function LabProjectViewer({
       return next;
     });
   };
+
+  const handleStepSolved = useCallback(() => {
+    if (!stepSolved) {
+      setStepSolved(true);
+      // Award points via unified system
+      try {
+        markProgressComplete(`lab_${projectId}`, 2);
+      } catch { /* ignore */ }
+    }
+  }, [stepSolved, projectId, markProgressComplete]);
 
   const allComplete = completedSections.size >= sections.length;
 
@@ -141,16 +190,42 @@ export default function LabProjectViewer({
           </div>
         )}
 
-        {/* Dataset link */}
-        {datasetUrl && (
-          <a
-            href={datasetUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 inline-flex items-center gap-1.5 text-xs text-teal-600 hover:text-teal-700 hover:underline font-medium"
+        {/* Dataset & schema */}
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          {datasetUrl && (
+            <a
+              href={datasetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-teal-600 hover:text-teal-700 hover:underline font-medium"
+            >
+              📊 Download Dataset →
+            </a>
+          )}
+          <Link
+            href="/lab/guide"
+            className="inline-flex items-center gap-1.5 text-xs text-purple-600 hover:text-purple-700 hover:underline font-medium"
           >
-            📊 Download Dataset →
-          </a>
+            📖 DS Guide
+          </Link>
+          <Link
+            href="/lab/quiz"
+            className="inline-flex items-center gap-1.5 text-xs text-amber-600 hover:text-amber-700 hover:underline font-medium"
+          >
+            🧠 Take Quiz
+          </Link>
+        </div>
+
+        {/* Schema columns */}
+        {schema && schema.length > 0 && (
+          <div className="mt-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+            <h4 className="text-xs font-bold text-bleepx-text-secondary uppercase tracking-wide mb-2">Dataset Columns</h4>
+            <div className="flex flex-wrap gap-1.5">
+              {schema.map((col, i) => (
+                <code key={i} className="text-[10px] px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-bleepx-text font-mono">{col}</code>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
@@ -221,7 +296,7 @@ export default function LabProjectViewer({
                 {/* Mark complete button */}
                 {!isComplete && (
                   <button
-                    onClick={() => markComplete(idx)}
+                    onClick={() => markSectionComplete(idx)}
                     className="px-4 py-2 rounded-full bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-colors shadow-sm"
                   >
                     ✅ Mark as Complete
@@ -232,6 +307,53 @@ export default function LabProjectViewer({
           </div>
         );
       })}
+
+      {/* Python Terminal — Try It Yourself */}
+      <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border p-4 sm:p-5">
+        <h3 className="text-sm font-bold text-bleepx-text mb-3 flex items-center gap-2">
+          <span className="text-lg">🐍</span> Try It Yourself
+          {stepSolved && <span className="text-xs font-bold text-green-600 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30">✅ Solved</span>}
+        </h3>
+        <PythonTerminal
+          initialCode={solutionCode ? `# Write your solution here\n# Follow the steps above and produce the expected output\n\nimport pandas as pd\nimport numpy as np\n` : sections.map(s => s.code).join('\n\n')}
+          expectedOutput={expectedOutput}
+          solutionCode={solutionCode}
+          hints={hints}
+          onSolved={handleStepSolved}
+          height="250px"
+        />
+      </div>
+
+      {/* Thought Process */}
+      {thoughtProcess && thoughtProcess.length > 0 && (
+        <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border p-4 sm:p-5">
+          <button
+            onClick={() => setShowThoughtProcess(!showThoughtProcess)}
+            className="flex items-center gap-2 w-full text-left"
+          >
+            <span className="text-lg">🧠</span>
+            <span className="text-sm font-bold text-bleepx-text">
+              {showThoughtProcess ? 'Hide Thought Process' : 'View Thought Process'}
+            </span>
+            <svg
+              className={`w-4 h-4 text-bleepx-text-secondary ml-auto transition-transform ${showThoughtProcess ? 'rotate-180' : ''}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {showThoughtProcess && (
+            <ol className="mt-3 space-y-2">
+              {thoughtProcess.map((step, i) => (
+                <li key={i} className="text-xs text-bleepx-text-secondary flex items-start gap-2">
+                  <span className="w-5 h-5 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center text-[10px] font-bold text-teal-700 dark:text-teal-300 flex-shrink-0 mt-0.5">{i + 1}</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+      )}
 
       {/* Hints */}
       {hints.length > 0 && (
@@ -265,13 +387,25 @@ export default function LabProjectViewer({
       )}
 
       {/* All complete celebration */}
-      {allComplete && (
+      {(allComplete || stepSolved) && (
         <div className="bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 rounded-2xl border border-teal-200 dark:border-teal-700 p-5 text-center">
           <div className="text-3xl mb-2">🎉</div>
-          <h3 className="text-lg font-bold text-teal-700 dark:text-teal-300">Step Complete!</h3>
+          <h3 className="text-lg font-bold text-teal-700 dark:text-teal-300">
+            {stepSolved ? 'Step Solved!' : 'Step Complete!'}
+          </h3>
           <p className="text-sm text-teal-600 dark:text-teal-400 mt-1">
-            You&apos;ve completed all sections in this step.
+            {stepSolved
+              ? 'Your code produces the correct output. Points earned!'
+              : 'You\'ve completed all sections in this step.'}
           </p>
+          {nextStep && (
+            <Link
+              href={`/lab/${domain}/${nextStep.id}`}
+              className="inline-block mt-3 px-5 py-2 rounded-full bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-colors shadow-sm"
+            >
+              Continue to {nextStep.name} →
+            </Link>
+          )}
         </div>
       )}
 

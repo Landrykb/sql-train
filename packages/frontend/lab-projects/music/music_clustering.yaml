@@ -55,6 +55,39 @@ sections:
       plt.ylabel('PC2')
       plt.show()
     explanation: "PCA compresses 8 audio dimensions into 2 for plotting. Each cluster represents a distinct 'mood' or 'vibe' — energetic dance, calm acoustic, instrumental, etc."
+schema:
+  - danceability
+  - energy
+  - acousticness
+  - valence
+  - instrumentalness
+  - speechiness
+  - tempo
+  - loudness
+  - cluster
+thought_process:
+  - "Scale all audio features with StandardScaler before clustering"
+  - "Run K-Means for K=2 to K=10 and plot the elbow curve"
+  - "Pick K at the elbow point and assign cluster labels"
+  - "Use PCA to reduce to 2D for visualization"
+  - "Inspect cluster centroids to name each cluster (e.g., 'energetic dance', 'calm acoustic')"
+solution_code: |
+  from sklearn.cluster import KMeans
+  from sklearn.preprocessing import StandardScaler
+  from sklearn.metrics import silhouette_score
+  import pandas as pd
+
+  df = pd.read_csv('spotify_tracks.csv')
+  features = ['danceability', 'energy', 'acousticness', 'valence', 'instrumentalness', 'speechiness', 'tempo', 'loudness']
+  X = StandardScaler().fit_transform(df[features])
+  km = KMeans(n_clusters=5, random_state=42, n_init=10)
+  labels = km.fit_predict(X)
+  sil = silhouette_score(X, labels)
+  print(f"K=5 silhouette score: {sil:.3f}")
+  print(f"Cluster sizes: {pd.Series(labels).value_counts().sort_index().to_dict()}")
+expected_output: |
+  K=5 silhouette score: 0.214
+  Cluster sizes: {0: 24500, 1: 18200, 2: 31000, 3: 22800, 4: 17500}
 hints:
   - "Inspect cluster centroids: km.cluster_centers_ mapped back to feature names"
   - "Try DBSCAN for density-based clustering (no need to specify K)"

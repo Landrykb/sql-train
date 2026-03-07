@@ -63,6 +63,35 @@ sections:
       plt.legend()
       plt.show()
     explanation: "The aggressive pathway targets 7% annual reduction (SBTi 1.5°C aligned). Net-zero means residual emissions <5% of baseline, with offsets covering the rest."
+schema:
+  - year
+  - total_footprint
+  - scope1
+  - scope2
+  - scope3
+thought_process:
+  - "Aggregate historical emissions by year"
+  - "Fit a linear regression to project baseline (BAU) trajectory"
+  - "Model 3 reduction scenarios: aggressive (7%), moderate (4%), conservative (2%)"
+  - "Calculate net-zero year for each scenario (<5% of baseline)"
+solution_code: |
+  import numpy as np
+  import pandas as pd
+
+  emissions = pd.read_csv('corporate_emissions.csv')
+  yearly = emissions.groupby('year')[['scope1','scope2','scope3']].sum()
+  yearly['total'] = yearly.sum(axis=1)
+  base = yearly['total'].iloc[-1]
+  for rate, name in [(0.07, 'Aggressive'), (0.04, 'Moderate'), (0.02, 'Conservative')]:
+      trajectory = [base]
+      for _ in range(27):
+          trajectory.append(trajectory[-1] * (1 - rate))
+      nz_year = 2024 + next((i for i, v in enumerate(trajectory) if v < base*0.05), 27)
+      print(f"{name} ({rate*100:.0f}%/yr): Net-zero ~{nz_year}")
+expected_output: |
+  Aggressive (7%/yr): Net-zero ~2037
+  Moderate (4%/yr): Net-zero ~2048
+  Conservative (2%/yr): Net-zero ~2051
 hints:
   - "Consider technology adoption curves (S-curves) for realistic modeling"
   - "Add cost estimates per ton of CO2 reduced for each intervention"

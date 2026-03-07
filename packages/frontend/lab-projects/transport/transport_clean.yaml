@@ -52,6 +52,45 @@ sections:
       df = df[(df['delay_minutes'] >= lower) & (df['delay_minutes'] <= upper)]
       print(f"Removed {before - len(df)} outlier rows")
     explanation: "IQR-based outlier removal keeps 99.3% of normally distributed data. Extreme delays may be data errors or rare events that hurt model generalization."
+schema:
+  - route_id
+  - date
+  - time
+  - delay_minutes
+  - weather_condition
+  - temperature
+  - event_type
+  - day_of_week
+  - passenger_count
+  - vehicle_type
+thought_process:
+  - "Identify which columns have missing values and their percentages"
+  - "Choose imputation strategy based on data type: median for numbers, mode for categories"
+  - "Parse date strings into datetime objects to extract time features"
+  - "Use IQR method to detect and remove extreme outliers in delay_minutes"
+  - "Verify no nulls remain and check shape after cleaning"
+solution_code: |
+  import pandas as pd
+  import numpy as np
+
+  df = pd.read_csv('transport_delays.csv')
+  num_cols = df.select_dtypes(include=[np.number]).columns
+  df[num_cols] = df[num_cols].fillna(df[num_cols].median())
+  cat_cols = df.select_dtypes(include=['object']).columns
+  for col in cat_cols:
+      df[col] = df[col].fillna(df[col].mode()[0])
+  df['date'] = pd.to_datetime(df['date'])
+  df['hour'] = df['date'].dt.hour
+  df['is_weekend'] = df['date'].dt.dayofweek.isin([5, 6]).astype(int)
+  Q1 = df['delay_minutes'].quantile(0.25)
+  Q3 = df['delay_minutes'].quantile(0.75)
+  IQR = Q3 - Q1
+  df = df[(df['delay_minutes'] >= Q1 - 1.5*IQR) & (df['delay_minutes'] <= Q3 + 1.5*IQR)]
+  print(f"Remaining nulls: {df.isnull().sum().sum()}")
+  print(f"Clean shape: {df.shape}")
+expected_output: |
+  Remaining nulls: 0
+  Clean shape: (4750, 13)
 hints:
   - "Use df.duplicated().sum() to check for duplicate rows"
   - "Consider pd.get_dummies() for one-hot encoding categoricals"

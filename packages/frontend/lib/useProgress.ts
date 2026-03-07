@@ -10,6 +10,7 @@ import { syncProgress, pushProgress, syncCurrentProgress } from './progressSync'
 import { supabase } from './supabase';
 import { updateTotalPointsEarned, getActivePerks, getStoreState, saveStoreState } from './pointsStore';
 import { CASE_TIERS } from './constants';
+import { LAB_CASE_TIERS, LAB_CASE_ORDER } from './labConstants';
 
 export function useProgress() {
   const [completed, setCompleted] = useState<Set<string>>(new Set());
@@ -34,9 +35,9 @@ export function useProgress() {
     const storedCompleted = getCompletedCases();
     setCompleted(storedCompleted);
 
-    // Recalculate earned points from completed cases using known tier data
+    // Recalculate earned points from completed cases using known tier data (Query + Lab)
     const correctEarned = Array.from(storedCompleted).reduce((sum, caseId) => {
-      const tier = CASE_TIERS[caseId] || 1;
+      const tier = CASE_TIERS[caseId] || LAB_CASE_TIERS[caseId] || 1;
       return sum + tier * 10;
     }, 0);
     const store = getStoreState();
@@ -84,7 +85,7 @@ export function useProgress() {
         try {
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (key && (key.startsWith('bleepx_quiz_') || key === 'bleepx_master_quiz' || key === 'bleepx_master_quiz_progress')) {
+            if (key && (key.startsWith('bleepx_quiz_') || key.startsWith('bleepx_lab_quiz_') || key === 'bleepx_master_quiz' || key === 'bleepx_master_quiz_progress')) {
               const val = localStorage.getItem(key);
               if (val) localQuizScores[key] = JSON.parse(val);
             }
@@ -227,6 +228,31 @@ export function useProgress() {
         const domainCases = Array.from(next).filter((id) => id.startsWith(domain));
         if (domainCases.length >= 5 && !newAchievements.includes(`Tokyo Query Pro: ${domain}`)) {
           newAchievements.push(`Tokyo Query Pro: ${domain}`);
+        }
+
+        // Lab-specific achievements
+        const allLabIds = Object.values(LAB_CASE_ORDER).flat();
+        const labCompleted = Array.from(next).filter((id) => allLabIds.includes(id));
+        if (labCompleted.length >= 1 && !newAchievements.includes('Lab Pioneer')) {
+          newAchievements.push('Lab Pioneer');
+        }
+        if (labCompleted.length >= 10 && !newAchievements.includes('Data Scientist')) {
+          newAchievements.push('Data Scientist');
+        }
+        if (labCompleted.length >= 20 && !newAchievements.includes('Lab Legend')) {
+          newAchievements.push('Lab Legend');
+        }
+        // Check if any Lab domain is fully completed
+        for (const [labDomain, labCases] of Object.entries(LAB_CASE_ORDER)) {
+          const allDone = labCases.every((lc) => next.has(lc));
+          if (allDone && !newAchievements.includes(`Lab Master: ${labDomain}`)) {
+            newAchievements.push(`Lab Master: ${labDomain}`);
+          }
+        }
+        // Full Lab completion
+        const allLabDone = allLabIds.every((id) => next.has(id));
+        if (allLabDone && !newAchievements.includes('Full Stack Data Scientist')) {
+          newAchievements.push('Full Stack Data Scientist');
         }
         if (newAchievements.length > achievements.length) {
           setAchievements(newAchievements);

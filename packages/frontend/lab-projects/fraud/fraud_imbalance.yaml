@@ -48,6 +48,36 @@ sections:
       y_pred = model_balanced.predict(X_test)
       print(classification_report(y_test, y_pred))
     explanation: "class_weight='balanced' increases the penalty for misclassifying the minority class proportionally to the imbalance ratio. No resampling needed."
+schema:
+  - V1
+  - V2
+  - V3
+  - V14
+  - V17
+  - Amount
+  - Class
+thought_process:
+  - "Split data with stratification to preserve the fraud ratio"
+  - "Apply undersampling to reduce majority class to match minority"
+  - "Apply SMOTE to create synthetic fraud examples"
+  - "Compare both approaches on the same test set"
+  - "Try cost-sensitive learning (class_weight='balanced') as an alternative"
+solution_code: |
+  from imblearn.over_sampling import SMOTE
+  from sklearn.model_selection import train_test_split
+  import pandas as pd
+
+  df = pd.read_csv('creditcard.csv')
+  X = df.drop('Class', axis=1)
+  y = df['Class']
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+  smote = SMOTE(random_state=42)
+  X_smote, y_smote = smote.fit_resample(X_train, y_train)
+  print(f"Original: {y_train.value_counts().to_dict()}")
+  print(f"After SMOTE: {pd.Series(y_smote).value_counts().to_dict()}")
+expected_output: |
+  Original: {0: 227451, 1: 394}
+  After SMOTE: {0: 227451, 1: 227451}
 hints:
   - "For fraud, recall (catching fraud) is more important than precision"
   - "Try combining undersampling + SMOTE with imblearn's SMOTEENN"

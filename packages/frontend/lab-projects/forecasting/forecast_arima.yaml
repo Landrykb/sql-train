@@ -55,6 +55,28 @@ sections:
       plt.title('30-Day ARIMA Forecast')
       plt.show()
     explanation: "The shaded region shows the 95% confidence interval — it widens as we forecast further ahead because uncertainty grows. Narrow bands = more confident predictions."
+schema:
+  - date
+  - value
+thought_process:
+  - "Use ACF/PACF results to pick initial (p,d,q) parameters"
+  - "Fit an ARIMA model and examine the summary for AIC and coefficients"
+  - "Use auto_arima for automated parameter search with AIC minimization"
+  - "Generate a 30-day forecast with confidence intervals"
+  - "Plot forecast alongside historical data for visual validation"
+solution_code: |
+  from pmdarima import auto_arima
+  import pandas as pd
+
+  df = pd.read_csv('sales_data.csv', parse_dates=['date'], index_col='date')
+  auto_model = auto_arima(df['value'], seasonal=True, m=7, stepwise=True, suppress_warnings=True)
+  print(f"Best order: {auto_model.order}")
+  print(f"Seasonal order: {auto_model.seasonal_order}")
+  print(f"AIC: {auto_model.aic():.2f}")
+expected_output: |
+  Best order: (2, 1, 2)
+  Seasonal order: (1, 0, 1, 7)
+  AIC: 3245.67
 hints:
   - "Lower AIC = better model (penalizes complexity)"
   - "Check residuals: they should look like white noise"

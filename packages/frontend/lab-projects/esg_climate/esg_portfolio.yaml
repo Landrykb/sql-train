@@ -39,6 +39,36 @@ sections:
           impact = (df['tilt'] * df[col]).sum() * 100
           print(f"  {col}: {impact:+.2f}%")
     explanation: "This report follows TCFD (Task Force on Climate-related Financial Disclosures) recommendations. Institutional investors increasingly require this level of climate transparency."
+schema:
+  - company_id
+  - sector
+  - custom_esg
+  - market_cap
+  - annual_return
+  - co2_emissions_mt
+  - revenue
+thought_process:
+  - "Create ESG-tilted weights by blending market-cap and ESG scores"
+  - "Compare ESG portfolio return vs market-cap weighted return"
+  - "Calculate weighted average ESG score and carbon intensity"
+  - "Generate a TCFD-aligned climate risk summary report"
+solution_code: |
+  import pandas as pd
+
+  df = pd.read_csv('esg_portfolio.csv')
+  df['esg_weight'] = df['custom_esg'] / df['custom_esg'].sum()
+  df['market_weight'] = df['market_cap'] / df['market_cap'].sum()
+  df['tilt'] = 0.5 * df['market_weight'] + 0.5 * df['esg_weight']
+  df['tilt'] = df['tilt'] / df['tilt'].sum()
+  esg_return = (df['tilt'] * df['annual_return']).sum()
+  market_return = (df['market_weight'] * df['annual_return']).sum()
+  print(f"ESG Portfolio Return: {esg_return:.2f}%")
+  print(f"Market Portfolio Return: {market_return:.2f}%")
+  print(f"ESG Premium: {esg_return - market_return:.2f}%")
+expected_output: |
+  ESG Portfolio Return: 11.45%
+  Market Portfolio Return: 10.82%
+  ESG Premium: 0.63%
 hints:
   - "Try mean-variance optimization with ESG constraints"
   - "Add a carbon budget constraint: max X tons CO2 per $M invested"

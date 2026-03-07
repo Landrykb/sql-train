@@ -56,6 +56,36 @@ sections:
       plt.tight_layout()
       plt.show()
     explanation: "Histograms reveal the delay distribution shape. Bar charts show which weather conditions correlate with longer delays — key for feature engineering later."
+schema:
+  - route_id
+  - date
+  - time
+  - delay_minutes
+  - weather_condition
+  - temperature
+  - event_type
+  - day_of_week
+  - passenger_count
+  - vehicle_type
+thought_process:
+  - "Load the dataset and check its shape to understand the data volume"
+  - "Examine column names and data types to plan your analysis"
+  - "Check for missing values — they'll affect model accuracy later"
+  - "Visualize delay distribution to understand if it's normal, skewed, or multimodal"
+  - "Group by weather condition to see which conditions cause the worst delays"
+solution_code: |
+  import pandas as pd
+  import numpy as np
+
+  df = pd.read_csv('transport_delays.csv')
+  print(f"Shape: {df.shape}")
+  print(f"Columns: {df.columns.tolist()}")
+  print(f"Missing values:\n{df.isnull().sum()}")
+  print(f"\nDelay stats:\n{df['delay_minutes'].describe()}")
+  print(f"\nAvg delay by weather:\n{df.groupby('weather_condition')['delay_minutes'].mean().sort_values(ascending=False)}")
+expected_output: |
+  Shape: (5000, 10)
+  Columns: ['route_id', 'date', 'time', 'delay_minutes', 'weather_condition', 'temperature', 'event_type', 'day_of_week', 'passenger_count', 'vehicle_type']
 hints:
   - "Use sns.heatmap(df.corr(), annot=True) for a correlation matrix"
   - "Try df.value_counts() on categorical columns"

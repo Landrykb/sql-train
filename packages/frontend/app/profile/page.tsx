@@ -6,6 +6,7 @@ import { getGitHubUser, clearGitHubUser, startGitHubLogin, logoutUser, GitHubUse
 import { useProgress } from '@/lib/useProgress';
 import { useTheme } from '@/lib/useTheme';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
+import { LAB_CASE_ORDER, LAB_DOMAIN_META } from '@/lib/labConstants';
 import { playBleep } from '@/lib/audio';
 import PointsShop from '@/components/PointsShop';
 import { getStoreState, getActivePerks, TITLES, BADGES, type StoreState } from '@/lib/pointsStore';
@@ -302,6 +303,42 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Lab Progress */}
+          <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
+            <h2 className="text-lg font-bold mb-4 text-bleepx-text flex items-center gap-2">
+              <span>🔬</span> BleepxLab Progress
+            </h2>
+            <div className="space-y-3">
+              {Object.entries(LAB_CASE_ORDER).map(([domain, cases]) => {
+                const solved = cases.filter(c => completed.has(c)).length;
+                const total = cases.length;
+                const pct = total ? Math.round((solved / total) * 100) : 0;
+                const meta = LAB_DOMAIN_META[domain];
+                return (
+                  <Link key={domain} href={`/lab/${domain}`} className="block group">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl flex-shrink-0">{meta?.icon || '📊'}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-baseline">
+                          <p className="text-sm font-medium truncate group-hover:text-teal-500 transition-colors text-bleepx-text">
+                            {meta?.name || domain}
+                          </p>
+                          <span className="text-xs text-bleepx-text-secondary ml-2 flex-shrink-0">{solved}/{total}</span>
+                        </div>
+                        <div className="mt-1 h-2 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${pct === 100 ? 'bg-emerald-500' : 'bg-teal-500'}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
           {/* GitHub Connection */}
           {!isSignedIn && (
             <div className="rounded-xl shadow-lg p-4 sm:p-6 border-2 border-dashed bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600">
@@ -339,6 +376,11 @@ export default function ProfilePage() {
                 { id: 'speed_demon', icon: '⚡', title: 'Speed Demon', desc: 'Average solve time under 2 min', unlocked: solveTimeStats.avgTime > 0 && solveTimeStats.avgTime < 120 },
                 { id: 'persistent', icon: '💪', title: 'Persistent', desc: 'Make 50+ total attempts', unlocked: solveTimeStats.totalAttempts >= 50 },
                 { id: 'all_domains', icon: '🏅', title: 'SQL Grandmaster', desc: 'Complete ALL domains', unlocked: stats.completedDomains === DOMAINS.length },
+              // Lab achievements
+              { id: 'lab_pioneer', icon: '🔬', title: 'Lab Pioneer', desc: 'Complete your first Lab step', unlocked: (() => { const allLab = Object.values(LAB_CASE_ORDER).flat(); return allLab.some(id => completed.has(id)); })() },
+              { id: 'data_scientist', icon: '🧪', title: 'Data Scientist', desc: 'Complete 10 Lab steps', unlocked: (() => { const allLab = Object.values(LAB_CASE_ORDER).flat(); return allLab.filter(id => completed.has(id)).length >= 10; })() },
+              { id: 'lab_legend', icon: '🧬', title: 'Lab Legend', desc: 'Complete 20 Lab steps', unlocked: (() => { const allLab = Object.values(LAB_CASE_ORDER).flat(); return allLab.filter(id => completed.has(id)).length >= 20; })() },
+              { id: 'full_stack_ds', icon: '🎓', title: 'Full Stack Data Scientist', desc: 'Complete ALL Lab projects', unlocked: (() => { const allLab = Object.values(LAB_CASE_ORDER).flat(); return allLab.every(id => completed.has(id)); })() },
               ].map((a) => (
                 <div
                   key={a.id}

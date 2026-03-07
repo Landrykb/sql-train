@@ -44,6 +44,32 @@ sections:
           df[f'impact_{name[:4]}'] = -carbon_hit + green_boost - physical
           print(f"{name}: Avg portfolio impact = {df[f'impact_{name[:4]}'].mean()*100:.2f}%")
     explanation: "Scenario analysis is how regulators (TCFD) require climate risk disclosure. The 1.5°C scenario has the highest carbon price but also rewards green leaders."
+schema:
+  - company_id
+  - sector
+  - co2_emissions_mt
+  - revenue
+  - carbon_cost
+  - carbon_impact_pct
+thought_process:
+  - "Calculate carbon cost per company at $75/ton"
+  - "Express cost as percentage of revenue for comparability"
+  - "Rank sectors by carbon price impact"
+  - "Run 1.5°C, 2°C, 3°C scenario analysis"
+  - "Quantify portfolio-level impact under each scenario"
+solution_code: |
+  import pandas as pd
+
+  df = pd.read_csv('esg_scores.csv')
+  df['carbon_cost'] = df['co2_emissions_mt'] * 75
+  df['carbon_impact_pct'] = (df['carbon_cost'] / df['revenue']) * 100
+  sector_impact = df.groupby('sector')['carbon_impact_pct'].mean().sort_values(ascending=False)
+  print(f"Top 5 sectors by carbon price impact:\n{sector_impact.head().round(2)}")
+expected_output: |
+  Top 5 sectors by carbon price impact:
+  Energy       12.45
+  Materials     8.32
+  Utilities     6.18
 hints:
   - "Add physical risk factors: flood exposure, heat stress, water scarcity"
   - "Use Monte Carlo simulation for probabilistic scenarios"

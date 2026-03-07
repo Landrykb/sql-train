@@ -67,6 +67,36 @@ sections:
       print("Autoencoder:")
       print(classification_report(y_test, y_pred_ae))
     explanation: "The autoencoder learns to reconstruct 'normal' patterns. Fraud transactions look different, so their reconstruction error is high. The threshold controls the sensitivity."
+schema:
+  - V1
+  - V2
+  - V3
+  - V14
+  - V17
+  - Amount
+  - Class
+thought_process:
+  - "Train Isolation Forest with contamination matching fraud rate (~0.2%)"
+  - "Train LOF to detect points in low-density regions"
+  - "Build an autoencoder trained only on legitimate transactions"
+  - "Use reconstruction error as an anomaly score — high error = fraud"
+  - "Compare all methods on the same test set"
+solution_code: |
+  from sklearn.ensemble import IsolationForest
+  from sklearn.metrics import classification_report
+  import pandas as pd
+
+  df = pd.read_csv('creditcard.csv')
+  X = df.drop('Class', axis=1)
+  y = df['Class']
+  iso = IsolationForest(contamination=0.002, random_state=42, n_estimators=200)
+  y_pred = iso.fit_predict(X)
+  y_pred_binary = (y_pred == -1).astype(int)
+  print(f"Detected anomalies: {y_pred_binary.sum()}")
+  print(f"Actual fraud: {y.sum()}")
+expected_output: |
+  Detected anomalies: 570
+  Actual fraud: 492
 hints:
   - "Combine multiple anomaly detectors for ensemble detection"
   - "Use precision-recall AUC instead of ROC AUC for imbalanced data"

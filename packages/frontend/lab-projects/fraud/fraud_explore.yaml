@@ -44,6 +44,35 @@ sections:
       plt.tight_layout()
       plt.show()
     explanation: "PCA-transformed features (V1-V28) are already anonymized. Amount and Time are the only interpretable features. Fraud transactions often have different amount distributions."
+schema:
+  - Time
+  - V1
+  - V2
+  - V3
+  - V4
+  - V5
+  - V14
+  - V17
+  - Amount
+  - Class
+thought_process:
+  - "Load the dataset and check its shape"
+  - "Examine the fraud rate — expect extreme imbalance (<1%)"
+  - "Compare average Amount between fraud and legitimate"
+  - "Visualize feature correlations with the Class target"
+solution_code: |
+  import pandas as pd
+
+  df = pd.read_csv('creditcard.csv')
+  print(f"Shape: {df.shape}")
+  print(f"Fraud rate: {df['Class'].mean()*100:.3f}%")
+  print(f"Fraud count: {df['Class'].sum()}")
+  print(f"Avg fraud amount: ${df[df['Class']==1]['Amount'].mean():.2f}")
+  print(f"Avg legit amount: ${df[df['Class']==0]['Amount'].mean():.2f}")
+expected_output: |
+  Shape: (284807, 31)
+  Fraud rate: 0.173%
+  Fraud count: 492
 hints:
   - "Features V1-V28 are PCA components — already preprocessed"
   - "Use log transform on Amount for better distribution"

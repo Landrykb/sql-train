@@ -67,6 +67,37 @@ sections:
       print("- Increase buffer times during rush hour events")
       print("- Monitor the top 3 features for real-time delay alerts")
     explanation: "Data science is only valuable when insights lead to action. Frame findings in terms stakeholders care about — minutes saved, costs reduced, reliability improved."
+schema:
+  - hour
+  - day_of_week
+  - month
+  - is_weekend
+  - is_rush_hour
+  - weather_encoded
+  - event_encoded
+  - weather_rush
+  - event_peak
+  - temperature
+  - delay_minutes
+thought_process:
+  - "Compute RMSE alongside MAE for a fuller picture of error magnitude"
+  - "Plot predicted vs actual to visually assess model accuracy"
+  - "Examine residual distribution — should be centered at 0 and roughly normal"
+  - "Run 5-fold cross-validation for robust, unbiased performance estimates"
+  - "Translate technical metrics into actionable business recommendations"
+solution_code: |
+  from sklearn.model_selection import cross_val_score
+  from sklearn.metrics import mean_squared_error
+  import numpy as np
+
+  y_pred = best_model.predict(X_test)
+  rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+  cv_scores = cross_val_score(best_model, X_scaled, y, cv=5, scoring='neg_mean_absolute_error')
+  print(f"RMSE: {rmse:.2f} minutes")
+  print(f"5-Fold CV MAE: {-cv_scores.mean():.2f} ± {cv_scores.std():.2f}")
+expected_output: |
+  RMSE: 6.83 minutes
+  5-Fold CV MAE: 5.24 ± 0.31
 hints:
   - "Try SHAP values for detailed per-prediction explanations"
   - "Consider a learning curve plot to diagnose if you need more data"

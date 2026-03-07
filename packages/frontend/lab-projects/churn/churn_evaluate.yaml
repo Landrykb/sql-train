@@ -49,6 +49,31 @@ sections:
       print(f"Cost of false alarms: ${cost:,.0f}")
       print(f"Net value: ${saved - cost:,.0f}")
     explanation: "Translating ML metrics into dollars makes the model's value clear to stakeholders. This analysis justifies the project and guides threshold selection."
+schema:
+  - tenure
+  - MonthlyCharges
+  - TotalCharges
+  - Churn_binary
+thought_process:
+  - "Plot ROC curve and compute AUC to measure overall discrimination ability"
+  - "Examine the confusion matrix for TP, TN, FP, FN counts"
+  - "Calculate business impact: revenue saved by catching churners early"
+  - "Estimate cost of false alarms vs value of true positives"
+  - "Recommend optimal threshold based on business cost trade-offs"
+solution_code: |
+  from sklearn.metrics import roc_auc_score, confusion_matrix
+
+  y_proba = best.predict_proba(X_test)[:, 1]
+  auc = roc_auc_score(y_test, y_proba)
+  y_pred = best.predict(X_test)
+  tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+  print(f"AUC: {auc:.3f}")
+  print(f"TP: {tp}, FP: {fp}, FN: {fn}, TN: {tn}")
+  print(f"Churn recall: {tp/(tp+fn):.3f}")
+expected_output: |
+  AUC: 0.842
+  TP: 251, FP: 162, FN: 122, TN: 873
+  Churn recall: 0.673
 hints:
   - "Try precision_recall_curve for imbalanced classes"
   - "Use SHAP for per-customer explanations"

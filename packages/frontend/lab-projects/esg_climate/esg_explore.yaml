@@ -60,6 +60,39 @@ sections:
       corr = df[['total_esg', 'annual_return', 'volatility', 'market_cap']].corr()
       print(corr['total_esg'].round(3))
     explanation: "Research shows higher ESG companies tend to have lower volatility (risk). The return relationship is debated — ESG may protect downside more than boost upside."
+schema:
+  - company_id
+  - company_name
+  - sector
+  - environmental_score
+  - social_score
+  - governance_score
+  - total_esg
+  - annual_return
+  - volatility
+  - market_cap
+  - co2_emissions_mt
+  - revenue
+thought_process:
+  - "Load ESG scores and financial data, merge on company_id"
+  - "Summarize ESG score distributions across the three pillars"
+  - "Compare ESG performance by sector"
+  - "Test correlation between ESG scores and financial returns"
+solution_code: |
+  import pandas as pd
+
+  esg = pd.read_csv('esg_scores.csv')
+  financials = pd.read_csv('company_financials.csv')
+  df = esg.merge(financials, on='company_id', how='inner')
+  print(f"Companies: {df['company_id'].nunique()}")
+  corr = df[['total_esg', 'annual_return', 'volatility']].corr()['total_esg']
+  print(f"\nESG correlations:\n{corr.round(3)}")
+expected_output: |
+  Companies: 500
+  ESG correlations:
+  total_esg       1.000
+  annual_return   0.087
+  volatility     -0.142
 hints:
   - "Try creating ESG quintiles and comparing average returns per quintile"
   - "Look at the E-score trend over time for climate transition tracking"

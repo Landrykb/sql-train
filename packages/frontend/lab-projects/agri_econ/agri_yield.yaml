@@ -49,6 +49,41 @@ sections:
       plt.tight_layout()
       plt.show()
     explanation: "Feature importance reveals whether yields are more climate-driven or input-driven. In developing countries, inputs dominate; in developed countries, climate variability matters more."
+schema:
+  - country
+  - crop
+  - year
+  - yield_per_ha
+  - avg_temp
+  - total_rainfall
+  - drought_index
+  - soil_quality
+  - fertilizer_use
+  - irrigation_pct
+thought_process:
+  - "Merge climate data with production records on country+year"
+  - "Check correlations between climate/input features and yield"
+  - "Train a Random Forest regressor on the merged dataset"
+  - "Evaluate with R² and MAE, then examine feature importance"
+solution_code: |
+  from sklearn.ensemble import RandomForestRegressor
+  from sklearn.model_selection import train_test_split
+  from sklearn.metrics import r2_score, mean_absolute_error
+  import pandas as pd
+
+  merged = pd.read_csv('merged_agri_climate.csv')
+  features = ['avg_temp', 'total_rainfall', 'drought_index', 'soil_quality', 'fertilizer_use', 'irrigation_pct']
+  X = merged[features]
+  y = merged['yield_per_ha']
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+  model = RandomForestRegressor(n_estimators=200, random_state=42)
+  model.fit(X_train, y_train)
+  y_pred = model.predict(X_test)
+  print(f"R²: {r2_score(y_test, y_pred):.3f}")
+  print(f"MAE: {mean_absolute_error(y_test, y_pred):.2f} MT/ha")
+expected_output: |
+  R²: 0.712
+  MAE: 0.43 MT/ha
 hints:
   - "Try adding lag features (last year's yield, cumulative rainfall)"
   - "Use SHAP values for per-prediction explanations"

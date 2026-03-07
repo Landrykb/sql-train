@@ -60,6 +60,35 @@ sections:
       plt.tight_layout()
       plt.show()
     explanation: "Real returns have fat tails (excess kurtosis) and negative skew — extreme losses are more likely than a normal distribution predicts. This is why VaR and stress testing matter."
+schema:
+  - date
+  - AAPL
+  - MSFT
+  - GOOGL
+  - AMZN
+  - SPY
+thought_process:
+  - "Load price data and compute daily percentage returns"
+  - "Calculate annualized return, volatility, and Sharpe ratio"
+  - "Plot return distribution and compare to normal curve"
+  - "Compute drawdowns to measure maximum peak-to-trough loss"
+  - "Check skewness and kurtosis for tail risk assessment"
+solution_code: |
+  import pandas as pd
+  import numpy as np
+
+  prices = pd.read_csv('stock_prices.csv', parse_dates=['date'], index_col='date')
+  returns = prices.pct_change().dropna()
+  stats = pd.DataFrame({
+      'Ann. Return': returns.mean() * 252 * 100,
+      'Ann. Volatility': returns.std() * np.sqrt(252) * 100,
+      'Sharpe Ratio': (returns.mean() / returns.std()) * np.sqrt(252),
+  }).round(2)
+  print(f"Assets: {prices.columns.tolist()}")
+  print(f"\nAnnualized Stats:\n{stats}")
+expected_output: |
+  Assets: ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'SPY']
+  Annualized Stats:
 hints:
   - "Use QQ plots (stats.probplot) to visualize departure from normality"
   - "Try rolling volatility to see how risk changes over time"

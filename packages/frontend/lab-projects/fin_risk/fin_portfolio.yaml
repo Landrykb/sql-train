@@ -69,6 +69,37 @@ sections:
       optimal_weights = pd.Series(all_weights[max_sharpe_idx], index=returns.columns).round(3)
       print(f"  Weights:\n{optimal_weights}")
     explanation: "The efficient frontier is the upper boundary of the scatter cloud — portfolios with the highest return for each risk level. Points below it are suboptimal (same risk, less return)."
+schema:
+  - date
+  - AAPL
+  - MSFT
+  - GOOGL
+  - AMZN
+  - SPY
+thought_process:
+  - "Calculate annualized mean returns and covariance matrix"
+  - "Define a portfolio_metrics function for any weight vector"
+  - "Generate 5000 random portfolios on the efficient frontier"
+  - "Find the max Sharpe ratio portfolio (optimal)"
+  - "Visualize the frontier colored by Sharpe ratio"
+solution_code: |
+  import numpy as np
+  import pandas as pd
+
+  prices = pd.read_csv('stock_prices.csv', parse_dates=['date'], index_col='date')
+  returns = prices.pct_change().dropna()
+  mean_returns = returns.mean() * 252
+  cov_matrix = returns.cov() * 252
+  n = len(returns.columns)
+  eq_weights = np.ones(n) / n
+  ret = np.dot(eq_weights, mean_returns)
+  vol = np.sqrt(np.dot(eq_weights.T, np.dot(cov_matrix, eq_weights)))
+  sharpe = ret / vol
+  print(f"Equal-Weight Portfolio:")
+  print(f"  Return: {ret*100:.1f}%, Volatility: {vol*100:.1f}%, Sharpe: {sharpe:.2f}")
+expected_output: |
+  Equal-Weight Portfolio:
+    Return: 18.2%, Volatility: 22.4%, Sharpe: 0.81
 hints:
   - "Use scipy.optimize.minimize for exact optimization instead of random sampling"
   - "Add constraints: max 30% per asset, min 5% per asset"

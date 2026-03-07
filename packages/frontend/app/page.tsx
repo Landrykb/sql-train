@@ -51,6 +51,9 @@ export default function HomePage() {
             <Link href="/cases/guide" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
               📖 SQL Reference Guide
             </Link>
+            <Link href="/lab" className="px-5 py-2.5 rounded-full border border-teal-400/40 text-teal-200 font-medium text-sm hover:bg-teal-500/20 transition-colors">
+              🔬 BleepxLab
+            </Link>
           </div>
         </div>
       </div>

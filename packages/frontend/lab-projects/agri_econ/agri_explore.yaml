@@ -51,6 +51,31 @@ sections:
       plt.tight_layout()
       plt.show()
     explanation: "Global production has grown through both area expansion and yield improvement. Yield growth is slowing in many regions — a key food security concern."
+schema:
+  - country
+  - crop
+  - year
+  - production_mt
+  - yield_per_ha
+  - area_harvested
+  - population
+thought_process:
+  - "Load production, prices, and trade datasets"
+  - "Check unique countries, crops, and year range"
+  - "Identify top producers for key crops (wheat, rice, maize)"
+  - "Visualize production and yield trends over time"
+solution_code: |
+  import pandas as pd
+
+  production = pd.read_csv('crop_production.csv')
+  print(f"Records: {len(production):,}")
+  print(f"Countries: {production['country'].nunique()}")
+  print(f"Crops: {production['crop'].unique().tolist()}")
+  print(f"\nTop 5 wheat producers:\n{production[production['crop']=='wheat'].groupby('country')['production_mt'].sum().nlargest(5)}")
+expected_output: |
+  Records: 25,000
+  Countries: 180
+  Crops: ['wheat', 'rice', 'maize', 'soybeans', 'barley']
 hints:
   - "Compare developed vs developing country yield trends"
   - "Look at production variability (std) as a food security indicator"

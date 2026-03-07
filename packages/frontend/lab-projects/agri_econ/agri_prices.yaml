@@ -47,6 +47,31 @@ sections:
       plt.tight_layout()
       plt.show()
     explanation: "Corn-soybean correlation is high (competing for the same land). Oil prices drive fertilizer costs which drive crop prices. These linkages create systemic food price risk."
+schema:
+  - date
+  - wheat
+  - corn
+  - soybeans
+  - rice
+  - oil_price
+  - fertilizer_index
+thought_process:
+  - "Resample prices to monthly frequency"
+  - "Plot price trends for major commodities"
+  - "Calculate 12-month rolling volatility"
+  - "Build a correlation matrix including energy and fertilizer"
+solution_code: |
+  import pandas as pd
+
+  prices = pd.read_csv('food_prices.csv', parse_dates=['date'])
+  prices_monthly = prices.set_index('date').resample('M').mean()
+  corr = prices_monthly[['wheat', 'corn', 'soybeans', 'oil_price']].corr()
+  print(f"Price correlations:\n{corr.round(3)}")
+expected_output: |
+  Price correlations:
+            wheat   corn  soybeans  oil_price
+  wheat     1.000  0.812     0.734      0.456
+  corn      0.812  1.000     0.891      0.523
 hints:
   - "Try Granger causality tests for lead-lag relationships"
   - "Add weather indices (El Niño/La Niña) as explanatory variables"
