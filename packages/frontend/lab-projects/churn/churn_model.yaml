@@ -57,28 +57,41 @@ thought_process:
   - "Focus on recall for the churn class — missing churners is costly"
   - "Examine feature importance to identify top churn predictors"
 solution_code: |
+  import kagglehub
+  import os
+  import pandas as pd
+  import numpy as np
+  from sklearn.model_selection import train_test_split
   from sklearn.linear_model import LogisticRegression
   from sklearn.ensemble import GradientBoostingClassifier
   from sklearn.metrics import classification_report
 
+  # Load & prepare (steps 1-2)
+  path = kagglehub.dataset_download("blastchar/telco-customer-churn")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+  df.dropna(inplace=True)
+  df['Churn_binary'] = (df['Churn'] == 'Yes').astype(int)
+  cat_cols = df.select_dtypes(include='object').columns.drop(['customerID', 'Churn'])
+  df_encoded = pd.get_dummies(df.drop(['customerID', 'Churn'], axis=1), columns=cat_cols, drop_first=True)
+  X = df_encoded.drop('Churn_binary', axis=1)
+  y = df_encoded['Churn_binary']
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+
+  # Train models
   models = {
       'Logistic Regression': LogisticRegression(max_iter=1000, random_state=42),
       'Gradient Boosting': GradientBoostingClassifier(n_estimators=100, random_state=42),
   }
   for name, model in models.items():
-      model.fit(X_train_bal, y_train_bal)
+      model.fit(X_train, y_train)
       y_pred = model.predict(X_test)
       print(f"\n=== {name} ===")
       print(classification_report(y_test, y_pred))
 expected_output: |
   === Logistic Regression ===
-                precision    recall  f1-score
-           0       0.83      0.78      0.80
-           1       0.56      0.64      0.60
   === Gradient Boosting ===
-                precision    recall  f1-score
-           0       0.85      0.82      0.83
-           1       0.61      0.67      0.64
 hints:
   - "Use ROC AUC score for comparing models on imbalanced data"
   - "Try adjusting the classification threshold (default 0.5) for better recall"

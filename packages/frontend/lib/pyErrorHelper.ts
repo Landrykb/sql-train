@@ -36,16 +36,23 @@ export function getPyErrorHelp(rawError: string, userCode: string): PyErrorHelp 
   const moduleMatch = rawError.match(/(?:ModuleNotFoundError|ImportError).*?['"]([^'"]+)['"]/i) || rawError.match(/No module named\s+'([^']+)'/i);
   if (moduleMatch || error.includes('modulenotfounderror') || error.includes('no module named')) {
     const modName = moduleMatch?.[1] || 'the module';
-    const preloaded = ['numpy', 'pandas', 'scipy', 'sklearn', 'matplotlib'];
+    const preloaded = ['numpy', 'pandas', 'scipy', 'sklearn', 'scikit-learn', 'matplotlib'];
     const isPreloaded = preloaded.some(m => modName.includes(m));
+    const isSklearn = modName.includes('sklearn') || modName.includes('scikit-learn');
     return {
       title: `Module "${modName}" not found`,
-      explanation: isPreloaded
+      explanation: isSklearn
+        ? `"${modName}" is pre-installed but may still be loading. Click "▶ Run" again — it should work on the second attempt.`
+        : isPreloaded
         ? `"${modName}" should be available but may need to be loaded. Try running your import again.`
         : `The module "${modName}" is not available in the browser Python environment. Only a subset of Python packages are supported.`,
-      suggestions: [
+      suggestions: isSklearn ? [
+        'Run your code again — sklearn loads asynchronously and should be ready now',
+        'The import name is "sklearn", not "scikit-learn": from sklearn.model_selection import train_test_split',
+        'Pre-installed packages: numpy, pandas, scikit-learn, scipy, matplotlib',
+      ] : [
         isPreloaded ? `Try: import ${modName.split('.')[0]}` : `"${modName}" may not be available in Pyodide (browser Python)`,
-        'Pre-loaded packages: numpy, pandas, scipy, sklearn, matplotlib',
+        'Pre-installed packages: numpy, pandas, scikit-learn, scipy, matplotlib',
         'For other packages, try: import micropip; await micropip.install("package_name")',
         'Some packages with C extensions are not supported in browser Python',
       ],

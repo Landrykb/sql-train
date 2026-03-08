@@ -17,23 +17,18 @@ sections:
   - title: "Load & Inspect"
     content: "Load the dataset and understand its structure."
     code: |
+      import kagglehub
+      import os
       import pandas as pd
+      import numpy as np
       import seaborn as sns
       import matplotlib.pyplot as plt
 
-      # Generate synthetic telco churn data (real data: see Dataset Source above)
-      import numpy as np
-      np.random.seed(42)
-      n = 500
-      df = pd.DataFrame({
-          'customerID': [f'C{i:04d}' for i in range(n)],
-          'tenure': np.random.randint(0, 72, n),
-          'MonthlyCharges': np.round(np.random.uniform(18, 118, n), 2),
-          'TotalCharges': np.round(np.random.uniform(18, 8000, n), 2),
-          'Contract': np.random.choice(['Month-to-month','One year','Two year'], n, p=[0.55,0.25,0.20]),
-          'InternetService': np.random.choice(['DSL','Fiber optic','No'], n, p=[0.35,0.45,0.20]),
-          'Churn': np.random.choice(['Yes','No'], n, p=[0.27,0.73]),
-      })
+      # Download telco churn dataset from Kaggle
+      path = kagglehub.dataset_download("blastchar/telco-customer-churn")
+      csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+      print("Available files:", csv_files)
+      df = pd.read_csv(os.path.join(path, csv_files[0]))
       print(f"Shape: {df.shape}")
       print(f"\nChurn distribution:\n{df['Churn'].value_counts(normalize=True).round(3)}")
       df.head()
@@ -79,24 +74,19 @@ thought_process:
   - "Examine churn rate by contract type and internet service"
   - "Identify the strongest predictors of churn visually"
 solution_code: |
+  import kagglehub
+  import os
   import pandas as pd
   import numpy as np
-  np.random.seed(42)
-  n = 500
-  df = pd.DataFrame({
-      'customerID': [f'C{i:04d}' for i in range(n)],
-      'tenure': np.random.randint(0, 72, n),
-      'MonthlyCharges': np.round(np.random.uniform(18, 118, n), 2),
-      'TotalCharges': np.round(np.random.uniform(18, 8000, n), 2),
-      'Contract': np.random.choice(['Month-to-month','One year','Two year'], n, p=[0.55,0.25,0.20]),
-      'InternetService': np.random.choice(['DSL','Fiber optic','No'], n, p=[0.35,0.45,0.20]),
-      'Churn': np.random.choice(['Yes','No'], n, p=[0.27,0.73]),
-  })
+
+  path = kagglehub.dataset_download("blastchar/telco-customer-churn")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  df = pd.read_csv(os.path.join(path, csv_files[0]))
   print(f"Shape: {df.shape}")
   print(f"\nChurn distribution:\n{df['Churn'].value_counts(normalize=True).round(3)}")
   print(f"\nChurn rate by contract:\n{df.groupby('Contract')['Churn'].apply(lambda x: (x=='Yes').mean()).round(3)}")
 expected_output: |
-  Shape: (500, 7)
+  Shape:
   Churn distribution:
 hints:
   - "Use df.describe() to see statistical summaries"

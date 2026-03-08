@@ -32,6 +32,9 @@ export default function LabHomePage() {
             <Link href="/lab#projects" className="px-5 py-2.5 rounded-full bg-white text-teal-700 font-semibold text-sm hover:bg-gray-100 transition-colors shadow-lg">
               Explore Projects
             </Link>
+            <Link href="/lab/guide" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
+              📖 DS Guide
+            </Link>
             <Link href="/" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
               ← BleepxQuery (SQL)
             </Link>

@@ -84,10 +84,19 @@ thought_process:
   - "Find the max Sharpe ratio portfolio (optimal)"
   - "Visualize the frontier colored by Sharpe ratio"
 solution_code: |
+  import kagglehub
+  import os
   import numpy as np
   import pandas as pd
 
-  prices = pd.read_csv('stock_prices.csv', parse_dates=['date'], index_col='date')
+  path = kagglehub.dataset_download("szrlee/stock-time-series-20050101-to-20171231")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')][:5]
+  prices = pd.DataFrame()
+  for f in csv_files:
+      df = pd.read_csv(os.path.join(path, f))
+      name = f.replace('.csv', '')
+      if 'Close' in df.columns:
+          prices[name] = df['Close'].values
   returns = prices.pct_change().dropna()
   mean_returns = returns.mean() * 252
   cov_matrix = returns.cov() * 252
@@ -100,7 +109,6 @@ solution_code: |
   print(f"  Return: {ret*100:.1f}%, Volatility: {vol*100:.1f}%, Sharpe: {sharpe:.2f}")
 expected_output: |
   Equal-Weight Portfolio:
-    Return: 18.2%, Volatility: 22.4%, Sharpe: 0.81
 hints:
   - "Use scipy.optimize.minimize for exact optimization instead of random sampling"
   - "Add constraints: max 30% per asset, min 5% per asset"

@@ -61,12 +61,16 @@ thought_process:
   - "Extract feature importances to find top popularity drivers"
   - "Summarize findings as numbered actionable insights"
 solution_code: |
+  import kagglehub
+  import os
   from sklearn.ensemble import GradientBoostingRegressor
   from sklearn.model_selection import train_test_split
   from sklearn.metrics import r2_score, mean_absolute_error
   import pandas as pd
 
-  df = pd.read_csv('spotify_tracks.csv')
+  path = kagglehub.dataset_download("maharshipandya/-spotify-tracks-dataset")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  df = pd.read_csv(os.path.join(path, csv_files[0]))
   features = ['danceability', 'energy', 'acousticness', 'valence', 'instrumentalness', 'tempo', 'loudness']
   X = df[features]
   y = df['popularity']
@@ -77,8 +81,8 @@ solution_code: |
   print(f"R²: {r2_score(y_test, y_pred):.3f}")
   print(f"MAE: {mean_absolute_error(y_test, y_pred):.1f} popularity points")
 expected_output: |
-  R²: 0.045
-  MAE: 19.8 popularity points
+  R²:
+  MAE:
 hints:
   - "Try building a simple recommendation system using cluster similarity"
   - "Analyze trends over time if the dataset includes release dates"

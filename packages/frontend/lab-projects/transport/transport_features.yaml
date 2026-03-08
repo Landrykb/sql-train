@@ -79,10 +79,30 @@ thought_process:
   - "Scale all numerical features with StandardScaler for model readiness"
   - "Verify the final feature matrix shape and target vector"
 solution_code: |
-  from sklearn.preprocessing import LabelEncoder, StandardScaler
+  import kagglehub
+  import os
   import pandas as pd
   import numpy as np
+  from sklearn.preprocessing import LabelEncoder, StandardScaler
 
+  # Load data
+  path = kagglehub.dataset_download("khushikyad001/public-transport-delays-with-weather-and-events")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  df = pd.read_csv(os.path.join(path, csv_files[0]))
+
+  # Clean (from step 2)
+  num_cols = df.select_dtypes(include=[np.number]).columns
+  df[num_cols] = df[num_cols].fillna(df[num_cols].median())
+  cat_cols = df.select_dtypes(include=['object']).columns
+  for col in cat_cols:
+      df[col] = df[col].fillna(df[col].mode()[0])
+  df['date'] = pd.to_datetime(df['date'])
+  df['hour'] = df['date'].dt.hour
+  df['day_of_week'] = df['date'].dt.dayofweek
+  df['month'] = df['date'].dt.month
+  df['is_weekend'] = df['day_of_week'].isin([5, 6]).astype(int)
+
+  # Feature engineering
   le = LabelEncoder()
   df['weather_encoded'] = le.fit_transform(df['weather_condition'])
   df['event_encoded'] = le.fit_transform(df['event_type'].fillna('none'))
@@ -100,8 +120,8 @@ solution_code: |
   print(f"Feature matrix: {X_scaled.shape}")
   print(f"Target: {y.shape}")
 expected_output: |
-  Feature matrix: (4750, 10)
-  Target: (4750,)
+  Feature matrix:
+  Target:
 hints:
   - "Try creating a 'season' feature from month (winter=Dec-Feb, etc.)"
   - "Lag features (yesterday's delay) can be very predictive for time series"

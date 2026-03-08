@@ -90,18 +90,19 @@ thought_process:
   - "Run 1.5°C, 2°C, 3°C scenario analysis"
   - "Quantify portfolio-level impact under each scenario"
 solution_code: |
+  import kagglehub
+  import os
   import pandas as pd
 
-  df = pd.read_csv('esg_scores.csv')
-  df['carbon_cost'] = df['co2_emissions_mt'] * 75
-  df['carbon_impact_pct'] = (df['carbon_cost'] / df['revenue']) * 100
-  sector_impact = df.groupby('sector')['carbon_impact_pct'].mean().sort_values(ascending=False)
-  print(f"Top 5 sectors by carbon price impact:\n{sector_impact.head().round(2)}")
+  path = kagglehub.dataset_download("debashish311601/esg-scores-and-ratings")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  print(f"Shape: {df.shape}")
+  print(f"Columns: {df.columns.tolist()}")
+  print(f"\nDescribe:\n{df.describe().round(2)}")
 expected_output: |
-  Top 5 sectors by carbon price impact:
-  Energy       12.45
-  Materials     8.32
-  Utilities     6.18
+  Shape:
+  Columns:
 hints:
   - "Add physical risk factors: flood exposure, heat stress, water scarcity"
   - "Use Monte Carlo simulation for probabilistic scenarios"

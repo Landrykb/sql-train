@@ -93,22 +93,22 @@ thought_process:
   - "Calculate sector-adjusted z-scores for fair peer comparison"
   - "Assign letter ratings (CCC to AA) based on z-score bins"
 solution_code: |
-  from sklearn.preprocessing import MinMaxScaler
+  import kagglehub
+  import os
   import pandas as pd
+  from sklearn.preprocessing import MinMaxScaler
 
-  df = pd.read_csv('esg_scores.csv')
-  pillars = ['environmental_score', 'social_score', 'governance_score']
-  scaler = MinMaxScaler()
-  df[pillars] = scaler.fit_transform(df[pillars])
-  weights = {'environmental_score': 0.4, 'social_score': 0.3, 'governance_score': 0.3}
-  df['custom_esg'] = sum(df[col] * w for col, w in weights.items())
-  df['esg_percentile'] = df['custom_esg'].rank(pct=True) * 100
-  print(f"Custom ESG stats:\n{df['custom_esg'].describe().round(3)}")
-  print(f"\nTop 3:\n{df.nlargest(3, 'custom_esg')[['company_name', 'custom_esg', 'esg_percentile']]}")
+  path = kagglehub.dataset_download("debashish311601/esg-scores-and-ratings")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  # Identify numeric ESG columns for scoring
+  num_cols = df.select_dtypes(include='number').columns.tolist()
+  print(f"Numeric columns: {num_cols}")
+  print(f"Shape: {df.shape}")
+  print(f"\nFirst 3 rows:\n{df.head(3)}")
 expected_output: |
-  Custom ESG stats:
-  count    500.000
-  mean       0.500
+  Numeric columns:
+  Shape:
 hints:
   - "Try different weight schemes and compare their impact on rankings"
   - "Use df.pivot_table for sector × rating crosstabs"

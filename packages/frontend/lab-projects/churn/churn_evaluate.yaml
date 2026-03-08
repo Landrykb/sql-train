@@ -62,8 +62,30 @@ thought_process:
   - "Estimate cost of false alarms vs value of true positives"
   - "Recommend optimal threshold based on business cost trade-offs"
 solution_code: |
+  import kagglehub
+  import os
+  import pandas as pd
+  import numpy as np
+  from sklearn.model_selection import train_test_split
+  from sklearn.ensemble import GradientBoostingClassifier
   from sklearn.metrics import roc_auc_score, confusion_matrix
 
+  # Load & prepare (steps 1-2)
+  path = kagglehub.dataset_download("blastchar/telco-customer-churn")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+  df.dropna(inplace=True)
+  df['Churn_binary'] = (df['Churn'] == 'Yes').astype(int)
+  cat_cols = df.select_dtypes(include='object').columns.drop(['customerID', 'Churn'])
+  df_encoded = pd.get_dummies(df.drop(['customerID', 'Churn'], axis=1), columns=cat_cols, drop_first=True)
+  X = df_encoded.drop('Churn_binary', axis=1)
+  y = df_encoded['Churn_binary']
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+
+  # Train & evaluate
+  best = GradientBoostingClassifier(n_estimators=100, random_state=42)
+  best.fit(X_train, y_train)
   y_proba = best.predict_proba(X_test)[:, 1]
   auc = roc_auc_score(y_test, y_proba)
   y_pred = best.predict(X_test)
@@ -72,9 +94,9 @@ solution_code: |
   print(f"TP: {tp}, FP: {fp}, FN: {fn}, TN: {tn}")
   print(f"Churn recall: {tp/(tp+fn):.3f}")
 expected_output: |
-  AUC: 0.842
-  TP: 251, FP: 162, FN: 122, TN: 873
-  Churn recall: 0.673
+  AUC:
+  TP:
+  Churn recall:
 hints:
   - "Try precision_recall_curve for imbalanced classes"
   - "Use SHAP for per-customer explanations"

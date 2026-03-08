@@ -32,7 +32,9 @@ interface LabProjectViewerProps {
   learningObjectives: string[];
   thoughtProcess?: string[];
   solutionCode?: string;
+  rSolutionCode?: string;
   expectedOutput?: string;
+  rExpectedOutput?: string;
   schema?: string[];
   prevStep?: { id: string; name: string } | null;
   nextStep?: { id: string; name: string } | null;
@@ -121,12 +123,14 @@ export default function LabProjectViewer({
   learningObjectives,
   thoughtProcess,
   solutionCode,
+  rSolutionCode,
   expectedOutput,
+  rExpectedOutput,
   schema,
   prevStep,
   nextStep,
 }: LabProjectViewerProps) {
-  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set([0]));
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
   const [showHints, setShowHints] = useState(false);
   const [showThoughtProcess, setShowThoughtProcess] = useState(false);
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
@@ -251,22 +255,30 @@ export default function LabProjectViewer({
             </div>
           )}
 
-          {/* Dataset source — explicit and prominent */}
+          {/* Dataset source — kagglehub download instructions */}
           {datasetUrl && (
             <div className="mt-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
-              <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                <span>📊</span> Dataset Source
-              </h4>
-              <a
-                href={datasetUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline underline-offset-2 font-medium break-all"
-              >
-                {datasetUrl}
-              </a>
-              <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1">
-                *bleep* Load this data using: <code className="bg-blue-100 dark:bg-blue-900/30 px-1 rounded">pd.read_csv(url)</code> — no local files in browser Python
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide flex items-center gap-1.5">
+                  <span>📊</span> Dataset
+                </h4>
+                <a
+                  href={datasetUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] px-2.5 py-1 rounded-full bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors inline-flex items-center gap-1"
+                >
+                  ⬇ View on Kaggle
+                </a>
+              </div>
+              <p className="text-[10px] text-blue-600 dark:text-blue-400 mb-2">
+                *bleep* Download this dataset directly with <strong>kagglehub</strong>:
+              </p>
+              <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto">
+                <code className="text-[11px] text-green-400 font-mono whitespace-pre">{`import kagglehub\nimport os\n\npath = kagglehub.dataset_download("${datasetUrl.replace('https://www.kaggle.com/datasets/', '')}")\nprint("Path to dataset files:", path)\nprint("Files:", os.listdir(path))`}</code>
+              </div>
+              <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
+                Run locally in Python/Jupyter. First install: <code className="bg-blue-100 dark:bg-blue-900/30 px-1 rounded">pip install kagglehub</code>
               </p>
             </div>
           )}
@@ -329,7 +341,7 @@ export default function LabProjectViewer({
       <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border overflow-hidden">
         <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-5 py-3 flex items-center justify-between">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <span className="text-lg">🐍</span> Try It Yourself
+            <span className="text-lg">{codeLang === 'r' ? '📐' : '🐍'}</span> Try It Yourself {codeLang === 'r' ? '(R reference — run Python in editor)' : ''}
           </h3>
           <div className="flex items-center gap-2">
             {stepSolved && (
@@ -342,13 +354,24 @@ export default function LabProjectViewer({
         </div>
         <div className="p-4 sm:p-5">
           <PythonTerminal
-            initialCode={`# Write your solution here\n# Follow the steps below and produce the expected output\n${datasetUrl ? `# Dataset: ${datasetUrl}\n` : ''}\nimport pandas as pd\nimport numpy as np\n`}
-            expectedOutput={expectedOutput}
-            solutionCode={solutionCode}
+            initialCode={`# Write your solution here\n# Follow the steps below and produce the expected output\n${datasetUrl ? `#\n# To load data locally:\n# import kagglehub\n# path = kagglehub.dataset_download("${datasetUrl.replace('https://www.kaggle.com/datasets/', '')}")\n# import os; print(os.listdir(path))\n` : ''}\nimport pandas as pd\nimport numpy as np\n`}
+            expectedOutput={codeLang === 'r' && rExpectedOutput ? rExpectedOutput : expectedOutput}
+            solutionCode={codeLang === 'r' && rSolutionCode ? rSolutionCode : solutionCode}
             hints={hints}
             onSolved={handleStepSolved}
             height="250px"
           />
+          {codeLang === 'r' && rSolutionCode && (
+            <div className="mt-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
+              <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 mb-2 flex items-center gap-1.5">
+                📐 R Solution Reference
+              </h4>
+              <pre className="text-xs bg-gray-900 text-gray-100 rounded-lg p-3 overflow-x-auto font-mono"><code>{rSolutionCode}</code></pre>
+              <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
+                *bleep* The browser editor runs Python only. Use R code locally in RStudio or Jupyter with an R kernel.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -379,27 +402,21 @@ export default function LabProjectViewer({
                 : 'border-bleepx-border hover:border-teal-200 dark:hover:border-teal-800'
             }`}
           >
-            {/* Section header */}
+            {/* Section header — compact */}
             <button
               onClick={() => toggleSection(idx)}
-              className="w-full p-4 sm:p-5 flex items-center gap-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors rounded-t-2xl"
+              className="w-full px-4 py-3 flex items-center gap-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors rounded-t-2xl"
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-colors ${
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 transition-colors ${
                 isComplete
-                  ? 'bg-emerald-500 text-white shadow-sm'
+                  ? 'bg-emerald-500 text-white'
                   : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary'
               }`}>
                 {isComplete ? '✓' : idx + 1}
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-bleepx-text text-sm sm:text-base">{section.title}</h3>
-                {!isExpanded && (
-                  <p className="text-[11px] text-bleepx-text-secondary mt-0.5 truncate">{section.content}</p>
-                )}
-              </div>
-              <BleepxGhost size={16} />
+              <h3 className="flex-1 min-w-0 font-bold text-bleepx-text text-sm truncate">{section.title}</h3>
               <svg
-                className={`w-4 h-4 text-bleepx-text-secondary transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                className={`w-3.5 h-3.5 text-bleepx-text-secondary transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`}
                 fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -521,17 +538,15 @@ export default function LabProjectViewer({
         </div>
       )}
 
-      {/* All complete celebration */}
-      {(allComplete || stepSolved) && (
+      {/* Step solved celebration — only when code output matches */}
+      {stepSolved && (
         <div className="bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 rounded-2xl border border-teal-200 dark:border-teal-700 p-6 text-center">
           <div className="text-4xl mb-2">🎉</div>
           <h3 className="text-lg font-bold text-teal-700 dark:text-teal-300">
-            {stepSolved ? '*bleep* Step Solved!' : '*bleep* Step Complete!'}
+            *bleep* Step Solved!
           </h3>
           <p className="text-sm text-teal-600 dark:text-teal-400 mt-1">
-            {stepSolved
-              ? 'Your code produces the correct output. Points earned, human!'
-              : 'All sections done. Moving on!'}
+            Your code produces the correct output. Points earned, human!
           </p>
           {nextStep && (
             <Link
@@ -542,6 +557,16 @@ export default function LabProjectViewer({
               Continue to {nextStep.name} →
             </Link>
           )}
+        </div>
+      )}
+
+      {/* Sections read — gentle nudge to try the code */}
+      {allComplete && !stepSolved && (
+        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/10 dark:to-yellow-900/10 rounded-2xl border border-amber-200 dark:border-amber-700 p-4 text-center">
+          <p className="text-sm text-amber-700 dark:text-amber-300 font-medium flex items-center justify-center gap-2">
+            <BleepxFace size={16} />
+            *bleep* Sections reviewed! Now run your solution in the editor above to earn points.
+          </p>
         </div>
       )}
 

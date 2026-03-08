@@ -86,6 +86,9 @@ function loadPyodide(): Promise<any> {
         indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/',
       });
       await pyodide.loadPackage(['numpy', 'pandas', 'micropip']);
+      // Pre-install sklearn so users don't hit ModuleNotFoundError
+      const micropip = pyodide.pyimport('micropip');
+      await micropip.install('scikit-learn');
       resolve(pyodide);
     } catch (err) {
       pyodidePromise = null;

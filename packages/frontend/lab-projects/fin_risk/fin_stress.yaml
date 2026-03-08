@@ -85,20 +85,29 @@ thought_process:
   - "Build a 4-panel executive risk dashboard"
   - "Report max drawdown, VaR, and Sharpe ratio"
 solution_code: |
+  import kagglehub
+  import os
   import numpy as np
   import pandas as pd
 
-  crisis_periods = {
-      'COVID Crash (2020)': ('2020-02-19', '2020-03-23'),
-      'GFC (2008)': ('2008-09-15', '2009-03-09'),
-  }
-  print("=== STRESS TEST RESULTS ===")
-  for name, (start, end) in crisis_periods.items():
-      print(f"{name}: Simulated loss -25% to -40%")
+  path = kagglehub.dataset_download("szrlee/stock-time-series-20050101-to-20171231")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')][:5]
+  prices = pd.DataFrame()
+  for f in csv_files:
+      df = pd.read_csv(os.path.join(path, f))
+      name = f.replace('.csv', '')
+      if 'Close' in df.columns:
+          prices[name] = df['Close'].values
+  returns = prices.pct_change().dropna()
+  portfolio_returns = returns.mean(axis=1)
+  # Stress scenarios: worst N-day windows
+  for window in [5, 22, 63]:
+      rolling_loss = portfolio_returns.rolling(window).sum().min()
+      print(f"Worst {window}-day loss: {rolling_loss*100:.2f}%")
 expected_output: |
-  === STRESS TEST RESULTS ===
-  COVID Crash (2020): Simulated loss -25% to -40%
-  GFC (2008): Simulated loss -25% to -40%
+  Worst 5-day loss:
+  Worst 22-day loss:
+  Worst 63-day loss:
 hints:
   - "Add a 'worst month' and 'best month' to the summary stats"
   - "Consider adding regime detection (bull/bear market identification)"

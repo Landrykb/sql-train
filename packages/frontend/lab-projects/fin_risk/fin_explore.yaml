@@ -17,11 +17,21 @@ sections:
   - title: "Load & Calculate Returns"
     content: "Load price data and compute daily/monthly returns."
     code: |
+      import kagglehub
+      import os
       import pandas as pd
       import numpy as np
       import matplotlib.pyplot as plt
 
-      prices = pd.read_csv('stock_prices.csv', parse_dates=['date'], index_col='date')
+      # Download stock time series from Kaggle
+      path = kagglehub.dataset_download("szrlee/stock-time-series-20050101-to-20171231")
+      csv_files = [f for f in os.listdir(path) if f.endswith('.csv')][:5]
+      prices = pd.DataFrame()
+      for f in csv_files:
+          df = pd.read_csv(os.path.join(path, f))
+          name = f.replace('.csv', '')
+          if 'Close' in df.columns:
+              prices[name] = df['Close'].values
       returns = prices.pct_change().dropna()
 
       print(f"Assets: {prices.columns.tolist()}")
@@ -75,21 +85,23 @@ thought_process:
   - "Compute drawdowns to measure maximum peak-to-trough loss"
   - "Check skewness and kurtosis for tail risk assessment"
 solution_code: |
+  import kagglehub
+  import os
   import pandas as pd
   import numpy as np
 
-  prices = pd.read_csv('stock_prices.csv', parse_dates=['date'], index_col='date')
-  returns = prices.pct_change().dropna()
-  stats = pd.DataFrame({
-      'Ann. Return': returns.mean() * 252 * 100,
-      'Ann. Volatility': returns.std() * np.sqrt(252) * 100,
-      'Sharpe Ratio': (returns.mean() / returns.std()) * np.sqrt(252),
-  }).round(2)
-  print(f"Assets: {prices.columns.tolist()}")
-  print(f"\nAnnualized Stats:\n{stats}")
+  path = kagglehub.dataset_download("szrlee/stock-time-series-20050101-to-20171231")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  print("Available files:", csv_files[:5])
+  # Load first stock file as example
+  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  print(f"\nShape: {df.shape}")
+  print(f"Columns: {df.columns.tolist()}")
+  print(f"\nFirst 3 rows:\n{df.head(3)}")
 expected_output: |
-  Assets: ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'SPY']
-  Annualized Stats:
+  Available files:
+  Shape:
+  Columns:
 hints:
   - "Use QQ plots (stats.probplot) to visualize departure from normality"
   - "Try rolling volatility to see how risk changes over time"

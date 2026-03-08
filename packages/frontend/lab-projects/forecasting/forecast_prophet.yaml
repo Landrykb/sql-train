@@ -73,13 +73,19 @@ thought_process:
   - "Plot component decomposition to understand trend and seasonality"
   - "Compare Prophet vs ARIMA on the same test set"
 solution_code: |
-  from prophet import Prophet
+  import kagglehub
+  import os
   import pandas as pd
+  from prophet import Prophet
 
-  df = pd.read_csv('sales_data.csv')
-  prophet_df = df.rename(columns={'date': 'ds', 'value': 'y'})
+  path = kagglehub.dataset_download("rohitsahoo/sales-forecasting")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  raw = pd.read_csv(os.path.join(path, csv_files[0]))
+  raw['Order Date'] = pd.to_datetime(raw['Order Date'])
+  df = raw.groupby('Order Date')['Sales'].sum().reset_index()
+  df.columns = ['ds', 'y']
   m = Prophet(yearly_seasonality=True, weekly_seasonality=True)
-  m.fit(prophet_df)
+  m.fit(df)
   future = m.make_future_dataframe(periods=30)
   forecast = m.predict(future)
   print(f"Forecast last 5 rows:\n{forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail()}")

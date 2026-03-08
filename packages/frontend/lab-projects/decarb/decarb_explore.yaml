@@ -17,11 +17,16 @@ sections:
   - title: "Load Emissions Data"
     content: "Load corporate emissions reporting data."
     code: |
+      import kagglehub
+      import os
       import pandas as pd
       import matplotlib.pyplot as plt
 
-      emissions = pd.read_csv('corporate_emissions.csv')
-      print(f"Companies: {emissions['company'].nunique()}")
+      path = kagglehub.dataset_download("unitednations/international-greenhouse-gas-emissions")
+      csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+      print("Available files:", csv_files)
+      emissions = pd.read_csv(os.path.join(path, csv_files[0]))
+      print(f"Shape: {emissions.shape}")
       print(f"Years: {emissions['year'].min()}-{emissions['year'].max()}")
       print(f"\nScope breakdown (avg MT CO2e):")
       print(emissions[['scope1', 'scope2', 'scope3']].mean().round(0))
@@ -59,20 +64,20 @@ thought_process:
   - "Visualize emissions by sector with stacked bars"
   - "Track total emissions over time to see trends"
 solution_code: |
+  import kagglehub
+  import os
   import pandas as pd
 
-  emissions = pd.read_csv('corporate_emissions.csv')
-  print(f"Companies: {emissions['company'].nunique()}")
-  print(f"Years: {emissions['year'].min()}-{emissions['year'].max()}")
-  print(f"\nScope breakdown (avg MT CO2e):")
-  print(emissions[['scope1', 'scope2', 'scope3']].mean().round(0))
+  path = kagglehub.dataset_download("unitednations/international-greenhouse-gas-emissions")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  print("Available files:", csv_files)
+  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  print(f"Shape: {df.shape}")
+  print(f"Columns: {df.columns.tolist()}")
+  print(f"\nFirst 3 rows:\n{df.head(3)}")
 expected_output: |
-  Companies: 200
-  Years: 2015-2023
-  Scope breakdown (avg MT CO2e):
-  scope1     450.0
-  scope2     180.0
-  scope3    2100.0
+  Shape:
+  Columns:
 hints:
   - "Calculate carbon intensity: emissions / revenue for fair comparison"
   - "Look for companies with Science Based Targets (SBTi)"

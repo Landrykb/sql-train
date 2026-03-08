@@ -76,10 +76,20 @@ thought_process:
   - "Run Monte Carlo simulation with 10,000 scenarios"
   - "Compare all three VaR methods"
 solution_code: |
+  import kagglehub
+  import os
   import numpy as np
   import pandas as pd
 
-  prices = pd.read_csv('stock_prices.csv', parse_dates=['date'], index_col='date')
+  path = kagglehub.dataset_download("szrlee/stock-time-series-20050101-to-20171231")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')][:5]
+  # Load multiple stocks and compute returns
+  prices = pd.DataFrame()
+  for f in csv_files:
+      df = pd.read_csv(os.path.join(path, f))
+      name = f.replace('.csv', '')
+      if 'Close' in df.columns:
+          prices[name] = df['Close'].values
   returns = prices.pct_change().dropna()
   portfolio_returns = returns.mean(axis=1)
   var_hist = np.percentile(portfolio_returns, 5)
@@ -87,8 +97,8 @@ solution_code: |
   print(f"Historical VaR (95%): {var_hist*100:.2f}%")
   print(f"CVaR (Expected Shortfall): {cvar_hist*100:.2f}%")
 expected_output: |
-  Historical VaR (95%): -1.82%
-  CVaR (Expected Shortfall): -2.94%
+  Historical VaR (95%):
+  CVaR (Expected Shortfall):
 hints:
   - "Try Student-t distribution for more realistic fat tails"
   - "Scale daily VaR to 10-day: VaR_10d = VaR_1d × √10"

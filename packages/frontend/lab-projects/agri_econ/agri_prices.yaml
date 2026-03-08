@@ -104,17 +104,20 @@ thought_process:
   - "Calculate 12-month rolling volatility"
   - "Build a correlation matrix including energy and fertilizer"
 solution_code: |
+  import kagglehub
+  import os
   import pandas as pd
 
-  prices = pd.read_csv('food_prices.csv', parse_dates=['date'])
-  prices_monthly = prices.set_index('date').resample('M').mean()
-  corr = prices_monthly[['wheat', 'corn', 'soybeans', 'oil_price']].corr()
-  print(f"Price correlations:\n{corr.round(3)}")
+  path = kagglehub.dataset_download("patelris/crop-yield-prediction-dataset")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  print(f"Shape: {df.shape}")
+  print(f"Columns: {df.columns.tolist()}")
+  num_cols = df.select_dtypes(include='number').columns
+  print(f"\nCorrelations:\n{df[num_cols].corr().round(3)}")
 expected_output: |
-  Price correlations:
-            wheat   corn  soybeans  oil_price
-  wheat     1.000  0.812     0.734      0.456
-  corn      0.812  1.000     0.891      0.523
+  Shape:
+  Columns:
 hints:
   - "Try Granger causality tests for lead-lag relationships"
   - "Add weather indices (El Niño/La Niña) as explanatory variables"

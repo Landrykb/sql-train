@@ -66,15 +66,17 @@ thought_process:
   - "Generate a 30-day forecast with confidence intervals"
   - "Plot forecast alongside historical data for visual validation"
 solution_code: |
+  import kagglehub
+  import os
   import pandas as pd
   import numpy as np
   from statsmodels.tsa.arima.model import ARIMA
-  np.random.seed(42)
-  dates = pd.date_range('2020-01-01', periods=365, freq='D')
-  trend = np.linspace(100, 150, 365)
-  seasonal = 10 * np.sin(2 * np.pi * np.arange(365) / 7)
-  noise = np.random.normal(0, 5, 365)
-  df = pd.DataFrame({'value': trend + seasonal + noise}, index=dates)
+
+  path = kagglehub.dataset_download("rohitsahoo/sales-forecasting")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  raw = pd.read_csv(os.path.join(path, csv_files[0]))
+  raw['Order Date'] = pd.to_datetime(raw['Order Date'])
+  df = raw.groupby('Order Date')['Sales'].sum().to_frame('value')
   model = ARIMA(df['value'], order=(2, 1, 2))
   results = model.fit()
   print(f"AIC: {results.aic:.2f}")

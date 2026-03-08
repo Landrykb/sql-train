@@ -68,18 +68,18 @@ thought_process:
   - "Compare audio feature profiles across genres using radar charts"
   - "Look for clusters of similar genres based on audio similarity"
 solution_code: |
+  import kagglehub
+  import os
   import pandas as pd
 
-  df = pd.read_csv('spotify_tracks.csv')
+  path = kagglehub.dataset_download("maharshipandya/-spotify-tracks-dataset")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  df = pd.read_csv(os.path.join(path, csv_files[0]))
   audio_features = ['danceability', 'energy', 'loudness', 'acousticness', 'valence', 'tempo', 'popularity']
   corr = df[audio_features].corr()['popularity'].drop('popularity').sort_values(ascending=False)
   print(f"Correlations with popularity:\n{corr.round(3)}")
 expected_output: |
   Correlations with popularity:
-  danceability      0.102
-  loudness          0.057
-  energy            0.026
-  valence           0.021
 hints:
   - "Use sns.violinplot for richer distribution comparisons"
   - "Try df.groupby('track_genre')[audio_features].mean() for a summary table"

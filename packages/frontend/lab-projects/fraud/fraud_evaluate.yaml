@@ -57,19 +57,45 @@ thought_process:
   - "Rank models by AP and recall on the fraud class"
   - "Estimate dollar value of detected fraud vs investigation costs"
 solution_code: |
-  from sklearn.metrics import average_precision_score
+  import kagglehub
+  import os
   import pandas as pd
+  import numpy as np
+  from sklearn.ensemble import IsolationForest, RandomForestClassifier
+  from sklearn.model_selection import train_test_split
+  from sklearn.metrics import average_precision_score
 
-  # Example scores (replace with actual model outputs)
+  path = kagglehub.dataset_download("mlg-ulb/creditcardfraud")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  df = pd.read_csv(os.path.join(path, csv_files[0]))
+
+  X = df.drop('Class', axis=1)
+  y = df['Class']
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y, random_state=42)
+
+  # Random Forest (supervised)
+  rf = RandomForestClassifier(n_estimators=100, class_weight='balanced', random_state=42)
+  rf.fit(X_train, y_train)
+  rf_proba = rf.predict_proba(X_test)[:, 1]
+  rf_ap = average_precision_score(y_test, rf_proba)
+
+  # Isolation Forest (unsupervised)
+  iso = IsolationForest(contamination=0.005, random_state=42, n_estimators=100)
+  iso.fit(X_train)
+  iso_scores = -iso.decision_function(X_test)
+  iso_ap = average_precision_score(y_test, iso_scores)
+
   print("Model Comparison (Average Precision):")
-  print("Random Forest:    AP = 0.823")
-  print("Isolation Forest: AP = 0.412")
-  print("Autoencoder:      AP = 0.567")
+  print(f"Random Forest:    AP = {rf_ap:.3f}")
+  print(f"Isolation Forest: AP = {iso_ap:.3f}")
+  print(f"\nTotal fraud in test: {int(y_test.sum())}")
+  rf_pred = rf.predict(X_test)
+  detected = ((rf_pred == 1) & (y_test == 1)).sum()
+  print(f"RF detected: {detected}/{int(y_test.sum())}")
 expected_output: |
   Model Comparison (Average Precision):
-  Random Forest:    AP = 0.823
-  Isolation Forest: AP = 0.412
-  Autoencoder:      AP = 0.567
+  Random Forest:    AP =
+  Isolation Forest: AP =
 hints:
   - "Consider the cost of investigating false positives"
   - "Ensemble methods often outperform individual detectors"

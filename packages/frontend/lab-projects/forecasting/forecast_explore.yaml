@@ -18,17 +18,20 @@ sections:
   - title: "Load & Plot Time Series"
     content: "Load your historical data and create an initial time series plot."
     code: |
+      import kagglehub
+      import os
       import pandas as pd
+      import numpy as np
       import matplotlib.pyplot as plt
 
-      # Generate synthetic time series (real data: see Dataset Source above)
-      import numpy as np
-      np.random.seed(42)
-      dates = pd.date_range('2020-01-01', periods=365, freq='D')
-      trend = np.linspace(100, 150, 365)
-      seasonal = 10 * np.sin(2 * np.pi * np.arange(365) / 7)
-      noise = np.random.normal(0, 5, 365)
-      df = pd.DataFrame({'value': trend + seasonal + noise}, index=dates)
+      # Download sales forecasting dataset from Kaggle
+      path = kagglehub.dataset_download("rohitsahoo/sales-forecasting")
+      csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+      print("Available files:", csv_files)
+      raw = pd.read_csv(os.path.join(path, csv_files[0]))
+      # Aggregate to daily sales
+      raw['Order Date'] = pd.to_datetime(raw['Order Date'])
+      df = raw.groupby('Order Date')['Sales'].sum().to_frame('value')
       df.index.name = 'date'
 
       plt.figure(figsize=(14, 5))
@@ -75,15 +78,17 @@ thought_process:
   - "Decompose into trend + seasonal + residual components"
   - "Run the ADF test to determine if differencing is needed"
 solution_code: |
+  import kagglehub
+  import os
   import pandas as pd
   import numpy as np
   from statsmodels.tsa.stattools import adfuller
-  np.random.seed(42)
-  dates = pd.date_range('2020-01-01', periods=365, freq='D')
-  trend = np.linspace(100, 150, 365)
-  seasonal = 10 * np.sin(2 * np.pi * np.arange(365) / 7)
-  noise = np.random.normal(0, 5, 365)
-  df = pd.DataFrame({'value': trend + seasonal + noise}, index=dates)
+
+  path = kagglehub.dataset_download("rohitsahoo/sales-forecasting")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  raw = pd.read_csv(os.path.join(path, csv_files[0]))
+  raw['Order Date'] = pd.to_datetime(raw['Order Date'])
+  df = raw.groupby('Order Date')['Sales'].sum().to_frame('value')
   result = adfuller(df['value'].dropna())
   print(f"ADF Statistic: {result[0]:.4f}")
   print(f"p-value: {result[1]:.4f}")

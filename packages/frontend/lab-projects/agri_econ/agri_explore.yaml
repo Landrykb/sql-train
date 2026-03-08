@@ -17,18 +17,21 @@ sections:
   - title: "Load Agricultural Data"
     content: "Load crop production and food price data."
     code: |
+      import kagglehub
+      import os
       import pandas as pd
       import matplotlib.pyplot as plt
 
-      production = pd.read_csv('crop_production.csv')
-      prices = pd.read_csv('food_prices.csv', parse_dates=['date'])
-      trade = pd.read_csv('trade_flows.csv')
+      # Download crop yield dataset from Kaggle
+      path = kagglehub.dataset_download("patelris/crop-yield-prediction-dataset")
+      csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+      print("Available files:", csv_files)
+      production = pd.read_csv(os.path.join(path, csv_files[0]))
 
-      print(f"Production records: {len(production):,}")
-      print(f"Countries: {production['country'].nunique()}")
-      print(f"Crops: {production['crop'].unique().tolist()}")
-      print(f"\nTop producers (wheat):")
-      print(production[production['crop']=='wheat'].groupby('country')['production_mt'].sum().nlargest(5))
+      print(f"Shape: {production.shape}")
+      print(f"Columns: {production.columns.tolist()}")
+      print(f"\nFirst 3 rows:")
+      print(production.head(3))
     r_code: |
       library(dplyr)
 
@@ -111,17 +114,20 @@ thought_process:
   - "Identify top producers for key crops (wheat, rice, maize)"
   - "Visualize production and yield trends over time"
 solution_code: |
+  import kagglehub
+  import os
   import pandas as pd
 
-  production = pd.read_csv('crop_production.csv')
-  print(f"Records: {len(production):,}")
-  print(f"Countries: {production['country'].nunique()}")
-  print(f"Crops: {production['crop'].unique().tolist()}")
-  print(f"\nTop 5 wheat producers:\n{production[production['crop']=='wheat'].groupby('country')['production_mt'].sum().nlargest(5)}")
+  path = kagglehub.dataset_download("patelris/crop-yield-prediction-dataset")
+  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+  print("Available files:", csv_files)
+  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  print(f"Shape: {df.shape}")
+  print(f"Columns: {df.columns.tolist()}")
+  print(f"\nFirst 3 rows:\n{df.head(3)}")
 expected_output: |
-  Records: 25,000
-  Countries: 180
-  Crops: ['wheat', 'rice', 'maize', 'soybeans', 'barley']
+  Shape:
+  Columns:
 hints:
   - "Compare developed vs developing country yield trends"
   - "Look at production variability (std) as a food security indicator"
