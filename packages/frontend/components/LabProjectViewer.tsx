@@ -235,6 +235,9 @@ export default function LabProjectViewer({
             <span className="text-teal-100 text-xs">{project}</span>
           </div>
           <div className="flex items-center gap-2">
+            <Link href="/lab/quiz" className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-100 hover:bg-purple-500/50 transition-colors font-medium">
+              🧠 Quiz
+            </Link>
             <Link href={`/lab/${domain}`} className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors font-medium">
               📋 All Steps
             </Link>

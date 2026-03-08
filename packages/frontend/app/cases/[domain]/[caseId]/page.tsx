@@ -155,7 +155,13 @@ export default async function CasePage({
         <ProgressSummary caseIds={caseIds} />
         <BleepxPointsTracker caseIds={allCaseIds} />
       </Suspense>
-      <div className="text-right">
+      <div className="flex items-center justify-end gap-4">
+        <Link
+          href={`/cases/${domainKey}/${caseId}/quiz`}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+        >
+          🧠 Test Your Knowledge
+        </Link>
         {hasVisualizations && (
           <Link
             href={`/cases/${domainKey}/${caseId}/visualizations`}
