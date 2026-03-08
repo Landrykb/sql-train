@@ -73,16 +73,13 @@ thought_process:
   - "Use PCA to reduce to 2D for visualization"
   - "Inspect cluster centroids to name each cluster (e.g., 'energetic dance', 'calm acoustic')"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   from sklearn.cluster import KMeans
   from sklearn.preprocessing import StandardScaler
   from sklearn.metrics import silhouette_score
   import pandas as pd
 
-  path = kagglehub.dataset_download("maharshipandya/-spotify-tracks-dataset")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/spotify_tracks.csv"))
   features = ['danceability', 'energy', 'acousticness', 'valence', 'instrumentalness', 'speechiness', 'tempo', 'loudness']
   X = StandardScaler().fit_transform(df[features])
   km = KMeans(n_clusters=5, random_state=42, n_init=10)

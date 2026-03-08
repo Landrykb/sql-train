@@ -68,15 +68,12 @@ thought_process:
   - "Apply seasonal differencing if periodic patterns remain"
   - "Compute rolling mean and std to visualize trend and variability"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
   import numpy as np
   from statsmodels.tsa.stattools import adfuller
 
-  path = kagglehub.dataset_download("rohitsahoo/sales-forecasting")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  raw = pd.read_csv(os.path.join(path, csv_files[0]))
+  raw = pd.read_csv(open_url("/datasets/sales_forecasting.csv"))
   raw['Order Date'] = pd.to_datetime(raw['Order Date'])
   df = raw.groupby('Order Date')['Sales'].sum().to_frame('value')
   df['diff_1'] = df['value'].diff()

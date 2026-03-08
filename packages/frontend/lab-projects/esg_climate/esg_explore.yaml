@@ -17,29 +17,12 @@ sections:
   - title: "Load ESG Data"
     content: "Load company ESG scores and financial data."
     code: |
+      from pyodide.http import open_url
       import pandas as pd
       import matplotlib.pyplot as plt
       import seaborn as sns
 
-      # Generate synthetic ESG data (real data: see Dataset Source above)
-      import numpy as np
-      np.random.seed(42)
-      n = 200
-      sectors = np.random.choice(['Energy','Tech','Finance','Healthcare','Materials','Utilities'], n)
-      df = pd.DataFrame({
-          'company_id': range(n),
-          'company_name': [f'Corp_{i}' for i in range(n)],
-          'sector': sectors,
-          'environmental_score': np.round(np.random.uniform(10, 95, n), 1),
-          'social_score': np.round(np.random.uniform(15, 90, n), 1),
-          'governance_score': np.round(np.random.uniform(20, 95, n), 1),
-          'annual_return': np.round(np.random.normal(10, 15, n), 2),
-          'volatility': np.round(np.random.uniform(5, 40, n), 2),
-          'market_cap': np.round(np.random.lognormal(10, 1.5, n), 0),
-          'co2_emissions_mt': np.round(np.random.lognormal(3, 2, n), 1),
-          'revenue': np.round(np.random.lognormal(8, 1, n), 0),
-      })
-      df['total_esg'] = (df['environmental_score'] + df['social_score'] + df['governance_score']) / 3
+      df = pd.read_csv(open_url("/datasets/esg_scores.csv"))
       print(f"Companies: {df['company_id'].nunique()}")
       print(f"\nESG Score Summary:")
       print(df[['environmental_score', 'social_score', 'governance_score', 'total_esg']].describe())
@@ -151,14 +134,11 @@ thought_process:
   - "Compare ESG performance by sector"
   - "Test correlation between ESG scores and financial returns"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
   import numpy as np
 
-  path = kagglehub.dataset_download("debashish311601/esg-scores-and-ratings")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/esg_scores.csv"))
   print(f"Shape: {df.shape}")
   print(f"Columns: {df.columns.tolist()}")
   print(f"\nFirst 3 rows:\n{df.head(3)}")

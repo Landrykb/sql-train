@@ -62,12 +62,14 @@ sections:
       print(f"  Monte Carlo: {var_mc*100:.2f}%")
     explanation: "Monte Carlo generates random scenarios from the estimated distribution. With enough simulations, it converges to the parametric result. Use t-distribution instead of normal for fatter tails."
 schema:
-  - date
-  - AAPL
-  - MSFT
-  - GOOGL
-  - AMZN
-  - SPY
+  - Date
+  - Open
+  - High
+  - Low
+  - Close
+  - Volume
+  - Name
+  - ticker
 thought_process:
   - "Create equal-weight portfolio returns"
   - "Calculate Historical VaR at 95% confidence (5th percentile)"
@@ -76,20 +78,12 @@ thought_process:
   - "Run Monte Carlo simulation with 10,000 scenarios"
   - "Compare all three VaR methods"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import numpy as np
   import pandas as pd
 
-  path = kagglehub.dataset_download("szrlee/stock-time-series-20050101-to-20171231")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')][:5]
-  # Load multiple stocks and compute returns
-  prices = pd.DataFrame()
-  for f in csv_files:
-      df = pd.read_csv(os.path.join(path, f))
-      name = f.replace('.csv', '')
-      if 'Close' in df.columns:
-          prices[name] = df['Close'].values
+  raw = pd.read_csv(open_url("/datasets/stock_prices.csv"))
+  prices = raw.pivot_table(index='Date', columns='ticker', values='Close')
   returns = prices.pct_change().dropna()
   portfolio_returns = returns.mean(axis=1)
   var_hist = np.percentile(portfolio_returns, 5)

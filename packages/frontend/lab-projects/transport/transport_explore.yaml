@@ -18,19 +18,13 @@ sections:
   - title: "Import Libraries & Load Data"
     content: "Start by importing the core data science libraries and loading the dataset."
     code: |
-      import kagglehub
-      import os
+      from pyodide.http import open_url
       import pandas as pd
       import numpy as np
       import matplotlib.pyplot as plt
       import seaborn as sns
 
-      # Download dataset from Kaggle
-      path = kagglehub.dataset_download("khushikyad001/public-transport-delays-with-weather-and-events")
-      csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-      print("Available files:", csv_files)
-
-      df = pd.read_csv(os.path.join(path, csv_files[0]))
+      df = pd.read_csv(open_url("/datasets/transport_delays.csv"))
       print(f"Shape: {df.shape}")
       print(f"Columns: {df.columns.tolist()}")
       df.head()
@@ -52,11 +46,11 @@ sections:
     code: |
       fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-      axes[0].hist(df['delay_minutes'], bins=50, color='steelblue', edgecolor='white')
+      axes[0].hist(df['actual_departure_delay_min'], bins=50, color='steelblue', edgecolor='white')
       axes[0].set_title('Distribution of Delay Duration')
       axes[0].set_xlabel('Delay (minutes)')
 
-      df.groupby('weather_condition')['delay_minutes'].mean().sort_values().plot(
+      df.groupby('weather_condition')['actual_departure_delay_min'].mean().sort_values().plot(
           kind='barh', ax=axes[1], color='coral'
       )
       axes[1].set_title('Avg Delay by Weather')
@@ -64,16 +58,16 @@ sections:
       plt.show()
     explanation: "Histograms reveal the delay distribution shape. Bar charts show which weather conditions correlate with longer delays — key for feature engineering later."
 schema:
-  - route_id
+  - trip_id
   - date
-  - time
-  - delay_minutes
+  - transport_type
+  - route_id
+  - actual_departure_delay_min
   - weather_condition
-  - temperature
+  - temperature_C
   - event_type
-  - day_of_week
-  - passenger_count
-  - vehicle_type
+  - peak_hour
+  - delayed
 thought_process:
   - "Load the dataset and check its shape to understand the data volume"
   - "Examine column names and data types to plan your analysis"
@@ -81,18 +75,15 @@ thought_process:
   - "Visualize delay distribution to understand if it's normal, skewed, or multimodal"
   - "Group by weather condition to see which conditions cause the worst delays"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
   import numpy as np
 
-  path = kagglehub.dataset_download("khushikyad001/public-transport-delays-with-weather-and-events")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/transport_delays.csv"))
   print(f"Shape: {df.shape}")
   print(f"Columns: {df.columns.tolist()}")
   print(f"Missing values:\n{df.isnull().sum()}")
-  print(f"\nDelay stats:\n{df['delay_minutes'].describe()}")
+  print(f"\nDelay stats:\n{df['actual_departure_delay_min'].describe()}")
 expected_output: |
   Shape:
   Columns:

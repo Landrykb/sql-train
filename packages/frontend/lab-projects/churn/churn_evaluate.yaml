@@ -62,18 +62,14 @@ thought_process:
   - "Estimate cost of false alarms vs value of true positives"
   - "Recommend optimal threshold based on business cost trade-offs"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
   import numpy as np
   from sklearn.model_selection import train_test_split
   from sklearn.ensemble import GradientBoostingClassifier
   from sklearn.metrics import roc_auc_score, confusion_matrix
 
-  # Load & prepare (steps 1-2)
-  path = kagglehub.dataset_download("blastchar/telco-customer-churn")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/telco_churn.csv"))
   df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
   df.dropna(inplace=True)
   df['Churn_binary'] = (df['Churn'] == 'Yes').astype(int)

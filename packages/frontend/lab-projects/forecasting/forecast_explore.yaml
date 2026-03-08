@@ -18,17 +18,12 @@ sections:
   - title: "Load & Plot Time Series"
     content: "Load your historical data and create an initial time series plot."
     code: |
-      import kagglehub
-      import os
+      from pyodide.http import open_url
       import pandas as pd
       import numpy as np
       import matplotlib.pyplot as plt
 
-      # Download sales forecasting dataset from Kaggle
-      path = kagglehub.dataset_download("rohitsahoo/sales-forecasting")
-      csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-      print("Available files:", csv_files)
-      raw = pd.read_csv(os.path.join(path, csv_files[0]))
+      raw = pd.read_csv(open_url("/datasets/sales_forecasting.csv"))
       # Aggregate to daily sales
       raw['Order Date'] = pd.to_datetime(raw['Order Date'])
       df = raw.groupby('Order Date')['Sales'].sum().to_frame('value')
@@ -78,15 +73,12 @@ thought_process:
   - "Decompose into trend + seasonal + residual components"
   - "Run the ADF test to determine if differencing is needed"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
   import numpy as np
   from statsmodels.tsa.stattools import adfuller
 
-  path = kagglehub.dataset_download("rohitsahoo/sales-forecasting")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  raw = pd.read_csv(os.path.join(path, csv_files[0]))
+  raw = pd.read_csv(open_url("/datasets/sales_forecasting.csv"))
   raw['Order Date'] = pd.to_datetime(raw['Order Date'])
   df = raw.groupby('Order Date')['Sales'].sum().to_frame('value')
   result = adfuller(df['value'].dropna())

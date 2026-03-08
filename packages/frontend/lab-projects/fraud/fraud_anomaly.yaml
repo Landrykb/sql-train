@@ -83,16 +83,13 @@ thought_process:
   - "Use reconstruction error as an anomaly score — high error = fraud"
   - "Compare all methods on the same test set"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
   import numpy as np
   from sklearn.ensemble import IsolationForest
   from sklearn.model_selection import train_test_split
 
-  path = kagglehub.dataset_download("mlg-ulb/creditcardfraud")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/creditcard_fraud.csv"))
   X = df.drop('Class', axis=1)
   y = df['Class']
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)

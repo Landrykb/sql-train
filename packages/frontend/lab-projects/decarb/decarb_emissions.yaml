@@ -17,62 +17,49 @@ sections:
   - title: "Emission Factor Calculations"
     content: "Convert operational data to CO2 equivalents using standard emission factors."
     code: |
-      emission_factors = {
-          'electricity_kwh': 0.000417,   # MT CO2e per kWh (US grid avg)
-          'natural_gas_mmbtu': 0.0531,   # MT CO2e per MMBtu
-          'diesel_liters': 0.00267,      # MT CO2e per liter
-          'flight_km': 0.000121,         # MT CO2e per passenger-km
-      }
+      # Analyze emissions by category
+      cat_totals = emissions.groupby('category')['value'].sum().sort_values(ascending=False)
+      print("Emission Breakdown by Category:")
+      print(cat_totals.round(1))
 
-      for source, factor in emission_factors.items():
-          if source in df.columns:
-              df[f'co2_{source}'] = df[source] * factor
-
-      co2_cols = [c for c in df.columns if c.startswith('co2_')]
-      df['total_footprint'] = df[co2_cols].sum(axis=1)
-
-      print("Carbon Footprint Breakdown:")
-      print(df[co2_cols].sum().sort_values(ascending=False).round(1))
+      # Per-capita style: emissions per country per year
+      country_yearly = emissions.groupby(['country_or_area', 'year'])['value'].sum().reset_index()
+      country_yearly.columns = ['country', 'year', 'total_emissions']
+      print(f"\nCountry-year records: {len(country_yearly)}")
+      print(country_yearly.head())
     explanation: "Emission factors convert activity data (kWh, liters, km) to CO2 equivalents. These are published by EPA, DEFRA, and IEA. The total footprint is the sum of all sources."
   - title: "Hotspot Analysis"
     content: "Identify the largest emission sources for targeted reduction."
     code: |
-      breakdown = df[co2_cols].sum()
-      breakdown_pct = (breakdown / breakdown.sum() * 100).round(1)
-
       fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-      breakdown.plot(kind='pie', ax=axes[0], autopct='%1.1f%%', colors=plt.cm.RdYlGn_r(range(0, 256, 256//len(breakdown))))
-      axes[0].set_title('Emission Sources')
+
+      cat_totals.head(8).plot(kind='pie', ax=axes[0], autopct='%1.1f%%')
+      axes[0].set_title('Emissions by Category')
       axes[0].set_ylabel('')
 
-      df.groupby('facility')['total_footprint'].sum().nlargest(10).plot(kind='barh', ax=axes[1], color='coral')
-      axes[1].set_title('Top 10 Emitting Facilities')
-      axes[1].set_xlabel('MT CO2e')
+      top10 = emissions.groupby('country_or_area')['value'].sum().nlargest(10)
+      top10.plot(kind='barh', ax=axes[1], color='coral')
+      axes[1].set_title('Top 10 Emitting Countries')
+      axes[1].set_xlabel('GHG Value')
 
       plt.tight_layout()
       plt.show()
     explanation: "The 80/20 rule often applies: 20% of facilities/sources cause 80% of emissions. Focusing reduction efforts on hotspots maximizes impact per dollar spent."
 schema:
-  - company
-  - facility
-  - electricity_kwh
-  - natural_gas_mmbtu
-  - diesel_liters
-  - flight_km
-  - total_footprint
+  - country_or_area
+  - year
+  - value
+  - category
 thought_process:
   - "Define emission factors for each energy/activity source"
   - "Multiply activity data by emission factors to get CO2 equivalents"
   - "Sum all sources for total carbon footprint per facility"
   - "Identify the largest emission hotspots (80/20 rule)"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
 
-  path = kagglehub.dataset_download("unitednations/international-greenhouse-gas-emissions")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/ghg_emissions.csv"))
   print(f"Shape: {df.shape}")
   print(f"Columns: {df.columns.tolist()}")
   # Explore emission categories

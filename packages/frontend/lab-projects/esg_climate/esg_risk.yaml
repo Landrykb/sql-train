@@ -90,13 +90,10 @@ thought_process:
   - "Run 1.5°C, 2°C, 3°C scenario analysis"
   - "Quantify portfolio-level impact under each scenario"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
 
-  path = kagglehub.dataset_download("debashish311601/esg-scores-and-ratings")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/esg_scores.csv"))
   print(f"Shape: {df.shape}")
   print(f"Columns: {df.columns.tolist()}")
   print(f"\nDescribe:\n{df.describe().round(2)}")

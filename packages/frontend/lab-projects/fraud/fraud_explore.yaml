@@ -17,19 +17,13 @@ sections:
   - title: "Load & Inspect"
     content: "Load the dataset and understand its structure."
     code: |
-      import kagglehub
-      import os
+      from pyodide.http import open_url
       import pandas as pd
       import numpy as np
       import matplotlib.pyplot as plt
       import seaborn as sns
 
-      # Download credit card fraud dataset from Kaggle
-      path = kagglehub.dataset_download("mlg-ulb/creditcardfraud")
-      csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-      print("Available files:", csv_files)
-
-      df = pd.read_csv(os.path.join(path, csv_files[0]))
+      df = pd.read_csv(open_url("/datasets/creditcard_fraud.csv"))
       print(f"Shape: {df.shape}")
       print(f"\nFraud distribution:")
       print(df['Class'].value_counts())
@@ -70,14 +64,11 @@ thought_process:
   - "Compare average Amount between fraud and legitimate"
   - "Visualize feature correlations with the Class target"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
   import numpy as np
 
-  path = kagglehub.dataset_download("mlg-ulb/creditcardfraud")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/creditcard_fraud.csv"))
   print(f"Shape: {df.shape}")
   print(f"Fraud rate: {df['Class'].mean()*100:.3f}%")
   print(f"Fraud count: {int(df['Class'].sum())}")

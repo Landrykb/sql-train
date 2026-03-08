@@ -39,6 +39,20 @@ export function getPyErrorHelp(rawError: string, userCode: string): PyErrorHelp 
     const preloaded = ['numpy', 'pandas', 'scipy', 'sklearn', 'scikit-learn', 'matplotlib'];
     const isPreloaded = preloaded.some(m => modName.includes(m));
     const isSklearn = modName.includes('sklearn') || modName.includes('scikit-learn');
+    const isKagglehub = modName.includes('kagglehub');
+    if (isKagglehub) {
+      return {
+        title: `"kagglehub" is not available in browser Python`,
+        explanation: `The kagglehub package cannot run in Pyodide (browser Python). BleepxLab pre-hosts dataset samples — use the open_url pattern shown in the code sections above.`,
+        suggestions: [
+          'Data is pre-loaded — use: from pyodide.http import open_url',
+          'Then: df = pd.read_csv(open_url("/datasets/your_file.csv"))',
+          'Check the code sections above for the exact loading code',
+          'For local Python (pip), kagglehub works fine',
+        ],
+        guideSection: 'loading-data',
+      };
+    }
     return {
       title: `Module "${modName}" not found`,
       explanation: isSklearn

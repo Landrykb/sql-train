@@ -91,26 +91,22 @@ sections:
                mar = c(0, 0, 2, 0))
     explanation: "Corn-soybean correlation is high (competing for the same land). Oil prices drive fertilizer costs which drive crop prices. These linkages create systemic food price risk."
 schema:
-  - date
-  - wheat
-  - corn
-  - soybeans
-  - rice
-  - oil_price
-  - fertilizer_index
+  - Area
+  - Item
+  - Element
+  - Year
+  - Value
+  - Unit
 thought_process:
   - "Resample prices to monthly frequency"
   - "Plot price trends for major commodities"
   - "Calculate 12-month rolling volatility"
   - "Build a correlation matrix including energy and fertilizer"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
 
-  path = kagglehub.dataset_download("patelris/crop-yield-prediction-dataset")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/crop_yield.csv"))
   print(f"Shape: {df.shape}")
   print(f"Columns: {df.columns.tolist()}")
   num_cols = df.select_dtypes(include='number').columns

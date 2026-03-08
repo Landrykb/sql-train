@@ -17,16 +17,11 @@ sections:
   - title: "Load Agricultural Data"
     content: "Load crop production and food price data."
     code: |
-      import kagglehub
-      import os
+      from pyodide.http import open_url
       import pandas as pd
       import matplotlib.pyplot as plt
 
-      # Download crop yield dataset from Kaggle
-      path = kagglehub.dataset_download("patelris/crop-yield-prediction-dataset")
-      csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-      print("Available files:", csv_files)
-      production = pd.read_csv(os.path.join(path, csv_files[0]))
+      production = pd.read_csv(open_url("/datasets/crop_yield.csv"))
 
       print(f"Shape: {production.shape}")
       print(f"Columns: {production.columns.tolist()}")
@@ -57,19 +52,18 @@ sections:
     code: |
       fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-      for crop in ['wheat', 'rice', 'maize', 'soybeans']:
-          yearly = production[production['crop']==crop].groupby('year')['production_mt'].sum()
-          axes[0].plot(yearly.index, yearly.values / 1e6, label=crop, linewidth=2)
-      axes[0].set_title('Global Crop Production')
-      axes[0].set_ylabel('Million MT')
-      axes[0].legend()
+      top_items = production.groupby('Item')['Value'].sum().nlargest(5).index
+      for item in top_items:
+          yearly = production[production['Item']==item].groupby('Year')['Value'].sum()
+          axes[0].plot(yearly.index, yearly.values, label=item, linewidth=2)
+      axes[0].set_title('Production by Crop Over Time')
+      axes[0].set_ylabel('Value')
+      axes[0].legend(fontsize=8)
 
-      for crop in ['wheat', 'rice', 'maize']:
-          yearly = production[production['crop']==crop].groupby('year')['yield_per_ha'].mean()
-          axes[1].plot(yearly.index, yearly.values, label=crop, linewidth=2)
-      axes[1].set_title('Average Yield Per Hectare')
-      axes[1].set_ylabel('MT/ha')
-      axes[1].legend()
+      top_areas = production.groupby('Area')['Value'].sum().nlargest(8)
+      top_areas.plot(kind='barh', ax=axes[1], color='forestgreen')
+      axes[1].set_title('Top Producing Countries')
+      axes[1].set_xlabel('Total Value')
 
       plt.tight_layout()
       plt.show()
@@ -101,27 +95,22 @@ sections:
       grid.arrange(p1, p2, ncol = 2)
     explanation: "Global production has grown through both area expansion and yield improvement. Yield growth is slowing in many regions — a key food security concern."
 schema:
-  - country
-  - crop
-  - year
-  - production_mt
-  - yield_per_ha
-  - area_harvested
-  - population
+  - Area
+  - Item
+  - Element
+  - Year
+  - Value
+  - Unit
 thought_process:
   - "Load production, prices, and trade datasets"
   - "Check unique countries, crops, and year range"
   - "Identify top producers for key crops (wheat, rice, maize)"
   - "Visualize production and yield trends over time"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
 
-  path = kagglehub.dataset_download("patelris/crop-yield-prediction-dataset")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  print("Available files:", csv_files)
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/crop_yield.csv"))
   print(f"Shape: {df.shape}")
   print(f"Columns: {df.columns.tolist()}")
   print(f"\nFirst 3 rows:\n{df.head(3)}")

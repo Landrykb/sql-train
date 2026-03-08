@@ -72,12 +72,14 @@ sections:
       print(f"Sharpe Ratio: {portfolio_value.mean()/portfolio_value.std()*np.sqrt(252):.2f}")
     explanation: "The four-panel dashboard tells the complete story: performance, risk (drawdowns), risk-adjusted returns (Sharpe), and allocation. This format is standard in institutional asset management."
 schema:
-  - date
-  - AAPL
-  - MSFT
-  - GOOGL
-  - AMZN
-  - SPY
+  - Date
+  - Open
+  - High
+  - Low
+  - Close
+  - Volume
+  - Name
+  - ticker
 thought_process:
   - "Define historical crisis periods (COVID, GFC, Dot-com)"
   - "Apply optimal portfolio weights to returns during each crisis"
@@ -85,19 +87,12 @@ thought_process:
   - "Build a 4-panel executive risk dashboard"
   - "Report max drawdown, VaR, and Sharpe ratio"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import numpy as np
   import pandas as pd
 
-  path = kagglehub.dataset_download("szrlee/stock-time-series-20050101-to-20171231")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')][:5]
-  prices = pd.DataFrame()
-  for f in csv_files:
-      df = pd.read_csv(os.path.join(path, f))
-      name = f.replace('.csv', '')
-      if 'Close' in df.columns:
-          prices[name] = df['Close'].values
+  raw = pd.read_csv(open_url("/datasets/stock_prices.csv"))
+  prices = raw.pivot_table(index='Date', columns='ticker', values='Close')
   returns = prices.pct_change().dropna()
   portfolio_returns = returns.mean(axis=1)
   # Stress scenarios: worst N-day windows

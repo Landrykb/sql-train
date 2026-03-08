@@ -17,61 +17,50 @@ sections:
   - title: "Load Emissions Data"
     content: "Load corporate emissions reporting data."
     code: |
-      import kagglehub
-      import os
+      from pyodide.http import open_url
       import pandas as pd
       import matplotlib.pyplot as plt
 
-      path = kagglehub.dataset_download("unitednations/international-greenhouse-gas-emissions")
-      csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-      print("Available files:", csv_files)
-      emissions = pd.read_csv(os.path.join(path, csv_files[0]))
+      emissions = pd.read_csv(open_url("/datasets/ghg_emissions.csv"))
       print(f"Shape: {emissions.shape}")
+      print(f"Columns: {emissions.columns.tolist()}")
       print(f"Years: {emissions['year'].min()}-{emissions['year'].max()}")
-      print(f"\nScope breakdown (avg MT CO2e):")
-      print(emissions[['scope1', 'scope2', 'scope3']].mean().round(0))
+      print(f"Countries: {emissions['country_or_area'].nunique()}")
+      print(f"\nTop categories:\n{emissions['category'].value_counts().head()}")
     explanation: "Scope 1 = direct emissions (own facilities). Scope 2 = purchased electricity. Scope 3 = supply chain (often 80%+ of total). Understanding scopes is fundamental to decarbonization strategy."
   - title: "Sector & Trend Analysis"
     content: "Visualize which sectors emit the most and track progress over time."
     code: |
       fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-      sector_total = emissions.groupby('sector')[['scope1','scope2','scope3']].mean()
-      sector_total.plot(kind='barh', stacked=True, ax=axes[0], color=['#e74c3c','#f39c12','#3498db'])
-      axes[0].set_title('Avg Emissions by Sector & Scope')
-      axes[0].set_xlabel('MT CO2e')
+      top_emitters = emissions.groupby('country_or_area')['value'].sum().nlargest(10)
+      top_emitters.plot(kind='barh', ax=axes[0], color='coral')
+      axes[0].set_title('Top 10 Emitters (Total)')
+      axes[0].set_xlabel('GHG Value')
 
-      yearly = emissions.groupby('year')[['scope1','scope2','scope3']].sum()
-      yearly.plot(ax=axes[1], linewidth=2)
-      axes[1].set_title('Total Emissions Over Time')
-      axes[1].set_ylabel('MT CO2e')
+      yearly = emissions.groupby('year')['value'].sum()
+      yearly.plot(ax=axes[1], linewidth=2, color='steelblue')
+      axes[1].set_title('Global Emissions Over Time')
+      axes[1].set_ylabel('GHG Value')
 
       plt.tight_layout()
       plt.show()
     explanation: "Stacked bars show the scope composition per sector. Time trends reveal whether corporate decarbonization pledges are translating into actual reductions."
 schema:
-  - company
-  - sector
+  - country_or_area
   - year
-  - scope1
-  - scope2
-  - scope3
-  - revenue
-  - region
+  - value
+  - category
 thought_process:
   - "Load emissions data and check unique companies and year range"
   - "Understand Scope 1/2/3 breakdown — Scope 3 is usually largest"
   - "Visualize emissions by sector with stacked bars"
   - "Track total emissions over time to see trends"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
 
-  path = kagglehub.dataset_download("unitednations/international-greenhouse-gas-emissions")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  print("Available files:", csv_files)
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/ghg_emissions.csv"))
   print(f"Shape: {df.shape}")
   print(f"Columns: {df.columns.tolist()}")
   print(f"\nFirst 3 rows:\n{df.head(3)}")

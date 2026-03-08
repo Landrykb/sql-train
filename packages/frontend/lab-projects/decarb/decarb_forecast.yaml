@@ -20,9 +20,9 @@ sections:
       import numpy as np
       from sklearn.linear_model import LinearRegression
 
-      yearly = emissions.groupby('year')['total_footprint'].sum().reset_index()
+      yearly = emissions.groupby('year')['value'].sum().reset_index()
       X = yearly['year'].values.reshape(-1, 1)
-      y = yearly['total_footprint'].values
+      y = yearly['value'].values
 
       model = LinearRegression().fit(X, y)
       future_years = np.arange(2024, 2051).reshape(-1, 1)
@@ -65,25 +65,21 @@ sections:
       plt.show()
     explanation: "The aggressive pathway targets 7% annual reduction (SBTi 1.5°C aligned). Net-zero means residual emissions <5% of baseline, with offsets covering the rest."
 schema:
+  - country_or_area
   - year
-  - total_footprint
-  - scope1
-  - scope2
-  - scope3
+  - value
+  - category
 thought_process:
   - "Aggregate historical emissions by year"
   - "Fit a linear regression to project baseline (BAU) trajectory"
   - "Model 3 reduction scenarios: aggressive (7%), moderate (4%), conservative (2%)"
   - "Calculate net-zero year for each scenario (<5% of baseline)"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import numpy as np
   import pandas as pd
 
-  path = kagglehub.dataset_download("unitednations/international-greenhouse-gas-emissions")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/ghg_emissions.csv"))
   # Use total emissions from latest year as baseline
   num_cols = df.select_dtypes(include='number').columns
   base = df[num_cols].sum().max()

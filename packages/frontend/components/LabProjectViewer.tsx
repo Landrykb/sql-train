@@ -272,13 +272,13 @@ export default function LabProjectViewer({
                 </a>
               </div>
               <p className="text-[10px] text-blue-600 dark:text-blue-400 mb-2">
-                *bleep* Download this dataset directly with <strong>kagglehub</strong>:
+                *bleep* Data is pre-hosted. Load in the browser terminal:
               </p>
               <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto">
-                <code className="text-[11px] text-green-400 font-mono whitespace-pre">{`import kagglehub\nimport os\n\npath = kagglehub.dataset_download("${datasetUrl.replace('https://www.kaggle.com/datasets/', '')}")\nprint("Path to dataset files:", path)\nprint("Files:", os.listdir(path))`}</code>
+                <code className="text-[11px] text-green-400 font-mono whitespace-pre">{`from pyodide.http import open_url\nimport pandas as pd\n\ndf = pd.read_csv(open_url("/datasets/YOUR_FILE.csv"))\nprint(df.shape)\nprint(df.columns.tolist())`}</code>
               </div>
               <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
-                Run locally in Python/Jupyter. First install: <code className="bg-blue-100 dark:bg-blue-900/30 px-1 rounded">pip install kagglehub</code>
+                See the solution code for the exact filename. Full dataset available on Kaggle.
               </p>
             </div>
           )}
@@ -354,7 +354,7 @@ export default function LabProjectViewer({
         </div>
         <div className="p-4 sm:p-5">
           <PythonTerminal
-            initialCode={`# Write your solution here\n# Follow the steps below and produce the expected output\n${datasetUrl ? `#\n# To load data locally:\n# import kagglehub\n# path = kagglehub.dataset_download("${datasetUrl.replace('https://www.kaggle.com/datasets/', '')}")\n# import os; print(os.listdir(path))\n` : ''}\nimport pandas as pd\nimport numpy as np\n`}
+            initialCode={`# Write your solution here\n# Follow the steps below and produce the expected output\n#\n# Load data with:\n# from pyodide.http import open_url\n# df = pd.read_csv(open_url("/datasets/YOUR_FILE.csv"))\n\nimport pandas as pd\nimport numpy as np\n`}
             expectedOutput={codeLang === 'r' && rExpectedOutput ? rExpectedOutput : expectedOutput}
             solutionCode={codeLang === 'r' && rSolutionCode ? rSolutionCode : solutionCode}
             hints={hints}

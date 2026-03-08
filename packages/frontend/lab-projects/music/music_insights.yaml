@@ -61,16 +61,13 @@ thought_process:
   - "Extract feature importances to find top popularity drivers"
   - "Summarize findings as numbered actionable insights"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   from sklearn.ensemble import GradientBoostingRegressor
   from sklearn.model_selection import train_test_split
   from sklearn.metrics import r2_score, mean_absolute_error
   import pandas as pd
 
-  path = kagglehub.dataset_download("maharshipandya/-spotify-tracks-dataset")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/spotify_tracks.csv"))
   features = ['danceability', 'energy', 'acousticness', 'valence', 'instrumentalness', 'tempo', 'loudness']
   X = df[features]
   y = df['popularity']

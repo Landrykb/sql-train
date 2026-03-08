@@ -45,10 +45,10 @@ sections:
       axes[0,0].set_title('Emission Reduction Pathway')
 
       # Scope breakdown pie
-      scope_totals = emissions[['scope1','scope2','scope3']].sum()
-      axes[0,1].pie(scope_totals, labels=['Scope 1','Scope 2','Scope 3'], autopct='%1.0f%%',
-                    colors=['#e74c3c','#f39c12','#3498db'])
-      axes[0,1].set_title('Current Emission Profile')
+      cat_totals = emissions.groupby('category')['value'].sum().nlargest(4)
+      axes[0,1].pie(cat_totals, labels=cat_totals.index, autopct='%1.0f%%',
+                    colors=['#e74c3c','#f39c12','#3498db','#2ecc71'])
+      axes[0,1].set_title('Emissions by Category')
 
       # Top actions
       actions = pd.DataFrame({
@@ -72,11 +72,10 @@ sections:
       plt.show()
     explanation: "The four-panel dashboard tells the complete story: where we are, where we're going, what actions to take, and what they cost. This format works for board presentations and sustainability reports."
 schema:
+  - country_or_area
   - year
-  - total_footprint
-  - scope1
-  - scope2
-  - scope3
+  - value
+  - category
 thought_process:
   - "Set interim reduction targets for 2025, 2030, 2040, 2050"
   - "Align targets with SBTi 1.5°C pathway (42% by 2030)"

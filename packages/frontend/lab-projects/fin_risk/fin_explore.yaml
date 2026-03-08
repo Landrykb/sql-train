@@ -17,25 +17,18 @@ sections:
   - title: "Load & Calculate Returns"
     content: "Load price data and compute daily/monthly returns."
     code: |
-      import kagglehub
-      import os
+      from pyodide.http import open_url
       import pandas as pd
       import numpy as np
       import matplotlib.pyplot as plt
 
-      # Download stock time series from Kaggle
-      path = kagglehub.dataset_download("szrlee/stock-time-series-20050101-to-20171231")
-      csv_files = [f for f in os.listdir(path) if f.endswith('.csv')][:5]
-      prices = pd.DataFrame()
-      for f in csv_files:
-          df = pd.read_csv(os.path.join(path, f))
-          name = f.replace('.csv', '')
-          if 'Close' in df.columns:
-              prices[name] = df['Close'].values
+      # Load pre-merged stock data
+      raw = pd.read_csv(open_url("/datasets/stock_prices.csv"))
+      prices = raw.pivot_table(index='Date', columns='ticker', values='Close')
       returns = prices.pct_change().dropna()
 
       print(f"Assets: {prices.columns.tolist()}")
-      print(f"Period: {prices.index[0].date()} to {prices.index[-1].date()}")
+      print(f"Period: {prices.index[0]} to {prices.index[-1]}")
       print(f"\nAnnualized Stats:")
       stats = pd.DataFrame({
           'Ann. Return': returns.mean() * 252 * 100,
@@ -72,12 +65,14 @@ sections:
       plt.show()
     explanation: "Real returns have fat tails (excess kurtosis) and negative skew — extreme losses are more likely than a normal distribution predicts. This is why VaR and stress testing matter."
 schema:
-  - date
-  - AAPL
-  - MSFT
-  - GOOGL
-  - AMZN
-  - SPY
+  - Date
+  - Open
+  - High
+  - Low
+  - Close
+  - Volume
+  - Name
+  - ticker
 thought_process:
   - "Load price data and compute daily percentage returns"
   - "Calculate annualized return, volatility, and Sharpe ratio"
@@ -85,23 +80,19 @@ thought_process:
   - "Compute drawdowns to measure maximum peak-to-trough loss"
   - "Check skewness and kurtosis for tail risk assessment"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
   import numpy as np
 
-  path = kagglehub.dataset_download("szrlee/stock-time-series-20050101-to-20171231")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  print("Available files:", csv_files[:5])
-  # Load first stock file as example
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
-  print(f"\nShape: {df.shape}")
+  df = pd.read_csv(open_url("/datasets/stock_prices.csv"))
+  print(f"Shape: {df.shape}")
   print(f"Columns: {df.columns.tolist()}")
+  print(f"Tickers: {df['ticker'].unique().tolist()}")
   print(f"\nFirst 3 rows:\n{df.head(3)}")
 expected_output: |
-  Available files:
   Shape:
   Columns:
+  Tickers:
 hints:
   - "Use QQ plots (stats.probplot) to visualize departure from normality"
   - "Try rolling volatility to see how risk changes over time"

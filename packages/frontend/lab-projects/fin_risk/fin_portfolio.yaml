@@ -71,12 +71,14 @@ sections:
       print(f"  Weights:\n{optimal_weights}")
     explanation: "The efficient frontier is the upper boundary of the scatter cloud — portfolios with the highest return for each risk level. Points below it are suboptimal (same risk, less return)."
 schema:
-  - date
-  - AAPL
-  - MSFT
-  - GOOGL
-  - AMZN
-  - SPY
+  - Date
+  - Open
+  - High
+  - Low
+  - Close
+  - Volume
+  - Name
+  - ticker
 thought_process:
   - "Calculate annualized mean returns and covariance matrix"
   - "Define a portfolio_metrics function for any weight vector"
@@ -84,19 +86,12 @@ thought_process:
   - "Find the max Sharpe ratio portfolio (optimal)"
   - "Visualize the frontier colored by Sharpe ratio"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import numpy as np
   import pandas as pd
 
-  path = kagglehub.dataset_download("szrlee/stock-time-series-20050101-to-20171231")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')][:5]
-  prices = pd.DataFrame()
-  for f in csv_files:
-      df = pd.read_csv(os.path.join(path, f))
-      name = f.replace('.csv', '')
-      if 'Close' in df.columns:
-          prices[name] = df['Close'].values
+  raw = pd.read_csv(open_url("/datasets/stock_prices.csv"))
+  prices = raw.pivot_table(index='Date', columns='ticker', values='Close')
   returns = prices.pct_change().dropna()
   mean_returns = returns.mean() * 252
   cov_matrix = returns.cov() * 252

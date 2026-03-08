@@ -17,15 +17,12 @@ sections:
   - title: "Load & Overview"
     content: "Load the dataset and understand its structure."
     code: |
-      import kagglehub
-      import os
+      from pyodide.http import open_url
       import pandas as pd
       import matplotlib.pyplot as plt
       import seaborn as sns
 
-      path = kagglehub.dataset_download("maharshipandya/-spotify-tracks-dataset")
-      csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-      df = pd.read_csv(os.path.join(path, csv_files[0]))
+      df = pd.read_csv(open_url("/datasets/spotify_tracks.csv"))
       print(f"Shape: {df.shape}")
       print(f"\nAudio features: {['danceability', 'energy', 'loudness', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']}")
       df.head()
@@ -68,13 +65,10 @@ thought_process:
   - "Check the popularity distribution — is it normal or skewed?"
   - "Identify top genres by average popularity"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
 
-  path = kagglehub.dataset_download("maharshipandya/-spotify-tracks-dataset")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/spotify_tracks.csv"))
   print(f"Shape: {df.shape}")
   print(f"Popularity stats:\n{df['popularity'].describe()}")
   print(f"\nTop 5 genres by avg popularity:\n{df.groupby('track_genre')['popularity'].mean().nlargest(5)}")

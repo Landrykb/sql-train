@@ -17,7 +17,7 @@ sections:
   - title: "Merge Climate & Production Data"
     content: "Combine weather variables with crop production records."
     code: |
-      # Data already loaded via kagglehub in step 1
+      # Data already loaded via open_url in step 1
       # Use numeric columns for feature analysis
       features = production.select_dtypes(include='number').columns.tolist()
       merged = production.copy()
@@ -85,33 +85,26 @@ sections:
       varImpPlot(model, main = 'Yield Prediction — Feature Importance')
     explanation: "Feature importance reveals whether yields are more climate-driven or input-driven. In developing countries, inputs dominate; in developed countries, climate variability matters more."
 schema:
-  - country
-  - crop
-  - year
-  - yield_per_ha
-  - avg_temp
-  - total_rainfall
-  - drought_index
-  - soil_quality
-  - fertilizer_use
-  - irrigation_pct
+  - Area
+  - Item
+  - Element
+  - Year
+  - Value
+  - Unit
 thought_process:
   - "Merge climate data with production records on country+year"
   - "Check correlations between climate/input features and yield"
   - "Train a Random Forest regressor on the merged dataset"
   - "Evaluate with R² and MAE, then examine feature importance"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
   import numpy as np
   from sklearn.ensemble import RandomForestRegressor
   from sklearn.model_selection import train_test_split
   from sklearn.metrics import r2_score, mean_absolute_error
 
-  path = kagglehub.dataset_download("patelris/crop-yield-prediction-dataset")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/crop_yield.csv"))
   # Use numeric columns as features, last numeric column as target
   num_cols = df.select_dtypes(include='number').columns.tolist()
   X = df[num_cols[:-1]].fillna(0)

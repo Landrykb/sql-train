@@ -43,27 +43,27 @@ sections:
   - title: "Remove Outliers"
     content: "Use the IQR method to cap extreme delay values."
     code: |
-      Q1 = df['delay_minutes'].quantile(0.25)
-      Q3 = df['delay_minutes'].quantile(0.75)
+      Q1 = df['actual_departure_delay_min'].quantile(0.25)
+      Q3 = df['actual_departure_delay_min'].quantile(0.75)
       IQR = Q3 - Q1
       lower = Q1 - 1.5 * IQR
       upper = Q3 + 1.5 * IQR
 
       before = len(df)
-      df = df[(df['delay_minutes'] >= lower) & (df['delay_minutes'] <= upper)]
+      df = df[(df['actual_departure_delay_min'] >= lower) & (df['actual_departure_delay_min'] <= upper)]
       print(f"Removed {before - len(df)} outlier rows")
     explanation: "IQR-based outlier removal keeps 99.3% of normally distributed data. Extreme delays may be data errors or rare events that hurt model generalization."
 schema:
-  - route_id
+  - trip_id
   - date
-  - time
-  - delay_minutes
+  - transport_type
+  - route_id
+  - actual_departure_delay_min
   - weather_condition
-  - temperature
+  - temperature_C
   - event_type
-  - day_of_week
-  - passenger_count
-  - vehicle_type
+  - peak_hour
+  - delayed
 thought_process:
   - "Identify which columns have missing values and their percentages"
   - "Choose imputation strategy based on data type: median for numbers, mode for categories"
@@ -71,14 +71,11 @@ thought_process:
   - "Use IQR method to detect and remove extreme outliers in delay_minutes"
   - "Verify no nulls remain and check shape after cleaning"
 solution_code: |
-  import kagglehub
-  import os
+  from pyodide.http import open_url
   import pandas as pd
   import numpy as np
 
-  path = kagglehub.dataset_download("khushikyad001/public-transport-delays-with-weather-and-events")
-  csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-  df = pd.read_csv(os.path.join(path, csv_files[0]))
+  df = pd.read_csv(open_url("/datasets/transport_delays.csv"))
   num_cols = df.select_dtypes(include=[np.number]).columns
   df[num_cols] = df[num_cols].fillna(df[num_cols].median())
   cat_cols = df.select_dtypes(include=['object']).columns
@@ -87,10 +84,10 @@ solution_code: |
   df['date'] = pd.to_datetime(df['date'])
   df['hour'] = df['date'].dt.hour
   df['is_weekend'] = df['date'].dt.dayofweek.isin([5, 6]).astype(int)
-  Q1 = df['delay_minutes'].quantile(0.25)
-  Q3 = df['delay_minutes'].quantile(0.75)
+  Q1 = df['actual_departure_delay_min'].quantile(0.25)
+  Q3 = df['actual_departure_delay_min'].quantile(0.75)
   IQR = Q3 - Q1
-  df = df[(df['delay_minutes'] >= Q1 - 1.5*IQR) & (df['delay_minutes'] <= Q3 + 1.5*IQR)]
+  df = df[(df['actual_departure_delay_min'] >= Q1 - 1.5*IQR) & (df['actual_departure_delay_min'] <= Q3 + 1.5*IQR)]
   print(f"Remaining nulls: {df.isnull().sum().sum()}")
   print(f"Clean shape: {df.shape}")
 expected_output: |

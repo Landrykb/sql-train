@@ -88,12 +88,12 @@ sections:
       }
     explanation: "Each degree of warming reduces global yields by roughly 5-10%. The impacts are uneven — tropical developing nations face the largest losses, deepening existing food inequality."
 schema:
-  - country
-  - total_production
-  - population
-  - imports
-  - self_sufficiency
-  - per_capita_kg
+  - Area
+  - Item
+  - Element
+  - Year
+  - Value
+  - Unit
 thought_process:
   - "Calculate self-sufficiency ratio per country"
   - "Compute per-capita food availability"
