@@ -174,6 +174,13 @@ export const LAB_DOMAIN_META: Record<string, {
   },
 };
 
+// Time limits for test mode on Lab projects (in seconds), keyed by tier
+export const LAB_TEST_MODE_LIMITS: Record<number, number> = {
+  1: 60 * 60,    // 1 hour for tier-1 (explore / basics)
+  2: 45 * 60,    // 45 min for tier-2 (intermediate)
+  3: 30 * 60,    // 30 min for tier-3 (advanced)
+};
+
 export const LAB_CASE_TIERS: Record<string, number> = {
   // transport
   transport_explore: 1, transport_clean: 1, transport_features: 2, transport_model: 2, transport_evaluate: 3,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { BleepxFace, BleepxGhost, BleepxGitHub } from '@/components/BleepxIcons';
 import PythonTerminal from '@/components/PythonTerminal';
@@ -8,6 +8,7 @@ import { useProgress } from '@/lib/useProgress';
 import { playBleep } from '@/lib/audio';
 import { getGitHubUser } from '@/lib/authClient';
 import { pushLabProjectToGitHub } from '@/lib/githubPush';
+import { LAB_CASE_TIERS, LAB_TEST_MODE_LIMITS } from '@/lib/labConstants';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -140,9 +141,20 @@ export default function LabProjectViewer({
   const [countdown, setCountdown] = useState<number | null>(null);
   const [pushStatus, setPushStatus] = useState<string | null>(null);
   const [showVizGuide, setShowVizGuide] = useState(false);
+  const [timerEnabled, setTimerEnabled] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [timeLimit, setTimeLimit] = useState(0);
+  const [timeExpired, setTimeExpired] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isDualLang = language.toLowerCase().includes('r');
   const [codeLang, setCodeLang] = useState<'python' | 'r'>('python');
   const { markComplete: markProgressComplete } = useProgress();
+
+  const fmtTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  };
 
   // Restore completion state from localStorage
   useEffect(() => {
@@ -155,7 +167,34 @@ export default function LabProjectViewer({
         if (data.solved) setStepSolved(true);
       } catch { /* ignore */ }
     }
+    // Check test mode from profile
+    try {
+      const profile = JSON.parse(localStorage.getItem('bleepx_profile') || '{}');
+      if (profile.testModeEnabled) {
+        const tier = LAB_CASE_TIERS[projectId] || 1;
+        const limit = LAB_TEST_MODE_LIMITS[tier] || 60 * 60;
+        setTimeLimit(limit);
+        setTimerSeconds(limit);
+        setTimerEnabled(true);
+      }
+    } catch { /* ignore */ }
   }, [projectId]);
+
+  // Countdown timer for test mode
+  useEffect(() => {
+    if (timerEnabled && !timeExpired && !stepSolved) {
+      timerRef.current = setInterval(() => {
+        setTimerSeconds((s) => {
+          if (timeLimit > 0) {
+            if (s <= 1) { setTimeExpired(true); return 0; }
+            return s - 1;
+          }
+          return s + 1;
+        });
+      }, 1000);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [timerEnabled, timeExpired, timeLimit, stepSolved]);
 
   // Save completion state
   useEffect(() => {
@@ -249,6 +288,29 @@ export default function LabProjectViewer({
 
   return (
     <div className="max-w-3xl mx-auto space-y-5">
+      {/* Time expired overlay */}
+      {timeExpired && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-bleepx-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full text-center">
+            <BleepxFace size={48} />
+            <h2 className="text-2xl font-bold text-red-600 mt-4 mb-2">Time&apos;s Up!</h2>
+            <p className="text-sm text-bleepx-text-secondary mb-4">
+              *bleep* The clock has spoken, human. Tier {LAB_CASE_TIERS[projectId] || 1} challenge — {fmtTime(timeLimit)} limit.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <button onClick={() => { setTimeExpired(false); setTimerEnabled(false); setTimeLimit(0); }} className="px-5 py-2.5 rounded-full bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-colors">
+                Continue Without Timer
+              </button>
+              {nextStep && (
+                <Link href={`/lab/${domain}/${nextStep.id}`}>
+                  <button className="px-5 py-2.5 rounded-full bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 transition-colors">Next Step →</button>
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Step header with BleepX branding */}
       <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border overflow-hidden">
         {/* Branded top bar */}
@@ -260,6 +322,39 @@ export default function LabProjectViewer({
             <span className="text-teal-100 text-xs">{project}</span>
           </div>
           <div className="flex items-center gap-2">
+            {/* Test mode timer display */}
+            {timerEnabled && timeLimit > 0 && !timeExpired && (
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold font-mono ${
+                timerSeconds <= 60 ? 'bg-red-500 text-white animate-pulse' :
+                timerSeconds <= 5 * 60 ? 'bg-amber-400 text-amber-900' :
+                'bg-white/20 text-white'
+              }`}>
+                🧪 {fmtTime(timerSeconds)}
+              </span>
+            )}
+            {/* Toggle timer on/off */}
+            <button
+              onClick={() => {
+                if (timerEnabled) {
+                  setTimerEnabled(false);
+                  setTimeLimit(0);
+                  setTimerSeconds(0);
+                  if (timerRef.current) clearInterval(timerRef.current);
+                } else {
+                  const tier = LAB_CASE_TIERS[projectId] || 1;
+                  const limit = LAB_TEST_MODE_LIMITS[tier] || 60 * 60;
+                  setTimeLimit(limit);
+                  setTimerSeconds(limit);
+                  setTimerEnabled(true);
+                  setTimeExpired(false);
+                }
+              }}
+              className={`text-[10px] px-2 py-0.5 rounded-full font-medium transition-colors ${
+                timerEnabled ? 'bg-amber-400/30 text-amber-100 hover:bg-amber-400/50' : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              {timerEnabled ? '⏱ Stop Timer' : '⏱ Timer'}
+            </button>
             <Link href="/lab/quiz" className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-100 hover:bg-purple-500/50 transition-colors font-medium">
               🧠 Quiz
             </Link>

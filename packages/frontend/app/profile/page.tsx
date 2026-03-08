@@ -460,7 +460,7 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-bleepx-text">Enable Test Mode</p>
-                <p className="text-xs text-bleepx-text-secondary">*bleep* Think you're fast? Timed challenges: 30min for capstone, 1hr for hidden cases. Toggle on any applicable challenge.</p>
+                <p className="text-xs text-bleepx-text-secondary">*bleep* Think you're fast? Timed challenges across both BleepxQuery (30min capstone, 1hr regular) and BleepxLab (30min–1hr based on tier).</p>
               </div>
               <button
                 onClick={() => { playBleep(); saveProfile({ testModeEnabled: !profile.testModeEnabled }); }}
