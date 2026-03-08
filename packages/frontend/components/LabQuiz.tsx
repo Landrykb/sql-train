@@ -188,6 +188,7 @@ interface LabQuizProps {
   skills: string[];
   backLink: string;
   backLabel: string;
+  onBack?: () => void;
 }
 
 interface AnswerRecord {
@@ -195,7 +196,7 @@ interface AnswerRecord {
   correct: boolean;
 }
 
-export default function LabQuiz({ quizId, quizName, skills, backLink, backLabel }: LabQuizProps) {
+export default function LabQuiz({ quizId, quizName, skills, backLink, backLabel, onBack }: LabQuizProps) {
   const [questions, setQuestions] = useState<LabQuizQuestion[]>([]);
   const [answers, setAnswers] = useState<(AnswerRecord | null)[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -328,11 +329,17 @@ export default function LabQuiz({ quizId, quizName, skills, backLink, backLabel 
             <button onClick={handleRetake} className="px-5 py-2.5 rounded-full border-2 border-bleepx-border text-sm font-bold text-bleepx-text-secondary hover:bg-teal-50 transition-colors">
               🔄 Retake Quiz
             </button>
-            <Link href={backLink}>
-              <button className="px-5 py-2.5 rounded-full bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-colors shadow-sm">
+            {onBack ? (
+              <button onClick={onBack} className="px-5 py-2.5 rounded-full bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-colors shadow-sm">
                 {backLabel}
               </button>
-            </Link>
+            ) : (
+              <Link href={backLink}>
+                <button className="px-5 py-2.5 rounded-full bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-colors shadow-sm">
+                  {backLabel}
+                </button>
+              </Link>
+            )}
           </div>
         </div>
       </div>

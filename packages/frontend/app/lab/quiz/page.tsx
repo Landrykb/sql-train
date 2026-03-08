@@ -96,6 +96,7 @@ export default function LabQuizPage() {
             skills={activeTopic.skills}
             backLink="/lab/quiz"
             backLabel="← All Quizzes"
+            onBack={() => setActiveTopic(null)}
           />
         </div>
       )}

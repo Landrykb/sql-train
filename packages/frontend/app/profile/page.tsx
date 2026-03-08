@@ -87,7 +87,11 @@ export default function ProfilePage() {
     const totalSolved = domainStats.reduce((a, d) => a + d.solved, 0);
     const totalCases = domainStats.reduce((a, d) => a + d.total, 0);
     const completedDomains = domainStats.filter((d) => d.solved === d.total && d.total > 0).length;
-    return { domainStats, totalSolved, totalCases, totalPoints: points, completedDomains };
+    // Lab stats
+    const allLabIds = Object.values(LAB_CASE_ORDER).flat();
+    const labSolved = allLabIds.filter(c => completed.has(c) || completed.has(`lab_${c}`)).length;
+    const labTotal = allLabIds.length;
+    return { domainStats, totalSolved, totalCases, totalPoints: points, completedDomains, labSolved, labTotal };
   }, [completed, points]);
 
   // Solve time stats
@@ -262,10 +266,10 @@ export default function ProfilePage() {
           {/* Quick Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: 'Challenges Solved', value: stats.totalSolved, sub: `of ${stats.totalCases}`, color: 'text-bleepx-blue' },
-              { label: 'Domains Completed', value: stats.completedDomains, sub: `of ${DOMAINS.length}`, color: 'text-green-500' },
+              { label: 'SQL Challenges', value: stats.totalSolved, sub: `of ${stats.totalCases}`, color: 'text-bleepx-blue' },
+              { label: 'Lab Steps', value: stats.labSolved, sub: `of ${stats.labTotal}`, color: 'text-teal-500' },
               { label: 'Points Balance', value: stats.totalPoints, sub: `${storeState.totalPointsEarned || stats.totalPoints} earned`, color: 'text-amber-500' },
-              { label: 'Avg Solve Time', value: fmtTime(solveTimeStats.avgTime), sub: `${solveTimeStats.totalAttempts} attempts`, color: 'text-purple-500' },
+              { label: 'Domains Done', value: stats.completedDomains, sub: `of ${DOMAINS.length} SQL`, color: 'text-green-500' },
             ].map((s) => (
               <div key={s.label} className="p-4 rounded-xl shadow-sm bg-bleepx-white">
                 <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
@@ -310,7 +314,7 @@ export default function ProfilePage() {
             </h2>
             <div className="space-y-3">
               {Object.entries(LAB_CASE_ORDER).map(([domain, cases]) => {
-                const solved = cases.filter(c => completed.has(c)).length;
+                const solved = cases.filter(c => completed.has(c) || completed.has(`lab_${c}`)).length;
                 const total = cases.length;
                 const pct = total ? Math.round((solved / total) * 100) : 0;
                 const meta = LAB_DOMAIN_META[domain];
@@ -377,10 +381,10 @@ export default function ProfilePage() {
                 { id: 'persistent', icon: '💪', title: 'Persistent', desc: 'Make 50+ total attempts', unlocked: solveTimeStats.totalAttempts >= 50 },
                 { id: 'all_domains', icon: '🏅', title: 'SQL Grandmaster', desc: 'Complete ALL domains', unlocked: stats.completedDomains === DOMAINS.length },
               // Lab achievements
-              { id: 'lab_pioneer', icon: '🔬', title: 'Lab Pioneer', desc: 'Complete your first Lab step', unlocked: (() => { const allLab = Object.values(LAB_CASE_ORDER).flat(); return allLab.some(id => completed.has(id)); })() },
-              { id: 'data_scientist', icon: '🧪', title: 'Data Scientist', desc: 'Complete 10 Lab steps', unlocked: (() => { const allLab = Object.values(LAB_CASE_ORDER).flat(); return allLab.filter(id => completed.has(id)).length >= 10; })() },
-              { id: 'lab_legend', icon: '🧬', title: 'Lab Legend', desc: 'Complete 20 Lab steps', unlocked: (() => { const allLab = Object.values(LAB_CASE_ORDER).flat(); return allLab.filter(id => completed.has(id)).length >= 20; })() },
-              { id: 'full_stack_ds', icon: '🎓', title: 'Full Stack Data Scientist', desc: 'Complete ALL Lab projects', unlocked: (() => { const allLab = Object.values(LAB_CASE_ORDER).flat(); return allLab.every(id => completed.has(id)); })() },
+              { id: 'lab_pioneer', icon: '🔬', title: 'Lab Pioneer', desc: 'Complete your first Lab step', unlocked: stats.labSolved >= 1 },
+              { id: 'data_scientist', icon: '🧪', title: 'Data Scientist', desc: 'Complete 10 Lab steps', unlocked: stats.labSolved >= 10 },
+              { id: 'lab_legend', icon: '🧬', title: 'Lab Legend', desc: 'Complete 20 Lab steps', unlocked: stats.labSolved >= 20 },
+              { id: 'full_stack_ds', icon: '🎓', title: 'Full Stack Data Scientist', desc: 'Complete ALL Lab projects', unlocked: stats.labSolved === stats.labTotal && stats.labTotal > 0 },
               ].map((a) => (
                 <div
                   key={a.id}

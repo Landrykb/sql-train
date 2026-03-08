@@ -152,3 +152,39 @@ export async function pushCaseToGitHub(
     return { success: false, error: msg };
   }
 }
+
+/** Push a BleepxLab project to GitHub */
+export async function pushLabProjectToGitHub(
+  domain: string,
+  projectId: string,
+  projectName: string,
+  files: PortfolioFile[],
+  onProgress?: (msg: string) => void,
+): Promise<PushResult> {
+  const user = getGitHubUser();
+  if (!user?.token) {
+    return { success: false, error: 'Sign in with GitHub first to push your work.' };
+  }
+
+  const repoName = 'ds-portfolio';
+
+  try {
+    onProgress?.('Creating repository...');
+    const repo = await ensureRepo(user.token, repoName);
+
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      onProgress?.(`Pushing ${f.path} (${i + 1}/${files.length})...`);
+      await pushFile(user.token, repo, f.path, f.content, `Add ${domain}/${projectId}: ${projectName} — BleepxLab`);
+    }
+
+    onProgress?.('Done!');
+    return { success: true, repoUrl: `https://github.com/${repo}/tree/main/${domain}/${projectId}` };
+  } catch (err: any) {
+    const msg = err.message || 'Push failed';
+    if (msg.includes('Bad credentials')) {
+      return { success: false, error: 'Bad credentials — please sign out and sign in again.' };
+    }
+    return { success: false, error: msg };
+  }
+}
