@@ -17,7 +17,10 @@ const QUIZ_TOPICS: { id: string; name: string; icon: string; skills: string[]; c
   { id: 'clustering', name: 'Clustering & Unsupervised', icon: '🔬', skills: ['clustering', 'machine_learning', 'evaluation'], color: 'from-emerald-500 to-emerald-700' },
   { id: 'timeseries', name: 'Time Series Analysis', icon: '⏱️', skills: ['time_series', 'statistics', 'machine_learning'], color: 'from-cyan-500 to-cyan-700' },
   { id: 'deep_learning', name: 'Deep Learning Concepts', icon: '🧠', skills: ['deep_learning', 'machine_learning', 'evaluation'], color: 'from-violet-500 to-violet-700' },
-  { id: 'master', name: 'Master DS Quiz', icon: '🏆', skills: ['statistics', 'probability', 'machine_learning', 'data_analysis', 'python', 'evaluation', 'feature_engineering', 'visualization', 'clustering', 'time_series', 'deep_learning'], color: 'from-gray-800 to-gray-900' },
+  { id: 'llm', name: 'LLMs & NLP', icon: '💬', skills: ['llm', 'deep_learning'], color: 'from-fuchsia-500 to-fuchsia-700' },
+  { id: 'aws_cloud', name: 'AWS & Cloud Practitioner', icon: '☁️', skills: ['aws', 'cloud'], color: 'from-orange-500 to-orange-700' },
+  { id: 'mlops', name: 'MLOps & Deployment', icon: '🚀', skills: ['mlops', 'cloud', 'machine_learning'], color: 'from-rose-500 to-rose-700' },
+  { id: 'master', name: 'Master DS Quiz', icon: '🏆', skills: ['statistics', 'probability', 'machine_learning', 'data_analysis', 'python', 'evaluation', 'feature_engineering', 'visualization', 'clustering', 'time_series', 'deep_learning', 'llm', 'aws', 'cloud', 'mlops'], color: 'from-gray-800 to-gray-900' },
 ];
 
 export default function LabQuizPage() {

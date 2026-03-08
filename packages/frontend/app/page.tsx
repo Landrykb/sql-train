@@ -8,6 +8,7 @@ import BleepxLogo from '@/components/BleepxLogo';
 import { BleepxWave, BleepxGhost, BleepxSpark, BleepxFace, BleepxGit, BleepxSignal } from '@/components/BleepxIcons';
 import { useProgress } from '@/lib/useProgress';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
+import { LAB_CASE_ORDER } from '@/lib/labConstants';
 
 const domainMeta: Record<string, { icon: string; desc: string; color: string; difficulty: string; stars: number }> = {
   business: { icon: '🏬', desc: 'Retail analytics, revenue optimization & customer insights', color: 'from-blue-500 to-blue-700', difficulty: 'Beginner', stars: 1 },
@@ -23,11 +24,16 @@ const domainMeta: Record<string, { icon: string; desc: string; color: string; di
 const domains = Object.keys(domainMeta);
 
 export default function HomePage() {
-  const { completed } = useProgress();
+  const { completed, points } = useProgress();
   const allCaseIds = Object.entries(fullCaseOrder).filter(([d]) => d !== 'guide' && d !== 'trials').flatMap(([, ids]) => ids);
   const totalCompleted = completed?.size || 0;
   const totalChallenges = allCaseIds.length;
   const overallPct = totalChallenges > 0 ? Math.round((totalCompleted / totalChallenges) * 100) : 0;
+
+  // Lab progress
+  const allLabIds = Object.values(LAB_CASE_ORDER).flat();
+  const labCompleted = allLabIds.filter(id => completed.has(id) || completed.has(`lab_${id}`)).length;
+  const labPct = allLabIds.length > 0 ? Math.round((labCompleted / allLabIds.length) * 100) : 0;
 
   return (
     <main className="max-w-5xl mx-auto space-y-6 sm:space-y-10 bg-bleepx-bg min-h-screen pb-12">
@@ -219,8 +225,16 @@ export default function HomePage() {
                 *bleep* {overallPct >= 50 ? 'You\'ve proven your SQL skills. Ready for the next verse?' : '9 real-world data science projects. Python & R. From EDA to ML models.'}
               </p>
               <div className="mt-3 flex items-center gap-3">
-                <span className="text-xs text-gray-500">9 projects · 38 steps</span>
+                <span className="text-xs text-gray-500">{labCompleted}/{allLabIds.length} steps done</span>
                 <span className="text-teal-400 text-xs">🐍 Python + R</span>
+                {labPct > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full bg-teal-400 transition-all duration-700" style={{ width: `${labPct}%` }} />
+                    </div>
+                    <span className="text-[10px] text-teal-400 font-mono">{labPct}%</span>
+                  </div>
+                )}
               </div>
             </div>
             <svg className="w-5 h-5 text-teal-400 group-hover:translate-x-1 transition-transform flex-shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

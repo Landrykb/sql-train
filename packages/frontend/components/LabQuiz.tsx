@@ -103,6 +103,36 @@ export const LAB_SKILL_QUESTIONS: Record<string, LabQuizQuestion[]> = {
     { type: 'fill_blank', question: 'The most popular activation function in hidden layers is ___ (Rectified Linear Unit)', answer: 'ReLU', explanation: 'ReLU(x) = max(0, x). It\'s simple, fast, and avoids the vanishing gradient problem. Used in most modern architectures.' },
     { type: 'multiple_choice', question: 'What is gradient descent?', options: ['A way to increase the loss', 'An optimization algorithm that iteratively adjusts weights to minimize the loss function', 'A type of neural network', 'A regularization technique'], answer: 'An optimization algorithm that iteratively adjusts weights to minimize the loss function', explanation: 'Gradient descent computes the gradient of the loss, then steps in the opposite direction. Learning rate controls step size.' },
   ],
+  // ── Large Language Models & NLP ───────────────────────────────────────────
+  llm: [
+    { type: 'multiple_choice', question: 'What does LLM stand for?', options: ['Large Linear Model', 'Large Language Model', 'Logistic Learning Machine', 'Low Latency Memory'], answer: 'Large Language Model', explanation: 'LLMs like GPT, Claude, and LLaMA are transformer-based models trained on massive text corpora.' },
+    { type: 'multiple_choice', question: 'What is the core architecture behind modern LLMs?', options: ['RNN', 'CNN', 'Transformer', 'Random Forest'], answer: 'Transformer', explanation: 'The Transformer uses self-attention to process sequences in parallel, enabling massive scale.' },
+    { type: 'fill_blank', question: 'Providing examples in the prompt to guide LLM output is called ___-shot learning', answer: 'few', explanation: 'Few-shot = a few examples. Zero-shot = no examples. One-shot = one example.' },
+    { type: 'multiple_choice', question: 'What is "hallucination" in LLMs?', options: ['The model crashes', 'Generating plausible but factually incorrect info', 'Refusing to answer', 'Generating images'], answer: 'Generating plausible but factually incorrect info', explanation: 'LLMs can confidently produce false statements. RAG and grounding help mitigate this.' },
+    { type: 'multiple_choice', question: 'What does RAG stand for?', options: ['Random Access Generation', 'Retrieval-Augmented Generation', 'Recursive Algorithm Graph', 'Reinforcement Action Gradient'], answer: 'Retrieval-Augmented Generation', explanation: 'RAG retrieves relevant docs then feeds them as context to the LLM, reducing hallucination.' },
+    { type: 'fill_blank', question: 'The attention mechanism where each token attends to all others is called ___-attention', answer: 'self', explanation: 'Self-attention computes relevance scores between all token pairs in a sequence.' },
+  ],
+  // ── AWS & Cloud ───────────────────────────────────────────────────────────
+  aws: [
+    { type: 'multiple_choice', question: 'What is Amazon S3?', options: ['A database', 'Object storage for any amount of data', 'A compute service', 'A networking service'], answer: 'Object storage for any amount of data', explanation: 'S3 stores objects in buckets with 99.999999999% durability.' },
+    { type: 'fill_blank', question: 'The AWS serverless function service is called AWS ___', answer: 'Lambda', explanation: 'Lambda runs code without servers. You pay only for compute time consumed.' },
+    { type: 'multiple_choice', question: 'What is EC2?', options: ['Storage', 'Virtual server in the cloud', 'ML service', 'DNS service'], answer: 'Virtual server in the cloud', explanation: 'EC2 provides resizable compute capacity. You choose instance type, OS, and scale as needed.' },
+    { type: 'multiple_choice', question: 'What is the AWS shared responsibility model?', options: ['AWS does everything', 'Customer does everything', 'AWS secures infrastructure; customer secures data and apps', 'Security is optional'], answer: 'AWS secures infrastructure; customer secures data and apps', explanation: 'AWS manages the cloud infrastructure. Customers manage what they put IN the cloud.' },
+    { type: 'fill_blank', question: 'The AWS managed ML service for building models without code is Amazon ___', answer: 'SageMaker', explanation: 'SageMaker provides tools to build, train, and deploy ML models at scale.' },
+  ],
+  // ── Cloud Practitioner Essentials ─────────────────────────────────────────
+  cloud: [
+    { type: 'multiple_choice', question: 'What is cloud computing?', options: ['Storing files on USB', 'On-demand delivery of IT resources over the internet', 'Using a faster CPU', 'Local server hosting'], answer: 'On-demand delivery of IT resources over the internet', explanation: 'Cloud computing provides compute, storage, and services on-demand with pay-as-you-go pricing.' },
+    { type: 'multiple_choice', question: 'What are the 3 main cloud service models?', options: ['HTTP, FTP, SSH', 'IaaS, PaaS, SaaS', 'CPU, GPU, TPU', 'Dev, Test, Prod'], answer: 'IaaS, PaaS, SaaS', explanation: 'IaaS = infrastructure. PaaS = platform. SaaS = software. Each abstracts more management away from the user.' },
+    { type: 'fill_blank', question: 'The practice of distributing resources across multiple data centers is called high ___', answer: 'availability', explanation: 'High availability ensures systems remain operational. AWS uses multiple Availability Zones within regions.' },
+    { type: 'multiple_choice', question: 'What is auto-scaling?', options: ['Manual server addition', 'Automatically adjusting capacity based on demand', 'Reducing server count', 'A billing feature'], answer: 'Automatically adjusting capacity based on demand', explanation: 'Auto-scaling adds or removes resources to match traffic, ensuring performance and cost efficiency.' },
+  ],
+  // ── MLOps & Deployment ────────────────────────────────────────────────────
+  mlops: [
+    { type: 'multiple_choice', question: 'What is MLOps?', options: ['A type of model', 'Practices for deploying and maintaining ML in production', 'A Python library', 'A database'], answer: 'Practices for deploying and maintaining ML in production', explanation: 'MLOps combines ML, DevOps, and data engineering for reliable ML system deployment and monitoring.' },
+    { type: 'fill_blank', question: 'Tracking changes to datasets and models over time is called ___ control', answer: 'version', explanation: 'Version control (Git for code, DVC for data) ensures reproducibility and traceability.' },
+    { type: 'multiple_choice', question: 'What is model drift?', options: ['Model gets faster', 'Model performance degrades as real-world data changes', 'Model size increases', 'Model learns new features'], answer: 'Model performance degrades as real-world data changes', explanation: 'Data distributions change over time. Monitor models and retrain when performance drops.' },
+  ],
 };
 
 // ─── Generic DS questions ───────────────────────────────────────────────────
