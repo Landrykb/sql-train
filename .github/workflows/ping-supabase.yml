@@ -1,0 +1,40 @@
+name: Ping Supabase
+
+on:
+  schedule:
+    # Every 4 days at 06:00 UTC — keeps the free-tier project active
+    - cron: '0 6 */4 * *'
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase with SELECT 1
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          echo "Pinging Supabase at $(date -u)..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/rpc/ping" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          echo "HTTP status: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 300 ]; then
+            echo "Supabase is alive!"
+          else
+            echo "Ping via RPC failed ($STATUS), trying direct REST query..."
+            FALLBACK=$(curl -s -o /dev/null -w "%{http_code}" \
+              "${SUPABASE_URL}/rest/v1/" \
+              -H "apikey: ${SUPABASE_ANON_KEY}" \
+              -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+            echo "Fallback HTTP status: $FALLBACK"
+            if [ "$FALLBACK" -ge 200 ] && [ "$FALLBACK" -lt 300 ]; then
+              echo "Supabase responded to fallback ping."
+            else
+              echo "::warning::Supabase did not respond. Status: $FALLBACK"
+            fi
+          fi
