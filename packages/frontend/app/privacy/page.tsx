@@ -23,6 +23,7 @@ export default function PrivacyPage() {
         <li><strong>If you sign in with GitHub:</strong> your GitHub username, display name, avatar URL, and email (as provided by GitHub). We store an OAuth token only so you can push your own solved work to your own GitHub repositories when you click &ldquo;Export to GitHub&rdquo;.</li>
         <li><strong>Synced progress (Supabase):</strong> if you are signed in, your progress is saved to our database so you can switch devices.</li>
         <li><strong>Anonymous product analytics (PostHog, optional):</strong> page views and generic event names such as <code>case_viewed</code> or <code>lab_solved</code>. No IP logging, no session recording, no content of your code.</li>
+        <li>We maintain internal systems and code necessary to operate the service.</li>
       </ul>
 
       <h2>2. What we do NOT do</h2>

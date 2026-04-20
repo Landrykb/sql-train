@@ -21,7 +21,7 @@ export default function TermsPage() {
         Bleepx is a learning platform that helps people train their SQL and data-science skills and build a public
         portfolio. It offers interactive SQL challenges (BleepxQuery) and data-science projects in Python and R
         (BleepxLab). All code execution happens in your browser via WebAssembly (sql.js, Pyodide). We do not execute
-        your code on our servers.
+        your code on our servers. We maintain internal systems and code necessary to operate the service.
       </p>
 
       <h2>2. Accounts &amp; sign-in</h2>
