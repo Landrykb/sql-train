@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bleepx — Poster</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f1f0f9; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 40px; }
+  .poster { width: 800px; background: #0d0b1a; border-radius: 24px; overflow: hidden; position: relative; }
+  .poster::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(139,92,246,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.07) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; }
+  .glow-purple { position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(99,60,220,0.3) 0%, transparent 65%); top: -160px; right: -120px; pointer-events: none; }
+  .glow-green { position: absolute; width: 350px; height: 350px; border-radius: 50%; background: radial-gradient(circle, rgba(34,197,130,0.15) 0%, transparent 65%); bottom: 80px; left: -80px; pointer-events: none; }
+  .glow-blue { position: absolute; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(37,99,235,0.2) 0%, transparent 65%); bottom: -60px; right: 100px; pointer-events: none; }
+  .inner { position: relative; z-index: 1; padding: 60px; }
+  .logo-row { display: flex; align-items: center; gap: 14px; margin-bottom: 48px; }
+  .logo-svg { width: 52px; height: 52px; }
+  .wordmark { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+  .hero { margin-bottom: 48px; }
+  .hero h1 { font-size: 56px; font-weight: 900; color: #fff; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; }
+  .hero h1 .purple { color: #a78bfa; }
+  .hero h1 .green { color: #34d399; }
+  .hero p { font-size: 18px; color: rgba(255,255,255,0.55); line-height: 1.6; max-width: 480px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 48px; }
+  .pill { font-size: 13px; font-weight: 500; padding: 7px 16px; border-radius: 99px; border: 1px solid; }
+  .pill.pp { background: rgba(167,139,250,0.12); color: #c4b5fd; border-color: rgba(167,139,250,0.3); }
+  .pill.pg { background: rgba(52,211,153,0.10); color: #6ee7b7; border-color: rgba(52,211,153,0.25); }
+  .pill.pb { background: rgba(37,99,235,0.15); color: #93c5fd; border-color: rgba(37,99,235,0.3); }
+  .bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; }
+  .stats { display: flex; flex-direction: column; gap: 20px; flex: 1; }
+  .stat-row { display: flex; gap: 32px; }
+  .stat { display: flex;  .stat { display: flex;  .stat { display: flex;  .stat { display: flex;  .stat { display: flex;  .stat { display: flex;  .srple { color: #a78bfa; }
+  .stat-num.green { color: #34d399; }
+  .stat-num.blue { color: #60a5fa; }
+  .stat-label { font-size: 13px; color: rgba(255,255,255,0.45); font-weight: 500; }
+  .qr-section { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .qr-wrap { width: 160px; height: 160px; background: #fff; border-radius: 16px; padding: 12px; position: relative; display: flex; align-items: center; justify-content: center; }
+  #qr-poster  #qr-poster  #qr-poster  #qr-poster  #qr-poster  #qr-poster  #qr-poster  #qr-poster  #qr-poster  #qrun  #qr-poster  #qr-poster  #qr-poster  #qr-poster  #qr-poster  #qr-poster  #qr-poster  #qr-poster g: 4px; }
+  .qr-label { font-size: 12px; color: rgba(255,255,255,0.4); text-align: center; }
+  .qr-url { font-size: 11px; color: rgba(255,255,255,0.3); font-family: monospace; text-align: center; }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(52,211,153,0.3), transparent); margin: 48px 0; }
+  .domains { font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 8px; }
+  .features { font-size: 14px; c  .features { font-size: 14px; c  .features { font-size: 14px; c  .features { font }
+</style>
+</head>
+<body>
+<div class="poster">
+  <div class="glow-purple"></div>
+  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl  <div cl/www.w3.org/2000/svg">
+        <path d="M0 0 C0.99 0.66 1.98 1.32 3 2 C3 2.66 3 3.32 3 4 C3.66 4 4.32 4 5 4 C10.70275719 10.55950945 14.9243085 18.1339338 19.04296875 25.73828125 C19.68878906 26.81464844 20.33460938 27.89101562 21        <path d="M0 0 C0.99 0.66 1.98 1.32 3 2 C3 2.66 3 3.32 3 4 C372729492 C23.65143587 33.06790437 25.14517355 34.77455009 27.95043945 35.5144043 C30.33763032 35.71406218 32.66738954 35.72752261 35.0625 35.6875 C36.85692984 35.7184071 38.65123131 35.75771531 40.4453125 35.8046875 C41.82251465 35.83900879 43.22753906 35.87402344 43.22753906 35.87402344 C63.96579153 36.81633924 83.57191268 43.21499028 101.375 53.75 C108 58 108 58 108 60 C109.65 60.66 113 62 113 64 C115 66 115 66 116.7734375 66.76171875 C121.532077 69.40819019 127.4375 79 127.4375 79 C130 81 142.81437662 105.7702218 151.37060547 160.12548828 C151.55783675 179.38699716 149.37477284 192.00748267 143.125 203.5 C132.85735613 222.70766306 118.46269286 233.88353712 101 242 C95.99896084 244.29872865 91 245 91 247 C95.85459499 249.45826108 101.8125 253.8125 101.8125 253.8125 C110.85327148 260.3840332 115.38962813 263.73286193 125 266 C136.29654667 263.33829049 148.546875 241.609375 148.546875 241.609375 C154 234 156 232 159.81262472 228.39918776 C162.82631673 227.63325811 177.125 230.4375 177.125 230.4375 C182.74732196 239.47936852 181.39561117 250.6506601 179.2109375 260.58984375 C168.18597963 291.80207278 156 303 154 305 C141.64367461 316.04182269 128.85338164 317.75144352 113 319 C108.04171302 340.12010013 101.21050281 357.7047772 89 372 C86.30078125 373.67578125 75.48220523 393.00626993 26.18359375 411.41015625 C-15.36826717 421.2232879 -43.97331712 421.50852018 -68.3125 414.6875 C-75.30468992 412.60754038 -82 407 -81 404 C-60.62052252 400.31967135 -41.62890625 385.3125 -31 357 C-29.06024325 341.67141498 -34 317 -36 317 C-36.796875 320.62109375 -38 326 -41.25 340.0625 C-43.79759668 350.92626368 -51 362 -65 363 C-70.7800802 360.17145011 -75.80004883 347.81958008 -78.4375 329.9375 C-77.98544817 308.76206132 -61 275 -59 275 C-56.39191226 268.73094732 -50 262 -44 258 C-41.94677142 254.40963798 -27 245 -27 245 C-34.25 240.875 -57.22297196 228.89394317 -67 219 C-87.30435472 197.73629536 -90.09765625 145.33642578 -88 128 C-83.7167982 105.16062548 -63 73 -50 62 C-47.967262 58.4762084 -41.88183594 54.53222656 -8.96875 41.078125 C0 38 2.01027946 33.97944107 0 25 C-8.25741725 8.16538591 -36.3828125 0.875 -36.3828125 0.875 C-43 4 -48 9 -55 16 C-54.6274988 7.61872304 -46.125 -2.6875 -46.125 -2.6875 C-31.52772784 -14.93298942 0 0 0 0 Z" fill="#2563eb" transform="translate(208,44)"/>
+        <path d="M0 0 C13.92003445 4.96115277 27.22288644 6.50102641 41.07666016 0.45605469 C57.60313835 -7.33488351 69.21337891 -6.22753906 69.21337891 -6.22753906 C82.55478499 -0.70695723 95.24853516 21.85839844 95.24853516 21.85839844 C109.29523413 81.35585055 99.60400391 108.27246094 90.91650391 122.08496094 C73.61712329 141.24243787 26.440979 148.49693298 15.47900391 148.58496094 C-14.71534492 148.4689725 -62.87646484 123.35058594 -80.08349609 94.08496094 C-87.31373197 68.77927266 -79.08349609 24.08496094 -64.08349609 3.08496094 C-60.52533628 -0.43114574 -55.33349609 -2.97753906 -52.28662109 -4.51269531 C-34.43674364 -12.32745874 0 0 0 0 Z" fill="#2563eb" transform="translate(247.08349609375,127.9150390625)"/>
+      </svg>
+      <span class="wordmark">Bleepx</span>
+    </div>
+    <div class="hero">
+      <h1>Learn by <span class="purple">solving</span><br>real cases.<br>Not <span class="green">watching</span> them.</h1>
+      <p>Master SQL & Data Science through real-world investigations — fraud detection, healthcare analytics, space missions, crime patterns, financial forecasting. Everything runs in your browser.</p>
+      <p class="features">Perfect for students, career switchers, and professionals looking to build practical experience. No setup required — just start coding.</p>
+    </div>
+    <div class="pills">
+      <span class="pill pp">100+ SQL cases</span>
+      <span class="pill pg">38 data science projects</span>
+      <span class="pill pb">No setup needed</span>
+      <span class="pill pp">AI assistant</span>
+      <span class="pill pg">Portfolio export</span>
+      <span class="pill pb">Gamified learning</span>
+    </div>
+    <div class="divider"></div>
+    <div class="bottom">
+      <div class="stats">
+                                                 ss="stat">
+            <span class="            <span class="            <span class="            <span class="            <span class="            <  <div clas            <span class="            <span class="            <span class="            <span class="            <span class="            <  <div clas         at">
+            <span class="stat-num blue">9            <span class="stat-num blue">9            <span class="stat-num blue">9            <span class="stat-num blue">9            <span class="stat-Crime · Sports      ace · Fraud Detection · Cli            <span class="stat-num blue">9           <div class="qr-section">
+        <div class="qr-wrap">
+          <div id="qr-poster"></div>
+          <div class="qr-logo">
+            <svg viewBox="100 40 260 430" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+              <path d="M0 0 C0.99 0.6  1.98 1.32 3 2 C3 2.66 3 3.32 3 4 C3.66 4 4.32 4 5 4 C10.70275719 10.55950945 14.9243085 18.1339338 19.04296875 25.73828125 C21 29 22.03149414 30.7272949              <path d="M0 0 C0.99 0.6  1.98 1.32 3 2 C3 2.66 3 3.32 3 4 C3.66 4 4.32 4 5 4 C10.70275719 10.55950945 14.9243085 18.1339338 19.04296875 25.73828125 C21 29 22.03149414 30.7272949              <path d="M0 0 C0.99 0.6  1.98 1.32 3 2 C3 2.66 3 3.32 3 4 C3.66 4 4.32 4 5 4 C10.70275719 10.55950945 14.77              <path d="M0 0 C0.99 0.6  1.98 1.32 3 2 C3 2.66 3 3.32 3 4 C3.66 4 4.32 4 5 4 C10.70275719 10.55950945 14.9243085 18.1339338 19.04296875 25.73828125 C21 29 22.03149414 30.7272949              <path d="M0 0 C0.99 0.6  1.98 1.32 3 2 C3 2.66 3 3.32 3 4 C3.66 4 4.32 4 5 4 C10.70275719 10.55950945 14.9243085 16 317 C-43.79759668 350.92626368              <path d="M0 0 C0.99 081              <path d="M0 006132 -61 275 C-50 262 -27 245 -27 245 C-57.22297196 228.89394317 -87.30435472 197.73629536 -88 128 C-83.7167982 105.16062548 -50 62 -8.96875 41.078125 C0 38 0 25 -8.25741725 8.16538591 C-31.52772784 -14.93298942 0 0 0 0 Z" fill="#2563eb" transform="translate(208,44)"/>
+              <path d="M0 0 C41.07666016 0.45605469 69.21337891 -6.22753906 69.21337891 -6.22753906 C95.24853516 21.85839844 109.29523413 81.35585055 90.91650391 122.08496094 C73.61712329 141.24243787 15.47900391 148.58496094 15.47900391 148.58496094 C-42.04529666 143.13851307 -80.08349609 94.08496094 -87.31373197 68.77927266 C-79.08349609 24.08496094 -52.28662109 -4.51269531 0 0 Z" fill="#2563eb" transform="translate(247.08349609375,127.9150390625)"/>
+            </svg>
+          </div>
+        </div>
+        <span class="qr-label">Scan to start learning</span>
+        <span class="qr-url">bleepxacademy.vercel.app</span>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+window.addEventListener('load', function() {
+  var qr = new QRCode(document.getElementById('qr-poster'), {
+    text: 'https://bleepxacademy.vercel.app',
+    width: 136, height: 136,
+    colorDark: '#1e1b4b',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+});
+</script>
+</body>
+</html>
