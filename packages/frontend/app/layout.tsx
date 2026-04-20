@@ -34,7 +34,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-teal-600 transition-colors"
-                  title="Primary contact"
                 >
                   LinkedIn
                 </a>
@@ -44,7 +43,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-teal-600 transition-colors"
-                  title="Public profile (source repo is private)"
                 >
                   GitHub
                 </a>
