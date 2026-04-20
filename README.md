@@ -132,7 +132,7 @@ Bleepx turns "another SQL tutorial" into **narrative case studies** you actually
 **Key decisions:**
 
 - **SSG everywhere.** `generateStaticParams` pre-renders all case/project pages at build time. No per-request cost.
-- **Everything client-side.** No Node runtime needed — cheap to host on Netlify/Vercel/GitHub Pages.
+- **Everything client-side.** No Node runtime needed — cheap to host on Vercel or any static host.
 - **Progressive sign-in.** Browsing = free. Running code / submitting answers = GitHub sign-in required (gate modal).
 - **YAML curriculum.** Cases and Lab projects are YAML files; a build step (`make curriculum`) validates and copies them.
 
@@ -150,7 +150,7 @@ Bleepx turns "another SQL tutorial" into **narrative case studies** you actually
 - **Content:** YAML (`js-yaml` parsed at build time)
 - **Testing:** Node-based validation scripts (`scripts/test_cases.mjs`)
 - **Package manager:** pnpm 8 (monorepo workspaces via `packages/frontend` + `packages/backend`)
-- **CI/CD:** GitHub Actions (daily Supabase ping); Netlify auto-deploys from `main`
+- **CI/CD:** GitHub Actions (daily Supabase ping); Vercel auto-deploys from `main`
 
 ---
 
@@ -209,13 +209,16 @@ This runs `make curriculum` (validates YAML) then builds the frontend and backen
 
 ## Deployment
 
-### Netlify (recommended)
+### Vercel (recommended)
 
-1. Connect the repo to Netlify.
-2. Build command: `pnpm build`
-3. Publish directory: `packages/frontend/out` (or `.next` if using Next.js runtime)
-4. Add the env vars from `.env.local` in Netlify's dashboard.
-5. Ensure `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set in GitHub **repo secrets** (not env secrets) so the ping workflow can use them.
+1. Import the repo on [vercel.com/new](https://vercel.com/new).
+2. Set the **Root Directory** to `packages/frontend`.
+3. Framework preset: **Next.js** (auto-detected).
+4. Build command: `pnpm build` (defaults work too).
+5. Add the env vars from `.env.local` in **Project Settings → Environment Variables**:
+   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and (optionally) `NEXT_PUBLIC_POSTHOG_KEY`.
+6. In **GitHub repo → Settings → Secrets and variables → Actions → Repository secrets**, add
+   `SUPABASE_URL` and `SUPABASE_ANON_KEY` so the daily keep-alive workflow can call Supabase.
 
 ---
 
@@ -384,7 +387,7 @@ Short version: we collect the minimum, never sell, you can opt out of analytics,
 - All 3rd-party code (Pyodide, sql.js) loaded from known CDNs with SRI where possible
 - No user-supplied code ever runs on our servers — only in the user's own browser sandbox
 
-Report security issues privately to [security@bleepx.dev](mailto:security@bleepx.dev).
+Report security issues privately by opening a private security advisory on the [GitHub repository](https://github.com/Landrykb/sql-train/security/advisories/new).
 
 ---
 
