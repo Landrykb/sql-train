@@ -313,18 +313,19 @@ export default function LabProjectViewer({
 
       {/* Step header with BleepX branding */}
       <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border overflow-hidden">
-        {/* Branded top bar */}
-        <div className="bg-gradient-to-r from-teal-600 to-emerald-600 px-5 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+        {/* Branded top bar — stacks on mobile, single row on sm+ */}
+        <div className="bg-gradient-to-r from-teal-600 to-emerald-600 px-4 sm:px-5 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
             <BleepxFace size={22} />
-            <span className="text-white text-xs font-bold tracking-wide uppercase">BleepxLab</span>
-            <span className="text-teal-200 text-[10px]">•</span>
-            <span className="text-teal-100 text-xs">{project}</span>
+            <span className="text-white text-xs font-bold tracking-wide uppercase whitespace-nowrap">BleepxLab</span>
+            <span className="text-teal-200 text-[10px] hidden sm:inline">•</span>
+            <span className="text-teal-100 text-xs truncate">{project}</span>
           </div>
-          <div className="flex items-center gap-2">
+          {/* Action chips — wrap on narrow screens, never push Run/Quiz off-screen */}
+          <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 sm:justify-end">
             {/* Test mode timer display */}
             {timerEnabled && timeLimit > 0 && !timeExpired && (
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold font-mono ${
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold font-mono whitespace-nowrap ${
                 timerSeconds <= 60 ? 'bg-red-500 text-white animate-pulse' :
                 timerSeconds <= 5 * 60 ? 'bg-amber-400 text-amber-900' :
                 'bg-white/20 text-white'
@@ -349,17 +350,18 @@ export default function LabProjectViewer({
                   setTimeExpired(false);
                 }
               }}
-              className={`text-[10px] px-2 py-0.5 rounded-full font-medium transition-colors ${
+              className={`text-[10px] px-2 py-0.5 rounded-full font-medium transition-colors whitespace-nowrap ${
                 timerEnabled ? 'bg-amber-400/30 text-amber-100 hover:bg-amber-400/50' : 'bg-white/20 text-white hover:bg-white/30'
               }`}
+              title={timerEnabled ? 'Stop timer' : 'Start test-mode timer'}
             >
-              {timerEnabled ? '⏱ Stop Timer' : '⏱ Timer'}
+              {timerEnabled ? '⏱ Stop' : '⏱ Timer'}
             </button>
-            <Link href="/lab/quiz" className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-100 hover:bg-purple-500/50 transition-colors font-medium">
+            <Link href="/lab/quiz" className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-100 hover:bg-purple-500/50 transition-colors font-medium whitespace-nowrap">
               🧠 Quiz
             </Link>
-            <Link href={`/lab/${domain}`} className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors font-medium">
-              📋 All Steps
+            <Link href={`/lab/${domain}`} className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors font-medium whitespace-nowrap">
+              📋 Steps
             </Link>
           </div>
         </div>
@@ -828,36 +830,42 @@ export default function LabProjectViewer({
         </div>
       )}
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between pt-2 pb-4">
+      {/* Navigation — prev/next step buttons. Truncate long step names; stack on very narrow screens. */}
+      <div className="flex flex-row items-stretch justify-between gap-2 pt-2 pb-4">
         {prevStep ? (
           <Link
             href={`/lab/${domain}/${prevStep.id}`}
-            className="px-4 py-2 rounded-full border-2 border-bleepx-border text-sm font-bold text-bleepx-text-secondary hover:bg-teal-50 dark:hover:bg-teal-900/10 transition-colors"
+            className="flex-1 min-w-0 max-w-[48%] px-3 sm:px-4 py-2 rounded-full border-2 border-bleepx-border text-xs sm:text-sm font-bold text-bleepx-text-secondary hover:bg-teal-50 dark:hover:bg-teal-900/10 transition-colors flex items-center gap-1"
+            title={prevStep.name}
           >
-            ← {prevStep.name}
+            <span className="flex-shrink-0">←</span>
+            <span className="truncate"><span className="hidden sm:inline">Prev: </span>{prevStep.name}</span>
           </Link>
         ) : (
           <Link
             href={`/lab/${domain}`}
-            className="px-4 py-2 rounded-full border-2 border-bleepx-border text-sm font-bold text-bleepx-text-secondary hover:bg-teal-50 dark:hover:bg-teal-900/10 transition-colors"
+            className="flex-1 min-w-0 max-w-[48%] px-3 sm:px-4 py-2 rounded-full border-2 border-bleepx-border text-xs sm:text-sm font-bold text-bleepx-text-secondary hover:bg-teal-50 dark:hover:bg-teal-900/10 transition-colors flex items-center gap-1"
           >
-            ← All Steps
+            <span className="flex-shrink-0">←</span>
+            <span className="truncate">All Steps</span>
           </Link>
         )}
         {nextStep ? (
           <Link
             href={`/lab/${domain}/${nextStep.id}`}
-            className="px-4 py-2 rounded-full bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-all shadow-sm hover:shadow-md"
+            className="flex-1 min-w-0 max-w-[48%] px-3 sm:px-4 py-2 rounded-full bg-teal-600 text-white text-xs sm:text-sm font-bold hover:bg-teal-700 transition-all shadow-sm hover:shadow-md flex items-center justify-end gap-1"
+            title={nextStep.name}
           >
-            Next: {nextStep.name} →
+            <span className="truncate"><span className="hidden sm:inline">Next: </span>{nextStep.name}</span>
+            <span className="flex-shrink-0">→</span>
           </Link>
         ) : (
           <Link
             href={`/lab/${domain}`}
-            className="px-4 py-2 rounded-full bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-all shadow-sm hover:shadow-md"
+            className="flex-1 min-w-0 max-w-[48%] px-3 sm:px-4 py-2 rounded-full bg-teal-600 text-white text-xs sm:text-sm font-bold hover:bg-teal-700 transition-all shadow-sm hover:shadow-md flex items-center justify-end gap-1"
           >
-            Back to Project →
+            <span className="truncate">Back to Project</span>
+            <span className="flex-shrink-0">→</span>
           </Link>
         )}
       </div>
