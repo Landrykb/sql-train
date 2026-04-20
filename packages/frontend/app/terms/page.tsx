@@ -113,8 +113,11 @@ export default function TermsPage() {
 
       <h2>13. Contact</h2>
       <p>
-        Questions or concerns? Open an issue on our{' '}
-        <a href="https://github.com/Landrykb/sql-train/issues" target="_blank" rel="noopener noreferrer">GitHub repository</a>.
+        Questions or concerns? The primary contact is{' '}
+        <a href="https://www.linkedin.com/in/landrykb" target="_blank" rel="noopener noreferrer">LinkedIn</a>.
+        You can also reach the maintainer on{' '}
+        <a href="https://github.com/Landrykb" target="_blank" rel="noopener noreferrer">GitHub</a>{' '}
+        (note: the source repository is private).
       </p>
 
       <p className="mt-8 text-sm">

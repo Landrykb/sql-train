@@ -27,13 +27,31 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </main>
           <footer className="bg-bleepx-white text-bleepx-text-secondary py-3 sm:py-4 border-t border-bleepx-border">
             <div className="max-w-5xl mx-auto px-3 sm:px-6 text-center text-xs sm:text-sm space-y-1">
-              <p>&copy; 2025 Bleepx</p>
-              <p className="flex flex-wrap justify-center gap-3 text-[11px]">
+              <p>&copy; {new Date().getFullYear()} Bleepx &mdash; All rights reserved.</p>
+              <p className="flex flex-wrap justify-center items-center gap-3 text-[11px]">
+                <a
+                  href="https://www.linkedin.com/in/landrykb"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-teal-600 transition-colors"
+                  title="Primary contact"
+                >
+                  LinkedIn
+                </a>
+                <span aria-hidden>&middot;</span>
+                <a
+                  href="https://github.com/Landrykb"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-teal-600 transition-colors"
+                  title="Public profile (source repo is private)"
+                >
+                  GitHub
+                </a>
+                <span aria-hidden>&middot;</span>
                 <Link href="/privacy" className="hover:text-teal-600 transition-colors">Privacy</Link>
-                <span aria-hidden>·</span>
+                <span aria-hidden>&middot;</span>
                 <Link href="/terms" className="hover:text-teal-600 transition-colors">Terms</Link>
-                <span aria-hidden>·</span>
-                <a href="https://github.com/Landrykb/sql-train" target="_blank" rel="noopener noreferrer" className="hover:text-teal-600 transition-colors">GitHub</a>
               </p>
             </div>
           </footer>

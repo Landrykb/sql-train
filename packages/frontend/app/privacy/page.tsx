@@ -56,7 +56,7 @@ export default function PrivacyPage() {
         <li>Sign out and delete your synced data from the profile page at any time.</li>
         <li>Clear local progress via your browser&apos;s storage settings.</li>
         <li>Opt out of analytics via the cookie banner or your browser.</li>
-        <li>Request data export or deletion by opening an issue on our <a href="https://github.com/Landrykb/sql-train/issues" target="_blank" rel="noopener noreferrer">GitHub repository</a>.</li>
+        <li>Request data export or deletion by contacting us on <a href="https://www.linkedin.com/in/landrykb" target="_blank" rel="noopener noreferrer">LinkedIn</a>.</li>
       </ul>
 
       <h2>6. International users</h2>
@@ -75,8 +75,11 @@ export default function PrivacyPage() {
 
       <h2>8. Contact</h2>
       <p>
-        Questions, requests, or concerns? Open an issue on our{' '}
-        <a href="https://github.com/Landrykb/sql-train/issues" target="_blank" rel="noopener noreferrer">GitHub repository</a>.
+        Questions, requests, or concerns? The primary contact is{' '}
+        <a href="https://www.linkedin.com/in/landrykb" target="_blank" rel="noopener noreferrer">LinkedIn</a>.
+        You can also reach the maintainer on{' '}
+        <a href="https://github.com/Landrykb" target="_blank" rel="noopener noreferrer">GitHub</a>{' '}
+        (note: the source repository is private).
       </p>
 
       <p className="mt-8 text-sm">
