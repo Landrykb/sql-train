@@ -5,6 +5,8 @@ import dynamic from 'next/dynamic';
 import { getPyErrorHelp } from '@/lib/pyErrorHelper';
 import { useTheme } from '@/lib/useTheme';
 import { BleepxFace } from '@/components/BleepxIcons';
+import { useAuthGate } from '@/components/SignInGate';
+import { track, Events } from '@/lib/analytics';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -121,6 +123,7 @@ export default function PythonTerminal({
   const [errorHelp, setErrorHelp] = useState<ReturnType<typeof getPyErrorHelp> | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
   const { dark: systemDark } = useTheme();
+  const { requireAuth, GateComponent } = useAuthGate();
 
   const isDark = editorTheme === 'auto' ? systemDark : editorTheme === 'dark';
 
@@ -151,6 +154,9 @@ export default function PythonTerminal({
   // Run code with timeout protection
   const runCode = useCallback(async () => {
     if (running) return;
+    // Gate: require GitHub sign-in to execute code
+    if (!requireAuth('run Python code')) return;
+    track(Events.LAB_RUN_PYTHON);
     setErrorHelp(null);
     setRunning(true);
 
@@ -227,7 +233,7 @@ sys.stderr = _stderr
     } finally {
       setRunning(false);
     }
-  }, [code, running, ensurePyodide, expectedOutput, solved, onSolved]);
+  }, [code, running, ensurePyodide, expectedOutput, solved, onSolved, requireAuth]);
 
   const clearOutput = () => { setOutput([]); setErrorHelp(null); };
 
@@ -243,11 +249,11 @@ sys.stderr = _stderr
     <div className={`rounded-xl border overflow-hidden shadow-sm transition-colors ${
       isDark ? 'border-gray-700 bg-gray-900' : 'border-gray-300 bg-white'
     }`}>
-      {/* Toolbar */}
-      <div className={`flex items-center justify-between px-3 py-2 border-b ${
+      {/* Toolbar — mobile: stacks label on top, buttons wrap below; desktop: single row */}
+      <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-3 py-2 border-b ${
         isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-300'
       }`}>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <div className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
             <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
@@ -262,53 +268,55 @@ sys.stderr = _stderr
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1.5">
+        {/* Button row — wraps on mobile, Run button always last so it stays visible */}
+        <div className="flex items-center flex-wrap gap-1.5 justify-end">
           {/* Theme toggle */}
           <button
             onClick={cycleTheme}
-            className={`px-2 py-1 text-[10px] font-bold rounded transition-colors ${
+            className={`px-2 py-1 text-[10px] font-bold rounded transition-colors whitespace-nowrap ${
               isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
             }`}
             title={`Theme: ${editorTheme}`}
           >
-            {editorTheme === 'auto' ? '🔄 Auto' : editorTheme === 'dark' ? '🌙 Dark' : '☀️ Light'}
+            {editorTheme === 'auto' ? '🔄' : editorTheme === 'dark' ? '🌙' : '☀️'}
+            <span className="hidden sm:inline ml-0.5">{editorTheme === 'auto' ? 'Auto' : editorTheme === 'dark' ? 'Dark' : 'Light'}</span>
           </button>
           {hints.length > 0 && (
             <button
               onClick={showNextHint}
               disabled={hintIdx >= hints.length - 1}
-              className={`px-2 py-1 text-[10px] font-bold rounded transition-colors disabled:opacity-40 ${
+              className={`px-2 py-1 text-[10px] font-bold rounded transition-colors disabled:opacity-40 whitespace-nowrap ${
                 isDark ? 'bg-amber-900/40 text-amber-300 hover:bg-amber-900/60' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
               }`}
             >
-              💡 Hint ({Math.max(0, hintIdx + 1)}/{hints.length})
+              💡<span className="hidden sm:inline"> Hint</span> ({Math.max(0, hintIdx + 1)}/{hints.length})
             </button>
           )}
           {solutionCode && (
             <button
               onClick={() => setShowSolution(!showSolution)}
-              className={`px-2 py-1 text-[10px] font-bold rounded transition-colors ${
+              className={`px-2 py-1 text-[10px] font-bold rounded transition-colors whitespace-nowrap ${
                 isDark ? 'bg-purple-900/40 text-purple-300 hover:bg-purple-900/60' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
               }`}
             >
-              {showSolution ? '🙈 Hide' : '👁️ Solution'}
+              {showSolution ? '🙈' : '👁️'}<span className="hidden sm:inline"> {showSolution ? 'Hide' : 'Solution'}</span>
             </button>
           )}
           <button
             onClick={clearOutput}
-            className={`px-2 py-1 text-[10px] font-bold rounded transition-colors ${
+            className={`px-2 py-1 text-[10px] font-bold rounded transition-colors whitespace-nowrap ${
               isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
             }`}
           >
-            Clear
+            🧹<span className="hidden sm:inline"> Clear</span>
           </button>
           <button
             onClick={runCode}
             disabled={running || !code.trim()}
-            className="px-3 py-1 text-xs font-bold rounded bg-teal-600 text-white hover:bg-teal-700 transition-colors disabled:opacity-40 flex items-center gap-1"
+            className="px-3 py-1.5 text-xs font-bold rounded bg-teal-600 text-white hover:bg-teal-700 active:bg-teal-800 transition-colors disabled:opacity-40 flex items-center gap-1 whitespace-nowrap shadow-md"
           >
             {running ? '⏳ Running...' : '▶ Run'}
-            <span className="text-[9px] opacity-70">(⌘↵)</span>
+            <span className="text-[9px] opacity-70 hidden sm:inline">(⌘↵)</span>
           </button>
         </div>
       </div>
@@ -435,6 +443,7 @@ import numpy as np"
           }`}>{expectedOutput}</pre>
         </div>
       )}
+      <GateComponent />
     </div>
   );
 }

@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { BleepxHead, BleepxTrophy, BleepxFace } from '@/components/BleepxIcons';
 import { syncCurrentProgress } from '@/lib/progressSync';
+import { useAuthGate } from '@/components/SignInGate';
+import { track, Events } from '@/lib/analytics';
 
 // ─── Question bank keyed by SQL skill ────────────────────────────────────────
 
@@ -247,6 +249,7 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
   const [finished, setFinished] = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
   const [previousScore, setPreviousScore] = useState(0);
+  const { requireAuth, GateComponent } = useAuthGate();
 
   // Derive answered/correct from answers array
   const currentAnswer = answers[currentIdx] ?? null;
@@ -287,6 +290,9 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
 
   const handleAnswer = useCallback(() => {
     if (!currentQ || answered) return;
+    // Gate: require GitHub sign-in to submit answers
+    if (!requireAuth('submit quiz answers')) return;
+    if (currentIdx === 0) track(Events.QUIZ_STARTED, { case_id: caseId, kind: 'trial' });
     const userAnswer = currentQ.type === 'multiple_choice' ? selected : textInput.trim();
     if (!userAnswer) return;
 
@@ -298,7 +304,7 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
     newAnswers[currentIdx] = { userAnswer, correct: isCorrect };
     setAnswers(newAnswers);
     if (isCorrect) setScore((s) => s + POINTS_PER_CORRECT);
-  }, [currentQ, answered, selected, textInput, answers, currentIdx]);
+  }, [currentQ, answered, selected, textInput, answers, currentIdx, requireAuth, caseId]);
 
   const handleNext = useCallback(() => {
     if (currentIdx + 1 >= totalQuestions) {
@@ -566,6 +572,7 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
           )}
         </div>
       </div>
+      <GateComponent />
     </div>
   );
 }

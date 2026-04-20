@@ -21,6 +21,8 @@ import { useTheme } from '@/lib/useTheme';
 import { getSqlErrorHelp } from '@/lib/sqlErrorHelper';
 import GuideModal from './GuideModal';
 import { FREE_HINTS, HINT_COST, SKIP_COST, TRIAL_UNLOCK_COST, getStoreState, getActivePerks, purchaseSkip as purchaseSkipFn, unlockTrial as unlockTrialFn } from '@/lib/pointsStore';
+import { useAuthGate } from '@/components/SignInGate';
+import { track, Events } from '@/lib/analytics';
 
 const Spinner = dynamic(() => import('./Spinner'), { ssr: false });
 
@@ -102,6 +104,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
   const domain = normalizeDomain(rawDomain) as ValidDomain;
   const router = useRouter();
   const { markComplete, completed, isUnlocked, points, spendPoints } = useProgress();
+  const { requireAuth, GateComponent } = useAuthGate();
 
   const currentOrder = fullCaseOrder[domain] || caseOrder[domain] || [];
   const currentIndex = currentOrder.indexOf(id);
@@ -345,6 +348,9 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
   }, [domain, id]);
 
   const onRun = useCallback(async () => {
+    // Gate: require GitHub sign-in to run SQL
+    if (!requireAuth('run this SQL query')) return;
+    track(Events.CASE_RUN_SQL, { case_id: id, domain });
     if (query.length > 3000) {
       setMessage(queryMessages.tooLong);
       setAttempts((a) => a + 1);
@@ -447,7 +453,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
     } finally {
       setBusy(false);
     }
-  }, [query, expected, solutionQuery, id, markComplete, attempts, hints.length, completed, skills, domain, currentOrder, nextCaseId, tier, addHistory, timerSeconds]);
+  }, [query, expected, solutionQuery, id, markComplete, attempts, hints.length, completed, skills, domain, currentOrder, nextCaseId, tier, addHistory, timerSeconds, requireAuth]);
 
   const tryExampleQuery = useCallback(() => {
     const example = templateQuery || seedQuery;
@@ -1332,6 +1338,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       guideData={guideData}
       scrollToSection={guideSection}
     />
+    <GateComponent />
     </>
   );
 }

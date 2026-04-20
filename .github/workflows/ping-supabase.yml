@@ -2,8 +2,8 @@ name: Ping Supabase
 
 on:
   schedule:
-    # Every 4 days at 06:00 UTC — keeps the free-tier project active
-    - cron: '0 6 */4 * *'
+    # Every day at 06:00 UTC — keeps the free-tier project active
+    - cron: '0 6 * * *'
   workflow_dispatch: # allow manual trigger
 
 jobs:
