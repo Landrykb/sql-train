@@ -12,9 +12,7 @@ export default function PrivacyPage() {
       <p className="text-xs text-bleepx-text-secondary">Last updated: April 2026</p>
 
       <p>
-        Bleepx (BleepxQuery &amp; BleepxLab) is a learning platform that helps people train their SQL and data-science
-        skills and build a public portfolio. Our main purpose is education, not data collection. This page explains
-        what little data we do handle and why.
+        The platform focuses on learning and skill development. It provides structured SQL training to help users, including beginners, build practical experience and improve their professional portfolio.
       </p>
 
       <h2>1. What we store</h2>
