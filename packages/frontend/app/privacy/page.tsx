@@ -79,8 +79,7 @@ export default function PrivacyPage() {
         Questions, requests, or concerns? The primary contact is{' '}
         <a href="https://www.linkedin.com/in/landrykb" target="_blank" rel="noopener noreferrer">LinkedIn</a>.
         You can also reach the maintainer on{' '}
-        <a href="https://github.com/Landrykb" target="_blank" rel="noopener noreferrer">GitHub</a>{' '}
-        (note: the source repository is private).
+        <a href="https://github.com/Landrykb" target="_blank" rel="noopener noreferrer">GitHub</a>.
       </p>
 
       <p className="mt-8 text-sm">
