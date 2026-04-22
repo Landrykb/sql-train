@@ -1,6 +1,6 @@
 # Bleepx — Learn SQL &amp; Data Science by Solving Cases
 
-> Bleepx is a free, browser-native learning platform where you master **SQL** (BleepxQuery) and **Python/R data science** (BleepxLab) by solving realistic case studies. Everything runs client-side on WebAssembly — your code never leaves your device.
+> Bleepx is a browser-native learning platform where you master **SQL** (BleepxQuery) and **Python/R data science** (BleepxLab) by solving realistic case studies. Everything runs client-side on WebAssembly — your code never leaves your device.
 
 Live: **[bleepx.dev](https://bleepx.dev)** &nbsp;•&nbsp; Source: [github.com/Landrykb/sql-train](https://github.com/Landrykb/sql-train)
 
