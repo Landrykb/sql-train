@@ -6,83 +6,125 @@ step_number: 4
 tier: 3
 skills: [portfolio_optimization, esg_integration, visualization, reporting]
 language: "Python / R"
-dataset_url: "https://www.kaggle.com/datasets/debashish311601/esg-scores-and-ratings"
-description: "Build an ESG-integrated investment portfolio that balances financial returns with sustainability goals."
+dataset_url: "https://www.kaggle.com/datasets/shriyashjagtap/esg-and-financial-performance-dataset"
+description: "Construct an ESG-tilted portfolio on top of the Kaggle ESG & Financial Performance panel — compare ESG vs market-cap weighting and produce a TCFD-style climate summary."
 prereq_cases: [esg_risk]
 learning_objectives:
-  - Construct ESG-tilted portfolios
-  - Compare ESG vs conventional portfolio performance
-  - Generate TCFD-aligned climate risk reports
+  - Build ESG-tilted weights from ESG_Overall and MarketCap
+  - Compare ESG vs conventional portfolio return and carbon intensity
+  - Generate a short TCFD-aligned climate risk report
 sections:
-  - title: "ESG-Tilted Portfolio Construction"
-    content: "Overweight high-ESG companies and underweight low-ESG ones."
+  - title: "Load Latest-Year Snapshot & Derive Return Proxy"
+    content: "We use the Kaggle panel's annual GrowthRate as a per-company return proxy (the dataset doesn't include stock returns)."
     code: |
-      df['esg_weight'] = df['custom_esg'] / df['custom_esg'].sum()
-      df['market_weight'] = df['market_cap'] / df['market_cap'].sum()
-      df['tilt'] = 0.5 * df['market_weight'] + 0.5 * df['esg_weight']
-      df['tilt'] = df['tilt'] / df['tilt'].sum()
+      from pyodide.http import open_url
+      import pandas as pd
 
-      esg_return = (df['tilt'] * df['annual_return']).sum()
-      market_return = (df['market_weight'] * df['annual_return']).sum()
-      print(f"ESG Portfolio Return: {esg_return:.2f}%")
-      print(f"Market Portfolio Return: {market_return:.2f}%")
-      print(f"ESG Premium: {esg_return - market_return:.2f}%")
+      raw = pd.read_csv(open_url("/datasets/company_esg_financial_dataset.csv"))
+      # Latest-year snapshot gives a single Revenue / MarketCap / GrowthRate per issuer
+      df = raw.sort_values('Year').groupby('CompanyID').tail(1).reset_index(drop=True)
+      print(f"Issuers: {len(df)}, Industries: {df['Industry'].nunique()}")
+      print(df[['CompanyName', 'Industry', 'MarketCap', 'ESG_Overall', 'GrowthRate']].head())
     r_code: |
-      df$esg_weight <- df$custom_esg / sum(df$custom_esg)
-      df$market_weight <- df$market_cap / sum(df$market_cap)
-      df$tilt <- 0.5 * df$market_weight + 0.5 * df$esg_weight
-      df$tilt <- df$tilt / sum(df$tilt)
+      library(dplyr)
 
-      esg_return <- sum(df$tilt * df$annual_return)
-      market_return <- sum(df$market_weight * df$annual_return)
-      cat(sprintf("ESG Portfolio Return: %.2f%%\n", esg_return))
-      cat(sprintf("Market Portfolio Return: %.2f%%\n", market_return))
-      cat(sprintf("ESG Premium: %.2f%%\n", esg_return - market_return))
-    explanation: "A 50/50 tilt blends market-cap weighting with ESG scores. High-ESG companies get more weight. The ESG premium (or discount) varies by period and methodology."
+      raw <- read.csv('company_esg_financial_dataset.csv')
+      df <- raw %>% arrange(Year) %>% group_by(CompanyID) %>% slice_tail(n = 1) %>% ungroup()
+      cat(sprintf("Issuers: %d\n", nrow(df)))
+      head(df[, c('CompanyName','Industry','MarketCap','ESG_Overall','GrowthRate')])
+    explanation: "The Kaggle dataset reports fundamentals (Revenue, MarketCap, GrowthRate) rather than stock prices, so we use GrowthRate as the return proxy. In production you would merge in actual equity returns."
+  - title: "Build ESG-Tilted Weights"
+    content: "A 50/50 blend of market-cap weighting and ESG_Overall weighting."
+    code: |
+      df['esg_weight']    = df['ESG_Overall'] / df['ESG_Overall'].sum()
+      df['market_weight'] = df['MarketCap']   / df['MarketCap'].sum()
+      df['tilt']          = 0.5 * df['market_weight'] + 0.5 * df['esg_weight']
+      df['tilt']          = df['tilt'] / df['tilt'].sum()
+
+      esg_return    = (df['tilt']          * df['GrowthRate']).sum()
+      market_return = (df['market_weight'] * df['GrowthRate']).sum()
+      print(f"ESG-Tilted Portfolio GrowthRate : {esg_return:.2f}%")
+      print(f"Market-Cap Portfolio GrowthRate : {market_return:.2f}%")
+      print(f"ESG Premium / (Discount)        : {esg_return - market_return:+.2f} pp")
+    r_code: |
+      df$esg_weight    <- df$ESG_Overall / sum(df$ESG_Overall, na.rm = TRUE)
+      df$market_weight <- df$MarketCap   / sum(df$MarketCap,   na.rm = TRUE)
+      df$tilt          <- 0.5 * df$market_weight + 0.5 * df$esg_weight
+      df$tilt          <- df$tilt / sum(df$tilt)
+
+      esg_return    <- sum(df$tilt          * df$GrowthRate, na.rm = TRUE)
+      market_return <- sum(df$market_weight * df$GrowthRate, na.rm = TRUE)
+      cat(sprintf("ESG-Tilted  GrowthRate: %.2f%%\n", esg_return))
+      cat(sprintf("Market-Cap  GrowthRate: %.2f%%\n", market_return))
+      cat(sprintf("ESG Premium          : %+.2f pp\n", esg_return - market_return))
+    explanation: "A 50/50 tilt overweights high-ESG companies while still reflecting market size. The ESG premium varies by period and methodology — many studies find a risk-adjusted benefit rather than a raw-return one."
   - title: "Climate Risk Dashboard"
-    content: "Create a summary report of portfolio climate exposure."
+    content: "Summarise the portfolio's ESG, carbon intensity, and high-carbon-industry exposure in one short report."
     code: |
+      high_carbon_industries = {'Energy', 'Utilities', 'Materials'}
+      carbon_intensity = df['CarbonEmissions'] / df['Revenue']
+
+      weighted_esg         = (df['tilt'] * df['ESG_Overall']).sum()
+      weighted_intensity   = (df['tilt'] * carbon_intensity).sum()
+      high_carbon_share    = df.loc[df['Industry'].isin(high_carbon_industries), 'tilt'].sum() * 100
+
       print("=== PORTFOLIO CLIMATE RISK REPORT ===")
-      print(f"Weighted Avg ESG Score: {(df['tilt'] * df['custom_esg']).sum():.1f}")
-      print(f"Weighted Avg Carbon Intensity: {(df['tilt'] * df['co2_emissions_mt']/df['revenue']).sum():.4f}")
-      print(f"% in High-Carbon Sectors: {df[df['sector'].isin(['Energy','Materials'])]['tilt'].sum()*100:.1f}%")
-      print(f"\nScenario Impacts:")
-      for col in [c for c in df.columns if c.startswith('impact_')]:
-          impact = (df['tilt'] * df[col]).sum() * 100
-          print(f"  {col}: {impact:+.2f}%")
+      print(f"Weighted Avg ESG_Overall       : {weighted_esg:.1f}")
+      print(f"Weighted Avg Carbon Intensity  : {weighted_intensity:.4f}  (CarbonEmissions / Revenue)")
+      print(f"High-Carbon Industry Share     : {high_carbon_share:.1f}%")
     r_code: |
+      high_carbon_industries <- c('Energy','Utilities','Materials')
+      carbon_intensity <- df$CarbonEmissions / df$Revenue
+
+      weighted_esg       <- sum(df$tilt * df$ESG_Overall, na.rm = TRUE)
+      weighted_intensity <- sum(df$tilt * carbon_intensity, na.rm = TRUE)
+      high_carbon_share  <- sum(df$tilt[df$Industry %in% high_carbon_industries], na.rm = TRUE) * 100
+
       cat("=== PORTFOLIO CLIMATE RISK REPORT ===\n")
-      cat(sprintf("Weighted Avg ESG Score: %.1f\n", sum(df$tilt * df$custom_esg)))
-      cat(sprintf("Weighted Avg Carbon Intensity: %.4f\n",
-        sum(df$tilt * df$co2_emissions_mt / df$revenue)))
-      high_carbon <- df[df$sector %in% c('Energy','Materials'), ]
-      cat(sprintf("%% in High-Carbon Sectors: %.1f%%\n", sum(high_carbon$tilt) * 100))
-    explanation: "This report follows TCFD (Task Force on Climate-related Financial Disclosures) recommendations. Institutional investors increasingly require this level of climate transparency."
+      cat(sprintf("Weighted Avg ESG_Overall      : %.1f\n", weighted_esg))
+      cat(sprintf("Weighted Avg Carbon Intensity : %.4f\n", weighted_intensity))
+      cat(sprintf("High-Carbon Industry Share    : %.1f%%\n", high_carbon_share))
+    explanation: "This mini report follows the TCFD (Task Force on Climate-related Financial Disclosures) structure — an ESG quality indicator, a carbon-intensity metric, and an exposure-to-high-carbon-sectors measure."
 schema:
-  - company_id
-  - sector
-  - custom_esg
-  - market_cap
-  - annual_return
-  - co2_emissions_mt
-  - revenue
+  - CompanyID
+  - CompanyName
+  - Industry
+  - Revenue
+  - MarketCap
+  - GrowthRate
+  - ESG_Overall
+  - CarbonEmissions
+  - market_weight
+  - esg_weight
+  - tilt
 thought_process:
-  - "Create ESG-tilted weights by blending market-cap and ESG scores"
-  - "Compare ESG portfolio return vs market-cap weighted return"
-  - "Calculate weighted average ESG score and carbon intensity"
-  - "Generate a TCFD-aligned climate risk summary report"
+  - "Collapse panel to latest-year snapshot"
+  - "Derive market-cap weights and ESG_Overall weights"
+  - "Blend both at 50/50 to form an ESG-tilted portfolio"
+  - "Compare tilted vs market-cap return using GrowthRate as proxy"
+  - "Produce a 3-line TCFD-style climate risk report"
 solution_code: |
   from pyodide.http import open_url
   import pandas as pd
 
-  df = pd.read_csv(open_url("/datasets/esg_scores.csv"))
-  print(f"Shape: {df.shape}")
-  print(f"Columns: {df.columns.tolist()}")
-  print(f"\nSample:\n{df.head(3)}")
+  raw = pd.read_csv(open_url("/datasets/company_esg_financial_dataset.csv"))
+  df = raw.sort_values('Year').groupby('CompanyID').tail(1).reset_index(drop=True)
+
+  df['esg_weight']    = df['ESG_Overall'] / df['ESG_Overall'].sum()
+  df['market_weight'] = df['MarketCap']   / df['MarketCap'].sum()
+  df['tilt']          = 0.5 * df['market_weight'] + 0.5 * df['esg_weight']
+  df['tilt']          = df['tilt'] / df['tilt'].sum()
+
+  esg_return    = (df['tilt']          * df['GrowthRate']).sum()
+  market_return = (df['market_weight'] * df['GrowthRate']).sum()
+  print(f"ESG Portfolio    : {esg_return:.2f}%")
+  print(f"Market Portfolio : {market_return:.2f}%")
+  print(f"ESG Premium      : {esg_return - market_return:+.2f} pp")
 expected_output: |
-  Shape:
-  Columns:
+  ESG Portfolio    :
+  Market Portfolio :
+  ESG Premium      :
 hints:
-  - "Try mean-variance optimization with ESG constraints"
-  - "Add a carbon budget constraint: max X tons CO2 per $M invested"
-  - "Backtest the ESG portfolio over 5-10 years vs benchmark"
+  - "Add a carbon budget constraint: cap weighted CarbonEmissions/Revenue"
+  - "Run mean-variance optimisation using GrowthRate volatility per CompanyID"
+  - "Backtest by rolling the 'latest year' forward through the 11-year panel"

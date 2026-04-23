@@ -69,7 +69,7 @@ solution_code: |
   from sklearn.ensemble import GradientBoostingClassifier
   from sklearn.metrics import roc_auc_score, confusion_matrix
 
-  df = pd.read_csv(open_url("/datasets/telco_churn.csv"))
+  df = pd.read_csv(open_url("/datasets/WA_Fn-UseC_-Telco-Customer-Churn.csv"))
   df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
   df.dropna(inplace=True)
   df['Churn_binary'] = (df['Churn'] == 'Yes').astype(int)

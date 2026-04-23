@@ -3,10 +3,10 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { BleepxFace, BleepxGhost, BleepxGitHub } from '@/components/BleepxIcons';
-import PythonTerminal from '@/components/PythonTerminal';
+import PythonTerminal, { type PythonTerminalHandle } from '@/components/PythonTerminal';
 import { useProgress } from '@/lib/useProgress';
 import { playBleep } from '@/lib/audio';
-import { getGitHubUser } from '@/lib/authClient';
+import { getGitHubUser, getGitHubToken } from '@/lib/authClient';
 import { pushLabProjectToGitHub } from '@/lib/githubPush';
 import { LAB_CASE_TIERS, LAB_TEST_MODE_LIMITS } from '@/lib/labConstants';
 
@@ -30,6 +30,12 @@ interface LabProjectViewerProps {
   skills: string[];
   language: string;
   datasetUrl?: string;
+  /** The exact filename Kaggle ships inside the dataset ZIP. */
+  kaggleFilename?: string;
+  /** Optional short human-readable note about the dataset. */
+  kaggleNote?: string;
+  /** The `/datasets/...csv` path the lab code reads from (auto-detected). */
+  datasetPath?: string | null;
   sections: Section[];
   hints: string[];
   learningObjectives: string[];
@@ -43,11 +49,90 @@ interface LabProjectViewerProps {
   nextStep?: { id: string; name: string } | null;
 }
 
+// ─── Inline copy pill — compact "filename + copy" chip used in the dataset panel
+
+function CopyInline({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = useCallback(() => {
+    navigator.clipboard.writeText(value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }, [value]);
+  return (
+    <button
+      onClick={copy}
+      title={`Copy ${value}`}
+      className="w-full text-left flex items-center gap-1.5 group"
+    >
+      <code className="text-[11px] font-mono text-bleepx-text break-all flex-1">{value}</code>
+      <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold transition-colors flex-shrink-0 ${copied ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 group-hover:bg-teal-500 group-hover:text-white'}`}>
+        {copied ? '✓' : '📋'}
+      </span>
+    </button>
+  );
+}
+
+// ─── How It Works banner — collapsible; preference persists in localStorage.
+
+const HOW_IT_WORKS_KEY = 'bleepx_lab_how_it_works_collapsed';
+
+function HowItWorksBanner() {
+  // Default to EXPANDED for first-time users; remember choice otherwise.
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    try {
+      setCollapsed(localStorage.getItem(HOW_IT_WORKS_KEY) === '1');
+    } catch { /* ignore */ }
+  }, []);
+  const toggle = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try { localStorage.setItem(HOW_IT_WORKS_KEY, next ? '1' : '0'); } catch { /* ignore */ }
+      return next;
+    });
+  };
+  return (
+    <div className="rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50/60 dark:bg-teal-900/10">
+      <button
+        onClick={toggle}
+        className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 text-left"
+        aria-expanded={!collapsed}
+      >
+        <div className="flex items-center gap-3">
+          <BleepxFace size={22} />
+          <h3 className="text-sm font-bold text-teal-800 dark:text-teal-200">
+            How this step works
+          </h3>
+        </div>
+        <span className={`text-xs text-teal-700 dark:text-teal-300 transition-transform ${collapsed ? '' : 'rotate-180'}`}>▼</span>
+      </button>
+      {!collapsed && (
+        <ol className="text-xs text-teal-900/80 dark:text-teal-200/80 space-y-1 list-decimal list-inside leading-relaxed px-4 sm:px-5 pb-4 sm:pb-5 pl-10 sm:pl-12">
+          <li>Write your solution in the <strong>Try It Yourself</strong> editor below — matplotlib/seaborn figures and pandas tables render inline.</li>
+          <li>Stuck? Expand a section and click <strong className="whitespace-nowrap">↑ Send to editor</strong> to stack its snippet into the editor, notebook-style.</li>
+          <li>Hit <strong>▶ Run</strong> (or <kbd className="px-1 py-0.5 rounded bg-white dark:bg-gray-800 border border-teal-300 dark:border-teal-700 text-[10px]">⌘↵</kbd>) — once your output matches the expected result, the step is marked solved.</li>
+          <li>Use <strong>↺ Reset</strong> to restore the starter code at any time.</li>
+        </ol>
+      )}
+    </div>
+  );
+}
+
 // ─── Spoiler Code Block ─────────────────────────────────────────────────────
 
-function SpoilerCodeBlock({ code, language }: { code: string; language: string }) {
+function SpoilerCodeBlock({
+  code,
+  language,
+  onSendToEditor,
+}: {
+  code: string;
+  language: string;
+  onSendToEditor?: (code: string) => void;
+}) {
   const [revealed, setRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [sent, setSent] = useState(false);
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(code).then(() => {
@@ -55,6 +140,13 @@ function SpoilerCodeBlock({ code, language }: { code: string; language: string }
       setTimeout(() => setCopied(false), 2000);
     });
   }, [code]);
+
+  const handleSend = useCallback(() => {
+    if (!onSendToEditor) return;
+    onSendToEditor(code);
+    setSent(true);
+    setTimeout(() => setSent(false), 1800);
+  }, [code, onSendToEditor]);
 
   if (!revealed) {
     return (
@@ -94,6 +186,15 @@ function SpoilerCodeBlock({ code, language }: { code: string; language: string }
           >
             🙈 Hide
           </button>
+          {onSendToEditor && (
+            <button
+              onClick={handleSend}
+              className="text-xs px-2.5 py-1 rounded-md bg-teal-600 text-white hover:bg-teal-700 transition-colors font-medium"
+              title="Append this snippet to the Try It Yourself editor above"
+            >
+              {sent ? '✅ Sent!' : '↑ Send to editor'}
+            </button>
+          )}
           <button
             onClick={handleCopy}
             className="text-xs px-2.5 py-1 rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-bleepx-text-secondary hover:text-bleepx-text hover:border-teal-400 transition-colors"
@@ -121,6 +222,9 @@ export default function LabProjectViewer({
   skills,
   language,
   datasetUrl,
+  kaggleFilename,
+  kaggleNote,
+  datasetPath,
   sections,
   hints,
   learningObjectives,
@@ -133,6 +237,16 @@ export default function LabProjectViewer({
   prevStep,
   nextStep,
 }: LabProjectViewerProps) {
+  const terminalRef = useRef<PythonTerminalHandle | null>(null);
+  const editorSectionRef = useRef<HTMLDivElement | null>(null);
+
+  /** Append a snippet to the main editor and scroll it into view — the
+   *  Jupyter-notebook-style "send a cell to the runner" pattern. */
+  const sendToEditor = useCallback((snippet: string) => {
+    terminalRef.current?.appendCode(snippet);
+    editorSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
   const [showHints, setShowHints] = useState(false);
   const [showThoughtProcess, setShowThoughtProcess] = useState(false);
@@ -266,7 +380,8 @@ export default function LabProjectViewer({
   // GitHub export handler
   const handleGitHubPush = useCallback(async () => {
     const ghUser = getGitHubUser();
-    if (!ghUser?.token) {
+    const token = await getGitHubToken();
+    if (!ghUser || !token) {
       setPushStatus('Sign in with GitHub first (Profile → Sign In)');
       return;
     }
@@ -407,7 +522,7 @@ export default function LabProjectViewer({
           {/* Dataset source — kagglehub download instructions */}
           {datasetUrl && (
             <div className="mt-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
                 <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide flex items-center gap-1.5">
                   <span>📊</span> Dataset
                 </h4>
@@ -420,15 +535,66 @@ export default function LabProjectViewer({
                   ⬇ View on Kaggle
                 </a>
               </div>
-              <p className="text-[10px] text-blue-600 dark:text-blue-400 mb-2">
-                *bleep* Data is pre-hosted. Load in the browser terminal:
+
+              {/* Filename panel.
+                  • If the lab path basename equals the Kaggle filename → show a
+                    single "✅ Matches Kaggle exactly" tile so learners know
+                    their Kaggle download drops straight in.
+                  • Otherwise fall back to the two-column mapping so learners
+                    see both names side-by-side. */}
+              {(() => {
+                const labBasename = datasetPath ? datasetPath.split('/').pop() : null;
+                const matches = !!(kaggleFilename && labBasename && kaggleFilename === labBasename);
+                if (matches) {
+                  return (
+                    <div className="mb-2 p-2.5 rounded-lg bg-white dark:bg-gray-900 border border-green-300 dark:border-green-800 flex items-center gap-2.5">
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 font-bold whitespace-nowrap flex-shrink-0">✓ Matches Kaggle</span>
+                      <div className="flex-1 min-w-0">
+                        <CopyInline value={kaggleFilename!} />
+                      </div>
+                    </div>
+                  );
+                }
+                if (kaggleFilename || datasetPath) {
+                  return (
+                    <div className="mb-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {kaggleFilename && (
+                        <div className="p-2 rounded-lg bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-800">
+                          <div className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-0.5">Kaggle filename</div>
+                          <CopyInline value={kaggleFilename} />
+                        </div>
+                      )}
+                      {datasetPath && (
+                        <div className="p-2 rounded-lg bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-800">
+                          <div className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-0.5">Lab path (browser)</div>
+                          <CopyInline value={datasetPath} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              {kaggleNote && (
+                <p className="text-[10px] text-blue-700/80 dark:text-blue-300/80 mb-2 italic">{kaggleNote}</p>
+              )}
+
+              <p className="text-[10px] text-blue-600 dark:text-blue-400 mb-1.5">
+                *bleep* Load the dataset in the browser terminal:
               </p>
               <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto">
-                <code className="text-[11px] text-green-400 font-mono whitespace-pre">{`from pyodide.http import open_url\nimport pandas as pd\n\ndf = pd.read_csv(open_url("/datasets/YOUR_FILE.csv"))\nprint(df.shape)\nprint(df.columns.tolist())`}</code>
+                <code className="text-[11px] text-green-400 font-mono whitespace-pre">{`from pyodide.http import open_url\nimport pandas as pd\n\ndf = pd.read_csv(open_url("${datasetPath || '/datasets/YOUR_FILE.csv'}"))\nprint(df.shape)\nprint(df.columns.tolist())`}</code>
               </div>
-              <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
-                See the solution code for the exact filename. Full dataset available on Kaggle.
-              </p>
+              {kaggleFilename && datasetPath && kaggleFilename === datasetPath.split('/').pop() ? (
+                <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
+                  💡 Running locally? The file inside the Kaggle download is already named <code className="px-1 bg-white dark:bg-gray-900 rounded font-mono">{kaggleFilename}</code> — drop it into the notebook's working directory and the code above runs unchanged (swap <code>open_url(...)</code> for <code>"{kaggleFilename}"</code>).
+                </p>
+              ) : kaggleFilename ? (
+                <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
+                  💡 Running locally? Kaggle's ZIP contains <code className="px-1 bg-white dark:bg-gray-900 rounded font-mono">{kaggleFilename}</code>. Point <code>read_csv</code> at that path and everything else works unchanged.
+                </p>
+              ) : null}
             </div>
           )}
 
@@ -486,6 +652,9 @@ export default function LabProjectViewer({
         </div>
       )}
 
+      {/* How this step works — collapsible, preference persists across visits. */}
+      <HowItWorksBanner />
+
       {/* Python Terminal — Try It Yourself */}
       <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border overflow-hidden">
         <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-5 py-3 flex items-center justify-between">
@@ -501,9 +670,21 @@ export default function LabProjectViewer({
             <BleepxGhost size={16} />
           </div>
         </div>
-        <div className="p-4 sm:p-5">
+        <div className="p-4 sm:p-5" ref={editorSectionRef}>
           <PythonTerminal
-            initialCode={`# Write your solution here\n# Follow the steps below and produce the expected output\n#\n# Load data with:\n# from pyodide.http import open_url\n# df = pd.read_csv(open_url("/datasets/YOUR_FILE.csv"))\n\nimport pandas as pd\nimport numpy as np\n`}
+            ref={terminalRef}
+            initialCode={`# Write your solution here — or click ‘↑ Send to editor’ on any step below
+# to stack its snippet in here notebook-style, then tweak and ▶ Run.
+#
+# Load data with:
+# from pyodide.http import open_url
+# df = pd.read_csv(open_url("/datasets/YOUR_FILE.csv"))
+#
+# matplotlib / seaborn figures render inline in the output panel.
+
+import pandas as pd
+import numpy as np
+`}
             expectedOutput={codeLang === 'r' && rExpectedOutput ? rExpectedOutput : expectedOutput}
             solutionCode={codeLang === 'r' && rSolutionCode ? rSolutionCode : solutionCode}
             hints={hints}
@@ -578,7 +759,9 @@ export default function LabProjectViewer({
                 {/* Content/instructions */}
                 <p className="text-sm text-bleepx-text-secondary leading-relaxed">{section.content}</p>
 
-                {/* Code block — HIDDEN behind reveal button */}
+                {/* Code block — HIDDEN behind reveal button. R snippets can't
+                    be sent to the Python editor, so onSendToEditor is only
+                    wired for Python code. */}
                 {isDualLang && codeLang === 'r' ? (
                   section.r_code ? (
                     <SpoilerCodeBlock code={section.r_code.trim()} language="R" />
@@ -587,11 +770,11 @@ export default function LabProjectViewer({
                       <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
                         📐 R code not yet available for this section — showing Python below
                       </p>
-                      <SpoilerCodeBlock code={section.code.trim()} language={language} />
+                      <SpoilerCodeBlock code={section.code.trim()} language={language} onSendToEditor={sendToEditor} />
                     </div>
                   )
                 ) : (
-                  <SpoilerCodeBlock code={section.code.trim()} language={language} />
+                  <SpoilerCodeBlock code={section.code.trim()} language={language} onSendToEditor={sendToEditor} />
                 )}
 
                 {/* Bleepx explanation */}

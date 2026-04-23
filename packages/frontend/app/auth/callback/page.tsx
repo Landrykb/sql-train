@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { setGitHubUser } from '@/lib/authClient';
 import { BleepxGitHub } from '@/components/BleepxIcons';
 import { supabase } from '@/lib/supabase';
+import { scrubCurrentUrl } from '@/lib/sanitizeUrl';
 
 export default function AuthCallbackPage() {
   return (
@@ -28,23 +29,39 @@ function AuthCallbackInner() {
       return;
     }
 
-    // --- Supabase OAuth flow ---
-    // Supabase puts the session in the URL hash; the client auto-detects it.
+    // --- Supabase OAuth flow (PKCE) ---
+    // Under PKCE the provider redirects with ?code=...&state=... (no tokens in
+    // the URL). We exchange the code for a session, then scrub the URL before
+    // any analytics pageview fires.
     if (supabase) {
       const handleSupabaseCallback = async () => {
         try {
+          const href = typeof window !== 'undefined' ? window.location.href : '';
+          const hasCode = typeof window !== 'undefined' && window.location.search.includes('code=');
+
+          // Try PKCE exchange first (new flow)
+          if (hasCode) {
+            const { error: exchangeError } = await supabase!.auth.exchangeCodeForSession(href);
+            if (exchangeError) throw exchangeError;
+          }
+
+          // Immediately scrub any sensitive params from the URL so neither
+          // analytics nor the browser history retain the OAuth `code`/`state`
+          // (or any stray hash tokens from a legacy implicit redirect).
+          scrubCurrentUrl();
+
           const { data: { session }, error: sessionError } = await supabase!.auth.getSession();
           if (sessionError) throw sessionError;
           if (session?.user) {
             const meta = session.user.user_metadata || {};
-            // provider_token is the actual GitHub API token; access_token is a Supabase JWT
-            const ghToken = session.provider_token || session.access_token;
+            // Persist ONLY non-sensitive profile fields. The GitHub
+            // `provider_token` lives in Supabase's own session storage and is
+            // read lazily via `getGitHubToken()` when a GitHub API call is made.
             setGitHubUser({
               login: meta.user_name || meta.preferred_username || session.user.email || 'user',
               name: meta.full_name || meta.name || meta.user_name || 'User',
               avatar: meta.avatar_url || '',
               email: session.user.email || '',
-              token: ghToken,
             });
             // Sync to bleepx_profile
             try {
@@ -63,6 +80,9 @@ function AuthCallbackInner() {
           }
         } catch (err) {
           console.error('[auth/callback] Supabase session error:', err);
+          // Still scrub the URL even on error — we don't want a failed OAuth
+          // attempt to leave a `code` or `error_description` behind.
+          scrubCurrentUrl();
         }
 
         // If Supabase didn't yield a session, fall through to legacy check

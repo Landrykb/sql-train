@@ -79,7 +79,7 @@ solution_code: |
   import numpy as np
   import pandas as pd
 
-  df = pd.read_csv(open_url("/datasets/ghg_emissions.csv"))
+  df = pd.read_csv(open_url("/datasets/greenhouse_gas_inventory_data_data.csv"))
   # Use total emissions from latest year as baseline
   num_cols = df.select_dtypes(include='number').columns
   base = df[num_cols].sum().max()

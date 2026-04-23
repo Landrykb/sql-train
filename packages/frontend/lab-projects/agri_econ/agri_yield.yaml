@@ -4,121 +4,117 @@ domain: agri_econ
 project: "Agriculture Economics & Food Security"
 step_number: 3
 tier: 2
-skills: [regression, random_forest, climate_data, prediction]
+skills: [regression, random_forest, feature_importance]
 language: "Python / R"
 dataset_url: "https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset"
-description: "Build models to predict crop yields from weather, soil, and input data — essential for food security planning and agricultural insurance."
+description: "Build a yield-prediction model on the Kaggle pre-joined yield + rainfall + pesticides + temperature panel — this is the canonical Kaggle use case for this dataset."
 prereq_cases: [agri_prices]
 learning_objectives:
-  - Merge weather and soil data with production records
-  - Train yield prediction models
-  - Identify climate variables most affecting yields
+  - Combine categorical (Area, Item) and numeric (rainfall, pesticides, temp) features
+  - Train & evaluate a Random Forest regressor
+  - Interpret feature importance"
 sections:
-  - title: "Merge Climate & Production Data"
-    content: "Combine weather variables with crop production records."
+  - title: "Build the Feature Matrix"
+    content: "One-hot encode Area and Item, keep the numeric climate / input features raw. `hg/ha_yield` is the target."
     code: |
-      # Data already loaded via open_url in step 1
-      # Use numeric columns for feature analysis
-      features = production.select_dtypes(include='number').columns.tolist()
-      merged = production.copy()
-
-      features = ['avg_temp', 'total_rainfall', 'drought_index', 'soil_quality',
-                   'fertilizer_use', 'irrigation_pct']
-      print(f"Merged dataset: {merged.shape}")
-      print(f"\nCorrelation with yield:")
-      print(merged[features + ['yield_per_ha']].corr()['yield_per_ha'].drop('yield_per_ha').sort_values())
-    r_code: |
-      library(dplyr)
-
-      climate <- read.csv('climate_data.csv')
-      merged <- inner_join(production, climate, by = c('country', 'year'))
-
-      features <- c('avg_temp','total_rainfall','drought_index','soil_quality',
-                     'fertilizer_use','irrigation_pct')
-      cat(sprintf("Merged dataset: %d x %d\n", nrow(merged), ncol(merged)))
-      cat("\nCorrelation with yield:\n")
-      corr_vals <- sapply(merged[features], function(x) cor(x, merged$yield_per_ha, use = 'complete.obs'))
-      print(sort(corr_vals))
-    explanation: "Rainfall and temperature are the primary climate drivers of yield. Irrigation and fertilizer represent human inputs that buffer against climate variability."
-  - title: "Train Yield Prediction Model"
-    content: "Predict crop yield from environmental and input variables."
-    code: |
+      from pyodide.http import open_url
+      import pandas as pd
+      import numpy as np
       from sklearn.ensemble import RandomForestRegressor
       from sklearn.model_selection import train_test_split
       from sklearn.metrics import r2_score, mean_absolute_error
 
-      X = merged[features]
-      y = merged['yield_per_ha']
+      df = pd.read_csv(open_url("/datasets/yield_df.csv")).dropna()
+      print(f"Shape: {df.shape}")
+
+      # Optional: cap to top crops/countries to keep the one-hot small and fast
+      top_items = df['Item'].value_counts().head(10).index
+      sub = df[df['Item'].isin(top_items)].copy()
+
+      feat_num = ['Year', 'average_rain_fall_mm_per_year', 'pesticides_tonnes', 'avg_temp']
+      X = pd.get_dummies(sub[['Area', 'Item'] + feat_num],
+                         columns=['Area', 'Item'], drop_first=True)
+      y = sub['hg/ha_yield']
+      print(f"Feature matrix: {X.shape}")
+    explanation: "Country and crop are strong categorical drivers — one-hot keeps the model simple and interpretable. Numeric features enter raw; Random Forest handles scale differences natively."
+  - title: "Train & Evaluate"
+    content: "80/20 split, fit Random Forest, report R² and MAE, then inspect the most important features."
+    code: |
       X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-      model = RandomForestRegressor(n_estimators=200, random_state=42)
+      model = RandomForestRegressor(n_estimators=200, max_depth=20, random_state=42, n_jobs=-1)
       model.fit(X_train, y_train)
       y_pred = model.predict(X_test)
 
-      print(f"R²: {r2_score(y_test, y_pred):.3f}")
-      print(f"MAE: {mean_absolute_error(y_test, y_pred):.2f} MT/ha")
+      print(f"R² : {r2_score(y_test, y_pred):.3f}")
+      print(f"MAE: {mean_absolute_error(y_test, y_pred):,.0f} hg/ha")
 
-      importances = pd.Series(model.feature_importances_, index=features).sort_values()
-      importances.plot(kind='barh', color='forestgreen', figsize=(8, 4))
-      plt.title('Yield Prediction — Feature Importance')
+      import matplotlib.pyplot as plt
+      imp = pd.Series(model.feature_importances_, index=X.columns).nlargest(10).sort_values()
+      imp.plot(kind='barh', figsize=(10, 5), color='forestgreen')
+      plt.title('Top 10 Feature Importances')
       plt.tight_layout()
       plt.show()
     r_code: |
       library(randomForest)
-      library(caret)
 
-      X <- merged[, features]
-      y <- merged$yield_per_ha
+      df <- read.csv('yield_df.csv')
+      df <- df[complete.cases(df), ]
+      top <- names(sort(table(df$Item), decreasing = TRUE))[1:10]
+      sub <- df[df$Item %in% top, ]
+
       set.seed(42)
-      idx <- createDataPartition(y, p = 0.8, list = FALSE)
-      X_train <- X[idx, ]; y_train <- y[idx]
-      X_test <- X[-idx, ]; y_test <- y[-idx]
+      idx <- sample(seq_len(nrow(sub)), 0.8 * nrow(sub))
+      train <- sub[idx, ]; test <- sub[-idx, ]
 
-      model <- randomForest(x = X_train, y = y_train, ntree = 200)
-      y_pred <- predict(model, X_test)
-
-      r2 <- 1 - sum((y_test - y_pred)^2) / sum((y_test - mean(y_test))^2)
-      mae <- mean(abs(y_test - y_pred))
-      cat(sprintf("R²: %.3f\n", r2))
-      cat(sprintf("MAE: %.2f MT/ha\n", mae))
-
-      varImpPlot(model, main = 'Yield Prediction — Feature Importance')
-    explanation: "Feature importance reveals whether yields are more climate-driven or input-driven. In developing countries, inputs dominate; in developed countries, climate variability matters more."
+      model <- randomForest(hg.ha_yield ~ Area + Item + Year +
+                            average_rain_fall_mm_per_year +
+                            pesticides_tonnes + avg_temp,
+                            data = train, ntree = 200)
+      pred <- predict(model, test)
+      cat(sprintf("R^2: %.3f\n", 1 - sum((test$hg.ha_yield - pred)^2) / sum((test$hg.ha_yield - mean(test$hg.ha_yield))^2)))
+      cat(sprintf("MAE: %.0f\n", mean(abs(test$hg.ha_yield - pred))))
+    explanation: "R² on this dataset typically lands between 0.75 and 0.90 — the country × crop interaction captures most of the signal. Pesticides and rainfall matter, but avg_temp is often the single most important numeric feature."
 schema:
   - Area
   - Item
-  - Element
   - Year
-  - Value
-  - Unit
+  - hg/ha_yield
+  - average_rain_fall_mm_per_year
+  - pesticides_tonnes
+  - avg_temp
 thought_process:
-  - "Merge climate data with production records on country+year"
-  - "Check correlations between climate/input features and yield"
-  - "Train a Random Forest regressor on the merged dataset"
-  - "Evaluate with R² and MAE, then examine feature importance"
+  - "Drop NaN rows and restrict to top-10 crops for tractable one-hot encoding"
+  - "One-hot Area and Item, keep Year / rainfall / pesticides / temp as numeric"
+  - "Target = hg/ha_yield"
+  - "80/20 split, Random Forest with 200 trees"
+  - "Report R² and MAE; inspect feature importance"
 solution_code: |
   from pyodide.http import open_url
   import pandas as pd
-  import numpy as np
   from sklearn.ensemble import RandomForestRegressor
   from sklearn.model_selection import train_test_split
   from sklearn.metrics import r2_score, mean_absolute_error
 
-  df = pd.read_csv(open_url("/datasets/crop_yield.csv"))
-  # Use numeric columns as features, last numeric column as target
-  num_cols = df.select_dtypes(include='number').columns.tolist()
-  X = df[num_cols[:-1]].fillna(0)
-  y = df[num_cols[-1]].fillna(0)
-  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-  model = RandomForestRegressor(n_estimators=200, random_state=42)
-  model.fit(X_train, y_train)
-  y_pred = model.predict(X_test)
-  print(f"R²: {r2_score(y_test, y_pred):.3f}")
-  print(f"MAE: {mean_absolute_error(y_test, y_pred):.2f}")
+  df = pd.read_csv(open_url("/datasets/yield_df.csv")).dropna()
+  top = df['Item'].value_counts().head(10).index
+  sub = df[df['Item'].isin(top)]
+
+  X = pd.get_dummies(sub[['Area', 'Item', 'Year',
+                          'average_rain_fall_mm_per_year',
+                          'pesticides_tonnes', 'avg_temp']],
+                     columns=['Area', 'Item'], drop_first=True)
+  y = sub['hg/ha_yield']
+  X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)
+
+  model = RandomForestRegressor(n_estimators=100, max_depth=20, random_state=42, n_jobs=-1)
+  model.fit(X_tr, y_tr)
+  print(f"R²: {r2_score(y_te, model.predict(X_te)):.3f}")
+  print(f"MAE: {mean_absolute_error(y_te, model.predict(X_te)):,.0f}")
 expected_output: |
   R²:
   MAE:
 hints:
-  - "Try adding lag features (last year's yield, cumulative rainfall)"
-  - "Use SHAP values for per-prediction explanations"
-  - "Consider separate models per crop for better accuracy"
+  - "Add lagged yields (previous 1-3 years per country/crop)"
+  - "Train one model per crop and compare per-crop R² — some crops are much harder"
+  - "Try gradient boosting (lightgbm) for a 2-5% accuracy bump"

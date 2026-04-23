@@ -7,117 +7,106 @@ tier: 1
 skills: [pandas, eda, visualization, economics]
 language: "Python / R"
 dataset_url: "https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset"
-description: "Load FAO and USDA agricultural datasets to understand global crop production, trade flows, and food price dynamics."
+description: "Load the Kaggle pre-joined yield / rainfall / pesticides / temperature panel and explore yield trends across countries and crops."
 prereq_cases: []
 learning_objectives:
-  - Load and merge agricultural datasets from multiple sources
-  - Explore global crop production and yield trends
-  - Understand food price indices and their drivers
+  - Load and inspect a joined agricultural panel (yield × climate × inputs)
+  - Identify top yielding countries and crops
+  - Visualize yield trends and climate-yield relationships
 sections:
-  - title: "Load Agricultural Data"
-    content: "Load crop production and food price data."
+  - title: "Load Crop Yield Data"
+    content: "The Kaggle `yield_df.csv` joins FAO yield with rainfall, pesticides, and temperature per country/crop/year. Each row = one (Area, Item, Year)."
     code: |
       from pyodide.http import open_url
       import pandas as pd
       import matplotlib.pyplot as plt
 
-      production = pd.read_csv(open_url("/datasets/crop_yield.csv"))
-
-      print(f"Shape: {production.shape}")
-      print(f"Columns: {production.columns.tolist()}")
-      print(f"\nFirst 3 rows:")
-      print(production.head(3))
+      df = pd.read_csv(open_url("/datasets/yield_df.csv"))
+      print(f"Shape: {df.shape}")
+      print(f"Columns: {df.columns.tolist()}")
+      print(f"\nYears: {df['Year'].min()} → {df['Year'].max()}")
+      print(f"Countries: {df['Area'].nunique()}")
+      print(f"Crops: {df['Item'].nunique()}")
+      df.head()
     r_code: |
       library(dplyr)
 
-      production <- read.csv('crop_production.csv')
-      prices <- read.csv('food_prices.csv')
-      prices$date <- as.Date(prices$date)
-      trade <- read.csv('trade_flows.csv')
-
-      cat(sprintf("Production records: %s\n", format(nrow(production), big.mark = ",")))
-      cat(sprintf("Countries: %d\n", n_distinct(production$country)))
-      cat(paste("Crops:", paste(unique(production$crop), collapse = ", "), "\n"))
-      cat("\nTop producers (wheat):\n")
-      production %>%
-        filter(crop == 'wheat') %>%
-        group_by(country) %>%
-        summarise(total = sum(production_mt)) %>%
-        arrange(desc(total)) %>%
-        head(5) %>%
-        print()
-    explanation: "FAO provides global crop production data. Understanding who produces what and how much is the foundation of agricultural economics and food security analysis."
-  - title: "Production Trends"
-    content: "Visualize how global crop production has changed over time."
+      df <- read.csv('yield_df.csv')
+      cat(sprintf("Rows: %s\n", format(nrow(df), big.mark = ',')))
+      cat(sprintf("Countries: %d\n", n_distinct(df$Area)))
+      cat(sprintf("Crops: %d\n", n_distinct(df$Item)))
+    explanation: "`hg/ha_yield` is the yield in hectograms per hectare (Kaggle keeps the awkward FAO unit). Rainfall, pesticides, and avg_temp are the joined climate / input features."
+  - title: "Top Producers, Crops & Yield Distribution"
+    content: "Summarise yield by country and crop, plus the distribution of the target variable."
     code: |
-      fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+      fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 
-      top_items = production.groupby('Item')['Value'].sum().nlargest(5).index
-      for item in top_items:
-          yearly = production[production['Item']==item].groupby('Year')['Value'].sum()
-          axes[0].plot(yearly.index, yearly.values, label=item, linewidth=2)
-      axes[0].set_title('Production by Crop Over Time')
-      axes[0].set_ylabel('Value')
-      axes[0].legend(fontsize=8)
+      top_crops = df.groupby('Item')['hg/ha_yield'].mean().nlargest(8)
+      top_crops.plot(kind='barh', ax=axes[0], color='forestgreen')
+      axes[0].set_title('Mean Yield by Crop (hg/ha)')
 
-      top_areas = production.groupby('Area')['Value'].sum().nlargest(8)
-      top_areas.plot(kind='barh', ax=axes[1], color='forestgreen')
-      axes[1].set_title('Top Producing Countries')
-      axes[1].set_xlabel('Total Value')
+      top_countries = df.groupby('Area')['hg/ha_yield'].mean().nlargest(8)
+      top_countries.plot(kind='barh', ax=axes[1], color='steelblue')
+      axes[1].set_title('Mean Yield by Country (hg/ha)')
+
+      axes[2].hist(df['hg/ha_yield'], bins=60, color='coral', edgecolor='black')
+      axes[2].set_title('Yield Distribution')
+      axes[2].set_xlabel('hg/ha_yield')
 
       plt.tight_layout()
       plt.show()
     r_code: |
-      library(ggplot2)
       library(dplyr)
-      library(gridExtra)
+      library(ggplot2)
 
-      prod_yearly <- production %>%
-        filter(crop %in% c('wheat','rice','maize','soybeans')) %>%
-        group_by(year, crop) %>%
-        summarise(total = sum(production_mt) / 1e6, .groups = 'drop')
-
-      p1 <- ggplot(prod_yearly, aes(x = year, y = total, color = crop)) +
-        geom_line(linewidth = 1) +
-        labs(title = 'Global Crop Production', y = 'Million MT') +
-        theme_minimal()
-
-      yield_yearly <- production %>%
-        filter(crop %in% c('wheat','rice','maize')) %>%
-        group_by(year, crop) %>%
-        summarise(avg_yield = mean(yield_per_ha), .groups = 'drop')
-
-      p2 <- ggplot(yield_yearly, aes(x = year, y = avg_yield, color = crop)) +
-        geom_line(linewidth = 1) +
-        labs(title = 'Average Yield Per Hectare', y = 'MT/ha') +
-        theme_minimal()
-
-      grid.arrange(p1, p2, ncol = 2)
-    explanation: "Global production has grown through both area expansion and yield improvement. Yield growth is slowing in many regions — a key food security concern."
+      df %>%
+        group_by(Item) %>%
+        summarise(yield = mean(hg.ha_yield, na.rm = TRUE)) %>%
+        arrange(desc(yield)) %>%
+        head(8) %>%
+        ggplot(aes(x = yield, y = reorder(Item, yield))) +
+          geom_col(fill = 'forestgreen') +
+          labs(title = 'Mean Yield by Crop') +
+          theme_minimal()
+    explanation: "High-yield crops (potatoes, sweet potatoes, cassava) consistently top the list because hg/ha doesn't adjust for caloric value. A per-calorie yield would tell a different story."
+  - title: "Quick Climate-Yield Correlation"
+    content: "A first look at how rainfall and temperature correlate with yield across the whole panel."
+    code: |
+      corr = df[['hg/ha_yield', 'average_rain_fall_mm_per_year',
+                 'pesticides_tonnes', 'avg_temp']].corr()
+      print("Correlation with hg/ha_yield:")
+      print(corr['hg/ha_yield'].round(3))
+    explanation: "In a global panel these correlations are weak because optimal rainfall and temperature are crop-specific. A per-crop or per-country model will reveal stronger relationships."
 schema:
   - Area
   - Item
-  - Element
   - Year
-  - Value
-  - Unit
+  - hg/ha_yield
+  - average_rain_fall_mm_per_year
+  - pesticides_tonnes
+  - avg_temp
 thought_process:
-  - "Load production, prices, and trade datasets"
-  - "Check unique countries, crops, and year range"
-  - "Identify top producers for key crops (wheat, rice, maize)"
-  - "Visualize production and yield trends over time"
+  - "Load the Kaggle pre-joined yield/climate/pesticides panel"
+  - "Count unique Area and Item values"
+  - "Aggregate mean yield per crop and per country"
+  - "Plot distribution of the target (hg/ha_yield)"
+  - "Compute correlation between yield and climate / input features"
 solution_code: |
   from pyodide.http import open_url
   import pandas as pd
 
-  df = pd.read_csv(open_url("/datasets/crop_yield.csv"))
+  df = pd.read_csv(open_url("/datasets/yield_df.csv"))
   print(f"Shape: {df.shape}")
   print(f"Columns: {df.columns.tolist()}")
-  print(f"\nFirst 3 rows:\n{df.head(3)}")
+  print(f"\nMean yield by crop (top 3):")
+  print(df.groupby('Item')['hg/ha_yield'].mean().nlargest(3).round(0))
+  print(f"\nCorrelation with yield:")
+  print(df[['hg/ha_yield','average_rain_fall_mm_per_year','pesticides_tonnes','avg_temp']].corr()['hg/ha_yield'].round(3))
 expected_output: |
   Shape:
   Columns:
+  Mean yield by crop (top 3):
 hints:
-  - "Compare developed vs developing country yield trends"
-  - "Look at production variability (std) as a food security indicator"
-  - "Merge with climate data to explore weather-yield relationships"
+  - "Plot yield vs avg_temp per crop to find each crop's sweet spot"
+  - "Compute country-level trend: is yield growing, flat, or falling?"
+  - "Segment by decade to see how the rainfall-yield relationship evolves"

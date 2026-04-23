@@ -1,115 +1,121 @@
 id: agri_policy
-name: "Food Security & Policy Analysis"
+name: "Food Security & Climate Policy Analysis"
 domain: agri_econ
 project: "Agriculture Economics & Food Security"
 step_number: 4
 tier: 3
-skills: [policy_analysis, scenario_modeling, visualization, reporting]
+skills: [policy_analysis, scenario_modeling, reporting]
 language: "Python / R"
 dataset_url: "https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset"
-description: "Model food security scenarios under climate change, analyze trade policy impacts, and create actionable policy recommendations."
+description: "Use the Kaggle yield + climate panel to build country-level food-security indicators and model how higher temperatures shift yields."
 prereq_cases: [agri_yield]
 learning_objectives:
-  - Define and calculate food security indicators
-  - Model climate change impact on future food availability
-  - Analyze trade policy scenarios (tariffs, export bans)
+  - Aggregate the panel to country-level yield and climate indicators
+  - Rank countries by yield level and volatility
+  - Translate a warming scenario into yield deltas using an elasticity
 sections:
-  - title: "Food Security Indicators"
-    content: "Calculate key metrics: self-sufficiency ratio, import dependency, caloric availability."
+  - title: "Country-Level Indicators"
+    content: "Collapse the panel by Area (country), computing average yield, yield volatility, and average rainfall / temperature."
     code: |
-      df_country = production.groupby('country').agg(
-          total_production=('production_mt', 'sum'),
-          population=('population', 'first'),
+      from pyodide.http import open_url
+      import pandas as pd
+
+      df = pd.read_csv(open_url("/datasets/yield_df.csv")).dropna()
+
+      country = df.groupby('Area').agg(
+          avg_yield=('hg/ha_yield', 'mean'),
+          yield_std=('hg/ha_yield', 'std'),
+          avg_rain =('average_rain_fall_mm_per_year', 'mean'),
+          avg_temp =('avg_temp', 'mean'),
+          crops    =('Item', 'nunique'),
+          years    =('Year', 'nunique'),
       ).reset_index()
-      df_country = df_country.merge(trade.groupby('importer')['quantity_mt'].sum().rename('imports'), left_on='country', right_index=True, how='left').fillna(0)
+      country['cv'] = country['yield_std'] / country['avg_yield']
 
-      df_country['self_sufficiency'] = df_country['total_production'] / (df_country['total_production'] + df_country['imports']) * 100
-      df_country['per_capita_kg'] = (df_country['total_production'] + df_country['imports']) / df_country['population'] * 1000
-
-      print("Food Security Dashboard:")
-      print(df_country.nlargest(10, 'per_capita_kg')[['country', 'self_sufficiency', 'per_capita_kg']].to_string(index=False))
+      print("Top 10 countries by yield:")
+      print(country.nlargest(10, 'avg_yield')[['Area','avg_yield','avg_temp','avg_rain']].to_string(index=False))
+      print("\nMost volatile (top 5 CV):")
+      print(country.nlargest(5, 'cv')[['Area','avg_yield','cv']].to_string(index=False))
     r_code: |
       library(dplyr)
 
-      df_country <- production %>%
-        group_by(country) %>%
+      df <- read.csv('yield_df.csv')
+      df <- df[complete.cases(df), ]
+
+      country <- df %>%
+        group_by(Area) %>%
         summarise(
-          total_production = sum(production_mt),
-          population = first(population),
-          .groups = 'drop'
+          avg_yield = mean(hg.ha_yield, na.rm = TRUE),
+          yield_std = sd(hg.ha_yield,   na.rm = TRUE),
+          avg_rain  = mean(average_rain_fall_mm_per_year, na.rm = TRUE),
+          avg_temp  = mean(avg_temp,    na.rm = TRUE),
+          cv        = yield_std / avg_yield,
         )
-
-      imports_df <- trade %>%
-        group_by(importer) %>%
-        summarise(imports = sum(quantity_mt), .groups = 'drop')
-
-      df_country <- df_country %>%
-        left_join(imports_df, by = c('country' = 'importer')) %>%
-        mutate(imports = ifelse(is.na(imports), 0, imports))
-
-      df_country$self_sufficiency <- df_country$total_production /
-        (df_country$total_production + df_country$imports) * 100
-      df_country$per_capita_kg <- (df_country$total_production + df_country$imports) /
-        df_country$population * 1000
-
-      cat("Food Security Dashboard:\n")
-      df_country %>%
-        arrange(desc(per_capita_kg)) %>%
-        head(10) %>%
-        select(country, self_sufficiency, per_capita_kg) %>%
-        print()
-    explanation: "Self-sufficiency ratio shows domestic production vs total supply. Per-capita availability below ~400 kg/year signals food insecurity risk. Import-dependent nations are vulnerable to trade shocks."
-  - title: "Climate Scenario Impact"
-    content: "Project how warming affects crop yields and food availability."
+      country %>% arrange(desc(avg_yield)) %>% head(10) %>% print()
+    explanation: "The coefficient of variation (std / mean) is unitless and comparable across countries. Low-yield countries often have HIGH CV — they're more exposed to weather shocks."
+  - title: "Warming Scenarios via Temperature Elasticity"
+    content: "Fit a quick elasticity of yield to temperature (log-log), then apply +1.5 / +2.0 / +3.0°C shifts."
     code: |
-      scenarios = {'+1.5°C': -0.05, '+2.0°C': -0.10, '+3.0°C': -0.20}
+      import numpy as np
+      from sklearn.linear_model import LinearRegression
 
-      print("=== CLIMATE IMPACT ON FOOD SECURITY ===")
-      for scenario, yield_change in scenarios.items():
-          adjusted = df_country['per_capita_kg'] * (1 + yield_change)
-          at_risk = (adjusted < 300).sum()
-          print(f"\n{scenario} warming:")
-          print(f"  Avg per-capita change: {yield_change*100:+.0f}%")
-          print(f"  Countries below threshold: {at_risk} / {len(df_country)}")
-          print(f"  Most affected: {df_country.loc[adjusted.nsmallest(3).index, 'country'].tolist()}")
-    r_code: |
-      scenarios <- list('+1.5C' = -0.05, '+2.0C' = -0.10, '+3.0C' = -0.20)
+      # Simple per-crop elasticity: log(yield) ~ log(temp)
+      # We estimate it from the pooled data to keep the example self-contained.
+      sub = df[(df['avg_temp'] > 0) & (df['hg/ha_yield'] > 0)]
+      X = np.log(sub[['avg_temp']].values)
+      y = np.log(sub['hg/ha_yield'].values)
+      model = LinearRegression().fit(X, y)
+      elasticity = model.coef_[0]
+      print(f"Pooled yield-temperature elasticity: {elasticity:+.3f}")
+      print("  (interpretation: a 1% rise in avg_temp changes yield by ~{:.2f}%)".format(elasticity))
 
-      cat("=== CLIMATE IMPACT ON FOOD SECURITY ===\n")
-      for (name in names(scenarios)) {
-        yield_change <- scenarios[[name]]
-        adjusted <- df_country$per_capita_kg * (1 + yield_change)
-        at_risk <- sum(adjusted < 300)
-        most_affected <- df_country$country[order(adjusted)][1:3]
-        cat(sprintf("\n%s warming:\n", name))
-        cat(sprintf("  Avg per-capita change: %+.0f%%\n", yield_change * 100))
-        cat(sprintf("  Countries below threshold: %d / %d\n", at_risk, nrow(df_country)))
-        cat(sprintf("  Most affected: %s\n", paste(most_affected, collapse = ", ")))
-      }
-    explanation: "Each degree of warming reduces global yields by roughly 5-10%. The impacts are uneven — tropical developing nations face the largest losses, deepening existing food inequality."
+      base_temp = country['avg_temp'].mean()
+      threshold = country['avg_yield'].quantile(0.25)
+      print(f"\n=== CLIMATE IMPACT ON COUNTRY-LEVEL YIELD ===")
+      print(f"Baseline 25th-percentile avg yield: {threshold:,.0f} hg/ha\n")
+      for delta in [1.5, 2.0, 3.0]:
+          new_temp = country['avg_temp'] + delta
+          pct_change = ((new_temp / country['avg_temp']) ** elasticity - 1) * 100
+          adjusted = country['avg_yield'] * (1 + pct_change / 100)
+          at_risk = (adjusted < threshold).sum()
+          print(f"+{delta}°C: mean pct change = {pct_change.mean():+.2f}%, {at_risk} countries below threshold")
+    explanation: "A pooled elasticity is a crude approximation — tropical crops have a very different temperature response than temperate ones. In a production model you'd estimate this per Item × climate zone."
 schema:
   - Area
   - Item
-  - Element
   - Year
-  - Value
-  - Unit
+  - hg/ha_yield
+  - average_rain_fall_mm_per_year
+  - pesticides_tonnes
+  - avg_temp
 thought_process:
-  - "Calculate self-sufficiency ratio per country"
-  - "Compute per-capita food availability"
-  - "Model yield reduction under 1.5°C, 2°C, 3°C warming scenarios"
-  - "Identify most vulnerable countries under each scenario"
+  - "Aggregate panel to country-level indicators (mean yield, volatility, climate means)"
+  - "Estimate a yield-temperature elasticity from pooled log-log regression"
+  - "Apply +1.5 / +2.0 / +3.0°C shifts to each country's baseline temperature"
+  - "Count countries falling below a food-security threshold"
 solution_code: |
-  scenarios = {'+1.5°C': -0.05, '+2.0°C': -0.10, '+3.0°C': -0.20}
-  print("=== CLIMATE IMPACT ON FOOD SECURITY ===")
-  for scenario, yield_change in scenarios.items():
-      print(f"{scenario}: Avg yield change {yield_change*100:+.0f}%")
+  from pyodide.http import open_url
+  import pandas as pd, numpy as np
+  from sklearn.linear_model import LinearRegression
+
+  df = pd.read_csv(open_url("/datasets/yield_df.csv")).dropna()
+  country = df.groupby('Area').agg(avg_yield=('hg/ha_yield','mean'),
+                                   avg_temp=('avg_temp','mean')).reset_index()
+
+  sub = df[(df['avg_temp'] > 0) & (df['hg/ha_yield'] > 0)]
+  elasticity = LinearRegression().fit(np.log(sub[['avg_temp']]),
+                                      np.log(sub['hg/ha_yield'])).coef_[0]
+
+  threshold = country['avg_yield'].quantile(0.25)
+  print(f"Yield-temperature elasticity: {elasticity:+.3f}")
+  for delta in [1.5, 2.0, 3.0]:
+      pct = ((country['avg_temp'] + delta) / country['avg_temp']) ** elasticity - 1
+      at_risk = (country['avg_yield'] * (1 + pct) < threshold).sum()
+      print(f"+{delta}°C: {at_risk} of {len(country)} countries below threshold")
 expected_output: |
-  === CLIMATE IMPACT ON FOOD SECURITY ===
-  +1.5°C: Avg yield change -5%
-  +2.0°C: Avg yield change -10%
-  +3.0°C: Avg yield change -20%
+  Yield-temperature elasticity:
+  +1.5°C:
 hints:
-  - "Add trade disruption scenarios (e.g., major exporter ban)"
-  - "Consider nutritional quality, not just caloric quantity"
-  - "Use Gini coefficient for measuring food distribution inequality"
+  - "Re-estimate elasticity per Item — cassava vs wheat will differ massively"
+  - "Layer on rainfall shifts (+/- 10% precipitation) alongside warming"
+  - "Use a Gini coefficient to measure yield-inequality across Areas"

@@ -30,16 +30,18 @@ sections:
       print(f"Remaining nulls: {df.isnull().sum().sum()}")
     explanation: "Median imputation is preferred for skewed numerical data. Mode works well for categorical columns. Never drop rows blindly — you lose valuable data."
   - title: "Fix Data Types & Parse Dates"
-    content: "Convert date strings to datetime objects and ensure proper types."
+    content: "The CSV stores date (YYYY-MM-DD) and time (HH:MM:SS) in two columns — combine them into a single timestamp so .dt.hour is not always 0."
     code: |
-      df['date'] = pd.to_datetime(df['date'])
-      df['hour'] = df['date'].dt.hour
-      df['day_of_week'] = df['date'].dt.dayofweek
-      df['month'] = df['date'].dt.month
-      df['is_weekend'] = df['day_of_week'].isin([5, 6]).astype(int)
+      # Combine the date + time columns into a single timestamp
+      df['datetime']    = pd.to_datetime(df['date'].astype(str) + ' ' + df['time'].astype(str), errors='coerce')
+      df['date']        = df['datetime'].dt.normalize()
+      df['hour']        = df['datetime'].dt.hour
+      df['day_of_week'] = df['datetime'].dt.dayofweek
+      df['month']       = df['datetime'].dt.month
+      df['is_weekend']  = df['day_of_week'].isin([5, 6]).astype(int)
 
-      print(df.dtypes)
-    explanation: "Extracting time components (hour, day, month) from dates creates powerful temporal features for the model."
+      print(df[['datetime', 'hour', 'day_of_week', 'month', 'is_weekend']].head())
+    explanation: "Without combining date + time the hour column collapses to 0 and the model loses its strongest signal (rush-hour effects). Always build a single datetime when the CSV splits them."
   - title: "Remove Outliers"
     content: "Use the IQR method to cap extreme delay values."
     code: |
@@ -75,15 +77,18 @@ solution_code: |
   import pandas as pd
   import numpy as np
 
-  df = pd.read_csv(open_url("/datasets/transport_delays.csv"))
+  df = pd.read_csv(open_url("/datasets/public_transport_delays.csv"))
   num_cols = df.select_dtypes(include=[np.number]).columns
   df[num_cols] = df[num_cols].fillna(df[num_cols].median())
   cat_cols = df.select_dtypes(include=['object']).columns
   for col in cat_cols:
       df[col] = df[col].fillna(df[col].mode()[0])
-  df['date'] = pd.to_datetime(df['date'])
-  df['hour'] = df['date'].dt.hour
-  df['is_weekend'] = df['date'].dt.dayofweek.isin([5, 6]).astype(int)
+
+  # Combine the separate date + time columns into a single timestamp
+  df['datetime']   = pd.to_datetime(df['date'].astype(str) + ' ' + df['time'].astype(str), errors='coerce')
+  df['hour']       = df['datetime'].dt.hour
+  df['is_weekend'] = df['datetime'].dt.dayofweek.isin([5, 6]).astype(int)
+
   Q1 = df['actual_departure_delay_min'].quantile(0.25)
   Q3 = df['actual_departure_delay_min'].quantile(0.75)
   IQR = Q3 - Q1

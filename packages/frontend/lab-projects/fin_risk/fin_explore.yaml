@@ -23,7 +23,7 @@ sections:
       import matplotlib.pyplot as plt
 
       # Load pre-merged stock data
-      raw = pd.read_csv(open_url("/datasets/stock_prices.csv"))
+      raw = pd.read_csv(open_url("/datasets/all_stocks_2006-01-01_to_2018-01-01.csv"))
       prices = raw.pivot_table(index='Date', columns='ticker', values='Close')
       returns = prices.pct_change().dropna()
 
@@ -84,7 +84,7 @@ solution_code: |
   import pandas as pd
   import numpy as np
 
-  df = pd.read_csv(open_url("/datasets/stock_prices.csv"))
+  df = pd.read_csv(open_url("/datasets/all_stocks_2006-01-01_to_2018-01-01.csv"))
   print(f"Shape: {df.shape}")
   print(f"Columns: {df.columns.tolist()}")
   print(f"Tickers: {df['ticker'].unique().tolist()}")

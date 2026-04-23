@@ -90,7 +90,7 @@ solution_code: |
   import numpy as np
   import pandas as pd
 
-  raw = pd.read_csv(open_url("/datasets/stock_prices.csv"))
+  raw = pd.read_csv(open_url("/datasets/all_stocks_2006-01-01_to_2018-01-01.csv"))
   prices = raw.pivot_table(index='Date', columns='ticker', values='Close')
   returns = prices.pct_change().dropna()
   mean_returns = returns.mean() * 252

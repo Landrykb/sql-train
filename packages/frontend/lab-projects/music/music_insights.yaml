@@ -67,7 +67,7 @@ solution_code: |
   from sklearn.metrics import r2_score, mean_absolute_error
   import pandas as pd
 
-  df = pd.read_csv(open_url("/datasets/spotify_tracks.csv"))
+  df = pd.read_csv(open_url("/datasets/dataset.csv"))
   features = ['danceability', 'energy', 'acousticness', 'valence', 'instrumentalness', 'tempo', 'loudness']
   X = df[features]
   y = df['popularity']

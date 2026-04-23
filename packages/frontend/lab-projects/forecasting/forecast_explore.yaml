@@ -23,7 +23,7 @@ sections:
       import numpy as np
       import matplotlib.pyplot as plt
 
-      raw = pd.read_csv(open_url("/datasets/sales_forecasting.csv"))
+      raw = pd.read_csv(open_url("/datasets/train.csv"))
       # Aggregate to daily sales
       raw['Order Date'] = pd.to_datetime(raw['Order Date'])
       df = raw.groupby('Order Date')['Sales'].sum().to_frame('value')
@@ -78,7 +78,7 @@ solution_code: |
   import numpy as np
   from statsmodels.tsa.stattools import adfuller
 
-  raw = pd.read_csv(open_url("/datasets/sales_forecasting.csv"))
+  raw = pd.read_csv(open_url("/datasets/train.csv"))
   raw['Order Date'] = pd.to_datetime(raw['Order Date'])
   df = raw.groupby('Order Date')['Sales'].sum().to_frame('value')
   result = adfuller(df['value'].dropna())

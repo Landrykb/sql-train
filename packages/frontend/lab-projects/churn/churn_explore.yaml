@@ -23,7 +23,7 @@ sections:
       import seaborn as sns
       import matplotlib.pyplot as plt
 
-      df = pd.read_csv(open_url("/datasets/telco_churn.csv"))
+      df = pd.read_csv(open_url("/datasets/WA_Fn-UseC_-Telco-Customer-Churn.csv"))
       print(f"Shape: {df.shape}")
       print(f"\nChurn distribution:\n{df['Churn'].value_counts(normalize=True).round(3)}")
       df.head()
@@ -73,7 +73,7 @@ solution_code: |
   import pandas as pd
   import numpy as np
 
-  df = pd.read_csv(open_url("/datasets/telco_churn.csv"))
+  df = pd.read_csv(open_url("/datasets/WA_Fn-UseC_-Telco-Customer-Churn.csv"))
   print(f"Shape: {df.shape}")
   print(f"\nChurn distribution:\n{df['Churn'].value_counts(normalize=True).round(3)}")
   print(f"\nChurn rate by contract:\n{df.groupby('Contract')['Churn'].apply(lambda x: (x=='Yes').mean()).round(3)}")

@@ -2,6 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── BleepxLab DataFrame HTML (Jupyter-style) ─────────────────────────────
+   Pandas ships its own inline styles for the HTML table, but they collide
+   with dark backgrounds. These rules give us a consistent, readable
+   notebook look regardless of system theme. */
+.bleepx-df table {
+  border-collapse: collapse;
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #111827;
+  background: #fff;
+}
+.bleepx-df table thead th {
+  background: #f3f4f6;
+  color: #111827;
+  padding: 4px 8px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: right;
+  font-weight: 600;
+}
+.bleepx-df table tbody td,
+.bleepx-df table tbody th {
+  padding: 3px 8px;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: right;
+  white-space: nowrap;
+}
+.bleepx-df table tbody tr:nth-child(even) td,
+.bleepx-df table tbody tr:nth-child(even) th {
+  background: #fafafa;
+}
+.bleepx-df table tbody tr:hover td,
+.bleepx-df table tbody tr:hover th {
+  background: #ecfeff;
+}
+
 @layer base {
   :root {
     --bleepx-bg: #F5F7FA;

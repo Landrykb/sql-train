@@ -1,6 +1,16 @@
 /**
- * Auth client — uses Supabase Auth (GitHub provider) for fast OAuth.
- * Falls back to the Render backend flow if Supabase is not configured.
+ * Auth client — uses Supabase Auth (GitHub provider) with the PKCE OAuth flow.
+ *
+ * Security posture (2026-04+):
+ *   - The GitHub `provider_token` is **never** persisted in our own
+ *     `bleepx_github_user` localStorage entry. The Supabase SDK keeps the
+ *     active session (including `provider_token`) in its own storage key; we
+ *     read it live with `getGitHubToken()` only at the moment we need to call
+ *     the GitHub API (e.g. pushing a portfolio repo).
+ *   - Pre-existing installs may have a legacy entry with `token` embedded —
+ *     `migrateLegacyStoredToken()` redacts it on startup.
+ *   - OAuth scope is limited to `public_repo` so a leaked token cannot touch
+ *     a learner's private repositories.
  */
 import { supabase } from './supabase';
 
@@ -11,26 +21,49 @@ export interface GitHubUser {
   name: string;
   avatar: string;
   email: string;
-  token: string;
+  /** @deprecated Tokens are no longer stored here. Use `getGitHubToken()` to
+   *  retrieve the provider token from the active Supabase session instead. */
+  token?: string;
 }
 
 const STORAGE_KEY = 'bleepx_github_user';
 
-/** Get stored GitHub user from localStorage */
+/** Redact any legacy `token` field persisted by older builds. Idempotent. */
+export function migrateLegacyStoredToken(): void {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && 'token' in parsed) {
+      delete parsed.token;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+    }
+  } catch { /* ignore */ }
+}
+
+/** Get stored GitHub user from localStorage (never contains a token). */
 export function getGitHubUser(): GitHubUser | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as GitHubUser;
+    // Defense-in-depth: strip token if a legacy entry is still around.
+    if (parsed && 'token' in parsed) delete (parsed as { token?: string }).token;
+    return parsed;
   } catch { /* ignore */ }
   return null;
 }
 
 export const AUTH_CHANGE_EVENT = 'bleepx_auth_change';
 
-/** Store GitHub user in localStorage */
+/** Store GitHub user in localStorage. The `token` field (if present) is
+ *  discarded — tokens live only in the Supabase session. */
 export function setGitHubUser(user: GitHubUser): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    // Remove token before persisting, regardless of what the caller passed.
+    const { token: _drop, ...safe } = user;
+    void _drop; // linter: intentionally ignored
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(safe));
     window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
   } catch { /* ignore */ }
 }
@@ -44,7 +77,23 @@ export function clearGitHubUser(): void {
 }
 
 /**
- * Start GitHub OAuth flow via Supabase Auth.
+ * Read the current GitHub `provider_token` from the active Supabase session.
+ * Returns null if the user is not signed in, if Supabase is not configured,
+ * or if the provider token is unavailable (GitHub provider tokens are not
+ * refreshed automatically by Supabase — the user may need to re-authenticate).
+ */
+export async function getGitHubToken(): Promise<string | null> {
+  if (!supabase) return null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    return data?.session?.provider_token || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Start GitHub OAuth flow via Supabase Auth (PKCE).
  * Falls back to the Render backend if Supabase is not configured.
  */
 export async function startGitHubLogin(): Promise<void> {
@@ -55,7 +104,9 @@ export async function startGitHubLogin(): Promise<void> {
         provider: 'github',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          scopes: 'repo',
+          // Least-privilege scope: just enough to create a public portfolio repo.
+          // Avoids the full `repo` scope which grants access to private repos.
+          scopes: 'read:user public_repo',
         },
       });
       if (error) throw error;

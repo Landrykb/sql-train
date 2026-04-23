@@ -77,7 +77,7 @@ solution_code: |
   import pandas as pd
   from prophet import Prophet
 
-  raw = pd.read_csv(open_url("/datasets/sales_forecasting.csv"))
+  raw = pd.read_csv(open_url("/datasets/train.csv"))
   raw['Order Date'] = pd.to_datetime(raw['Order Date'])
   df = raw.groupby('Order Date')['Sales'].sum().reset_index()
   df.columns = ['ds', 'y']

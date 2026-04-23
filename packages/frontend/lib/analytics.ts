@@ -7,11 +7,27 @@
  * - No-ops safely if PostHog fails to load.
  */
 import posthog from 'posthog-js';
+import { sanitizeUrl } from './sanitizeUrl';
 
 let initialized = false;
 let enabled = false;
 
 const CONSENT_KEY = 'bleepx_analytics_consent';
+
+/** Keys in PostHog event `properties` that can contain a full URL. These are
+ *  aggressively scrubbed so OAuth tokens never leave the browser. */
+const URL_PROPERTY_KEYS = [
+  '$current_url',
+  '$referrer',
+  '$referring_domain',
+  '$pathname',
+  '$initial_current_url',
+  '$initial_referrer',
+  '$initial_pathname',
+  'url',
+  'path',
+  'referrer',
+];
 
 /** Has the user accepted analytics? Defaults to true (opt-out) for free-tier project,
  * but users can opt out via footer link. Tracks nothing sensitive. */
@@ -50,10 +66,24 @@ export function initAnalytics(): void {
     posthog.init(key, {
       api_host: host,
       person_profiles: 'identified_only', // anonymous unless we call identify()
-      capture_pageview: true,
-      capture_pageleave: true,
+      // Pageviews are captured manually from AnalyticsProvider *after* we
+      // scrub the URL, so OAuth tokens never hit the wire.
+      capture_pageview: false,
+      capture_pageleave: false,
       autocapture: false, // we send explicit events
       disable_session_recording: true, // no recordings for privacy
+      // Defense-in-depth: strip sensitive query/hash params from any
+      // URL-like property on every event before it is sent.
+      sanitize_properties: (properties: Record<string, any>) => {
+        if (!properties || typeof properties !== 'object') return properties;
+        for (const k of URL_PROPERTY_KEYS) {
+          const v = properties[k];
+          if (typeof v === 'string' && v) {
+            properties[k] = sanitizeUrl(v);
+          }
+        }
+        return properties;
+      },
       loaded: (ph) => {
         if (!hasAnalyticsConsent()) ph.opt_out_capturing();
       },
@@ -64,6 +94,19 @@ export function initAnalytics(): void {
     // eslint-disable-next-line no-console
     console.warn('PostHog init failed (non-fatal):', err);
   }
+}
+
+/** Capture a pageview with explicit URL sanitization applied. Call from
+ *  AnalyticsProvider after `scrubCurrentUrl()` has run on mount. */
+export function capturePageview(path?: string): void {
+  if (!initialized || !enabled) return;
+  try {
+    const url = sanitizeUrl(typeof window !== 'undefined' ? window.location.href : '');
+    posthog.capture('$pageview', {
+      $current_url: url,
+      ...(path ? { path: sanitizeUrl(path) } : {}),
+    });
+  } catch { /* ignore */ }
 }
 
 /** Track an event. No-op if disabled. */

@@ -24,7 +24,7 @@ sections:
       import matplotlib.pyplot as plt
       import seaborn as sns
 
-      df = pd.read_csv(open_url("/datasets/transport_delays.csv"))
+      df = pd.read_csv(open_url("/datasets/public_transport_delays.csv"))
       print(f"Shape: {df.shape}")
       print(f"Columns: {df.columns.tolist()}")
       df.head()
@@ -79,7 +79,7 @@ solution_code: |
   import pandas as pd
   import numpy as np
 
-  df = pd.read_csv(open_url("/datasets/transport_delays.csv"))
+  df = pd.read_csv(open_url("/datasets/public_transport_delays.csv"))
   print(f"Shape: {df.shape}")
   print(f"Columns: {df.columns.tolist()}")
   print(f"Missing values:\n{df.isnull().sum()}")

@@ -21,7 +21,7 @@ sections:
       import pandas as pd
       import matplotlib.pyplot as plt
 
-      emissions = pd.read_csv(open_url("/datasets/ghg_emissions.csv"))
+      emissions = pd.read_csv(open_url("/datasets/greenhouse_gas_inventory_data_data.csv"))
       print(f"Shape: {emissions.shape}")
       print(f"Columns: {emissions.columns.tolist()}")
       print(f"Years: {emissions['year'].min()}-{emissions['year'].max()}")
@@ -60,7 +60,7 @@ solution_code: |
   from pyodide.http import open_url
   import pandas as pd
 
-  df = pd.read_csv(open_url("/datasets/ghg_emissions.csv"))
+  df = pd.read_csv(open_url("/datasets/greenhouse_gas_inventory_data_data.csv"))
   print(f"Shape: {df.shape}")
   print(f"Columns: {df.columns.tolist()}")
   print(f"\nFirst 3 rows:\n{df.head(3)}")

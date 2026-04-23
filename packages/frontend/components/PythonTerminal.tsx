@@ -1,19 +1,16 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import dynamic from 'next/dynamic';
+import DOMPurify from 'dompurify';
 import { getPyErrorHelp } from '@/lib/pyErrorHelper';
 import { useTheme } from '@/lib/useTheme';
 import { BleepxFace } from '@/components/BleepxIcons';
 import { useAuthGate } from '@/components/SignInGate';
 import { track, Events } from '@/lib/analytics';
+import { loadPyodide, runPythonCode, type OutputLine } from '@/lib/pyodideRuntime';
 
-// ─── Types ──────────────────────────────────────────────────────────────────
-
-interface OutputLine {
-  type: 'stdout' | 'stderr' | 'result' | 'system' | 'error-help';
-  text: string;
-}
+// ─── Types ──────────────────────────────────────────────────────────────
 
 interface PythonTerminalProps {
   initialCode?: string;
@@ -22,6 +19,14 @@ interface PythonTerminalProps {
   hints?: string[];
   onSolved?: () => void;
   height?: string;
+}
+
+/** Imperative handle — lets parents (e.g. LabProjectViewer) inject code into
+ *  the editor from outside ("Send to editor" buttons on section snippets). */
+export interface PythonTerminalHandle {
+  setCode: (code: string) => void;
+  appendCode: (code: string) => void;
+  getCode: () => string;
 }
 
 // ─── CodeMirror (dynamic) ───────────────────────────────────────────────────
@@ -66,50 +71,16 @@ const CodeMirror = dynamic(
 
 type EditorTheme = 'auto' | 'dark' | 'light';
 
-// ─── Pyodide loader ─────────────────────────────────────────────────────────
+// ─── Component ───────────────────────────────────────────────────────
 
-let pyodidePromise: Promise<any> | null = null;
-
-function loadPyodide(): Promise<any> {
-  if (pyodidePromise) return pyodidePromise;
-  pyodidePromise = new Promise(async (resolve, reject) => {
-    try {
-      if (!(window as any).loadPyodide) {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js';
-        script.async = true;
-        await new Promise<void>((res, rej) => {
-          script.onload = () => res();
-          script.onerror = () => rej(new Error('Failed to load Pyodide'));
-          document.head.appendChild(script);
-        });
-      }
-      const pyodide = await (window as any).loadPyodide({
-        indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/',
-      });
-      await pyodide.loadPackage(['numpy', 'pandas', 'micropip']);
-      // Pre-install sklearn so users don't hit ModuleNotFoundError
-      const micropip = pyodide.pyimport('micropip');
-      await micropip.install('scikit-learn');
-      resolve(pyodide);
-    } catch (err) {
-      pyodidePromise = null;
-      reject(err);
-    }
-  });
-  return pyodidePromise;
-}
-
-// ─── Component ──────────────────────────────────────────────────────────────
-
-export default function PythonTerminal({
+const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(function PythonTerminal({
   initialCode = '',
   expectedOutput,
   solutionCode,
   hints = [],
   onSolved,
   height = '250px',
-}: PythonTerminalProps) {
+}, ref) {
   const [code, setCode] = useState(initialCode);
   const [output, setOutput] = useState<OutputLine[]>([]);
   const [running, setRunning] = useState(false);
@@ -127,6 +98,13 @@ export default function PythonTerminal({
 
   const isDark = editorTheme === 'auto' ? systemDark : editorTheme === 'dark';
 
+  // Imperative handle for parent-driven code injection (e.g. "Send to editor").
+  useImperativeHandle(ref, () => ({
+    setCode: (next: string) => setCode(next),
+    appendCode: (next: string) => setCode((prev) => (prev ? `${prev.replace(/\s+$/, '')}\n\n${next}` : next)),
+    getCode: () => code,
+  }), [code]);
+
   // Auto-scroll output
   useEffect(() => {
     if (outputRef.current) {
@@ -138,9 +116,11 @@ export default function PythonTerminal({
   const ensurePyodide = useCallback(async (): Promise<any | null> => {
     if (pyodideReady) return loadPyodide();
     setLoadingPyodide(true);
-    setOutput([{ type: 'system', text: '*bleep* Loading Python environment (first time may take ~10s)...' }]);
+    setOutput([{ type: 'system', text: '*bleep* Loading Python environment (first time may take ~10s)…' }]);
     try {
-      const py = await loadPyodide();
+      const py = await loadPyodide((msg) => {
+        setOutput([{ type: 'system', text: `*bleep* ${msg}` }]);
+      });
       setPyodideReady(true);
       setLoadingPyodide(false);
       return py;
@@ -151,7 +131,7 @@ export default function PythonTerminal({
     }
   }, [pyodideReady]);
 
-  // Run code with timeout protection
+  // Run code with timeout + auto package install + matplotlib capture.
   const runCode = useCallback(async () => {
     if (running) return;
     // Gate: require GitHub sign-in to execute code
@@ -164,49 +144,30 @@ export default function PythonTerminal({
       const pyodide = await ensurePyodide();
       if (!pyodide) { setRunning(false); return; }
 
-      setOutput((prev) => [...prev, { type: 'system', text: '>>> Running...' }]);
+      setOutput((prev) => [...prev, { type: 'system', text: '>>> Running…' }]);
 
-      // Wrap execution in a timeout (30s)
-      const execPromise = new Promise<{ stdout: string; stderr: string; result: any }>((resolve, reject) => {
-        try {
-          pyodide.runPython(`
-import sys
-from io import StringIO
-_stdout = StringIO()
-_stderr = StringIO()
-sys.stdout = _stdout
-sys.stderr = _stderr
-`);
-          let result: any;
-          try {
-            result = pyodide.runPython(code);
-          } catch (pyErr: any) {
-            const stderrContent = pyodide.runPython('_stderr.getvalue()');
-            pyodide.runPython('sys.stdout = sys.__stdout__; sys.stderr = sys.__stderr__');
-            const rawError = pyErr.message || String(pyErr);
-            reject(new Error(stderrContent ? `${stderrContent}\n${rawError}` : rawError));
-            return;
-          }
-          const stdout = pyodide.runPython('_stdout.getvalue()');
-          const stderr = pyodide.runPython('_stderr.getvalue()');
-          pyodide.runPython('sys.stdout = sys.__stdout__; sys.stderr = sys.__stderr__');
-          resolve({ stdout, stderr, result });
-        } catch (err) {
-          reject(err);
-        }
+      const { stdout, stderr, result, resultHtml, images } = await runPythonCode(pyodide, {
+        code,
+        timeoutMs: 30000,
+        onProgress: (msg) => {
+          setOutput((prev) => [...prev, { type: 'system', text: `*bleep* ${msg}` }]);
+        },
       });
 
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Execution timed out after 30 seconds. Check for infinite loops.')), 30000)
-      );
-
-      const { stdout: stdoutContent, stderr: stderrContent, result } = await Promise.race([execPromise, timeoutPromise]);
-
       const newOutput: OutputLine[] = [];
-      if (stdoutContent) newOutput.push({ type: 'stdout', text: stdoutContent });
-      if (stderrContent) newOutput.push({ type: 'stderr', text: stderrContent });
-      if (result !== undefined && result !== null && String(result) !== 'None') {
+      if (stdout) newOutput.push({ type: 'stdout', text: stdout });
+      if (stderr) newOutput.push({ type: 'stderr', text: stderr });
+      // Prefer rich HTML (pandas DataFrame/Series/Styler) over the plain repr.
+      if (resultHtml) {
+        // DOMPurify strips scripts / event handlers — pandas HTML contains only
+        // <table>/<thead>/<tr>/<td> so this is safe to render.
+        const safe = DOMPurify.sanitize(resultHtml, { USE_PROFILES: { html: true } });
+        newOutput.push({ type: 'html', html: safe });
+      } else if (result !== undefined && result !== null && String(result) !== 'None') {
         newOutput.push({ type: 'result', text: String(result) });
+      }
+      for (const img of images) {
+        newOutput.push({ type: 'image', mime: img.mime, data: img.data });
       }
       if (newOutput.length === 0) {
         newOutput.push({ type: 'system', text: '(no output)' });
@@ -215,7 +176,7 @@ sys.stderr = _stderr
 
       // Check if solved
       if (expectedOutput) {
-        const actualOutput = (stdoutContent || '').trim();
+        const actualOutput = (stdout || '').trim();
         const expected = expectedOutput.trim();
         const isMatch = expected.split('\n').every((line: string) =>
           actualOutput.includes(line.trim()) || actualOutput.replace(/\s+/g, ' ').includes(line.trim().replace(/\s+/g, ' '))
@@ -228,7 +189,15 @@ sys.stderr = _stderr
       }
     } catch (err: any) {
       const rawError = err.message || String(err);
-      setOutput((prev) => [...prev, { type: 'stderr', text: rawError }]);
+      // Partial images captured before the error (if any) are stashed on err
+      const partialImages: Array<{ mime: string; data: string }> = Array.isArray(err?.images) ? err.images : [];
+      const partialStdout: string = typeof err?.stdout === 'string' ? err.stdout : '';
+      setOutput((prev) => [
+        ...prev,
+        ...(partialStdout ? [{ type: 'stdout', text: partialStdout } as OutputLine] : []),
+        { type: 'stderr', text: rawError },
+        ...partialImages.map((img) => ({ type: 'image', mime: img.mime, data: img.data } as OutputLine)),
+      ]);
       setErrorHelp(getPyErrorHelp(rawError, code));
     } finally {
       setRunning(false);
@@ -236,6 +205,12 @@ sys.stderr = _stderr
   }, [code, running, ensurePyodide, expectedOutput, solved, onSolved, requireAuth]);
 
   const clearOutput = () => { setOutput([]); setErrorHelp(null); };
+
+  const resetEditor = () => {
+    if (code === initialCode) return;
+    if (typeof window !== 'undefined' && !window.confirm('Reset the editor to the starter code? Your changes will be lost.')) return;
+    setCode(initialCode);
+  };
 
   const showNextHint = () => {
     if (hintIdx < hints.length - 1) setHintIdx((i) => i + 1);
@@ -302,6 +277,16 @@ sys.stderr = _stderr
               {showSolution ? '🙈' : '👁️'}<span className="hidden sm:inline"> {showSolution ? 'Hide' : 'Solution'}</span>
             </button>
           )}
+          <button
+            onClick={resetEditor}
+            disabled={code === initialCode}
+            title="Restore starter code"
+            className={`px-2 py-1 text-[10px] font-bold rounded transition-colors whitespace-nowrap disabled:opacity-40 ${
+              isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+            }`}
+          >
+            ↺<span className="hidden sm:inline ml-0.5">Reset</span>
+          </button>
           <button
             onClick={clearOutput}
             className={`px-2 py-1 text-[10px] font-bold rounded transition-colors whitespace-nowrap ${
@@ -403,32 +388,56 @@ import numpy as np"
         </div>
       )}
 
-      {/* Output terminal */}
+      {/* Output — Jupyter-notebook-style: text, matplotlib PNGs, and results
+          are interleaved in the order they were produced. */}
       <div
         ref={outputRef}
-        className={`border-t p-3 font-mono text-xs overflow-auto max-h-64 min-h-[80px] ${
+        className={`border-t p-3 font-mono text-xs overflow-auto max-h-[28rem] min-h-[80px] ${
           isDark ? 'bg-gray-950 border-gray-700' : 'bg-gray-900 border-gray-300'
         }`}
       >
         {output.length === 0 ? (
-          <div className="text-gray-500 italic">*bleep* Output will appear here after running your code...</div>
+          <div className="text-gray-500 italic">*bleep* Output will appear here after running your code. Figures from matplotlib/seaborn render inline.</div>
         ) : (
-          output.map((line, i) => (
-            <div
-              key={i}
-              className={`whitespace-pre-wrap mb-1 ${
-                line.type === 'stderr' ? 'text-red-400' :
-                line.type === 'system' ? 'text-teal-400 italic' :
-                line.type === 'result' ? 'text-yellow-300' :
-                'text-gray-200'
-              }`}
-            >
-              {line.text}
-            </div>
-          ))
+          output.map((line, i) => {
+            if (line.type === 'image') {
+              return (
+                <div key={i} className="my-2 rounded-md overflow-hidden bg-white p-2 inline-block max-w-full">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`data:${line.mime};base64,${line.data}`}
+                    alt="Figure output"
+                    className="block max-w-full h-auto"
+                  />
+                </div>
+              );
+            }
+            if (line.type === 'html') {
+              return (
+                <div
+                  key={i}
+                  className="bleepx-df my-2 rounded-md overflow-auto bg-white text-gray-900 p-2 max-w-full"
+                  dangerouslySetInnerHTML={{ __html: line.html }}
+                />
+              );
+            }
+            return (
+              <div
+                key={i}
+                className={`whitespace-pre-wrap mb-1 ${
+                  line.type === 'stderr' ? 'text-red-400' :
+                  line.type === 'system' ? 'text-teal-400 italic' :
+                  line.type === 'result' ? 'text-yellow-300' :
+                  'text-gray-200'
+                }`}
+              >
+                {line.text}
+              </div>
+            );
+          })
         )}
         {running && (
-          <div className="text-teal-400 animate-pulse">*bleep* Executing...</div>
+          <div className="text-teal-400 animate-pulse">*bleep* Executing…</div>
         )}
       </div>
 
@@ -446,4 +455,6 @@ import numpy as np"
       <GateComponent />
     </div>
   );
-}
+});
+
+export default PythonTerminal;

@@ -140,7 +140,7 @@ export const LAB_DOMAIN_META: Record<string, {
     difficulty: 'Intermediate',
     stars: 2,
     language: 'Python / R',
-    dataset_url: 'https://www.kaggle.com/datasets/debashish311601/esg-scores-and-ratings',
+    dataset_url: 'https://www.kaggle.com/datasets/shriyashjagtap/esg-and-financial-performance-dataset',
   },
   decarb: {
     icon: '♻️',

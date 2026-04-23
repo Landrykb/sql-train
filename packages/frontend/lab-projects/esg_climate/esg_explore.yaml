@@ -6,139 +6,137 @@ step_number: 1
 tier: 1
 skills: [pandas, eda, visualization, sustainability]
 language: "Python / R"
-dataset_url: "https://www.kaggle.com/datasets/debashish311601/esg-scores-and-ratings"
-description: "Load ESG ratings and climate risk datasets to understand how companies perform on Environmental, Social, and Governance metrics."
+dataset_url: "https://www.kaggle.com/datasets/shriyashjagtap/esg-and-financial-performance-dataset"
+description: "Load the ESG & Financial Performance dataset (1,000 companies × 11 years, 16 columns) to understand how companies perform on Environmental, Social, and Governance metrics alongside their financials."
 prereq_cases: []
 learning_objectives:
   - Understand ESG scoring frameworks (E, S, G pillars)
   - Load and merge ESG datasets from multiple sources
   - Identify sector-level ESG trends
 sections:
-  - title: "Load ESG Data"
-    content: "Load company ESG scores and financial data."
+  - title: "Load ESG Data & Derive Volatility"
+    content: "Load the Kaggle ESG & Financial Performance dataset, collapse to the latest year per company, and derive a per-company Volatility from the multi-year GrowthRate series."
     code: |
       from pyodide.http import open_url
       import pandas as pd
       import matplotlib.pyplot as plt
       import seaborn as sns
 
-      df = pd.read_csv(open_url("/datasets/esg_scores.csv"))
-      print(f"Companies: {df['company_id'].nunique()}")
+      raw = pd.read_csv(open_url("/datasets/company_esg_financial_dataset.csv"))
+      # Volatility = stdev of annual GrowthRate across all years for the company
+      vol = raw.groupby('CompanyID')['GrowthRate'].std().rename('Volatility')
+      latest = raw.sort_values('Year').groupby('CompanyID').tail(1)
+      df = latest.merge(vol, on='CompanyID', how='left')
+
+      print(f"Companies: {df['CompanyID'].nunique()}")
       print(f"\nESG Score Summary:")
-      print(df[['environmental_score', 'social_score', 'governance_score', 'total_esg']].describe())
+      print(df[['ESG_Environmental', 'ESG_Social', 'ESG_Governance', 'ESG_Overall']].describe())
     r_code: |
       library(dplyr)
       library(ggplot2)
 
-      # Generate synthetic ESG data (real data: see Dataset Source above)
-      set.seed(42)
-      n <- 200
-      sectors <- sample(c('Energy','Tech','Finance','Healthcare','Materials','Utilities'), n, replace = TRUE)
-      df <- data.frame(
-        company_id = 1:n,
-        company_name = paste0('Corp_', 1:n),
-        sector = sectors,
-        environmental_score = round(runif(n, 10, 95), 1),
-        social_score = round(runif(n, 15, 90), 1),
-        governance_score = round(runif(n, 20, 95), 1),
-        annual_return = round(rnorm(n, 10, 15), 2),
-        volatility = round(runif(n, 5, 40), 2),
-        market_cap = round(rlnorm(n, 10, 1.5), 0),
-        co2_emissions_mt = round(rlnorm(n, 3, 2), 1),
-        revenue = round(rlnorm(n, 8, 1), 0)
-      )
-      df$total_esg <- (df$environmental_score + df$social_score + df$governance_score) / 3
-      cat(paste0("Companies: ", length(unique(df$company_id)), "\n"))
-      summary(df[, c('environmental_score','social_score','governance_score','total_esg')])
-    explanation: "ESG scores typically range 0-100. The three pillars (E, S, G) capture different sustainability dimensions. Merging with financials lets us study the ESG-performance relationship."
-  - title: "Sector Analysis"
-    content: "Compare ESG performance across industry sectors."
+      # read_csv is expected to have been done upstream; here we emulate the
+      # Python pipeline: per-company volatility + latest-year snapshot.
+      raw <- read.csv('company_esg_financial_dataset.csv')
+      vol <- raw %>% group_by(CompanyID) %>% summarise(Volatility = sd(GrowthRate, na.rm = TRUE))
+      latest <- raw %>% arrange(Year) %>% group_by(CompanyID) %>% slice_tail(n = 1) %>% ungroup()
+      df <- latest %>% left_join(vol, by = 'CompanyID')
+
+      cat(paste0("Companies: ", length(unique(df$CompanyID)), "\n"))
+      summary(df[, c('ESG_Environmental','ESG_Social','ESG_Governance','ESG_Overall')])
+    explanation: "ESG_Environmental / ESG_Social / ESG_Governance are 0-100 pillar scores, with ESG_Overall the aggregate. Because the Kaggle data has 11 years per company, we derive a return-volatility proxy from the stdev of each company's GrowthRate time series — then keep just the latest year for the cross-sectional lab."
+  - title: "Industry Analysis"
+    content: "Compare ESG pillar performance across industries."
     code: |
-      sector_esg = df.groupby('sector')[['environmental_score', 'social_score', 'governance_score']].mean()
-      sector_esg.plot(kind='barh', figsize=(10, 6), color=['#2ecc71', '#3498db', '#9b59b6'])
-      plt.title('Average ESG Scores by Sector')
+      industry_esg = df.groupby('Industry')[['ESG_Environmental', 'ESG_Social', 'ESG_Governance']].mean()
+      industry_esg.plot(kind='barh', figsize=(10, 6), color=['#2ecc71', '#3498db', '#9b59b6'])
+      plt.title('Average ESG Scores by Industry')
       plt.xlabel('Score')
       plt.legend(title='Pillar')
       plt.tight_layout()
       plt.show()
     r_code: |
-      sector_esg <- df %>%
-        group_by(sector) %>%
+      industry_esg <- df %>%
+        group_by(Industry) %>%
         summarise(
-          Environmental = mean(environmental_score),
-          Social = mean(social_score),
-          Governance = mean(governance_score)
+          Environmental = mean(ESG_Environmental),
+          Social = mean(ESG_Social),
+          Governance = mean(ESG_Governance)
         ) %>%
-        tidyr::pivot_longer(-sector, names_to = "Pillar", values_to = "Score")
+        tidyr::pivot_longer(-Industry, names_to = "Pillar", values_to = "Score")
 
-      ggplot(sector_esg, aes(x = Score, y = sector, fill = Pillar)) +
+      ggplot(industry_esg, aes(x = Score, y = Industry, fill = Pillar)) +
         geom_col(position = "dodge") +
         scale_fill_manual(values = c('#2ecc71','#3498db','#9b59b6')) +
-        labs(title = 'Average ESG Scores by Sector', x = 'Score') +
+        labs(title = 'Average ESG Scores by Industry', x = 'Score') +
         theme_minimal()
-    explanation: "Energy and materials sectors often have lower environmental scores but may excel in governance. Understanding sector baselines is essential for fair ESG comparison."
+    explanation: "Energy-heavy industries often have lower environmental scores but may excel in governance. Understanding industry baselines is essential for fair ESG comparison."
   - title: "ESG vs Financial Performance"
-    content: "Explore whether higher ESG scores correlate with better financial returns."
+    content: "Explore whether higher ESG scores correlate with better growth and lower volatility."
     code: |
       fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-      axes[0].scatter(df['total_esg'], df['annual_return'], alpha=0.3, s=15, color='teal')
-      axes[0].set_xlabel('Total ESG Score')
-      axes[0].set_ylabel('Annual Return (%)')
-      axes[0].set_title('ESG Score vs Return')
+      axes[0].scatter(df['ESG_Overall'], df['GrowthRate'], alpha=0.3, s=15, color='teal')
+      axes[0].set_xlabel('Overall ESG Score')
+      axes[0].set_ylabel('Revenue Growth Rate (%)')
+      axes[0].set_title('ESG Score vs Growth')
 
-      axes[1].scatter(df['environmental_score'], df['volatility'], alpha=0.3, s=15, color='coral')
+      axes[1].scatter(df['ESG_Environmental'], df['Volatility'], alpha=0.3, s=15, color='coral')
       axes[1].set_xlabel('Environmental Score')
-      axes[1].set_ylabel('Volatility')
+      axes[1].set_ylabel('Volatility (stdev of GrowthRate)')
       axes[1].set_title('E-Score vs Risk')
 
       plt.tight_layout()
       plt.show()
 
-      corr = df[['total_esg', 'annual_return', 'volatility', 'market_cap']].corr()
-      print(corr['total_esg'].round(3))
+      corr = df[['ESG_Overall', 'GrowthRate', 'Volatility', 'MarketCap']].corr()
+      print(corr['ESG_Overall'].round(3))
     r_code: |
       library(gridExtra)
 
-      p1 <- ggplot(df, aes(x = total_esg, y = annual_return)) +
+      p1 <- ggplot(df, aes(x = ESG_Overall, y = GrowthRate)) +
         geom_point(alpha = 0.3, size = 1, color = 'teal') +
-        labs(x = 'Total ESG Score', y = 'Annual Return (%)', title = 'ESG Score vs Return') +
+        labs(x = 'Overall ESG Score', y = 'Revenue Growth Rate (%)', title = 'ESG Score vs Growth') +
         theme_minimal()
 
-      p2 <- ggplot(df, aes(x = environmental_score, y = volatility)) +
+      p2 <- ggplot(df, aes(x = ESG_Environmental, y = Volatility)) +
         geom_point(alpha = 0.3, size = 1, color = 'coral') +
         labs(x = 'Environmental Score', y = 'Volatility', title = 'E-Score vs Risk') +
         theme_minimal()
 
       grid.arrange(p1, p2, ncol = 2)
 
-      corr_cols <- df[, c('total_esg','annual_return','volatility','market_cap')]
-      round(cor(corr_cols)[, 'total_esg'], 3)
-    explanation: "Research shows higher ESG companies tend to have lower volatility (risk). The return relationship is debated — ESG may protect downside more than boost upside."
+      corr_cols <- df[, c('ESG_Overall','GrowthRate','Volatility','MarketCap')]
+      round(cor(corr_cols)[, 'ESG_Overall'], 3)
+    explanation: "Research shows higher ESG companies tend to have lower volatility (risk). The return relationship is debated — ESG may protect downside more than boost upside. We use annual GrowthRate as the return proxy here since the Kaggle dataset reports company fundamentals rather than stock returns."
 schema:
-  - company_id
-  - company_name
-  - sector
-  - environmental_score
-  - social_score
-  - governance_score
-  - total_esg
-  - annual_return
-  - volatility
-  - market_cap
-  - co2_emissions_mt
-  - revenue
+  - CompanyID
+  - CompanyName
+  - Industry
+  - Region
+  - Year
+  - Revenue
+  - ProfitMargin
+  - MarketCap
+  - GrowthRate
+  - ESG_Overall
+  - ESG_Environmental
+  - ESG_Social
+  - ESG_Governance
+  - CarbonEmissions
+  - WaterUsage
+  - EnergyConsumption
 thought_process:
-  - "Load ESG scores and financial data, merge on company_id"
-  - "Summarize ESG score distributions across the three pillars"
-  - "Compare ESG performance by sector"
-  - "Test correlation between ESG scores and financial returns"
+  - "Load the Kaggle ESG & Financial Performance dataset (11 years × 1,000 companies)"
+  - "Derive per-company Volatility as stdev of GrowthRate across years"
+  - "Collapse to a latest-year snapshot for cross-sectional analysis"
+  - "Compare ESG pillars by Industry and study ESG-vs-performance correlations"
 solution_code: |
   from pyodide.http import open_url
   import pandas as pd
   import numpy as np
 
-  df = pd.read_csv(open_url("/datasets/esg_scores.csv"))
+  df = pd.read_csv(open_url("/datasets/company_esg_financial_dataset.csv"))
   print(f"Shape: {df.shape}")
   print(f"Columns: {df.columns.tolist()}")
   print(f"\nFirst 3 rows:\n{df.head(3)}")
@@ -146,6 +144,7 @@ expected_output: |
   Shape:
   Columns:
 hints:
-  - "Try creating ESG quintiles and comparing average returns per quintile"
-  - "Look at the E-score trend over time for climate transition tracking"
+  - "Try creating ESG quintiles and comparing average GrowthRate per quintile"
+  - "Look at ESG_Environmental trends over Year for climate transition tracking"
   - "Use seaborn's regplot for trend lines on scatter plots"
+  - "The raw CSV has multiple Years per CompanyID — group/aggregate before cross-sectional plots"

@@ -6,6 +6,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import LabProjectViewer from '@/components/LabProjectViewer';
 import { LAB_DOMAIN_META, LAB_DOMAIN_FOLDER_MAP, LAB_CASE_ORDER } from '@/lib/labConstants';
+import { getKaggleInfo, extractLabDatasetPath } from '@/lib/kaggleDatasets';
 
 export function generateStaticParams() {
   const params: { domain: string; projectId: string }[] = [];
@@ -84,6 +85,9 @@ export default async function LabProjectPage({ params }: { params: Promise<{ dom
         skills={doc.skills || []}
         language={doc.language || 'python'}
         datasetUrl={doc.dataset_url}
+        kaggleFilename={getKaggleInfo(doc.dataset_url)?.filename}
+        kaggleNote={getKaggleInfo(doc.dataset_url)?.note}
+        datasetPath={extractLabDatasetPath(doc.solution_code) || extractLabDatasetPath((doc.sections || []).map((s: any) => s.code).join('\n'))}
         sections={(doc.sections || []).map((s: any) => ({
           title: s.title || '',
           content: s.content || '',

@@ -22,7 +22,7 @@ sections:
       import matplotlib.pyplot as plt
       import seaborn as sns
 
-      df = pd.read_csv(open_url("/datasets/spotify_tracks.csv"))
+      df = pd.read_csv(open_url("/datasets/dataset.csv"))
       print(f"Shape: {df.shape}")
       print(f"\nAudio features: {['danceability', 'energy', 'loudness', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']}")
       df.head()
@@ -68,7 +68,7 @@ solution_code: |
   from pyodide.http import open_url
   import pandas as pd
 
-  df = pd.read_csv(open_url("/datasets/spotify_tracks.csv"))
+  df = pd.read_csv(open_url("/datasets/dataset.csv"))
   print(f"Shape: {df.shape}")
   print(f"Popularity stats:\n{df['popularity'].describe()}")
   print(f"\nTop 5 genres by avg popularity:\n{df.groupby('track_genre')['popularity'].mean().nlargest(5)}")

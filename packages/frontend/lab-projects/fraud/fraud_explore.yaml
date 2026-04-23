@@ -23,7 +23,7 @@ sections:
       import matplotlib.pyplot as plt
       import seaborn as sns
 
-      df = pd.read_csv(open_url("/datasets/creditcard_fraud.csv"))
+      df = pd.read_csv(open_url("/datasets/creditcard.csv"))
       print(f"Shape: {df.shape}")
       print(f"\nFraud distribution:")
       print(df['Class'].value_counts())
@@ -68,7 +68,7 @@ solution_code: |
   import pandas as pd
   import numpy as np
 
-  df = pd.read_csv(open_url("/datasets/creditcard_fraud.csv"))
+  df = pd.read_csv(open_url("/datasets/creditcard.csv"))
   print(f"Shape: {df.shape}")
   print(f"Fraud rate: {df['Class'].mean()*100:.3f}%")
   print(f"Fraud count: {int(df['Class'].sum())}")

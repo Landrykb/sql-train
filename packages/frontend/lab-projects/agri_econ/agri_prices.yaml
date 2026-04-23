@@ -1,120 +1,113 @@
 id: agri_prices
-name: "Commodity Price Analysis"
+name: "Crop Yield Volatility & Correlation"
 domain: agri_econ
 project: "Agriculture Economics & Food Security"
 step_number: 2
 tier: 2
-skills: [time_series, price_analysis, volatility, correlation]
+skills: [time_series, volatility, correlation]
 language: "Python / R"
 dataset_url: "https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset"
-description: "Analyze agricultural commodity price dynamics — volatility, seasonality, and correlations with macroeconomic factors."
+description: "Treat the Kaggle yield panel as a time-series problem — measure year-over-year volatility per crop and cross-crop correlation structure."
 prereq_cases: [agri_explore]
 learning_objectives:
-  - Analyze price volatility and seasonality in commodity markets
-  - Identify price correlations between crops and energy
-  - Model price drivers with regression
+  - Pivot a long-format panel to a wide crop × year matrix
+  - Compute year-over-year volatility per crop
+  - Quantify cross-crop return correlation"
 sections:
-  - title: "Price Trends & Volatility"
-    content: "Visualize price history and measure volatility."
+  - title: "Pivot to Crop × Year Matrix"
+    content: "Pivot `hg/ha_yield` by `Item` to get a classic time-series with one column per crop."
     code: |
-      prices_monthly = prices.set_index('date').resample('M').mean()
+      from pyodide.http import open_url
+      import pandas as pd
+      import matplotlib.pyplot as plt
 
-      fig, axes = plt.subplots(2, 1, figsize=(14, 8), sharex=True)
-      for crop in ['wheat', 'corn', 'soybeans']:
-          axes[0].plot(prices_monthly.index, prices_monthly[crop], label=crop, linewidth=1.5)
-      axes[0].set_title('Monthly Commodity Prices')
-      axes[0].set_ylabel('USD/MT')
-      axes[0].legend()
+      df = pd.read_csv(open_url("/datasets/yield_df.csv"))
+      wide = df.pivot_table(index='Year', columns='Item', values='hg/ha_yield', aggfunc='mean')
+      focus = [c for c in ['Maize', 'Wheat', 'Rice, paddy', 'Soybeans', 'Potatoes'] if c in wide.columns][:4]
+      wide = wide[focus].dropna(how='all')
 
-      rolling_vol = prices_monthly[['wheat','corn','soybeans']].pct_change().rolling(12).std() * 100
-      rolling_vol.plot(ax=axes[1], linewidth=1.5)
-      axes[1].set_title('12-Month Rolling Volatility (%)')
-      axes[1].set_ylabel('Volatility (%)')
-
+      wide.plot(figsize=(14, 5), linewidth=1.5)
+      plt.title('Average Yield Over Time — Selected Crops')
+      plt.ylabel('hg/ha_yield')
       plt.tight_layout()
       plt.show()
+      print(wide.tail())
     r_code: |
       library(dplyr)
+      library(tidyr)
       library(ggplot2)
-      library(zoo)
-      library(gridExtra)
 
-      prices$date <- as.Date(prices$date)
-      prices_monthly <- prices %>%
-        mutate(month = format(date, '%Y-%m')) %>%
-        group_by(month) %>%
-        summarise(across(c(wheat, corn, soybeans), mean, .names = "{.col}"), .groups = 'drop') %>%
-        mutate(month = as.Date(paste0(month, '-01')))
+      df <- read.csv('yield_df.csv')
+      wide <- df %>%
+        group_by(Year, Item) %>%
+        summarise(yield = mean(hg.ha_yield, na.rm = TRUE), .groups = 'drop') %>%
+        pivot_wider(names_from = Item, values_from = yield)
+      focus <- intersect(c('Maize','Wheat','Rice, paddy','Soybeans','Potatoes'), colnames(wide))[1:4]
 
-      p1 <- prices_monthly %>%
-        tidyr::pivot_longer(c(wheat, corn, soybeans), names_to = 'crop', values_to = 'price') %>%
-        ggplot(aes(x = month, y = price, color = crop)) +
-        geom_line(linewidth = 1) +
-        labs(title = 'Monthly Commodity Prices', y = 'USD/MT') +
-        theme_minimal()
-
-      # Rolling volatility
-      vol_data <- prices_monthly %>%
-        mutate(across(c(wheat, corn, soybeans), ~rollapply(.x / lag(.x) - 1, 12, sd, fill = NA) * 100))
-
-      p2 <- vol_data %>%
-        tidyr::pivot_longer(c(wheat, corn, soybeans), names_to = 'crop', values_to = 'vol') %>%
-        ggplot(aes(x = month, y = vol, color = crop)) +
-        geom_line(linewidth = 1) +
-        labs(title = '12-Month Rolling Volatility (%)', y = 'Volatility (%)') +
-        theme_minimal()
-
-      grid.arrange(p1, p2, nrow = 2)
-    explanation: "Commodity prices spike during supply shocks (droughts, conflicts). Volatility clustering shows periods of high uncertainty — critical for food security planning and hedging."
-  - title: "Cross-Commodity Correlations"
-    content: "Explore how crop prices move together and with energy."
+      wide %>%
+        select(Year, all_of(focus)) %>%
+        pivot_longer(-Year, names_to = 'Item', values_to = 'yield') %>%
+        ggplot(aes(x = Year, y = yield, color = Item)) +
+          geom_line(linewidth = 1) +
+          labs(title = 'Average Yield Over Time') +
+          theme_minimal()
+    explanation: "Averaging across countries smooths local shocks and reveals the secular yield-growth trend — strong for wheat and maize, much weaker for rice."
+  - title: "Rolling Volatility & Correlation"
+    content: "Year-over-year percent changes + a correlation matrix expose which crops move together."
     code: |
-      import seaborn as sns
+      yoy = wide.pct_change().dropna()
+      vol = yoy.rolling(5).std() * 100
 
-      price_cols = ['wheat', 'corn', 'soybeans', 'rice', 'oil_price', 'fertilizer_index']
-      corr = prices_monthly[price_cols].corr()
+      fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+      vol.plot(ax=axes[0], linewidth=1.5)
+      axes[0].set_title('5-Year Rolling YoY Yield Volatility (%)')
 
-      plt.figure(figsize=(8, 6))
-      sns.heatmap(corr, annot=True, cmap='RdYlGn', center=0, fmt='.2f')
-      plt.title('Commodity Price Correlations')
+      corr = yoy.corr()
+      im = axes[1].imshow(corr, cmap='RdYlGn', vmin=-1, vmax=1)
+      axes[1].set_xticks(range(len(corr))); axes[1].set_xticklabels(corr.columns, rotation=45, ha='right')
+      axes[1].set_yticks(range(len(corr))); axes[1].set_yticklabels(corr.columns)
+      axes[1].set_title('Cross-Crop YoY Correlation')
+      plt.colorbar(im, ax=axes[1], fraction=0.04)
       plt.tight_layout()
       plt.show()
+      print(corr.round(2))
     r_code: |
-      library(corrplot)
+      library(dplyr)
 
-      price_cols <- prices_monthly[, c('wheat','corn','soybeans','rice','oil_price','fertilizer_index')]
-      corr_mat <- cor(price_cols, use = 'complete.obs')
-
-      corrplot(corr_mat, method = 'color', type = 'lower',
-               addCoef.col = 'black', number.cex = 0.8,
-               title = 'Commodity Price Correlations',
-               mar = c(0, 0, 2, 0))
-    explanation: "Corn-soybean correlation is high (competing for the same land). Oil prices drive fertilizer costs which drive crop prices. These linkages create systemic food price risk."
+      yoy <- wide %>% arrange(Year) %>% mutate(across(-Year, ~ . / lag(.) - 1))
+      corr_mat <- cor(yoy[, focus], use = 'pairwise.complete.obs')
+      round(corr_mat, 2)
+    explanation: "Yields co-move — good weather lifts most crops at once. The correlation matrix tells you how much of the volatility is systemic (weather, policy) versus idiosyncratic (pests, crop-specific cycles)."
 schema:
   - Area
   - Item
-  - Element
   - Year
-  - Value
-  - Unit
+  - hg/ha_yield
+  - average_rain_fall_mm_per_year
+  - pesticides_tonnes
+  - avg_temp
 thought_process:
-  - "Resample prices to monthly frequency"
-  - "Plot price trends for major commodities"
-  - "Calculate 12-month rolling volatility"
-  - "Build a correlation matrix including energy and fertilizer"
+  - "Pivot long panel to a wide Year × Item yield matrix"
+  - "Compute year-over-year percent changes"
+  - "Rolling 5-year std shows volatility regimes"
+  - "Cross-crop correlation reveals systemic vs idiosyncratic shocks"
 solution_code: |
   from pyodide.http import open_url
   import pandas as pd
 
-  df = pd.read_csv(open_url("/datasets/crop_yield.csv"))
+  df = pd.read_csv(open_url("/datasets/yield_df.csv"))
+  wide = df.pivot_table(index='Year', columns='Item', values='hg/ha_yield', aggfunc='mean')
+  focus = [c for c in ['Maize','Wheat','Rice, paddy','Soybeans'] if c in wide.columns]
+  yoy = wide[focus].pct_change().dropna()
   print(f"Shape: {df.shape}")
-  print(f"Columns: {df.columns.tolist()}")
-  num_cols = df.select_dtypes(include='number').columns
-  print(f"\nCorrelations:\n{df[num_cols].corr().round(3)}")
+  print(f"Focus crops: {focus}")
+  print(f"\nMean YoY yield volatility (%):")
+  print((yoy.std() * 100).round(2))
 expected_output: |
   Shape:
-  Columns:
+  Focus crops:
+  Mean YoY yield volatility (%):
 hints:
-  - "Try Granger causality tests for lead-lag relationships"
-  - "Add weather indices (El Niño/La Niña) as explanatory variables"
-  - "Use seasonal decomposition to isolate harvest cycle effects"
+  - "Add Granger-causality tests between crops for lead-lag relationships"
+  - "Break out by country — volatility in developing markets is much higher"
+  - "Use avg_temp deviations as an exogenous regressor in the YoY model"

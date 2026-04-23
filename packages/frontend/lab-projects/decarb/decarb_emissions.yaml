@@ -59,7 +59,7 @@ solution_code: |
   from pyodide.http import open_url
   import pandas as pd
 
-  df = pd.read_csv(open_url("/datasets/ghg_emissions.csv"))
+  df = pd.read_csv(open_url("/datasets/greenhouse_gas_inventory_data_data.csv"))
   print(f"Shape: {df.shape}")
   print(f"Columns: {df.columns.tolist()}")
   # Explore emission categories

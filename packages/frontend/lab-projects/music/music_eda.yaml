@@ -71,7 +71,7 @@ solution_code: |
   from pyodide.http import open_url
   import pandas as pd
 
-  df = pd.read_csv(open_url("/datasets/spotify_tracks.csv"))
+  df = pd.read_csv(open_url("/datasets/dataset.csv"))
   audio_features = ['danceability', 'energy', 'loudness', 'acousticness', 'valence', 'tempo', 'popularity']
   corr = df[audio_features].corr()['popularity'].drop('popularity').sort_values(ascending=False)
   print(f"Correlations with popularity:\n{corr.round(3)}")

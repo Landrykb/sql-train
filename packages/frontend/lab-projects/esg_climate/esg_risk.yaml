@@ -6,101 +6,139 @@ step_number: 3
 tier: 2
 skills: [risk_modeling, scenario_analysis, regression, climate]
 language: "Python / R"
-dataset_url: "https://www.kaggle.com/datasets/debashish311601/esg-scores-and-ratings"
-description: "Model physical and transition climate risks — how temperature scenarios, carbon pricing, and regulatory changes affect portfolio value."
+dataset_url: "https://www.kaggle.com/datasets/shriyashjagtap/esg-and-financial-performance-dataset"
+description: "Model physical and transition climate risks on the Kaggle ESG & Financial Performance panel — how carbon prices and temperature scenarios shift company-level value at risk."
 prereq_cases: [esg_scoring]
 learning_objectives:
-  - Distinguish physical vs transition climate risks
-  - Model carbon price impact on company valuations
-  - Run scenario analysis (1.5°C, 2°C, 3°C pathways)
+  - Distinguish physical vs transition climate risk
+  - Model carbon-price impact on Revenue and MarketCap
+  - Run 1.5°C / 2°C / 3°C scenario analysis on real financial data
 sections:
-  - title: "Carbon Price Sensitivity"
-    content: "Estimate how a carbon tax affects different sectors."
+  - title: "Load Latest-Year Snapshot"
+    content: "Use the most recent year per company so we have one Revenue, MarketCap, and CarbonEmissions row per issuer."
     code: |
-      df['carbon_cost'] = df['co2_emissions_mt'] * 75  # $75/ton carbon price
-      df['carbon_impact_pct'] = (df['carbon_cost'] / df['revenue']) * 100
+      from pyodide.http import open_url
+      import pandas as pd
+      import matplotlib.pyplot as plt
 
-      sector_impact = df.groupby('sector')['carbon_impact_pct'].mean().sort_values(ascending=False)
-      sector_impact.plot(kind='barh', figsize=(10, 6), color='coral')
-      plt.title('Revenue Impact of $75/ton Carbon Price by Sector')
+      raw = pd.read_csv(open_url("/datasets/company_esg_financial_dataset.csv"))
+      df = raw.sort_values('Year').groupby('CompanyID').tail(1).reset_index(drop=True)
+      print(f"Companies: {len(df)}, Industries: {df['Industry'].nunique()}")
+      print(df[['Industry', 'Revenue', 'CarbonEmissions', 'ESG_Environmental']].head())
+    r_code: |
+      library(dplyr)
+
+      raw <- read.csv('company_esg_financial_dataset.csv')
+      df <- raw %>% arrange(Year) %>% group_by(CompanyID) %>% slice_tail(n = 1) %>% ungroup()
+      cat(sprintf("Companies: %d, Industries: %d\n", nrow(df), n_distinct(df$Industry)))
+      head(df[, c('Industry','Revenue','CarbonEmissions','ESG_Environmental')])
+    explanation: "CarbonEmissions are reported per year in the Kaggle data, so each latest-year row gives us an up-to-date intensity denominator against Revenue and MarketCap."
+  - title: "Carbon Price Sensitivity"
+    content: "Apply a $75/ton shadow carbon price and express the cost as a share of Revenue by Industry."
+    code: |
+      df['carbon_cost']        = df['CarbonEmissions'] * 75          # $75 per ton
+      df['carbon_impact_pct']  = (df['carbon_cost'] / df['Revenue']) * 100
+
+      industry_impact = (
+          df.groupby('Industry')['carbon_impact_pct']
+            .mean().sort_values(ascending=True)
+      )
+
+      industry_impact.plot(kind='barh', figsize=(10, 6), color='coral')
+      plt.title('Revenue Impact of $75/ton Carbon Price by Industry')
       plt.xlabel('Revenue Impact (%)')
       plt.tight_layout()
       plt.show()
+
+      print(industry_impact.round(2).tail(5).to_string())
     r_code: |
       library(dplyr)
       library(ggplot2)
 
-      df$carbon_cost <- df$co2_emissions_mt * 75
-      df$carbon_impact_pct <- (df$carbon_cost / df$revenue) * 100
+      df$carbon_cost       <- df$CarbonEmissions * 75
+      df$carbon_impact_pct <- (df$carbon_cost / df$Revenue) * 100
 
-      sector_impact <- df %>%
-        group_by(sector) %>%
-        summarise(avg_impact = mean(carbon_impact_pct)) %>%
-        arrange(desc(avg_impact))
+      industry_impact <- df %>%
+        group_by(Industry) %>%
+        summarise(avg_impact = mean(carbon_impact_pct, na.rm = TRUE)) %>%
+        arrange(avg_impact)
 
-      ggplot(sector_impact, aes(x = avg_impact, y = reorder(sector, avg_impact))) +
+      ggplot(industry_impact, aes(x = avg_impact, y = reorder(Industry, avg_impact))) +
         geom_col(fill = 'coral') +
-        labs(title = 'Revenue Impact of $75/ton Carbon Price by Sector',
+        labs(title = 'Revenue Impact of $75/ton Carbon Price by Industry',
              x = 'Revenue Impact (%)') +
         theme_minimal()
-    explanation: "Energy and materials face 5-15% revenue impact; tech faces <1%. This drives the 'stranded asset' narrative — high-carbon companies lose value as carbon prices rise."
-  - title: "Scenario Analysis"
-    content: "Model portfolio value under different temperature pathways."
+    explanation: "Carbon-intensive industries (energy, utilities, materials) show the largest revenue hits. This is the intuition behind the 'stranded asset' narrative — high-carbon firms lose value as carbon prices rise."
+  - title: "Climate Scenario Analysis"
+    content: "Translate IPCC temperature pathways into a portfolio-weighted MarketCap impact."
     code: |
       import numpy as np
 
       scenarios = {
-          '1.5°C (Paris Aligned)': {'carbon_price': 150, 'green_premium': 0.03},
-          '2°C (Moderate)': {'carbon_price': 100, 'green_premium': 0.01},
-          '3°C (Business as Usual)': {'carbon_price': 50, 'physical_damage': 0.05},
+          '1.5°C': {'carbon_price': 150, 'green_premium': 0.03, 'physical': 0.00},
+          '2.0°C': {'carbon_price': 100, 'green_premium': 0.01, 'physical': 0.00},
+          '3.0°C': {'carbon_price':  50, 'green_premium': 0.00, 'physical': 0.05},
       }
 
-      for name, params in scenarios.items():
-          carbon_hit = df['co2_emissions_mt'] * params.get('carbon_price', 0) / df['revenue']
-          green_boost = params.get('green_premium', 0) * df['environmental_score'] / 100
-          physical = params.get('physical_damage', 0)
-          df[f'impact_{name[:4]}'] = -carbon_hit + green_boost - physical
-          print(f"{name}: Avg portfolio impact = {df[f'impact_{name[:4]}'].mean()*100:.2f}%")
+      for name, p in scenarios.items():
+          carbon_hit  = df['CarbonEmissions'] * p['carbon_price'] / df['Revenue']
+          green_boost = p['green_premium'] * df['ESG_Environmental'] / 100
+          impact      = -carbon_hit + green_boost - p['physical']
+          df[f'impact_{name}'] = impact
+          # MarketCap-weighted average impact
+          mc_weight = df['MarketCap'] / df['MarketCap'].sum()
+          port_impact = (impact * mc_weight).sum() * 100
+          print(f"{name}: MarketCap-weighted impact = {port_impact:+.2f}%")
     r_code: |
       scenarios <- list(
-        '1.5C' = list(carbon_price = 150, green_premium = 0.03, physical_damage = 0),
-        '2C'   = list(carbon_price = 100, green_premium = 0.01, physical_damage = 0),
-        '3C'   = list(carbon_price = 50,  green_premium = 0,    physical_damage = 0.05)
+        '1.5C' = list(carbon_price = 150, green_premium = 0.03, physical = 0),
+        '2.0C' = list(carbon_price = 100, green_premium = 0.01, physical = 0),
+        '3.0C' = list(carbon_price =  50, green_premium = 0,    physical = 0.05)
       )
 
       for (name in names(scenarios)) {
         p <- scenarios[[name]]
-        carbon_hit <- df$co2_emissions_mt * p$carbon_price / df$revenue
-        green_boost <- p$green_premium * df$environmental_score / 100
-        impact <- -carbon_hit + green_boost - p$physical_damage
-        cat(sprintf("%s: Avg portfolio impact = %.2f%%\n", name, mean(impact) * 100))
+        carbon_hit  <- df$CarbonEmissions * p$carbon_price / df$Revenue
+        green_boost <- p$green_premium * df$ESG_Environmental / 100
+        impact      <- -carbon_hit + green_boost - p$physical
+        mc_weight   <- df$MarketCap / sum(df$MarketCap, na.rm = TRUE)
+        port_impact <- sum(impact * mc_weight, na.rm = TRUE) * 100
+        cat(sprintf("%s: MarketCap-weighted impact = %+.2f%%\n", name, port_impact))
       }
-    explanation: "Scenario analysis is how regulators (TCFD) require climate risk disclosure. The 1.5°C scenario has the highest carbon price but also rewards green leaders."
+    explanation: "The 1.5°C scenario has the highest carbon price but also rewards green leaders (positive green_premium). The 3°C pathway adds physical damage. Weighting by MarketCap gives a realistic portfolio view."
 schema:
-  - company_id
-  - sector
-  - co2_emissions_mt
-  - revenue
+  - CompanyID
+  - Industry
+  - Revenue
+  - ProfitMargin
+  - MarketCap
+  - CarbonEmissions
+  - ESG_Environmental
   - carbon_cost
   - carbon_impact_pct
 thought_process:
-  - "Calculate carbon cost per company at $75/ton"
-  - "Express cost as percentage of revenue for comparability"
-  - "Rank sectors by carbon price impact"
-  - "Run 1.5°C, 2°C, 3°C scenario analysis"
-  - "Quantify portfolio-level impact under each scenario"
+  - "Collapse panel to latest-year snapshot per company"
+  - "Apply $75/ton shadow carbon price; compute cost / Revenue"
+  - "Rank Industries by mean carbon impact"
+  - "Build three climate scenarios combining carbon price, green premium, and physical damage"
+  - "Report MarketCap-weighted portfolio impact per scenario"
 solution_code: |
   from pyodide.http import open_url
   import pandas as pd
 
-  df = pd.read_csv(open_url("/datasets/esg_scores.csv"))
+  raw = pd.read_csv(open_url("/datasets/company_esg_financial_dataset.csv"))
+  df = raw.sort_values('Year').groupby('CompanyID').tail(1).reset_index(drop=True)
+
+  df['carbon_cost']       = df['CarbonEmissions'] * 75
+  df['carbon_impact_pct'] = (df['carbon_cost'] / df['Revenue']) * 100
+
   print(f"Shape: {df.shape}")
-  print(f"Columns: {df.columns.tolist()}")
-  print(f"\nDescribe:\n{df.describe().round(2)}")
+  print(f"Top 3 Industries by carbon impact:")
+  print(df.groupby('Industry')['carbon_impact_pct'].mean().nlargest(3).round(2))
 expected_output: |
   Shape:
-  Columns:
+  Top 3 Industries by carbon impact:
 hints:
-  - "Add physical risk factors: flood exposure, heat stress, water scarcity"
-  - "Use Monte Carlo simulation for probabilistic scenarios"
-  - "TCFD and NGFS provide standard climate scenarios"
+  - "Replace CarbonEmissions with CarbonEmissions/Revenue (intensity) for size-neutral ranking"
+  - "Add WaterUsage and EnergyConsumption to extend beyond carbon to broader physical risk"
+  - "Use Monte Carlo over carbon_price in a realistic range ($30-$250) for probabilistic VaR"

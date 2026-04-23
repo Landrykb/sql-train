@@ -64,7 +64,7 @@ solution_code: |
   import numpy as np
   from sklearn.model_selection import train_test_split
 
-  df = pd.read_csv(open_url("/datasets/telco_churn.csv"))
+  df = pd.read_csv(open_url("/datasets/WA_Fn-UseC_-Telco-Customer-Churn.csv"))
   df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
   df.dropna(inplace=True)
   df['Churn_binary'] = (df['Churn'] == 'Yes').astype(int)

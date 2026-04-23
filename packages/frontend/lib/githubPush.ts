@@ -3,7 +3,7 @@
  * Uses the GitHub API directly — no backend needed.
  */
 
-import { getGitHubUser } from './authClient';
+import { getGitHubUser, getGitHubToken } from './authClient';
 
 interface PortfolioFile {
   path: string;
@@ -90,7 +90,8 @@ export async function pushPortfolioToGitHub(
   onProgress?: (msg: string) => void,
 ): Promise<PushResult> {
   const user = getGitHubUser();
-  if (!user?.token) {
+  const token = await getGitHubToken();
+  if (!user || !token) {
     return { success: false, error: 'Sign in with GitHub first to push your portfolio.' };
   }
 
@@ -98,12 +99,12 @@ export async function pushPortfolioToGitHub(
 
   try {
     onProgress?.('Creating repository...');
-    const repo = await ensureRepo(user.token, repoName);
+    const repo = await ensureRepo(token, repoName);
 
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       onProgress?.(`Pushing ${f.path} (${i + 1}/${files.length})...`);
-      await pushFile(user.token, repo, f.path, f.content, `Add ${f.path} — BleepxQuery`);
+      await pushFile(token, repo, f.path, f.content, `Add ${f.path} — BleepxQuery`);
     }
 
     onProgress?.('Done!');
@@ -126,7 +127,8 @@ export async function pushCaseToGitHub(
   onProgress?: (msg: string) => void,
 ): Promise<PushResult> {
   const user = getGitHubUser();
-  if (!user?.token) {
+  const token = await getGitHubToken();
+  if (!user || !token) {
     return { success: false, error: 'Sign in with GitHub first to push your work.' };
   }
 
@@ -134,12 +136,12 @@ export async function pushCaseToGitHub(
 
   try {
     onProgress?.('Creating repository...');
-    const repo = await ensureRepo(user.token, repoName);
+    const repo = await ensureRepo(token, repoName);
 
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       onProgress?.(`Pushing ${f.path} (${i + 1}/${files.length})...`);
-      await pushFile(user.token, repo, f.path, f.content, `Add ${domain}/${caseId}: ${caseName} — BleepxQuery`);
+      await pushFile(token, repo, f.path, f.content, `Add ${domain}/${caseId}: ${caseName} — BleepxQuery`);
     }
 
     onProgress?.('Done!');
@@ -162,7 +164,8 @@ export async function pushLabProjectToGitHub(
   onProgress?: (msg: string) => void,
 ): Promise<PushResult> {
   const user = getGitHubUser();
-  if (!user?.token) {
+  const token = await getGitHubToken();
+  if (!user || !token) {
     return { success: false, error: 'Sign in with GitHub first to push your work.' };
   }
 
@@ -170,12 +173,12 @@ export async function pushLabProjectToGitHub(
 
   try {
     onProgress?.('Creating repository...');
-    const repo = await ensureRepo(user.token, repoName);
+    const repo = await ensureRepo(token, repoName);
 
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       onProgress?.(`Pushing ${f.path} (${i + 1}/${files.length})...`);
-      await pushFile(user.token, repo, f.path, f.content, `Add ${domain}/${projectId}: ${projectName} — BleepxLab`);
+      await pushFile(token, repo, f.path, f.content, `Add ${domain}/${projectId}: ${projectName} — BleepxLab`);
     }
 
     onProgress?.('Done!');

@@ -6,67 +6,87 @@ step_number: 2
 tier: 2
 skills: [scoring, weighting, normalization, sklearn]
 language: "Python / R"
-dataset_url: "https://www.kaggle.com/datasets/debashish311601/esg-scores-and-ratings"
-description: "Create a custom ESG scoring methodology with weighted pillars, sector-adjusted benchmarks, and percentile rankings."
+dataset_url: "https://www.kaggle.com/datasets/shriyashjagtap/esg-and-financial-performance-dataset"
+description: "Create a custom ESG scoring methodology on top of the Kaggle ESG & Financial Performance dataset — weighted pillars, sector-adjusted benchmarks, and percentile rankings."
 prereq_cases: [esg_explore]
 learning_objectives:
-  - Normalize ESG metrics across different scales
-  - Build weighted composite scores
-  - Create sector-adjusted ESG benchmarks
+  - Normalize ESG pillar scores across companies
+  - Build a weighted composite score
+  - Produce sector-adjusted (industry-relative) ratings
 sections:
-  - title: "Normalize & Weight Pillars"
-    content: "Create a weighted composite score from the three ESG pillars."
+  - title: "Load & Collapse to Latest Year"
+    content: "The Kaggle dataset has 11 years per company — collapse to the most recent year for a cross-sectional scoring exercise."
     code: |
-      from sklearn.preprocessing import MinMaxScaler
+      from pyodide.http import open_url
+      import pandas as pd
 
-      pillars = ['environmental_score', 'social_score', 'governance_score']
-      scaler = MinMaxScaler()
-      df[pillars] = scaler.fit_transform(df[pillars])
-
-      weights = {'environmental_score': 0.4, 'social_score': 0.3, 'governance_score': 0.3}
-      df['custom_esg'] = sum(df[col] * w for col, w in weights.items())
-      df['esg_percentile'] = df['custom_esg'].rank(pct=True) * 100
-
-      print(f"Top 5 ESG companies:\n{df.nlargest(5, 'custom_esg')[['company_name', 'sector', 'custom_esg', 'esg_percentile']]}")
+      raw = pd.read_csv(open_url("/datasets/company_esg_financial_dataset.csv"))
+      df = raw.sort_values('Year').groupby('CompanyID').tail(1).reset_index(drop=True)
+      print(f"Companies: {len(df)}")
+      print(df[['CompanyName', 'Industry', 'ESG_Environmental', 'ESG_Social', 'ESG_Governance']].head())
     r_code: |
       library(dplyr)
 
-      pillars <- c('environmental_score', 'social_score', 'governance_score')
-      # MinMax normalization
+      raw <- read.csv('company_esg_financial_dataset.csv')
+      df <- raw %>% arrange(Year) %>% group_by(CompanyID) %>% slice_tail(n = 1) %>% ungroup()
+      cat(sprintf("Companies: %d\n", nrow(df)))
+      head(df[, c('CompanyName','Industry','ESG_Environmental','ESG_Social','ESG_Governance')])
+    explanation: "The dataset is a panel (1,000 companies × 11 years). For cross-sectional scoring we collapse to the latest available year per company."
+  - title: "Normalize & Weight Pillars"
+    content: "The Kaggle pillars are already on a 0-100 scale. We rescale to 0-1 with MinMaxScaler for transparency, then apply weights (E=40%, S=30%, G=30%) to produce a custom composite."
+    code: |
+      from sklearn.preprocessing import MinMaxScaler
+
+      pillars = ['ESG_Environmental', 'ESG_Social', 'ESG_Governance']
+      scaler = MinMaxScaler()
+      df[pillars] = scaler.fit_transform(df[pillars])
+
+      weights = {'ESG_Environmental': 0.4, 'ESG_Social': 0.3, 'ESG_Governance': 0.3}
+      df['custom_esg'] = sum(df[col] * w for col, w in weights.items())
+      df['esg_percentile'] = df['custom_esg'].rank(pct=True) * 100
+
+      top5 = df.nlargest(5, 'custom_esg')[['CompanyName', 'Industry', 'custom_esg', 'esg_percentile']]
+      print("Top 5 ESG companies:")
+      print(top5.to_string(index=False))
+    r_code: |
+      library(dplyr)
+
+      pillars <- c('ESG_Environmental', 'ESG_Social', 'ESG_Governance')
       for (col in pillars) {
         rng <- range(df[[col]], na.rm = TRUE)
         df[[col]] <- (df[[col]] - rng[1]) / (rng[2] - rng[1])
       }
 
-      weights <- c(environmental_score = 0.4, social_score = 0.3, governance_score = 0.3)
-      df$custom_esg <- df$environmental_score * 0.4 + df$social_score * 0.3 + df$governance_score * 0.3
+      df$custom_esg <- df$ESG_Environmental * 0.4 + df$ESG_Social * 0.3 + df$ESG_Governance * 0.3
       df$esg_percentile <- rank(df$custom_esg) / nrow(df) * 100
 
       top5 <- df %>% arrange(desc(custom_esg)) %>% head(5) %>%
-        select(company_name, sector, custom_esg, esg_percentile)
-      cat("Top 5 ESG companies:\n")
+        select(CompanyName, Industry, custom_esg, esg_percentile)
       print(top5)
-    explanation: "Weighting E higher (40%) reflects the growing importance of climate. MinMaxScaler ensures all pillars contribute on the same 0-1 scale. Percentile ranking makes scores interpretable."
-  - title: "Sector-Adjusted Benchmarks"
-    content: "Compare companies to their sector peers, not the universe."
+    explanation: "Weighting E higher (40%) reflects the growing regulatory importance of climate. MinMaxScaler keeps all pillars on a comparable 0-1 scale; percentile ranking makes the composite interpretable to non-specialists."
+  - title: "Industry-Adjusted Benchmarks"
+    content: "Compare each company to its Industry peers, not the universe, so an energy company with a 55 E-score isn't unfairly penalised vs. a software firm with 85."
     code: |
-      df['sector_esg_mean'] = df.groupby('sector')['custom_esg'].transform('mean')
-      df['sector_esg_std'] = df.groupby('sector')['custom_esg'].transform('std')
-      df['esg_z_score'] = (df['custom_esg'] - df['sector_esg_mean']) / df['sector_esg_std']
+      df['industry_esg_mean'] = df.groupby('Industry')['custom_esg'].transform('mean')
+      df['industry_esg_std']  = df.groupby('Industry')['custom_esg'].transform('std')
+      df['esg_z_score'] = (df['custom_esg'] - df['industry_esg_mean']) / df['industry_esg_std']
 
-      df['esg_rating'] = pd.cut(df['esg_z_score'], bins=[-float('inf'), -1, -0.5, 0.5, 1, float('inf')],
-                                labels=['CCC', 'B', 'BB', 'A', 'AA'])
+      df['esg_rating'] = pd.cut(
+          df['esg_z_score'],
+          bins=[-float('inf'), -1, -0.5, 0.5, 1, float('inf')],
+          labels=['CCC', 'B', 'BB', 'A', 'AA']
+      )
 
       print(df['esg_rating'].value_counts().sort_index())
     r_code: |
       library(dplyr)
 
       df <- df %>%
-        group_by(sector) %>%
+        group_by(Industry) %>%
         mutate(
-          sector_esg_mean = mean(custom_esg),
-          sector_esg_std = sd(custom_esg),
-          esg_z_score = (custom_esg - sector_esg_mean) / sector_esg_std,
+          industry_esg_mean = mean(custom_esg),
+          industry_esg_std  = sd(custom_esg),
+          esg_z_score = (custom_esg - industry_esg_mean) / industry_esg_std,
           esg_rating = cut(esg_z_score,
             breaks = c(-Inf, -1, -0.5, 0.5, 1, Inf),
             labels = c('CCC', 'B', 'BB', 'A', 'AA'))
@@ -74,39 +94,47 @@ sections:
         ungroup()
 
       table(df$esg_rating)
-    explanation: "Z-scores compare each company to its sector average. A mining company with a modest E-score may still be 'AA' relative to peers. This avoids penalizing entire sectors."
+    explanation: "Industry-relative z-scores mirror how MSCI and Sustainalytics actually rate companies — you are compared to peers in the same sector, not to the whole universe."
 schema:
-  - company_id
-  - company_name
-  - sector
-  - environmental_score
-  - social_score
-  - governance_score
+  - CompanyID
+  - CompanyName
+  - Industry
+  - Region
+  - Year
+  - ESG_Environmental
+  - ESG_Social
+  - ESG_Governance
+  - ESG_Overall
   - custom_esg
   - esg_percentile
   - esg_z_score
   - esg_rating
 thought_process:
-  - "Normalize all ESG pillar scores to 0-1 range with MinMaxScaler"
-  - "Apply custom weights: E=40%, S=30%, G=30%"
-  - "Compute percentile ranks for interpretability"
-  - "Calculate sector-adjusted z-scores for fair peer comparison"
-  - "Assign letter ratings (CCC to AA) based on z-score bins"
+  - "Collapse the panel to a single latest-year row per company"
+  - "Rescale the three Kaggle pillar scores to 0-1 with MinMaxScaler"
+  - "Compute a weighted composite with custom E/S/G weights"
+  - "Calculate percentile rank for interpretability"
+  - "Compute industry-relative z-scores and map them to CCC-to-AA letter ratings"
 solution_code: |
   from pyodide.http import open_url
   import pandas as pd
   from sklearn.preprocessing import MinMaxScaler
 
-  df = pd.read_csv(open_url("/datasets/esg_scores.csv"))
-  # Identify numeric ESG columns for scoring
-  num_cols = df.select_dtypes(include='number').columns.tolist()
-  print(f"Numeric columns: {num_cols}")
+  raw = pd.read_csv(open_url("/datasets/company_esg_financial_dataset.csv"))
+  df = raw.sort_values('Year').groupby('CompanyID').tail(1).reset_index(drop=True)
+
+  pillars = ['ESG_Environmental', 'ESG_Social', 'ESG_Governance']
+  df[pillars] = MinMaxScaler().fit_transform(df[pillars])
+  df['custom_esg'] = df['ESG_Environmental']*0.4 + df['ESG_Social']*0.3 + df['ESG_Governance']*0.3
+  df['esg_percentile'] = df['custom_esg'].rank(pct=True) * 100
+
   print(f"Shape: {df.shape}")
-  print(f"\nFirst 3 rows:\n{df.head(3)}")
+  print(f"Columns (subset): {[c for c in df.columns if c.startswith('ESG') or c in ('Industry','custom_esg','esg_percentile')]}")
+  print(f"\nTop 3 by custom_esg:\n{df.nlargest(3, 'custom_esg')[['CompanyName','Industry','custom_esg']].to_string(index=False)}")
 expected_output: |
-  Numeric columns:
   Shape:
+  Columns (subset):
 hints:
-  - "Try different weight schemes and compare their impact on rankings"
-  - "Use df.pivot_table for sector × rating crosstabs"
-  - "Consider using PCA to create data-driven ESG components"
+  - "Try different E/S/G weight schemes and see how rankings shift"
+  - "Replace Industry with Region for geography-adjusted ratings"
+  - "Use PCA on the three pillar scores for a data-driven composite"

@@ -64,7 +64,7 @@ solution_code: |
   from sklearn.model_selection import train_test_split
   from sklearn.metrics import average_precision_score
 
-  df = pd.read_csv(open_url("/datasets/creditcard_fraud.csv"))
+  df = pd.read_csv(open_url("/datasets/creditcard.csv"))
 
   X = df.drop('Class', axis=1)
   y = df['Class']

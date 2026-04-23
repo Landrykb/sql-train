@@ -65,7 +65,7 @@ solution_code: |
   from sklearn.metrics import mean_absolute_error, mean_squared_error
   from statsmodels.tsa.arima.model import ARIMA
 
-  raw = pd.read_csv(open_url("/datasets/sales_forecasting.csv"))
+  raw = pd.read_csv(open_url("/datasets/train.csv"))
   raw['Order Date'] = pd.to_datetime(raw['Order Date'])
   df = raw.groupby('Order Date')['Sales'].sum().to_frame('value')
 

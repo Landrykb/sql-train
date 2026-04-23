@@ -71,7 +71,7 @@ solution_code: |
   import numpy as np
   from statsmodels.tsa.arima.model import ARIMA
 
-  raw = pd.read_csv(open_url("/datasets/sales_forecasting.csv"))
+  raw = pd.read_csv(open_url("/datasets/train.csv"))
   raw['Order Date'] = pd.to_datetime(raw['Order Date'])
   df = raw.groupby('Order Date')['Sales'].sum().to_frame('value')
   model = ARIMA(df['value'], order=(2, 1, 2))

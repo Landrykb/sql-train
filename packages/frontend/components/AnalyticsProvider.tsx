@@ -1,23 +1,43 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { initAnalytics, track, Events, hasAnalyticsConsent, setAnalyticsConsent } from '@/lib/analytics';
+import { initAnalytics, capturePageview, setAnalyticsConsent } from '@/lib/analytics';
+import { scrubCurrentUrl } from '@/lib/sanitizeUrl';
+import { migrateLegacyStoredToken } from '@/lib/authClient';
 
 /** Initializes PostHog on mount + renders a small consent banner (first visit only). */
 export default function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const [showBanner, setShowBanner] = useState(false);
+  const pathname = usePathname();
 
+  // One-time init. We intentionally scrub the URL *before* PostHog boots so no
+  // OAuth hash/query parameter ever reaches posthog.init's autoloaded pageview.
   useEffect(() => {
+    // Defense-in-depth: strip tokens from the current URL before anything else.
+    // NOTE: Supabase PKCE callback reads `code` via `exchangeCodeForSession` on
+    // the dedicated /auth/callback page, which handles its own scrubbing after
+    // the exchange. Everywhere else, a stray ?code / #access_token is noise
+    // we should erase immediately.
+    if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/callback')) {
+      scrubCurrentUrl();
+    }
+    // One-shot: scrub any legacy GitHub token left in bleepx_github_user by
+    // older builds (before we moved tokens into the Supabase session only).
+    migrateLegacyStoredToken();
     initAnalytics();
-    // Show banner if user has never made a choice
     try {
       const v = localStorage.getItem('bleepx_analytics_consent');
       if (v === null) setShowBanner(true);
     } catch { /* ignore */ }
-    // Track initial page view
-    track(Events.PAGE_VIEW, { path: window.location.pathname });
   }, []);
+
+  // Manual pageview on every client-side navigation (sanitized).
+  useEffect(() => {
+    if (!pathname) return;
+    capturePageview(pathname);
+  }, [pathname]);
 
   const accept = () => {
     setAnalyticsConsent(true);
