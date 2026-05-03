@@ -1,26 +1,29 @@
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 
+/**
+ * Supabase **browser** client — configured for PKCE OAuth with cookie-backed
+ * session storage via `@supabase/ssr`.
+ *
+ * Why cookies instead of localStorage?
+ *   The PKCE `code_verifier` must be readable by *both* the page that
+ *   started the OAuth flow and the callback handler. In a Next.js App
+ *   Router app the callback can be handled by a server route, which has
+ *   zero access to the browser's localStorage — but it *does* receive
+ *   cookies. Cookie storage also survives:
+ *     - Next.js module re-exec between client navigations
+ *     - React strict-mode double-mount
+ *     - Browser storage partitioning / ITP clears that target localStorage
+ *
+ *   See: https://supabase.com/docs/guides/auth/server-side/nextjs
+ *
+ * The default `@supabase/ssr` cookie strategy handles access tokens,
+ * refresh tokens, and the PKCE code_verifier — so we no longer need the
+ * manual `flowType: 'pkce'` / `detectSessionInUrl` / `persistSession`
+ * flags used with the legacy `createClient`.
+ */
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-/**
- * Supabase browser client — configured for the **PKCE** OAuth flow.
- *
- * With PKCE, the provider redirects back with `?code=...&state=...` and the
- * tokens are obtained by calling `supabase.auth.exchangeCodeForSession(url)`
- * — tokens never appear in the URL hash, so they cannot be leaked through
- * the browser's `Referer` header, analytics pageview URLs, server logs, or
- * shared links.
- *
- * See: https://supabase.com/docs/guides/auth/sessions/pkce-flow
- */
 export const supabase = supabaseUrl && supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        flowType: 'pkce',
-        detectSessionInUrl: true,
-        autoRefreshToken: true,
-        persistSession: true,
-      },
-    })
+  ? createBrowserClient(supabaseUrl, supabaseAnonKey)
   : null;
