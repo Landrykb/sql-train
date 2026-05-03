@@ -126,7 +126,7 @@ export function useProgress() {
     };
     doSync();
 
-    const { data: { subscription } } = supabase!.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase!.auth.onAuthStateChange((event: 'SIGNED_IN' | 'SIGNED_OUT' | 'TOKEN_REFRESHED' | 'INITIAL_SESSION') => {
       if (event === 'SIGNED_IN') doSync();
       if (event === 'SIGNED_OUT') {
         // Clear progress from UI and localStorage on logout

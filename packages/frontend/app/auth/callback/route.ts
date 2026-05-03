@@ -35,10 +35,13 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code');
   const next = searchParams.get('next') || '/profile';
 
+  console.log('[auth/callback] Received request with code:', !!code, 'next:', next);
+
   // Provider-reported errors (e.g. user declined consent on GitHub).
   const providerError = searchParams.get('error');
   const providerDesc = searchParams.get('error_description');
   if (providerError) {
+    console.error('[auth/callback] Provider error:', providerError, providerDesc);
     const target = new URL('/auth/error', origin);
     target.searchParams.set('reason', providerError);
     if (providerDesc) target.searchParams.set('desc', providerDesc);
@@ -46,23 +49,26 @@ export async function GET(request: NextRequest) {
   }
 
   if (!code) {
+    console.error('[auth/callback] Missing code parameter');
     return NextResponse.redirect(new URL('/auth/error?reason=missing_code', origin));
   }
 
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
+    console.error('[auth/callback] Supabase not configured');
     return NextResponse.redirect(new URL('/auth/error?reason=not_configured', origin));
   }
 
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
   if (exchangeError) {
-    console.error('[auth/callback] exchange failed:', exchangeError.message);
+    console.error('[auth/callback] Exchange failed:', exchangeError.message);
     const target = new URL('/auth/error', origin);
     target.searchParams.set('reason', 'exchange_failed');
     target.searchParams.set('desc', exchangeError.message);
     return NextResponse.redirect(target);
   }
 
+  console.log('[auth/callback] Exchange successful, redirecting to:', next);
   // Success — session cookies have been set on the response. Redirect to
   // the original destination. Only allow same-origin relative `next`.
   const redirectTo = next.startsWith('/') ? next : '/profile';

@@ -20,10 +20,31 @@ import { createBrowserClient } from '@supabase/ssr';
  * refresh tokens, and the PKCE code_verifier — so we no longer need the
  * manual `flowType: 'pkce'` / `detectSessionInUrl` / `persistSession`
  * flags used with the legacy `createClient`.
+ *
+ * IMPORTANT: The client is created lazily to avoid React hydration
+ * mismatches. `createBrowserClient` must only run on the client side.
  */
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-export const supabase = supabaseUrl && supabaseAnonKey
-  ? createBrowserClient(supabaseUrl, supabaseAnonKey)
-  : null;
+let supabaseClient: ReturnType<typeof createBrowserClient> | null = null;
+
+export function getSupabaseBrowserClient() {
+  if (supabaseClient) return supabaseClient;
+  if (!supabaseUrl || !supabaseAnonKey) return null;
+  supabaseClient = createBrowserClient(supabaseUrl, supabaseAnonKey);
+  return supabaseClient;
+}
+
+// Legacy export for backward compatibility — uses a getter to defer client creation
+// until first access, which happens after hydration completes
+export const supabase = new Proxy({} as any, {
+  get(_target, prop) {
+    const client = getSupabaseBrowserClient();
+    return client ? client[prop as keyof typeof client] : null;
+  },
+  has(_target, prop) {
+    const client = getSupabaseBrowserClient();
+    return client ? prop in client : false;
+  },
+});
