@@ -8,6 +8,13 @@ export default function NavAuth() {
   const [user, setUser] = useState<{ login: string; avatar: string } | null>(null);
   const [signingIn, setSigningIn] = useState(false);
 
+  // Suppress hydration warnings caused by browser extensions (wallets, etc.)
+  // that inject content into the DOM before React hydrates
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     const sync = () => {
       const gh = getGitHubUser();
@@ -21,6 +28,8 @@ export default function NavAuth() {
       window.removeEventListener(AUTH_CHANGE_EVENT, sync);
     };
   }, []);
+
+  if (!mounted) return null;
 
   if (user) {
     return (
