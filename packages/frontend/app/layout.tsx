@@ -20,6 +20,9 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{__html: '(function(){document.querySelectorAll("[id*=ton],[id*=tron],[id*=wallet]").forEach(e=>e.remove());setTimeout(()=>document.querySelectorAll("[id*=ton],[id*=tron],[id*=wallet]").forEach(e=>e.remove()),100)})()'}} />
+      </head>
       <body className="bg-bleepx-bg min-h-screen font-sans overflow-x-hidden" suppressHydrationWarning>
         <ErrorBoundary>
           <AnalyticsProvider>
