@@ -9,7 +9,8 @@ import ClientCaseGrid from './ClientCaseGrid';
 import { useProgress } from '@/lib/useProgress';
 import { caseOrder, fullCaseOrder, visualizationConfigs, CASE_TIERS } from '@/lib/constants';
 import { pushPortfolioToGitHub } from '@/lib/githubPush';
-import { getGitHubUser, startGitHubLogin } from '@/lib/authClient';
+import { startGitHubLogin } from '@/lib/authClient';
+import { useGitHubUser } from '@/lib/useGitHubUser';
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 const Spinner = dynamic(() => import('./Spinner'), { ssr: false });
@@ -152,6 +153,7 @@ const domainChartBuilders: Record<string, (tables: Record<string, Record<string,
 export default function DomainDashboard({ domain, datasets }: DomainDashboardProps) {
   const [tables, setTables] = useState<TableData[]>([]);
   const [loading, setLoading] = useState(true);
+  const ghUser = useGitHubUser();
   const [pushing, setPushing] = useState(false);
   const [pushMsg, setPushMsg] = useState<string | null>(null);
   const [pushResult, setPushResult] = useState<{ success: boolean; repoUrl?: string; error?: string } | null>(null);
@@ -392,7 +394,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
                 Congratulations, human. You&apos;ve conquered every challenge in the <strong>{domain.charAt(0).toUpperCase() + domain.slice(1)}</strong> domain.
                 Push your SQL portfolio to GitHub to showcase your skills.
               </p>
-              {getGitHubUser() ? (
+              {ghUser ? (
                 <div>
                   <button
                     disabled={pushing}
@@ -535,7 +537,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
           <div className="space-y-4">
             <div className="flex flex-wrap gap-3">
               {/* Push to GitHub */}
-              {getGitHubUser() ? (
+              {ghUser ? (
                 <button
                   disabled={pushing}
                   onClick={async () => {

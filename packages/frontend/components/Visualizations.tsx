@@ -8,7 +8,8 @@ import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { visualizationConfigs } from '@/lib/constants';
 import { useTheme } from '@/lib/useTheme';
 import { pushCaseToGitHub } from '@/lib/githubPush';
-import { getGitHubUser, startGitHubLogin } from '@/lib/authClient';
+import { startGitHubLogin } from '@/lib/authClient';
+import { useGitHubUser } from '@/lib/useGitHubUser';
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 const Spinner = dynamic(() => import('./Spinner'), { ssr: false });
@@ -36,6 +37,7 @@ export default function Visualizations({ domain, caseId, datasets }: Visualizati
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<'chart' | 'data' | 'code'>('chart');
   const { dark } = useTheme();
+  const ghUser = useGitHubUser();
   const [pushing, setPushing] = useState(false);
   const [pushMsg, setPushMsg] = useState<string | null>(null);
   const [pushResult, setPushResult] = useState<{ success: boolean; repoUrl?: string; error?: string } | null>(null);
@@ -366,7 +368,7 @@ ${getJSCode()}
           *bleep* Push directly to GitHub or download a complete project with README, SQL, Python, JS, and data.
         </p>
         <div className="flex flex-wrap gap-2">
-          {getGitHubUser() ? (
+          {ghUser ? (
             <button
               disabled={pushing}
               onClick={async () => {

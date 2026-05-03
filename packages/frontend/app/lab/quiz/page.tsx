@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import BleepxLogo from '@/components/BleepxLogo';
 import AchievementNotification from '@/components/AchievementNotification';
@@ -25,6 +25,20 @@ const QUIZ_TOPICS: { id: string; name: string; icon: string; skills: string[]; c
 
 export default function LabQuizPage() {
   const [activeTopic, setActiveTopic] = useState<typeof QUIZ_TOPICS[0] | null>(null);
+  // Read best-scores after mount so server/client markup matches (avoids
+  // React hydration error #418 caused by reading localStorage during render).
+  const [bestScores, setBestScores] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const next: Record<string, number> = {};
+    for (const topic of QUIZ_TOPICS) {
+      try {
+        const raw = localStorage.getItem(`bleepx_lab_quiz_${topic.id}`);
+        if (raw) next[topic.id] = JSON.parse(raw).score || 0;
+      } catch { /* ignore */ }
+    }
+    setBestScores(next);
+  }, []);
 
   return (
     <main className="max-w-5xl mx-auto px-2 md:px-4 lg:px-6 py-4 space-y-6 bg-bleepx-bg min-h-screen">
@@ -49,11 +63,7 @@ export default function LabQuizPage() {
       {!activeTopic ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {QUIZ_TOPICS.map((topic) => {
-            const saved = typeof window !== 'undefined' ? localStorage.getItem(`bleepx_lab_quiz_${topic.id}`) : null;
-            let prevScore = 0;
-            if (saved) {
-              try { prevScore = JSON.parse(saved).score || 0; } catch { /* ignore */ }
-            }
+            const prevScore = bestScores[topic.id] || 0;
             return (
               <button
                 key={topic.id}
