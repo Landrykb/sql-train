@@ -60,12 +60,12 @@ export async function middleware(request: NextRequest) {
 }
 
 /**
- * Skip static assets, public images, and Pyodide/dataset downloads — those
- * requests don't need session refresh and running middleware on them would
- * waste latency.
+ * Skip static assets, public images, Pyodide/dataset downloads, and the auth
+ * callback — those requests don't need session refresh and running middleware
+ * on them would waste latency or interfere with OAuth code exchange.
  */
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpe?g|gif|webp|ico|woff2?|ttf|otf|css|js|map)$|datasets/).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpe?g|gif|webp|ico|woff2?|ttf|otf|css|js|map)$|datasets/|auth/callback).*)',
   ],
 };

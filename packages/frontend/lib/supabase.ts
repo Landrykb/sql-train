@@ -36,8 +36,8 @@ export function getSupabaseBrowserClient() {
   return supabaseClient;
 }
 
-// Legacy export for backward compatibility — uses a getter to defer client creation
-// until first access, which happens after hydration completes
+// Legacy export for backward compatibility — returns null on server, client on browser
+// Uses a getter to defer creation until first access
 export const supabase = new Proxy({} as any, {
   get(_target, prop) {
     const client = getSupabaseBrowserClient();
