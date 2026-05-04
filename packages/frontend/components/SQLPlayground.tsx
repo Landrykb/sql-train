@@ -170,6 +170,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
   useEffect(() => {
     if (!caseOrder[domain]) console.error(`Invalid domain: ${domain}`, { rawDomain, availableDomains: Object.keys(caseOrder) });
     console.log('Navigation Debug:', { id, rawDomain, normalizedDomain: domain, completed: Array.from(completed), currentIndex, currentOrder, nextCaseId, prerequisites, isUnlocked: isUnlocked(prerequisites) });
+    track(Events.CASE_VIEWED, { case_id: id, domain, tier: caseData.tier });
   }, [id, rawDomain, domain, completed, currentIndex, currentOrder, nextCaseId, prerequisites, isUnlocked]);
 
   // Load saved query + history from localStorage on mount

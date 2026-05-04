@@ -267,6 +267,7 @@ export default function LabQuiz({ quizId, quizName, skills, backLink, backLabel,
       const finalScore = score + (score === totalQuestions * POINTS_PER_CORRECT ? PERFECT_BONUS : 0);
       setScore(finalScore);
       setFinished(true);
+      track(Events.QUIZ_COMPLETED, { quiz_type: 'lab', quiz_id: quizId, total_questions: totalQuestions, score: finalScore, max_score: totalQuestions * POINTS_PER_CORRECT + PERFECT_BONUS });
       try {
         const currentPoints = parseInt(localStorage.getItem('bleepxPoints') || '0', 10);
         localStorage.setItem('bleepxPoints', (currentPoints + finalScore).toString());

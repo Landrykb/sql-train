@@ -9,6 +9,7 @@ import { useTheme } from '@/lib/useTheme';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
 import { LAB_CASE_ORDER, LAB_DOMAIN_META } from '@/lib/labConstants';
 import { playBleep } from '@/lib/audio';
+import { track, Events } from '@/lib/analytics';
 import PointsShop from '@/components/PointsShop';
 import { getStoreState, getActivePerks, TITLES, BADGES, type StoreState } from '@/lib/pointsStore';
 import { BleepxHead, BleepxTrophy, BleepxLock, BleepxSpark, BleepxGitHub } from '@/components/BleepxIcons';
@@ -70,6 +71,7 @@ export default function ProfilePage() {
         setProfile({ ...DEFAULT_PROFILE, ...JSON.parse(saved) });
       }
     } catch { /* ignore */ }
+    track(Events.PROFILE_VIEWED);
   }, []);
 
   // Save profile to localStorage
@@ -139,6 +141,7 @@ export default function ProfilePage() {
 
   const handleDeleteAccount = async () => {
     playBleep();
+    track(Events.DELETE_ACCOUNT_CONFIRMED);
     setDeleting(true);
     try {
       const { getSupabaseBrowserClient } = await import('@/lib/supabase');
@@ -527,7 +530,7 @@ export default function ProfilePage() {
             <div className="border-t border-red-200 dark:border-red-800 pt-4 mb-4" />
             {!showResetConfirm ? (
               <button
-                onClick={() => setShowResetConfirm(true)}
+                onClick={() => { track(Events.RESET_PROGRESS_CLICKED); setShowResetConfirm(true); }}
                 className="px-4 py-2 rounded-full border-2 border-red-400 text-red-500 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
               >
                 Reset All Progress
@@ -542,6 +545,7 @@ export default function ProfilePage() {
                   <button
                     onClick={() => {
                       playBleep();
+                      track(Events.RESET_PROGRESS_CONFIRMED);
                       resetProgress();
                       // Clear all bleepx_ localStorage items
                       try {
@@ -568,7 +572,7 @@ export default function ProfilePage() {
             {/* Delete Account */}
             {!showDeleteConfirm ? (
               <button
-                onClick={() => setShowDeleteConfirm(true)}
+                onClick={() => { track(Events.DELETE_ACCOUNT_CLICKED); setShowDeleteConfirm(true); }}
                 className="px-4 py-2 rounded-full bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors"
               >
                 Delete Account

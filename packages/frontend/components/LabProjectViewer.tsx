@@ -9,6 +9,7 @@ import { playBleep } from '@/lib/audio';
 import { getGitHubUser, getGitHubToken } from '@/lib/authClient';
 import { pushLabProjectToGitHub } from '@/lib/githubPush';
 import { LAB_CASE_TIERS, LAB_TEST_MODE_LIMITS } from '@/lib/labConstants';
+import { track, Events } from '@/lib/analytics';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -272,6 +273,7 @@ export default function LabProjectViewer({
 
   // Restore completion state from localStorage
   useEffect(() => {
+    track(Events.LAB_VIEWED, { project_id: projectId, domain, step_number: stepNumber, language });
     const key = `bleepx_lab_step_${projectId}`;
     const saved = localStorage.getItem(key);
     if (saved) {
@@ -350,6 +352,7 @@ export default function LabProjectViewer({
       playBleep();
       try {
         markProgressComplete(`lab_${projectId}`, 2);
+        track(Events.LAB_SOLVED, { project_id: projectId, domain, step_number: stepNumber, language, points_earned: 2 });
       } catch { /* ignore */ }
     }
   }, [stepSolved, projectId, markProgressComplete]);

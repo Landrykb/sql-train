@@ -2,6 +2,7 @@
  * Points Store — catalog of purchasable titles, badges, and unlockables.
  * All items are bought with earned points. Purchases persist in localStorage.
  */
+import { track, Events } from './analytics';
 
 // ─── Title Catalog ───────────────────────────────────────────────────────────
 
@@ -228,6 +229,7 @@ export function purchaseHint(caseId: string, currentPoints: number): PurchaseRes
   store.hintsPurchased[caseId] = (store.hintsPurchased[caseId] || 0) + 1;
   const newBalance = currentPoints - HINT_COST;
   saveStoreState(store);
+  track(Events.HINT_PURCHASED, { case_id: caseId, cost: HINT_COST, current_balance: newBalance });
   return { success: true, newBalance, store };
 }
 
@@ -238,6 +240,7 @@ export function purchaseSkip(caseId: string, currentPoints: number): PurchaseRes
   store.skippedCases.push(caseId);
   const newBalance = currentPoints - SKIP_COST;
   saveStoreState(store);
+  track(Events.SKIP_PURCHASED, { case_id: caseId, cost: SKIP_COST, current_balance: newBalance });
   return { success: true, newBalance, store };
 }
 
@@ -249,6 +252,7 @@ export function unlockTrial(difficulty: string, currentPoints: number): Purchase
   store.unlockedTrials.push(difficulty);
   const newBalance = currentPoints - cost;
   saveStoreState(store);
+  track(Events.TRIAL_UNLOCKED, { difficulty, cost, current_balance: newBalance });
   return { success: true, newBalance, store };
 }
 

@@ -20,6 +20,7 @@ export default function PointsShop() {
 
   useEffect(() => {
     refreshStore();
+    track(Events.STORE_VIEWED);
     window.addEventListener('bleepx-store-changed', refreshStore);
     return () => window.removeEventListener('bleepx-store-changed', refreshStore);
   }, [refreshStore]);
@@ -36,6 +37,7 @@ export default function PointsShop() {
     if (result.success && result.newBalance !== undefined) {
       spendPoints(title.cost);
       refreshStore();
+      track(Events.TITLE_PURCHASED, { title_id: title.id, title_name: title.name, cost: title.cost, current_balance: result.newBalance });
       showToast(`Unlocked "${title.name}"!`);
     } else {
       showToast(result.error || 'Purchase failed');
@@ -45,6 +47,8 @@ export default function PointsShop() {
   const handleEquipTitle = (titleId: string) => {
     playBleep();
     const updated = equipTitle(titleId);
+    const title = TITLES.find(t => t.id === titleId);
+    track(Events.TITLE_EQUIPPED, { title_id: titleId, title_name: title?.name });
     setStore(updated);
   };
 
@@ -55,6 +59,7 @@ export default function PointsShop() {
     if (result.success && result.newBalance !== undefined) {
       spendPoints(badge.cost);
       refreshStore();
+      track(Events.BADGE_PURCHASED, { badge_id: badge.id, badge_name: badge.name, cost: badge.cost, current_balance: result.newBalance });
       showToast(`Unlocked "${badge.name}"!`);
     } else {
       showToast(result.error || 'Purchase failed');
@@ -64,6 +69,9 @@ export default function PointsShop() {
   const handleEquipBadge = (badgeId: string) => {
     playBleep();
     const updated = equipBadge(badgeId);
+    const badge = BADGES.find(b => b.id === badgeId);
+    const isEquipped = store.equippedBadges.includes(badgeId);
+    track(Events.BADGE_EQUIPPED, { badge_id: badgeId, badge_name: badge?.name, action: isEquipped ? 'unequip' : 'equip' });
     setStore(updated);
   };
 
@@ -75,6 +83,7 @@ export default function PointsShop() {
     if (result.success && result.newBalance !== undefined) {
       spendPoints(cost);
       refreshStore();
+      track(Events.TRIAL_UNLOCKED, { difficulty, cost, current_balance: result.newBalance });
       showToast(`Unlocked ${difficulty} trials!`);
     } else {
       showToast(result.error || 'Unlock failed');

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { BleepxHead, BleepxTrophy, BleepxFace, BleepxGhost } from '@/components/BleepxIcons';
 import { SKILL_QUESTIONS, GENERIC_QUESTIONS, type QuizQuestion } from '@/components/TrialQuiz';
 import { syncCurrentProgress } from '@/lib/progressSync';
+import { track, Events } from '@/lib/analytics';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -303,6 +304,7 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
       const finalScore = score + (score === totalQuestions * POINTS_PER_CORRECT ? PERFECT_BONUS : 0);
       setScore(finalScore);
       setFinished(true);
+      track(Events.QUIZ_COMPLETED, { quiz_type: 'master', total_questions: totalQuestions, score: finalScore, max_score: totalQuestions * POINTS_PER_CORRECT + PERFECT_BONUS });
 
       // Award bonus points
       try {

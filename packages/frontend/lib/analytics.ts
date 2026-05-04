@@ -156,4 +156,18 @@ export const Events = {
   // GitHub export
   GITHUB_EXPORT_QUERY: 'github_export_query',
   GITHUB_EXPORT_LAB: 'github_export_lab',
+  STORE_VIEWED: 'store_viewed',
+  TITLE_PURCHASED: 'title_purchased',
+  BADGE_PURCHASED: 'badge_purchased',
+  TITLE_EQUIPPED: 'title_equipped',
+  BADGE_EQUIPPED: 'badge_equipped',
+  HINT_PURCHASED: 'hint_purchased',
+  SKIP_PURCHASED: 'skip_purchased',
+  TRIAL_UNLOCKED: 'trial_unlocked',
+  PROFILE_VIEWED: 'profile_viewed',
+  RESET_PROGRESS_CLICKED: 'reset_progress_clicked',
+  RESET_PROGRESS_CONFIRMED: 'reset_progress_confirmed',
+  DELETE_ACCOUNT_CLICKED: 'delete_account_clicked',
+  DELETE_ACCOUNT_CONFIRMED: 'delete_account_confirmed',
+  ACHIEVEMENT_UNLOCKED: 'achievement_unlocked',
 } as const;

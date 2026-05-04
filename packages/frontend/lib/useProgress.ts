@@ -11,6 +11,7 @@ import { supabase } from './supabase';
 import { updateTotalPointsEarned, getActivePerks, getStoreState, saveStoreState } from './pointsStore';
 import { CASE_TIERS } from './constants';
 import { LAB_CASE_TIERS, LAB_CASE_ORDER } from './labConstants';
+import { track, Events } from './analytics';
 
 export function useProgress() {
   const [completed, setCompleted] = useState<Set<string>>(new Set());
@@ -255,11 +256,13 @@ export function useProgress() {
           newAchievements.push('Full Stack Data Scientist');
         }
         if (newAchievements.length > achievements.length) {
+          const newAchievement = newAchievements[newAchievements.length - 1];
           setAchievements(newAchievements);
           localStorage.setItem('bleepxAchievements', JSON.stringify(newAchievements));
+          track(Events.ACHIEVEMENT_UNLOCKED, { achievement_id: newAchievement, achievement_name: newAchievement, total_achievements: newAchievements.length });
           try {
             playBleep();
-            window.dispatchEvent(new CustomEvent('achievement-unlocked', { detail: newAchievements[newAchievements.length - 1] }));
+            window.dispatchEvent(new CustomEvent('achievement-unlocked', { detail: newAchievement }));
           } catch (err) {
             console.warn('Failed to play bleep sound:', err);
           }
@@ -277,6 +280,7 @@ export function useProgress() {
     });
     try {
       markCaseCompleteRaw(caseId);
+      track(Events.CASE_SOLVED, { case_id: caseId, points_earned: newPoints, total_points: newPoints });
     } catch (e: unknown) {
       console.error('Failed to mark case complete:', e);
       setError('Failed to save progress.');

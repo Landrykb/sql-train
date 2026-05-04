@@ -312,6 +312,7 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
       const finalScore = score + (score === totalQuestions * POINTS_PER_CORRECT ? PERFECT_BONUS : 0);
       setScore(finalScore);
       setFinished(true);
+      track(Events.QUIZ_COMPLETED, { quiz_type: 'trial', case_id: caseId, total_questions: totalQuestions, score: finalScore, max_score: totalQuestions * POINTS_PER_CORRECT + PERFECT_BONUS });
 
       // Award bonus points
       try {
