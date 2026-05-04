@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { getGitHubUser, clearGitHubUser, startGitHubLogin, logoutUser, GitHubUser } from '@/lib/authClient';
+import { getGitHubUser, setGitHubUser, clearGitHubUser, startGitHubLogin, logoutUser, GitHubUser } from '@/lib/authClient';
 import { useProgress } from '@/lib/useProgress';
 import { useTheme } from '@/lib/useTheme';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
@@ -117,6 +117,33 @@ export default function ProfilePage() {
 
   // Load GitHub user from authClient + sync profile
   useEffect(() => {
+    // Check for auth success from OAuth callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const authSuccess = urlParams.get('auth_success');
+    if (authSuccess === 'true') {
+      // Sync user data from OAuth callback to localStorage
+      const email = urlParams.get('email') || '';
+      const name = urlParams.get('name') || '';
+      const avatar = urlParams.get('avatar') || '';
+      const login = urlParams.get('login') || '';
+      if (email && login) {
+        const userData = { login, name, avatar, email };
+        setGitHubUser(userData);
+        setGhUser(userData);
+        // Sync GitHub info into profile
+        const updates: Partial<UserProfile> = {
+          authProvider: 'github',
+          githubUsername: login,
+          displayName: name || login,
+        };
+        if (email) updates.email = email;
+        saveProfile(updates);
+        // Clean up URL params
+        window.history.replaceState({}, '', window.location.pathname);
+        return;
+      }
+    }
+
     const gh = getGitHubUser();
     if (gh) {
       setGhUser(gh);
