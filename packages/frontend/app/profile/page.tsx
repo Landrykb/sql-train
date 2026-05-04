@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { getGitHubUser, setGitHubUser, clearGitHubUser, startGitHubLogin, logoutUser, GitHubUser } from '@/lib/authClient';
+import { clearGitHubUser, startGitHubLogin, logoutUser, GitHubUser } from '@/lib/authClient';
+import { useSupabaseUser } from '@/lib/useSupabaseUser';
 import { useProgress } from '@/lib/useProgress';
 import { useTheme } from '@/lib/useTheme';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
@@ -48,7 +49,7 @@ export default function ProfilePage() {
   const { dark, toggle: toggleDark } = useTheme();
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [tab, setTab] = useState<'overview' | 'shop' | 'achievements' | 'settings'>('overview');
-  const [ghUser, setGhUser] = useState<GitHubUser | null>(null);
+  const ghUser = useSupabaseUser();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [storeState, setStoreState] = useState<StoreState>(getStoreState());
 
@@ -115,54 +116,22 @@ export default function ProfilePage() {
     return { totalTime, avgTime: count > 0 ? Math.round(totalTime / count) : 0, totalAttempts, solvedWithTimer: count };
   }, [completed]);
 
-  // Load GitHub user from authClient + sync profile
+  // Sync GitHub info into profile when user is authenticated
   useEffect(() => {
-    // Check for auth success from OAuth callback
-    const urlParams = new URLSearchParams(window.location.search);
-    const authSuccess = urlParams.get('auth_success');
-    if (authSuccess === 'true') {
-      // Sync user data from OAuth callback to localStorage
-      const email = urlParams.get('email') || '';
-      const name = urlParams.get('name') || '';
-      const avatar = urlParams.get('avatar') || '';
-      const login = urlParams.get('login') || '';
-      if (email && login) {
-        const userData = { login, name, avatar, email };
-        setGitHubUser(userData);
-        setGhUser(userData);
-        // Sync GitHub info into profile
-        const updates: Partial<UserProfile> = {
-          authProvider: 'github',
-          githubUsername: login,
-          displayName: name || login,
-        };
-        if (email) updates.email = email;
-        saveProfile(updates);
-        // Clean up URL params
-        window.history.replaceState({}, '', window.location.pathname);
-        return;
-      }
-    }
-
-    const gh = getGitHubUser();
-    if (gh) {
-      setGhUser(gh);
-      // Sync GitHub info into profile
+    if (ghUser) {
       const updates: Partial<UserProfile> = {
         authProvider: 'github',
-        githubUsername: gh.login,
-        displayName: gh.name || gh.login,
+        githubUsername: ghUser.login,
+        displayName: ghUser.name || ghUser.login,
       };
-      if (gh.email) updates.email = gh.email;
+      if (ghUser.email) updates.email = ghUser.email;
       saveProfile(updates);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [ghUser]);
 
   const handleLogout = async () => {
     playBleep();
     await logoutUser();
-    setGhUser(null);
     saveProfile({ authProvider: null, githubUsername: null, displayName: 'SQL Explorer' });
   };
 

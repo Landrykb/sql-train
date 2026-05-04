@@ -68,25 +68,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(target);
   }
 
-  console.log('[auth/callback] Exchange successful, getting user data');
-  // Get the user data from Supabase to sync to localStorage
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
-    console.log('[auth/callback] User authenticated:', user.email);
-    // Create a redirect with user data to sync to localStorage on the client
-    const target = new URL(next.startsWith('/') ? next : '/profile', origin);
-    target.searchParams.set('auth_success', 'true');
-    target.searchParams.set('email', user.email || '');
-    target.searchParams.set('name', user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '');
-    target.searchParams.set('avatar', user.user_metadata?.avatar_url || '');
-    target.searchParams.set('login', user.user_metadata?.user_name || user.email?.split('@')[0] || '');
-    console.log('[auth/callback] Redirecting with user data to:', target.toString());
-    return NextResponse.redirect(target);
-  }
-
   console.log('[auth/callback] Exchange successful, redirecting to:', next);
-  // Success — session cookies have been set on the response. Redirect to
-  // the original destination. Only allow same-origin relative `next`.
+  // Success — session cookies have been set on the response (HttpOnly, Secure).
+  // Redirect to the original destination. Only allow same-origin relative `next`.
   const redirectTo = next.startsWith('/') ? next : '/profile';
   return NextResponse.redirect(new URL(redirectTo, origin));
 }

@@ -2,34 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getGitHubUser, startGitHubLogin, AUTH_CHANGE_EVENT } from '@/lib/authClient';
+import { startGitHubLogin } from '@/lib/authClient';
+import { useSupabaseUser } from '@/lib/useSupabaseUser';
 
 export default function NavAuth() {
-  const [user, setUser] = useState<{ login: string; avatar: string } | null>(null);
+  const user = useSupabaseUser();
   const [signingIn, setSigningIn] = useState(false);
-
-  // Suppress hydration warnings caused by browser extensions (wallets, etc.)
-  // that inject content into the DOM before React hydrates
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const sync = () => {
-      const gh = getGitHubUser();
-      setUser(gh ? { login: gh.login, avatar: gh.avatar } : null);
-    };
-    sync();
-    window.addEventListener('storage', sync);
-    window.addEventListener(AUTH_CHANGE_EVENT, sync);
-    return () => {
-      window.removeEventListener('storage', sync);
-      window.removeEventListener(AUTH_CHANGE_EVENT, sync);
-    };
-  }, []);
-
-  if (!mounted) return null;
 
   if (user) {
     return (
