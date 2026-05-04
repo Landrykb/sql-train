@@ -8,6 +8,7 @@ import {
   type StoreState, type StoreTitle, type StoreBadge,
 } from '@/lib/pointsStore';
 import { playBleep } from '@/lib/audio';
+import { track, Events } from '@/lib/analytics';
 
 export default function PointsShop() {
   const { points, spendPoints } = useProgress();
