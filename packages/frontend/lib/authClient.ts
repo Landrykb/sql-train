@@ -97,9 +97,11 @@ export async function getGitHubToken(): Promise<string | null> {
  * Falls back to the Render backend if Supabase is not configured.
  */
 export async function startGitHubLogin(): Promise<void> {
+  console.log('[startGitHubLogin] Attempting GitHub login, supabase client:', !!supabase);
   // Prefer Supabase Auth — much faster, no backend cold-start
   if (supabase) {
     try {
+      console.log('[startGitHubLogin] Calling signInWithOAuth with redirect to:', `${window.location.origin}/auth/callback`);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
@@ -109,11 +111,17 @@ export async function startGitHubLogin(): Promise<void> {
           scopes: 'read:user public_repo',
         },
       });
-      if (error) throw error;
+      if (error) {
+        console.error('[startGitHubLogin] signInWithOAuth error:', error);
+        throw error;
+      }
+      console.log('[startGitHubLogin] signInWithOAuth succeeded, redirecting to GitHub');
       return;
     } catch (err) {
-      console.error('Supabase GitHub login failed, trying fallback:', err);
+      console.error('[startGitHubLogin] Supabase GitHub login failed, trying fallback:', err);
     }
+  } else {
+    console.error('[startGitHubLogin] Supabase client is null');
   }
 
   // Fallback: legacy Render backend flow
