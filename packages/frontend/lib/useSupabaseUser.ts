@@ -47,7 +47,7 @@ export function useSupabaseUser(): GitHubUser | null {
     const { getSupabaseBrowserClient } = require('./supabase');
     const supabase = getSupabaseBrowserClient();
     if (supabase) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session: any) => {
         if (!mounted) return;
         if (event === 'SIGNED_IN' && session?.user) {
           const u = session.user;

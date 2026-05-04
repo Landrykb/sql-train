@@ -51,6 +51,8 @@ export default function ProfilePage() {
   const [tab, setTab] = useState<'overview' | 'shop' | 'achievements' | 'settings'>('overview');
   const ghUser = useSupabaseUser();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [storeState, setStoreState] = useState<StoreState>(getStoreState());
 
   // Re-read store state whenever it changes (equip badge/title, purchase, etc.)
@@ -133,6 +135,48 @@ export default function ProfilePage() {
     playBleep();
     await logoutUser();
     saveProfile({ authProvider: null, githubUsername: null, displayName: 'SQL Explorer' });
+  };
+
+  const handleDeleteAccount = async () => {
+    playBleep();
+    setDeleting(true);
+    try {
+      const { getSupabaseBrowserClient } = await import('@/lib/supabase');
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        alert('Could not connect to auth service');
+        setDeleting(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.admin.deleteUser(
+        (await supabase.auth.getUser()).data.user?.id || ''
+      );
+
+      if (error) {
+        // If admin API fails, try client-side sign out + clear data
+        await logoutUser();
+        // Clear all bleepx_ localStorage items
+        try {
+          const keys = Object.keys(localStorage).filter(k => k.startsWith('bleepx_'));
+          keys.forEach(k => localStorage.removeItem(k));
+        } catch { /* ignore */ }
+        window.location.href = '/';
+        return;
+      }
+
+      // Clear all data
+      await logoutUser();
+      try {
+        const keys = Object.keys(localStorage).filter(k => k.startsWith('bleepx_'));
+        keys.forEach(k => localStorage.removeItem(k));
+      } catch { /* ignore */ }
+      window.location.href = '/';
+    } catch (err) {
+      console.error('Delete account error:', err);
+      alert('Failed to delete account. Please try again or contact support.');
+      setDeleting(false);
+    }
   };
 
   const isSignedIn = !!ghUser;
@@ -512,6 +556,40 @@ export default function ProfilePage() {
                   </button>
                   <button
                     onClick={() => setShowResetConfirm(false)}
+                    className="px-4 py-2 rounded-full border text-sm font-medium border-bleepx-border text-bleepx-text-secondary"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Delete Account */}
+            {!showDeleteConfirm ? (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="px-4 py-2 rounded-full bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors"
+              >
+                Delete Account
+              </button>
+            ) : (
+              <div className="p-4 rounded-lg border bg-red-100 dark:bg-red-900/20 border-red-300 dark:border-red-700">
+                <p className="text-sm font-bold mb-2 text-red-800 dark:text-red-300">
+                  ⚠️ DANGER: This will permanently delete your account
+                </p>
+                <p className="text-xs text-bleepx-text-secondary mb-3">
+                  Your account, all progress, points, achievements, and data will be permanently deleted. This action cannot be undone.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleting}
+                    className="px-4 py-2 rounded-full bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {deleting ? 'Deleting...' : 'Yes, Delete My Account'}
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
                     className="px-4 py-2 rounded-full border text-sm font-medium border-bleepx-border text-bleepx-text-secondary"
                   >
                     Cancel
