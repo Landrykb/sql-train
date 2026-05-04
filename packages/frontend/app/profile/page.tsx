@@ -524,6 +524,7 @@ export default function ProfilePage() {
             <p className="text-sm text-bleepx-text-secondary mb-4">
               *bleep* These actions are irreversible. Even I can't undo them.
             </p>
+            <div className="border-t border-red-200 dark:border-red-800 pt-4 mb-4" />
             {!showResetConfirm ? (
               <button
                 onClick={() => setShowResetConfirm(true)}
