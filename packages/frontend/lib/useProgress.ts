@@ -272,6 +272,7 @@ export function useProgress() {
 
         // Track lifetime points (never decreases)
         updateTotalPointsEarned(newPoints);
+        track(Events.CASE_SOLVED, { case_id: caseId, points_earned: pointsToAdd, total_points: newPoints });
 
         // Push full state to Supabase (incl. store state + quiz scores)
         syncCurrentProgress().catch(() => {});
@@ -280,7 +281,6 @@ export function useProgress() {
     });
     try {
       markCaseCompleteRaw(caseId);
-      track(Events.CASE_SOLVED, { case_id: caseId, points_earned: newPoints, total_points: newPoints });
     } catch (e: unknown) {
       console.error('Failed to mark case complete:', e);
       setError('Failed to save progress.');
