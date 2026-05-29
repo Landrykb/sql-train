@@ -70,7 +70,13 @@ export async function GET(request: NextRequest) {
 
   console.log('[auth/callback] Exchange successful, redirecting to:', next);
   // Success — session cookies have been set on the response (HttpOnly, Secure).
-  // Redirect to the original destination. Only allow same-origin relative `next`.
-  const redirectTo = next.startsWith('/') ? next : '/profile';
-  return NextResponse.redirect(new URL(redirectTo, origin));
+  // Also set a cookie to trigger client-side GitHub user sync
+  const response = NextResponse.redirect(new URL(next.startsWith('/') ? next : '/profile', origin));
+  response.cookies.set('bleepx_auth_sync', 'true', { 
+    httpOnly: false, 
+    secure: true, 
+    sameSite: 'lax',
+    maxAge: 60 // 1 minute to trigger sync
+  });
+  return response;
 }
