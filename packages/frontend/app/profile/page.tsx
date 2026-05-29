@@ -272,12 +272,12 @@ export default function ProfilePage() {
               <div className="mt-4 flex flex-col gap-2.5">
                 {/* Loadout row */}
                 <div className="flex flex-wrap items-center gap-2">
-                  {title && (
+                  {isSignedIn && title && (
                     <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">
                       <span className="text-sm">🏷️</span> {title.name}
                     </span>
                   )}
-                  {badges.length > 0 && (
+                  {isSignedIn && badges.length > 0 && (
                     <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700">
                       {badges.map(b => b && <span key={b.id} className="text-base" title={b.name}>{b.emoji}</span>)}
                     </div>
@@ -287,7 +287,7 @@ export default function ProfilePage() {
                   </span>
                 </div>
                 {/* Active perks row */}
-                {perks.perkLines.length > 0 && (
+                {isSignedIn && perks.perkLines.length > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider">Perks</span>
                     {perks.perkLines.map((line, i) => (
