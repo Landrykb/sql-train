@@ -1,13 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import NavAuth from '@/components/NavAuth';
+import { verseFromPath, setActiveVerse } from '@/lib/verse';
 
 export default function NavHeader() {
   const pathname = usePathname();
   const isLab = pathname.startsWith('/lab');
+
+  useEffect(() => {
+    const v = verseFromPath(pathname);
+    if (v) setActiveVerse(v);
+  }, [pathname]);
 
   return (
     <header className="bg-bleepx-white shadow-sm dark:shadow-gray-900/30 sticky top-0 z-40 border-b border-transparent dark:border-bleepx-border">

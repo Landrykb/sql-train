@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { getActiveVerse, VERSE_THEMES, type Verse } from '@/lib/verse';
 import { clearGitHubUser, startGitHubLogin, logoutUser, GitHubUser } from '@/lib/authClient';
 import { useSupabaseUser } from '@/lib/useSupabaseUser';
 import { useProgress } from '@/lib/useProgress';
@@ -47,9 +47,13 @@ const DEFAULT_PROFILE: UserProfile = {
 };
 
 export default function ProfilePage() {
-  const pathname = usePathname();
-  const isLab = pathname?.startsWith('/lab') || false;
+  const [verse, setVerse] = useState<Verse>('query');
+  const theme = VERSE_THEMES[verse];
   const { completed, points, resetProgress } = useProgress();
+
+  useEffect(() => {
+    setVerse(getActiveVerse());
+  }, []);
   const { dark, toggle: toggleDark } = useTheme();
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [tab, setTab] = useState<'overview' | 'shop' | 'achievements' | 'settings'>('overview');
@@ -197,14 +201,26 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6">
       {/* Profile Header */}
-      <div className="rounded-xl shadow-lg overflow-hidden bg-bleepx-white">
-        <div className={`bg-gradient-to-r ${isLab ? 'from-teal-500 to-emerald-500' : 'from-bleepx-blue to-bleepx-pink'} h-20 sm:h-24`} />
-        <div className="px-4 sm:px-6 pb-6 sm:pb-8 pt-6">
-          {/* Row 1: Avatar + Name + Auth button */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 relative flex-shrink-0 shadow-2xl order-1 sm:order-1 p-1">
-              <div className={`w-full h-full rounded-2xl overflow-hidden bg-gradient-to-br ${isLab ? 'from-teal-500 to-emerald-500' : 'from-bleepx-blue to-bleepx-pink'} p-0.5`}>
-                <div className="w-full h-full rounded-2xl overflow-hidden bg-white dark:bg-gray-800">
+      <div className="rounded-2xl shadow-lg overflow-hidden bg-bleepx-white border border-bleepx-border">
+        {/* Decorative banner */}
+        <div className={`relative h-28 sm:h-36 bg-gradient-to-br ${theme.gradient} overflow-hidden`}>
+          <div className="absolute top-0 right-0 w-56 h-56 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
+          <div className="absolute bottom-0 left-12 w-40 h-40 bg-white/5 rounded-full translate-y-1/2" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.18)_1px,transparent_0)] [background-size:22px_22px] opacity-40" />
+          {/* Verse pill */}
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-xs font-semibold border border-white/30">
+              {verse === 'lab' ? '🔬' : verse === 'cloud' ? '☁️' : '🔷'} {theme.label}
+            </span>
+          </div>
+        </div>
+
+        <div className="px-4 sm:px-6 pb-6 sm:pb-7">
+          {/* Avatar pulled up into the banner */}
+          <div className="flex items-end gap-4 sm:gap-5 -mt-12 sm:-mt-16">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl flex-shrink-0 shadow-2xl ring-4 ring-bleepx-white dark:ring-gray-900 overflow-hidden bg-gradient-to-br p-[3px] from-white/40 to-white/10">
+              <div className={`w-full h-full rounded-[1.25rem] overflow-hidden bg-gradient-to-br ${theme.gradient} p-[2px]`}>
+                <div className="w-full h-full rounded-[1.1rem] overflow-hidden bg-white dark:bg-gray-800">
                   {ghUser?.avatar ? (
                     <img src={ghUser.avatar} alt="" className="w-full h-full object-cover" />
                   ) : (
@@ -215,57 +231,60 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text truncate">
-                  {isSignedIn ? (ghUser?.name || profile.displayName) : profile.displayName}
-                </h1>
-                {isSignedIn && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-sm flex-shrink-0">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                    Verified
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                {isSignedIn && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-900 dark:bg-gray-800 text-white text-xs font-medium">
-                    <BleepxGitHub size={14} />
-                    <span>GitHub</span>
-                  </div>
-                )}
-                {githubUsername && isSignedIn && (
-                  <a 
-                    href={`https://github.com/${githubUsername}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${isLab ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 hover:bg-teal-500/20 dark:hover:bg-teal-500/30' : 'bg-bleepx-blue/10 dark:bg-bleepx-blue/20 text-bleepx-blue dark:text-blue-400 hover:bg-bleepx-blue/20 dark:hover:bg-bleepx-blue/30'}`}
-                  >
-                    @{githubUsername}
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                      <polyline points="15 3 21 3 21 9"></polyline>
-                      <line x1="10" y1="14" x2="21" y2="3"></line>
-                    </svg>
-                  </a>
-                )}
-                {!isSignedIn && (
-                  <span className="text-sm text-bleepx-text-secondary">*bleep* Anonymous explorer</span>
-                )}
-              </div>
-            </div>
-            <div className="flex-shrink-0">
+            {/* Auth button aligned to avatar baseline */}
+            <div className="flex-1 flex justify-end pb-1">
               {!isSignedIn ? (
-                <button onClick={() => { playBleep(); startGitHubLogin(); }} className="px-3 py-1.5 rounded-full bg-bleepx-blue text-white text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-1.5">
+                <button onClick={() => { playBleep(); startGitHubLogin(); }} className={`px-4 py-2 rounded-full text-white text-sm font-semibold shadow-md transition-colors flex items-center gap-1.5 bg-gradient-to-r ${theme.gradient} hover:opacity-90`}>
                   <BleepxGitHub size={18} />
                   Sign In
                 </button>
               ) : (
-                <button onClick={handleLogout} className="px-3 py-1.5 rounded-full border border-red-300 text-red-500 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <button onClick={handleLogout} className="px-4 py-2 rounded-full border border-red-300 text-red-500 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                   Log Out
                 </button>
+              )}
+            </div>
+          </div>
+
+          {/* Name + identity row, below avatar */}
+          <div className="mt-3">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text truncate">
+                {isSignedIn ? (ghUser?.name || profile.displayName) : profile.displayName}
+              </h1>
+              {isSignedIn && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-sm flex-shrink-0">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  Verified
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {isSignedIn && (
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-900 dark:bg-gray-800 text-white text-xs font-medium">
+                  <BleepxGitHub size={14} />
+                  <span>GitHub</span>
+                </div>
+              )}
+              {githubUsername && isSignedIn && (
+                <a
+                  href={`https://github.com/${githubUsername}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${theme.accentBg} ${theme.accentText} ${theme.accentHover}`}
+                >
+                  @{githubUsername}
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                </a>
+              )}
+              {!isSignedIn && (
+                <span className="text-sm text-bleepx-text-secondary">*bleep* Anonymous explorer</span>
               )}
             </div>
           </div>
