@@ -195,11 +195,11 @@ export default function ProfilePage() {
     <div className="space-y-6">
       {/* Profile Header */}
       <div className="rounded-xl shadow-lg overflow-hidden bg-bleepx-white">
-        <div className="bg-gradient-to-r from-bleepx-blue to-bleepx-pink h-32 sm:h-40" />
-        <div className="px-4 sm:px-6 pb-5 sm:pb-6 -mt-12 sm:-mt-16">
+        <div className="bg-gradient-to-r from-bleepx-blue to-bleepx-pink h-24 sm:h-32" />
+        <div className="px-4 sm:px-6 pb-5 sm:pb-6 -mt-6 sm:-mt-8">
           {/* Row 1: Avatar + Name + Auth button */}
           <div className="flex items-center gap-4">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 border-white dark:border-gray-800 relative flex-shrink-0 shadow-lg">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 border-white dark:border-gray-800 relative flex-shrink-0 shadow-lg">
               {ghUser?.avatar ? (
                 <img src={ghUser.avatar} alt="" className="w-full h-full object-cover" />
               ) : (
