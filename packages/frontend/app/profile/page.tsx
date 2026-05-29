@@ -209,13 +209,45 @@ export default function ProfilePage() {
               )}
             </div>
             <div className="flex-1 min-w-0 mb-1">
-              <h1 className="text-lg sm:text-xl font-bold text-bleepx-text truncate">
-                {isSignedIn ? (ghUser?.name || profile.displayName) : profile.displayName}
-              </h1>
-              <p className="text-sm text-bleepx-text-secondary">
-                {isSignedIn ? 'Signed in via GitHub' : '*bleep* Anonymous explorer'}
-                {githubUsername && isSignedIn && <span className="ml-1">· <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noopener noreferrer" className="text-bleepx-blue hover:underline">@{githubUsername}</a></span>}
-              </p>
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text truncate">
+                  {isSignedIn ? (ghUser?.name || profile.displayName) : profile.displayName}
+                </h1>
+                {isSignedIn && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-medium border border-green-200 dark:border-green-700 flex-shrink-0">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Verified
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {isSignedIn && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-900 dark:bg-gray-800 text-white text-xs font-medium">
+                    <BleepxGitHub size={14} />
+                    <span>GitHub</span>
+                  </div>
+                )}
+                {githubUsername && isSignedIn && (
+                  <a 
+                    href={`https://github.com/${githubUsername}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bleepx-blue/10 dark:bg-bleepx-blue/20 text-bleepx-blue dark:text-blue-400 text-xs font-medium hover:bg-bleepx-blue/20 dark:hover:bg-bleepx-blue/30 transition-colors"
+                  >
+                    @{githubUsername}
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                      <polyline points="15 3 21 3 21 9"></polyline>
+                      <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                  </a>
+                )}
+                {!isSignedIn && (
+                  <span className="text-sm text-bleepx-text-secondary">*bleep* Anonymous explorer</span>
+                )}
+              </div>
             </div>
             <div className="flex-shrink-0 mb-1">
               {!isSignedIn ? (
