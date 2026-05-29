@@ -196,9 +196,9 @@ export default function ProfilePage() {
       {/* Profile Header */}
       <div className="rounded-xl shadow-lg overflow-hidden bg-bleepx-white">
         <div className="bg-gradient-to-r from-bleepx-blue to-bleepx-pink h-24 sm:h-32" />
-        <div className="px-4 sm:px-6 pb-5 sm:pb-6 -mt-10 sm:-mt-12">
+        <div className="px-4 sm:px-6 pb-5 sm:pb-6 -mt-8 sm:-mt-10">
           {/* Row 1: Avatar + Name + Auth button */}
-          <div className="flex items-end gap-4">
+          <div className="flex items-center gap-4">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 border-white dark:border-gray-800 relative flex-shrink-0">
               {ghUser?.avatar ? (
                 <img src={ghUser.avatar} alt="" className="w-full h-full object-cover" />
@@ -208,7 +208,7 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-            <div className="flex-1 min-w-0 mb-1">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text truncate">
                   {isSignedIn ? (ghUser?.name || profile.displayName) : profile.displayName}
