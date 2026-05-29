@@ -223,15 +223,25 @@ export default function ProfilePage() {
                 )}
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                {isSignedIn && githubUsername && (
+                {isSignedIn && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-900 dark:bg-gray-800 text-white text-xs font-medium">
+                    <BleepxGitHub size={14} />
+                    <span>GitHub</span>
+                  </div>
+                )}
+                {githubUsername && isSignedIn && (
                   <a 
                     href={`https://github.com/${githubUsername}`} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-900 dark:bg-gray-800 text-white text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bleepx-blue/10 dark:bg-bleepx-blue/20 text-bleepx-blue dark:text-blue-400 text-xs font-medium hover:bg-bleepx-blue/20 dark:hover:bg-bleepx-blue/30 transition-colors"
                   >
-                    <BleepxGitHub size={14} />
                     @{githubUsername}
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                      <polyline points="15 3 21 3 21 9"></polyline>
+                      <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
                   </a>
                 )}
                 {!isSignedIn && (
