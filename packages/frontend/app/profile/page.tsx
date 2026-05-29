@@ -199,14 +199,18 @@ export default function ProfilePage() {
         <div className="px-4 sm:px-6 pb-6 sm:pb-8 pt-6">
           {/* Row 1: Avatar + Name + Auth button */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 border-white dark:border-gray-800 relative flex-shrink-0 shadow-lg order-1 sm:order-1">
-              {ghUser?.avatar ? (
-                <img src={ghUser.avatar} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-                  <BleepxHead size={56} />
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 relative flex-shrink-0 shadow-2xl order-1 sm:order-1 p-1">
+              <div className="w-full h-full rounded-2xl overflow-hidden bg-gradient-to-br from-bleepx-blue to-bleepx-pink p-0.5">
+                <div className="w-full h-full rounded-2xl overflow-hidden bg-white dark:bg-gray-800">
+                  {ghUser?.avatar ? (
+                    <img src={ghUser.avatar} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+                      <BleepxHead size={56} />
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
