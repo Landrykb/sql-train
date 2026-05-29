@@ -195,11 +195,11 @@ export default function ProfilePage() {
     <div className="space-y-6">
       {/* Profile Header */}
       <div className="rounded-xl shadow-lg overflow-hidden bg-bleepx-white">
-        <div className="bg-gradient-to-r from-bleepx-blue to-bleepx-pink h-24 sm:h-32" />
-        <div className="px-4 sm:px-6 pb-5 sm:pb-6 -mt-8 sm:-mt-10">
+        <div className="bg-gradient-to-r from-bleepx-blue to-bleepx-pink h-32 sm:h-40" />
+        <div className="px-4 sm:px-6 pb-5 sm:pb-6 -mt-12 sm:-mt-16">
           {/* Row 1: Avatar + Name + Auth button */}
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 border-white dark:border-gray-800 relative flex-shrink-0">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 border-white dark:border-gray-800 relative flex-shrink-0 shadow-lg">
               {ghUser?.avatar ? (
                 <img src={ghUser.avatar} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -223,25 +223,15 @@ export default function ProfilePage() {
                 )}
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                {isSignedIn && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-900 dark:bg-gray-800 text-white text-xs font-medium">
-                    <BleepxGitHub size={14} />
-                    <span>GitHub</span>
-                  </div>
-                )}
-                {githubUsername && isSignedIn && (
+                {isSignedIn && githubUsername && (
                   <a 
                     href={`https://github.com/${githubUsername}`} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bleepx-blue/10 dark:bg-bleepx-blue/20 text-bleepx-blue dark:text-blue-400 text-xs font-medium hover:bg-bleepx-blue/20 dark:hover:bg-bleepx-blue/30 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-900 dark:bg-gray-800 text-white text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
                   >
+                    <BleepxGitHub size={14} />
                     @{githubUsername}
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                      <polyline points="15 3 21 3 21 9"></polyline>
-                      <line x1="10" y1="14" x2="21" y2="3"></line>
-                    </svg>
                   </a>
                 )}
                 {!isSignedIn && (
@@ -249,7 +239,7 @@ export default function ProfilePage() {
                 )}
               </div>
             </div>
-            <div className="flex-shrink-0 mb-1">
+            <div className="flex-shrink-0">
               {!isSignedIn ? (
                 <button onClick={() => { playBleep(); startGitHubLogin(); }} className="px-3 py-1.5 rounded-full bg-bleepx-blue text-white text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-1.5">
                   <BleepxGitHub size={18} />
