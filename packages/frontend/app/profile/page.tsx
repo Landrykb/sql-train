@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { clearGitHubUser, startGitHubLogin, logoutUser, GitHubUser } from '@/lib/authClient';
 import { useSupabaseUser } from '@/lib/useSupabaseUser';
 import { useProgress } from '@/lib/useProgress';
@@ -46,6 +47,8 @@ const DEFAULT_PROFILE: UserProfile = {
 };
 
 export default function ProfilePage() {
+  const pathname = usePathname();
+  const isLab = pathname?.startsWith('/lab') || false;
   const { completed, points, resetProgress } = useProgress();
   const { dark, toggle: toggleDark } = useTheme();
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
@@ -195,12 +198,12 @@ export default function ProfilePage() {
     <div className="space-y-6">
       {/* Profile Header */}
       <div className="rounded-xl shadow-lg overflow-hidden bg-bleepx-white">
-        <div className="bg-gradient-to-r from-bleepx-blue to-bleepx-pink h-20 sm:h-24" />
+        <div className={`bg-gradient-to-r ${isLab ? 'from-teal-500 to-emerald-500' : 'from-bleepx-blue to-bleepx-pink'} h-20 sm:h-24`} />
         <div className="px-4 sm:px-6 pb-6 sm:pb-8 pt-6">
           {/* Row 1: Avatar + Name + Auth button */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 relative flex-shrink-0 shadow-2xl order-1 sm:order-1 p-1">
-              <div className="w-full h-full rounded-2xl overflow-hidden bg-gradient-to-br from-bleepx-blue to-bleepx-pink p-0.5">
+              <div className={`w-full h-full rounded-2xl overflow-hidden bg-gradient-to-br ${isLab ? 'from-teal-500 to-emerald-500' : 'from-bleepx-blue to-bleepx-pink'} p-0.5`}>
                 <div className="w-full h-full rounded-2xl overflow-hidden bg-white dark:bg-gray-800">
                   {ghUser?.avatar ? (
                     <img src={ghUser.avatar} alt="" className="w-full h-full object-cover" />
@@ -238,7 +241,7 @@ export default function ProfilePage() {
                     href={`https://github.com/${githubUsername}`} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bleepx-blue/10 dark:bg-bleepx-blue/20 text-bleepx-blue dark:text-blue-400 text-xs font-medium hover:bg-bleepx-blue/20 dark:hover:bg-bleepx-blue/30 transition-colors"
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${isLab ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 hover:bg-teal-500/20 dark:hover:bg-teal-500/30' : 'bg-bleepx-blue/10 dark:bg-bleepx-blue/20 text-bleepx-blue dark:text-blue-400 hover:bg-bleepx-blue/20 dark:hover:bg-bleepx-blue/30'}`}
                   >
                     @{githubUsername}
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
