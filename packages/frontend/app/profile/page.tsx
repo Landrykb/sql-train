@@ -215,7 +215,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="px-4 sm:px-6 pb-6 sm:pb-7">
+        <div className="relative z-10 px-4 sm:px-6 pb-6 sm:pb-7">
           {/* Avatar pulled up into the banner */}
           <div className="flex items-end gap-4 sm:gap-5 -mt-12 sm:-mt-16">
             <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl flex-shrink-0 shadow-2xl ring-4 ring-bleepx-white dark:ring-gray-900 overflow-hidden bg-gradient-to-br p-[3px] from-white/40 to-white/10">

@@ -9,28 +9,51 @@ import { verseFromPath, setActiveVerse } from '@/lib/verse';
 export default function NavHeader() {
   const pathname = usePathname();
   const isLab = pathname.startsWith('/lab');
+  const isCloud = pathname.startsWith('/cloud');
 
   useEffect(() => {
     const v = verseFromPath(pathname);
     if (v) setActiveVerse(v);
   }, [pathname]);
 
+  const homeHref = isLab ? '/lab' : isCloud ? '/cloud' : '/';
+  const brand = isLab ? 'BleepxLab' : isCloud ? 'BleepxCloud' : 'BleepxQuery';
+  const brandColor = isLab
+    ? 'text-teal-700 dark:text-teal-400'
+    : isCloud
+      ? 'text-sky-700 dark:text-sky-400'
+      : 'text-bleepx-text';
+
   return (
     <header className="bg-bleepx-white shadow-sm dark:shadow-gray-900/30 sticky top-0 z-40 border-b border-transparent dark:border-bleepx-border">
       <div className="max-w-5xl mx-auto px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-        <Link href={isLab ? '/lab' : '/'} className="flex items-center gap-2 sm:gap-3">
+        <Link href={homeHref} className="flex items-center gap-2 sm:gap-3">
           <picture>
             <source srcSet="/bleepx-logo.png" type="image/svg+xml" />
             <span className="text-bleepx-blue font-bold inline-block h-6 leading-6">
               Bleepx
             </span>
           </picture>
-          <h1 className={`text-base sm:text-xl font-semibold ${isLab ? 'text-teal-700 dark:text-teal-400' : 'text-bleepx-text'}`}>
-            {isLab ? 'BleepxLab' : 'BleepxQuery'}
+          <h1 className={`text-base sm:text-xl font-semibold ${brandColor}`}>
+            {brand}
           </h1>
         </Link>
         <nav className="flex items-center gap-3 sm:gap-4">
-          {isLab ? (
+          {isCloud ? (
+            <>
+              <Link href="/cloud/trials" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-sky-600 font-semibold text-sm sm:text-base transition-colors">
+                <span aria-hidden>⚡</span>
+                <span className="hidden sm:inline">Trials</span>
+              </Link>
+              <Link href="/cloud/guide" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-sky-600 font-semibold text-sm sm:text-base transition-colors">
+                <span aria-hidden>📖</span>
+                <span className="hidden sm:inline">Guide</span>
+              </Link>
+              <Link href="/" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-bleepx-blue font-semibold text-xs transition-colors">
+                <span className="hidden sm:inline">🔷 SQL</span>
+              </Link>
+            </>
+          ) : isLab ? (
             <>
               <Link href="/lab" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-teal-600 font-semibold text-sm sm:text-base transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
@@ -52,6 +75,9 @@ export default function NavHeader() {
               </Link>
               <Link href="/lab" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-teal-600 font-semibold text-xs transition-colors">
                 <span className="hidden sm:inline">🔬 Lab</span>
+              </Link>
+              <Link href="/cloud" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-sky-600 font-semibold text-xs transition-colors">
+                <span className="hidden sm:inline">☁️ Cloud</span>
               </Link>
             </>
           )}

@@ -191,3 +191,65 @@ export async function pushLabProjectToGitHub(
     return { success: false, error: msg };
   }
 }
+
+interface CloudMissionLike {
+  slug: string;
+  title: string;
+  section: string;
+  level: string;
+  stars: number;
+  skills: string[];
+  description: string;
+  labType: string;
+}
+
+/** Push a single BleepxCloud mission (README + optional IaC) to GitHub. */
+export async function pushCloudMissionToGitHub(
+  provider: string,
+  mission: CloudMissionLike,
+  providerName: string,
+  iacCode: string | null,
+  onProgress?: (msg: string) => void,
+): Promise<PushResult> {
+  const user = getGitHubUser();
+  const token = await getGitHubToken();
+  if (!user || !token) {
+    return { success: false, error: 'Sign in with GitHub first to push your work.' };
+  }
+
+  const repoName = 'cloud-portfolio';
+  const dir = `${provider}/${mission.slug}`;
+
+  const readme = `# ${mission.title}\n\n` +
+    `**Provider:** ${providerName} (${provider.toUpperCase()})  \n` +
+    `**Section:** ${mission.section}  \n` +
+    `**Level:** ${mission.level} ${'⭐'.repeat(mission.stars)}  \n` +
+    `**Skills:** ${mission.skills.map((s) => `\`${s}\``).join(', ')}\n\n` +
+    `## Mission Briefing\n\n${mission.description}\n\n` +
+    (iacCode ? `## Infrastructure as Code\n\nSee the template in this folder.\n\n` : '') +
+    `---\n*Completed via [BleepxCloud](https://bleepxacademy.vercel.app/cloud) — cloud architecture & certification training.*\n`;
+
+  const files: PortfolioFile[] = [{ path: `${dir}/README.md`, content: readme }];
+  if (iacCode) {
+    const ext = provider === 'azure' ? 'main.bicep' : 'main.tf';
+    files.push({ path: `${dir}/${ext}`, content: iacCode });
+  }
+
+  try {
+    onProgress?.('Creating repository...');
+    const repo = await ensureRepo(token, repoName);
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      onProgress?.(`Pushing ${f.path} (${i + 1}/${files.length})...`);
+      await pushFile(token, repo, f.path, f.content, `Add ${dir}: ${mission.title} — BleepxCloud`);
+    }
+    onProgress?.('Done!');
+    return { success: true, repoUrl: `https://github.com/${repo}/tree/main/${dir}` };
+  } catch (err: any) {
+    const msg = err.message || 'Push failed';
+    if (msg.includes('Bad credentials')) {
+      return { success: false, error: 'Bad credentials — please sign out and sign in again with GitHub.' };
+    }
+    return { success: false, error: msg };
+  }
+}

@@ -6,8 +6,8 @@
     ---------------------------------------------------------- */
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "node",
-    "jsx": "preserve", // enable TSX
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx", // enable TSX
     "lib": [
       "dom",
       "dom.iterable",
@@ -63,7 +63,8 @@
     "app/**/*.tsx",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

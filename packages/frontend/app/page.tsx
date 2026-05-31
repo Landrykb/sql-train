@@ -66,12 +66,15 @@ export default function HomePage() {
 
       {/* Verse Toggle */}
       <div className="flex items-center justify-center">
-        <div className="inline-flex rounded-full bg-bleepx-white border border-bleepx-border shadow-sm p-1">
+        <div className="inline-flex flex-wrap justify-center rounded-full bg-bleepx-white border border-bleepx-border shadow-sm p-1 gap-1">
           <span className="px-4 py-1.5 rounded-full text-sm font-bold bg-bleepx-blue text-white">
             🔷 BleepxQuery
           </span>
           <Link href="/lab" className="px-4 py-1.5 rounded-full text-sm font-medium text-bleepx-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             🔬 BleepxLab
+          </Link>
+          <Link href="/cloud" className="px-4 py-1.5 rounded-full text-sm font-medium text-bleepx-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+            ☁️ BleepxCloud
           </Link>
         </div>
       </div>
