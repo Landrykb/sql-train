@@ -45,7 +45,10 @@ export default function LabHomePage() {
               📖 DS Guide
             </Link>
             <Link href="/" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
-              ← BleepxQuery (SQL)
+              🔷 BleepxQuery (SQL)
+            </Link>
+            <Link href="/cloud" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
+              ☁️ BleepxCloud
             </Link>
           </div>
         </div>
@@ -53,13 +56,16 @@ export default function LabHomePage() {
 
       {/* Verse Toggle */}
       <div className="flex items-center justify-center">
-        <div className="inline-flex rounded-full bg-bleepx-white border border-bleepx-border shadow-sm p-1">
+        <div className="inline-flex flex-wrap justify-center rounded-full bg-bleepx-white border border-bleepx-border shadow-sm p-1 gap-1">
           <Link href="/" className="px-4 py-1.5 rounded-full text-sm font-medium text-bleepx-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             🔷 BleepxQuery
           </Link>
           <span className="px-4 py-1.5 rounded-full text-sm font-bold bg-teal-600 text-white">
             🔬 BleepxLab
           </span>
+          <Link href="/cloud" className="px-4 py-1.5 rounded-full text-sm font-medium text-bleepx-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+            ☁️ BleepxCloud
+          </Link>
         </div>
       </div>
 

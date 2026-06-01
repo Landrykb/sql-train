@@ -9,6 +9,7 @@ import { useProgress } from '@/lib/useProgress';
 import { useTheme } from '@/lib/useTheme';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
 import { LAB_CASE_ORDER, LAB_DOMAIN_META } from '@/lib/labConstants';
+import { CLOUD_MISSIONS, CLOUD_PROVIDERS, CLOUD_PROVIDER_META, cloudMissionId } from '@/lib/cloud';
 import { playBleep } from '@/lib/audio';
 import { track, Events } from '@/lib/analytics';
 import PointsShop from '@/components/PointsShop';
@@ -103,7 +104,22 @@ export default function ProfilePage() {
     const allLabIds = Object.values(LAB_CASE_ORDER).flat();
     const labSolved = allLabIds.filter(c => completed.has(c) || completed.has(`lab_${c}`)).length;
     const labTotal = allLabIds.length;
-    return { domainStats, totalSolved, totalCases, totalPoints: points, completedDomains, labSolved, labTotal };
+    // Cloud stats (per provider track + totals)
+    const cloudStats = CLOUD_PROVIDERS.map((p) => {
+      const missions = CLOUD_MISSIONS[p] || [];
+      const solved = missions.filter((m) => completed.has(cloudMissionId(p, m.slug))).length;
+      return {
+        provider: p,
+        meta: CLOUD_PROVIDER_META[p],
+        total: missions.length,
+        solved,
+        pct: missions.length ? Math.round((solved / missions.length) * 100) : 0,
+      };
+    });
+    const cloudSolved = cloudStats.reduce((a, c) => a + c.solved, 0);
+    const cloudTotal = cloudStats.reduce((a, c) => a + c.total, 0);
+    const completedTracks = cloudStats.filter((c) => c.total > 0 && c.solved === c.total).length;
+    return { domainStats, totalSolved, totalCases, totalPoints: points, completedDomains, labSolved, labTotal, cloudStats, cloudSolved, cloudTotal, completedTracks };
   }, [completed, points]);
 
   // Solve time stats
@@ -369,8 +385,8 @@ export default function ProfilePage() {
             {[
               { label: 'SQL Challenges', value: stats.totalSolved, sub: `of ${stats.totalCases}`, color: 'text-bleepx-blue' },
               { label: 'Lab Steps', value: stats.labSolved, sub: `of ${stats.labTotal}`, color: 'text-teal-500' },
+              { label: 'Cloud Missions', value: stats.cloudSolved, sub: `of ${stats.cloudTotal}`, color: 'text-sky-500' },
               { label: 'Points Balance', value: stats.totalPoints, sub: `${storeState.totalPointsEarned || stats.totalPoints} earned`, color: 'text-amber-500' },
-              { label: 'Domains Done', value: stats.completedDomains, sub: `of ${DOMAINS.length} SQL`, color: 'text-green-500' },
             ].map((s) => (
               <div key={s.label} className="p-4 rounded-xl shadow-sm bg-bleepx-white">
                 <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
@@ -444,6 +460,37 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Cloud Progress */}
+          <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
+            <h2 className="text-lg font-bold mb-4 text-bleepx-text flex items-center gap-2">
+              <span>☁️</span> BleepxCloud Progress
+              <span className="ml-auto text-xs font-medium text-bleepx-text-secondary">{stats.completedTracks}/{stats.cloudStats.length} tracks done</span>
+            </h2>
+            <div className="space-y-3">
+              {stats.cloudStats.map((c) => (
+                <Link key={c.provider} href={`/cloud/${c.provider}`} className="block group">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl flex-shrink-0">{c.meta.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline">
+                        <p className="text-sm font-medium truncate group-hover:text-sky-500 transition-colors text-bleepx-text">
+                          {c.meta.name}
+                        </p>
+                        <span className="text-xs text-bleepx-text-secondary ml-2 flex-shrink-0">{c.solved}/{c.total}</span>
+                      </div>
+                      <div className="mt-1 h-2 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${c.pct === 100 ? 'bg-emerald-500' : 'bg-sky-500'}`}
+                          style={{ width: `${c.pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
           {/* GitHub Connection */}
           {!isSignedIn && (
             <div className="rounded-xl shadow-lg p-4 sm:p-6 border-2 border-dashed bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600">
@@ -486,6 +533,14 @@ export default function ProfilePage() {
               { id: 'data_scientist', icon: '🧪', title: 'Data Scientist', desc: 'Complete 10 Lab steps', unlocked: stats.labSolved >= 10 },
               { id: 'lab_legend', icon: '🧬', title: 'Lab Legend', desc: 'Complete 20 Lab steps', unlocked: stats.labSolved >= 20 },
               { id: 'full_stack_ds', icon: '🎓', title: 'Full Stack Data Scientist', desc: 'Complete ALL Lab projects', unlocked: stats.labSolved === stats.labTotal && stats.labTotal > 0 },
+              // Cloud achievements
+              { id: 'cloud_initiate', icon: '☁️', title: 'Cloud Initiate', desc: 'Complete your first Cloud mission', unlocked: stats.cloudSolved >= 1 },
+              { id: 'cloud_architect', icon: '🏗️', title: 'Cloud Architect', desc: 'Complete 10 Cloud missions', unlocked: stats.cloudSolved >= 10 },
+              { id: 'multi_cloud', icon: '🌩️', title: 'Multi-Cloud', desc: 'Progress in 3+ Cloud tracks', unlocked: stats.cloudStats.filter(c => c.solved > 0).length >= 3 },
+              { id: 'track_master', icon: '🛰️', title: 'Track Master', desc: 'Complete an entire Cloud track', unlocked: stats.completedTracks >= 1 },
+              { id: 'cloud_overlord', icon: '🌌', title: 'Cloud Overlord', desc: 'Complete ALL Cloud missions', unlocked: stats.cloudSolved === stats.cloudTotal && stats.cloudTotal > 0 },
+              // Cross-verse achievement
+              { id: 'tri_verse', icon: '🔺', title: 'Tri-Verse Operative', desc: 'Make progress in Query, Lab, and Cloud', unlocked: stats.totalSolved >= 1 && stats.labSolved >= 1 && stats.cloudSolved >= 1 },
               ].map((a) => (
                 <div
                   key={a.id}

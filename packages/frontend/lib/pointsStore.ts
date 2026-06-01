@@ -32,6 +32,14 @@ export const TITLES: StoreTitle[] = [
   { id: 'cte_wizard',        name: 'CTE Wizard',       description: 'Recursive magic at your fingertips.',    cost: 700,  perks: { pointMultiplier: 1.4,  extraFreeHints: 2, trialTimeBonus: 150 } },
   { id: 'window_sensei',     name: 'Window Sensei',    description: 'OVER and PARTITION BY bow to you.',      cost: 900,  perks: { pointMultiplier: 1.5,  extraFreeHints: 3, trialTimeBonus: 180 } },
   { id: 'data_architect',    name: 'Data Architect',   description: 'You see the schema before it exists.',   cost: 1200, perks: { pointMultiplier: 1.75, extraFreeHints: 3, trialTimeBonus: 240 } },
+  // ── BleepxLab titles ──
+  { id: 'notebook_novice',   name: 'Notebook Novice',  description: 'First steps in the data lab.',           cost: 120,  perks: { pointMultiplier: 1.1,  extraFreeHints: 1, trialTimeBonus: 60 } },
+  { id: 'model_whisperer',   name: 'Model Whisperer',  description: 'Your models actually converge.',         cost: 450,  perks: { pointMultiplier: 1.25, extraFreeHints: 2, trialTimeBonus: 120 } },
+  { id: 'ml_engineer',       name: 'ML Engineer',      description: 'From notebook to production pipeline.',  cost: 850,  perks: { pointMultiplier: 1.45, extraFreeHints: 3, trialTimeBonus: 180 } },
+  // ── BleepxCloud titles ──
+  { id: 'cloud_practitioner', name: 'Cloud Practitioner', description: 'Provisioning your first resources.',   cost: 120,  perks: { pointMultiplier: 1.1,  extraFreeHints: 1, trialTimeBonus: 60 } },
+  { id: 'solutions_architect', name: 'Solutions Architect', description: 'You design for scale and cost.',     cost: 700,  perks: { pointMultiplier: 1.4,  extraFreeHints: 2, trialTimeBonus: 180 } },
+  { id: 'cloud_overlord',    name: 'Cloud Overlord',   description: 'Multi-cloud bends to your will.',        cost: 1300, perks: { pointMultiplier: 1.8,  extraFreeHints: 3, trialTimeBonus: 240 } },
   { id: 'bleepx_legend',     name: 'BleepX Legend',    description: '*bleep* Even I respect this one.',       cost: 1500, minPointsRequired: 1000, perks: { pointMultiplier: 2.0, extraFreeHints: 4, trialTimeBonus: 300 } },
 ];
 
@@ -64,6 +72,12 @@ export const BADGES: StoreBadge[] = [
   { id: 'badge_ninja',     emoji: '🥷', name: 'SQL Ninja',      description: 'Silent but effective.',        cost: 250, perks: { pointMultiplier: 0.08, hintDiscount: 5,  skipDiscount: 10 } },
   { id: 'badge_lightning',  emoji: '⚡', name: 'Lightning Fast', description: 'Sub-minute solves.',           cost: 350, perks: { pointMultiplier: 0.12, hintDiscount: 5,  skipDiscount: 15 } },
   { id: 'badge_trophy',    emoji: '🏆', name: 'Champion',       description: 'Undisputed domain champion.',  cost: 500, perks: { pointMultiplier: 0.15, hintDiscount: 8,  skipDiscount: 20 } },
+  // ── BleepxLab badges ──
+  { id: 'badge_flask',     emoji: '🧪', name: 'Lab Coat',       description: 'Experiments in progress.',     cost: 80,  perks: { pointMultiplier: 0.05, hintDiscount: 3,  skipDiscount: 0 } },
+  { id: 'badge_dna',       emoji: '🧬', name: 'Data Scientist', description: 'Models, metrics, mastery.',    cost: 220, perks: { pointMultiplier: 0.09, hintDiscount: 5,  skipDiscount: 10 } },
+  // ── BleepxCloud badges ──
+  { id: 'badge_cloud',     emoji: '☁️', name: 'Cloud Native',   description: 'Born in the data center.',     cost: 80,  perks: { pointMultiplier: 0.05, hintDiscount: 3,  skipDiscount: 0 } },
+  { id: 'badge_satellite', emoji: '🛰️', name: 'Architect',      description: 'Designs that scale to infinity.', cost: 280, perks: { pointMultiplier: 0.10, hintDiscount: 5,  skipDiscount: 12 } },
 ];
 
 // ─── Trial Difficulty Gating ─────────────────────────────────────────────────

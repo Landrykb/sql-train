@@ -14,6 +14,20 @@ export const awsMissions: CloudMission[] = [
       "*bleep* Congratulations, trainee — you're about to rent a server you've never touched, in a building you've never seen.\n\nAn EC2 instance is a virtual machine on AWS hardware. You choose its size (CPU + RAM), its AMI (operating system image), a key pair for SSH, and how long to run it. You pay by the second; stop it and you stop paying.\n\nIn this mission you understand instance types (t3.micro vs m5.large), AMIs, key pairs, and security groups, then launch your first EC2 in the console.",
     prerequisites: [],
     labType: 'diagram',
+    realWorld:
+      'A startup needs a server for their MVP this afternoon — no datacenter, no procurement. You spin up an EC2 instance in minutes and tear it down tonight to stop the bill.',
+    objectives: [
+      'Choose the right instance family/size for a workload',
+      'Explain what an AMI is and why it is Region-specific',
+      'Control inbound access with a security group',
+      'Predict what you are billed for when an instance is stopped vs terminated',
+    ],
+    architecture: [
+      { icon: '👤', label: 'You (SSH)', note: 'key pair' },
+      { icon: '🔥', label: 'Security Group', note: 'stateful firewall' },
+      { icon: '🖥️', label: 'EC2 Instance', note: 'from an AMI' },
+      { icon: '💾', label: 'EBS Volume', note: 'root disk' },
+    ],
   },
   {
     slug: 'ec2-auto-scaling',
@@ -26,6 +40,20 @@ export const awsMissions: CloudMission[] = [
       'One server is a single point of failure. Configure an Auto Scaling Group (ASG) behind an Application Load Balancer (ALB). Understand scaling policies (target tracking vs step), health checks, and how the ALB distributes traffic across Availability Zones.',
     prerequisites: ['ec2-basics'],
     labType: 'iac',
+    realWorld:
+      'Your app goes viral overnight. A single EC2 melts under load. With an ASG behind an ALB, traffic spreads across AZs and the fleet grows from 2 to 6 instances automatically — then shrinks back when the spike passes.',
+    objectives: [
+      'Distribute traffic across AZs with an ALB',
+      'Configure target-tracking auto scaling on CPU',
+      'Use health checks so unhealthy instances are replaced',
+      'Explain why the app tier must be stateless',
+    ],
+    architecture: [
+      { icon: '🌐', label: 'Users' },
+      { icon: '⚖️', label: 'ALB', note: 'across 2 AZs' },
+      { icon: '📈', label: 'Auto Scaling Group', note: '2–6 instances' },
+      { icon: '🖥️', label: 'EC2 fleet', note: 'stateless' },
+    ],
   },
   {
     slug: 'lambda-serverless',
@@ -64,6 +92,20 @@ export const awsMissions: CloudMission[] = [
       'S3 is your infinite filing cabinet. Create buckets, understand Standard vs Standard-IA vs Glacier vs Intelligent-Tiering, and set up lifecycle policies that automatically move objects to cheaper tiers over time.',
     prerequisites: [],
     labType: 'diagram',
+    realWorld:
+      'A media company stores 50 TB of video. Recent uploads are hot; footage older than 90 days is rarely touched. A lifecycle policy quietly moves cold objects to Glacier and cuts the storage bill ~70% — with zero code changes.',
+    objectives: [
+      'Create a bucket and reason about the global namespace',
+      'Match an access pattern to the right storage class',
+      'Automate tiering and expiry with a lifecycle policy',
+      'Explain why S3 is private by default',
+    ],
+    architecture: [
+      { icon: '📤', label: 'Upload', note: 'Standard' },
+      { icon: '♻️', label: 'Lifecycle rule', note: 'age-based' },
+      { icon: '🧊', label: 'Glacier', note: 'after 90d' },
+      { icon: '🗑️', label: 'Expire', note: 'after 1y' },
+    ],
   },
   {
     slug: 's3-security',
@@ -102,6 +144,20 @@ export const awsMissions: CloudMission[] = [
       'A VPC is your private slice of AWS. Build one from scratch: choose a CIDR block, carve out public vs private subnets across AZs, attach an Internet Gateway, and wire up route tables.',
     prerequisites: [],
     labType: 'diagram',
+    realWorld:
+      'A bank must keep its database unreachable from the internet but let a public web tier serve customers. You design a VPC where load balancers sit in public subnets and the database hides in private subnets across two AZs.',
+    objectives: [
+      'Plan a non-overlapping CIDR range',
+      'Separate public vs private subnets and explain the difference',
+      'Route internet traffic through an Internet Gateway',
+      'Spread subnets across AZs for high availability',
+    ],
+    architecture: [
+      { icon: '🌐', label: 'Internet' },
+      { icon: '🚪', label: 'Internet Gateway' },
+      { icon: '🟢', label: 'Public subnets', note: 'ALB' },
+      { icon: '🔒', label: 'Private subnets', note: 'app + DB' },
+    ],
   },
   {
     slug: 'vpc-advanced',
@@ -140,6 +196,20 @@ export const awsMissions: CloudMission[] = [
       'Launch an RDS instance with no patching headaches. Configure Multi-AZ for high availability (synchronous standby) and add read replicas (asynchronous) for read scaling.',
     prerequisites: ['vpc-foundations'],
     labType: 'diagram',
+    realWorld:
+      'An e-commerce site cannot afford downtime during a sale, and its product pages hammer the database with reads. Multi-AZ gives automatic failover; read replicas absorb the read traffic so checkout stays fast.',
+    objectives: [
+      'Launch a managed relational database in private subnets',
+      'Distinguish Multi-AZ (availability) from read replicas (read scaling)',
+      'Enable encryption and automated backups',
+      'Decide when RDS fits vs DynamoDB',
+    ],
+    architecture: [
+      { icon: '🖥️', label: 'App tier' },
+      { icon: '🛢️', label: 'RDS primary', note: 'AZ-a' },
+      { icon: '🔁', label: 'Standby', note: 'AZ-b, failover' },
+      { icon: '📖', label: 'Read replica', note: 'read scaling' },
+    ],
   },
   {
     slug: 'dynamodb',

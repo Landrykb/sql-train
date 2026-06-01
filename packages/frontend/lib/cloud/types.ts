@@ -13,6 +13,13 @@ export type CloudLevel =
 
 export type CloudLabType = 'diagram' | 'iac' | 'quiz';
 
+/** A node in an architecture flow diagram (rendered as connected cards). */
+export interface ArchNode {
+  icon: string;
+  label: string;
+  note?: string;
+}
+
 export interface CloudMission {
   slug: string;
   title: string;
@@ -27,6 +34,14 @@ export interface CloudMission {
   crossDomain?: string;
   /** Hidden / bonus mission (shown with ??? until prereqs met) */
   isBonus?: boolean;
+
+  // ── Optional rich learning content (flagship missions) ──────────
+  /** A memorable real-world scenario this mission is modeled on. */
+  realWorld?: string;
+  /** Concrete "by the end you can…" outcomes. */
+  objectives?: string[];
+  /** Ordered architecture flow, rendered as connected cards. */
+  architecture?: ArchNode[];
 }
 
 export interface CloudProviderMeta {

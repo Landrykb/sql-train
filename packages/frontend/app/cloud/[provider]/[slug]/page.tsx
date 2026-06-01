@@ -10,7 +10,6 @@ import { pushCloudMissionToGitHub } from '@/lib/githubPush';
 import { playBleep } from '@/lib/audio';
 import {
   CLOUD_PROVIDER_META,
-  getMissions,
   getMission,
   getMissionSlugs,
   isCloudProvider,
@@ -20,6 +19,67 @@ import {
 } from '@/lib/cloud';
 import { cloudTrials } from '@/lib/cloud/trials';
 import { iacTemplate } from '@/lib/cloud/templates';
+import { getConcept, hasConcept, CLOUD_CONCEPTS } from '@/lib/cloud/concepts';
+
+const META_SKILLS = new Set(['everything', 'exam-prep']);
+
+// Deterministic shuffle (seeded by slug) to avoid hydration mismatches.
+function seedFrom(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+function shuffleSeeded<T>(arr: T[], seed: number): T[] {
+  const a = [...arr];
+  let s = seed || 1;
+  const rnd = () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function CodeBlock({ code, lang }: { code: string; lang?: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="relative group">
+      {lang && (
+        <span className="absolute top-2 right-12 text-[10px] uppercase tracking-wide text-gray-500 font-mono">{lang}</span>
+      )}
+      <button
+        onClick={() => { navigator.clipboard?.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+        className="absolute top-2 right-2 text-[10px] px-2 py-1 rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+      >
+        {copied ? 'Copied' : 'Copy'}
+      </button>
+      <pre className="bg-gray-900 text-green-300 p-3 pt-8 rounded-lg text-xs overflow-x-auto whitespace-pre leading-relaxed">{code}</pre>
+    </div>
+  );
+}
+
+// Architecture flow: connected cards with arrows between them.
+function ArchitectureFlow({ nodes }: { nodes: { icon: string; label: string; note?: string }[] }) {
+  return (
+    <div className="flex items-stretch gap-1.5 overflow-x-auto pb-2">
+      {nodes.map((n, i) => (
+        <React.Fragment key={i}>
+          <div className="flex-shrink-0 min-w-[110px] max-w-[150px] rounded-lg border border-bleepx-border bg-gradient-to-b from-bleepx-bg to-bleepx-white p-3 text-center">
+            <div className="text-2xl leading-none mb-1">{n.icon}</div>
+            <div className="text-xs font-bold text-bleepx-text leading-tight">{n.label}</div>
+            {n.note && <div className="text-[10px] text-bleepx-text-secondary mt-0.5">{n.note}</div>}
+          </div>
+          {i < nodes.length - 1 && (
+            <div className="flex items-center text-sky-400 text-lg flex-shrink-0">→</div>
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
 
 export default function CloudMissionPage() {
   const params = useParams<{ provider: string; slug: string }>();
@@ -42,22 +102,63 @@ export default function CloudMissionPage() {
   const prevSlug = idx > 0 ? slugs[idx - 1] : null;
   const nextSlug = idx < slugs.length - 1 ? slugs[idx + 1] : null;
 
+  const isQuiz = mission.labType === 'quiz';
+
   // Quiz state (for quiz-type missions)
   const quizQuestions = useMemo(() => {
-    if (mission.labType !== 'quiz') return [];
+    if (!isQuiz) return [];
     const pool = cloudTrials.filter((q) => q.provider === p || q.provider === 'multi');
     return pool.length ? pool.slice(0, Math.min(5, pool.length)) : cloudTrials.slice(0, 5);
-  }, [mission.labType, p]);
+  }, [isQuiz, p]);
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const quizScore = quizQuestions.filter((q) => answers[q.id] === q.answer).length;
   const quizPassed = quizQuestions.length > 0 && quizScore / quizQuestions.length >= 0.6;
 
-  // Diagram/IaC checklist
-  const checklist = useMemo(() => mission.skills.map((s, i) => ({ id: `${s}-${i}`, label: s })), [mission.skills]);
-  const [checked, setChecked] = useState<Set<string>>(new Set());
-  const allChecked = checklist.length > 0 && checked.size >= checklist.length;
+  // ── Concept walkthrough (the real learning) ──────────────────────
+  const learnList = useMemo(
+    () =>
+      mission.skills
+        .filter((s) => !META_SKILLS.has(s))
+        .map((s) => ({ key: s, concept: getConcept(s), known: hasConcept(s) })),
+    [mission.skills],
+  );
+
+  const archNodes = useMemo(() => {
+    if (mission.architecture && mission.architecture.length) return mission.architecture;
+    return learnList.map(({ concept }) => ({ icon: concept.icon, label: concept.name }));
+  }, [mission.architecture, learnList]);
+
+  const [stepIdx, setStepIdx] = useState(0);
+  const [understood, setUnderstood] = useState<Set<string>>(new Set());
+  const allUnderstood = learnList.length > 0 && understood.size >= learnList.length;
+
+  // ── Knowledge check (auto-generated from real concepts) ──────────
+  const knowledgeCheck = useMemo(() => {
+    if (isQuiz) return [];
+    const known = learnList.filter((l) => l.known);
+    if (known.length < 2) return [];
+    const seed = seedFrom(slug);
+    const allKeys = Object.keys(CLOUD_CONCEPTS);
+    return known.slice(0, 3).map((l, i) => {
+      const distractors = shuffleSeeded(
+        allKeys.filter((k) => CLOUD_CONCEPTS[k].name !== l.concept.name),
+        seed + i,
+      )
+        .slice(0, 3)
+        .map((k) => CLOUD_CONCEPTS[k].name);
+      const options = shuffleSeeded([l.concept.name, ...distractors], seed + i * 7);
+      return { id: l.key, what: l.concept.what, options, answer: l.concept.name, why: l.concept.why };
+    });
+  }, [isQuiz, learnList, slug]);
+
+  const [kcAnswers, setKcAnswers] = useState<Record<string, string>>({});
+  const [kcSubmitted, setKcSubmitted] = useState(false);
+  const kcScore = knowledgeCheck.filter((q) => kcAnswers[q.id] === q.answer).length;
+  const kcPassed = knowledgeCheck.length === 0 || (kcSubmitted && kcScore / knowledgeCheck.length >= 0.67);
+
+  const [reviewed, setReviewed] = useState(false);
 
   // GitHub export
   const [pushing, setPushing] = useState(false);
@@ -70,7 +171,11 @@ export default function CloudMissionPage() {
     playBleep();
   }, [isDone, markComplete, missionCaseId, tier]);
 
-  const canComplete = mission.labType === 'quiz' ? quizPassed : allChecked;
+  const canComplete = isQuiz
+    ? quizPassed
+    : learnList.length > 0
+      ? allUnderstood && kcPassed
+      : reviewed;
 
   const template = mission.labType === 'iac' ? iacTemplate(p, mission) : null;
 
@@ -128,15 +233,155 @@ export default function CloudMissionPage() {
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
         <h2 className="text-base font-bold text-bleepx-text mb-2">📋 Mission Briefing</h2>
         <div className="text-sm text-bleepx-text-secondary leading-relaxed whitespace-pre-line">{mission.description}</div>
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {mission.skills.map((s) => (
-            <span key={s} className="text-[10px] px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300">{s}</span>
-          ))}
-        </div>
+
+        {mission.realWorld && (
+          <div className="mt-4 rounded-lg border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-900/15 p-3">
+            <p className="text-xs font-bold text-amber-700 dark:text-amber-300 mb-0.5">🏢 Real-world scenario</p>
+            <p className="text-sm text-bleepx-text-secondary leading-relaxed">{mission.realWorld}</p>
+          </div>
+        )}
+
+        {mission.objectives && mission.objectives.length > 0 && (
+          <div className="mt-4">
+            <p className="text-xs font-bold text-bleepx-text mb-1.5">By the end you can:</p>
+            <ul className="space-y-1">
+              {mission.objectives.map((o) => (
+                <li key={o} className="flex items-start gap-2 text-sm text-bleepx-text-secondary">
+                  <span className="text-sky-500 mt-0.5">▸</span><span>{o}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
-      {/* Lab area */}
-      {mission.labType === 'quiz' ? (
+      {/* Architecture flow */}
+      {archNodes.length > 1 && (
+        <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
+          <h2 className="text-base font-bold text-bleepx-text mb-1">🗺️ How it fits together</h2>
+          <p className="text-xs text-bleepx-text-secondary mb-3">Follow the request/data flow through the architecture.</p>
+          <ArchitectureFlow nodes={archNodes} />
+        </div>
+      )}
+
+      {/* Concept walkthrough (the learning core) */}
+      {!isQuiz && learnList.length > 0 && (() => {
+        const current = learnList[Math.min(stepIdx, learnList.length - 1)];
+        const c = current.concept;
+        const isUnderstood = understood.has(current.key);
+        const markAndAdvance = () => {
+          setUnderstood((prev) => new Set(prev).add(current.key));
+          const next = learnList.findIndex((l, i) => i > stepIdx && !understood.has(l.key));
+          if (next !== -1) setStepIdx(next);
+          else if (stepIdx < learnList.length - 1) setStepIdx(stepIdx + 1);
+        };
+        return (
+          <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-base font-bold text-bleepx-text">📚 Concept Walkthrough</h2>
+              <span className="text-xs text-bleepx-text-secondary font-mono">{understood.size}/{learnList.length} understood</span>
+            </div>
+            <p className="text-xs text-bleepx-text-secondary mb-3">Work through each concept and mark it understood. This unlocks the knowledge check.</p>
+
+            <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-3">
+              <div className="h-full bg-gradient-to-r from-sky-500 to-emerald-500 transition-all duration-500" style={{ width: `${(understood.size / learnList.length) * 100}%` }} />
+            </div>
+
+            {/* Step dots */}
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {learnList.map((l, i) => (
+                <button
+                  key={l.key}
+                  onClick={() => setStepIdx(i)}
+                  title={l.concept.name}
+                  className={`h-7 px-2 rounded-full text-[11px] font-medium border transition-colors ${
+                    understood.has(l.key)
+                      ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'
+                      : i === stepIdx
+                        ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300'
+                        : 'border-bleepx-border text-bleepx-text-secondary hover:bg-gray-50 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  {understood.has(l.key) ? '✓ ' : ''}{l.concept.icon} {l.concept.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Current concept card */}
+            <div className="rounded-xl border border-bleepx-border overflow-hidden">
+              <div className="bg-gradient-to-r from-sky-50 to-transparent dark:from-sky-900/20 px-4 py-3 flex items-center gap-3">
+                <span className="text-2xl">{c.icon}</span>
+                <div>
+                  <h3 className="font-bold text-bleepx-text leading-tight">{c.name}</h3>
+                  <p className="text-xs text-bleepx-text-secondary">{c.what}</p>
+                </div>
+              </div>
+              <div className="p-4 space-y-3">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-sky-600 mb-0.5">Why it matters</p>
+                  <p className="text-sm text-bleepx-text-secondary leading-relaxed">{c.why}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-indigo-500 mb-0.5">When to use it</p>
+                  <p className="text-sm text-bleepx-text-secondary leading-relaxed">{c.when}</p>
+                </div>
+                {c.example && (
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-wide text-emerald-600 mb-1">Example</p>
+                    <CodeBlock code={c.example.code} lang={c.example.lang} />
+                  </div>
+                )}
+                {c.gotcha && (
+                  <div className="rounded-lg border-l-4 border-red-400 bg-red-50 dark:bg-red-900/15 p-3">
+                    <p className="text-[11px] font-bold text-red-600 mb-0.5">⚠️ Gotcha (exam trap)</p>
+                    <p className="text-sm text-bleepx-text-secondary leading-relaxed">{c.gotcha}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Nav */}
+            <div className="mt-4 flex items-center justify-between gap-2">
+              <button
+                onClick={() => setStepIdx(Math.max(0, stepIdx - 1))}
+                disabled={stepIdx === 0}
+                className="px-3 py-1.5 rounded-full text-sm font-medium text-bleepx-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-40"
+              >
+                ← Prev
+              </button>
+              <button
+                onClick={markAndAdvance}
+                className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  isUnderstood
+                    ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                    : 'bg-sky-600 text-white hover:bg-sky-700'
+                }`}
+              >
+                {isUnderstood ? '✓ Understood' : 'Mark understood →'}
+              </button>
+              <button
+                onClick={() => setStepIdx(Math.min(learnList.length - 1, stepIdx + 1))}
+                disabled={stepIdx >= learnList.length - 1}
+                className="px-3 py-1.5 rounded-full text-sm font-medium text-bleepx-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-40"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Hands-on code (IaC missions) */}
+      {!isQuiz && template && (
+        <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
+          <h2 className="text-base font-bold text-bleepx-text mb-1">⚙️ Hands-on: Infrastructure as Code</h2>
+          <p className="text-xs text-bleepx-text-secondary mb-3">A realistic <code className="font-mono">{template.filename}</code> for this mission. Read it top to bottom — it mirrors the concepts above.</p>
+          <CodeBlock code={template.code} lang={template.language} />
+        </div>
+      )}
+
+      {/* Quiz (quiz missions) */}
+      {isQuiz && (
         <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
           <h2 className="text-base font-bold text-bleepx-text mb-1">📝 {mission.isBonus ? 'Exam Simulator' : 'Knowledge Check'}</h2>
           <p className="text-xs text-bleepx-text-secondary mb-4">Answer at least 60% correctly to complete this mission.</p>
@@ -189,36 +434,77 @@ export default function CloudMissionPage() {
             </div>
           )}
         </div>
-      ) : (
-        <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-          <h2 className="text-base font-bold text-bleepx-text mb-1">
-            {mission.labType === 'iac' ? '⚙️ Build It: Infrastructure as Code' : '🗺️ Design It: Architecture Checklist'}
-          </h2>
+      )}
+
+      {/* Knowledge check (diagram/iac missions) */}
+      {!isQuiz && knowledgeCheck.length > 0 && (
+        <div className={`bg-bleepx-white rounded-xl border p-5 shadow-sm transition-opacity ${allUnderstood ? 'border-bleepx-border' : 'border-dashed border-bleepx-border opacity-60'}`}>
+          <h2 className="text-base font-bold text-bleepx-text mb-1">🧠 Knowledge Check</h2>
           <p className="text-xs text-bleepx-text-secondary mb-4">
-            {mission.labType === 'iac'
-              ? 'Study the starter template, then check off each concept as you understand and implement it.'
-              : 'Work through each design concept. Check it off once you can explain and justify it.'}
+            {allUnderstood ? 'Match each description to the right concept (67% to pass).' : 'Finish the walkthrough above to unlock the check.'}
           </p>
-
-          {template && (
-            <pre className="bg-gray-900 text-green-400 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre mb-4">{template.code}</pre>
-          )}
-
-          <div className="space-y-2">
-            {checklist.map((c) => {
-              const on = checked.has(c.id);
-              return (
+          {allUnderstood && (
+            <>
+              <div className="space-y-4">
+                {knowledgeCheck.map((q, qi) => (
+                  <div key={q.id} className="border border-bleepx-border rounded-lg p-3">
+                    <p className="text-sm font-medium text-bleepx-text mb-2">{qi + 1}. Which is described as: <span className="italic text-bleepx-text-secondary">&ldquo;{q.what}&rdquo;</span></p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                      {q.options.map((opt) => {
+                        const selected = kcAnswers[q.id] === opt;
+                        const showCorrect = kcSubmitted && opt === q.answer;
+                        const showWrong = kcSubmitted && selected && opt !== q.answer;
+                        return (
+                          <button
+                            key={opt}
+                            disabled={kcSubmitted}
+                            onClick={() => setKcAnswers((a) => ({ ...a, [q.id]: opt }))}
+                            className={`text-left text-sm px-3 py-2 rounded-lg border transition-colors ${
+                              showCorrect ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'
+                              : showWrong ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-600'
+                              : selected ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300'
+                              : 'border-bleepx-border text-bleepx-text hover:bg-gray-50 dark:hover:bg-gray-800'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {kcSubmitted && <p className="text-xs text-bleepx-text-secondary mt-2 italic">{q.why}</p>}
+                  </div>
+                ))}
+              </div>
+              {!kcSubmitted ? (
                 <button
-                  key={c.id}
-                  onClick={() => setChecked((prev) => { const n = new Set(prev); n.has(c.id) ? n.delete(c.id) : n.add(c.id); return n; })}
-                  className={`w-full flex items-center gap-3 text-left px-3 py-2 rounded-lg border transition-colors ${on ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-bleepx-border hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                  onClick={() => setKcSubmitted(true)}
+                  disabled={Object.keys(kcAnswers).length < knowledgeCheck.length}
+                  className="mt-4 px-5 py-2 rounded-full bg-sky-600 text-white text-sm font-semibold hover:bg-sky-700 transition-colors disabled:opacity-50"
                 >
-                  <span className={`w-5 h-5 rounded flex items-center justify-center text-xs flex-shrink-0 ${on ? 'bg-emerald-500 text-white' : 'border border-gray-300 dark:border-gray-600'}`}>{on ? '✓' : ''}</span>
-                  <span className={`text-sm font-mono ${on ? 'text-emerald-700 dark:text-emerald-300' : 'text-bleepx-text'}`}>{c.label}</span>
+                  Submit Check
                 </button>
-              );
-            })}
-          </div>
+              ) : (
+                <div className="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                  <p className={`text-sm font-bold ${kcPassed ? 'text-emerald-600' : 'text-red-500'}`}>
+                    Score: {kcScore}/{knowledgeCheck.length} — {kcPassed ? '✓ Passed!' : 'Try again (need 67%)'}
+                  </p>
+                  {!kcPassed && (
+                    <button onClick={() => { setKcSubmitted(false); setKcAnswers({}); }} className="mt-2 text-sm text-sky-600 hover:underline">Retry</button>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Design-led missions with no concepts: simple review confirmation */}
+      {!isQuiz && learnList.length === 0 && !isDone && (
+        <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" checked={reviewed} onChange={(e) => setReviewed(e.target.checked)} className="mt-1 w-4 h-4 accent-sky-600" />
+            <span className="text-sm text-bleepx-text">I have studied the architecture and the starter code above and understand how the pieces fit together.</span>
+          </label>
         </div>
       )}
 
@@ -230,7 +516,15 @@ export default function CloudMissionPage() {
             disabled={!canComplete}
             className="w-full px-5 py-3 rounded-full bg-gradient-to-r from-sky-600 to-blue-600 text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
           >
-            {canComplete ? `✓ Complete Mission (+${tier * 10} pts)` : mission.labType === 'quiz' ? 'Pass the quiz to complete' : 'Check off all concepts to complete'}
+            {canComplete
+              ? `✓ Complete Mission (+${tier * 10} pts)`
+              : isQuiz
+                ? 'Pass the quiz to complete'
+                : !allUnderstood && learnList.length > 0
+                  ? 'Work through every concept to continue'
+                  : !kcPassed
+                    ? 'Pass the knowledge check to complete'
+                    : 'Confirm your review to complete'}
           </button>
         ) : (
           <div className="text-center text-sm font-semibold text-emerald-600">🎉 Mission complete — nice work, human.</div>

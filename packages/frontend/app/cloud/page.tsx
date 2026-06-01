@@ -10,8 +10,20 @@ import {
   CLOUD_PROVIDERS,
   CLOUD_MISSIONS,
   TOTAL_CLOUD_MISSIONS,
+  CLOUD_LEVEL_TIER,
   cloudMissionId,
+  type CloudMission,
 } from '@/lib/cloud';
+
+const LEVEL_BY_TIER = ['', 'Beginner', 'Intermediate', 'Advanced', 'Expert', 'Master'];
+
+/** Every track spans Beginner→Master; show the real range, not a fake ranking. */
+function levelRange(missions: CloudMission[]): string {
+  const tiers = missions.map((m) => CLOUD_LEVEL_TIER[m.level]);
+  const min = Math.min(...tiers);
+  const max = Math.max(...tiers);
+  return min === max ? LEVEL_BY_TIER[min] : `${LEVEL_BY_TIER[min]} → ${LEVEL_BY_TIER[max]}`;
+}
 
 export default function CloudHomePage() {
   const { completed, points } = useProgress();
@@ -112,9 +124,31 @@ export default function CloudHomePage() {
         </div>
       </div>
 
+      {/* Trials banner */}
+      <Link
+        href="/cloud/trials"
+        className="group block bg-gradient-to-br from-indigo-900 via-blue-800 to-sky-900 border-2 border-sky-500/30 rounded-xl shadow-lg hover:shadow-sky-500/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+      >
+        <div className="p-5 flex items-center gap-4">
+          <div className="text-3xl">⚡</div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-extrabold text-white text-lg group-hover:text-sky-300 transition-colors">Trials Arena</h3>
+            <p className="text-sm text-gray-400 mt-0.5">Rapid-fire scenario questions across AWS, Azure, GCP, ESG & FinOps — score 70%+ to earn points.</p>
+            <div className="mt-2 flex items-center gap-3">
+              <span className="text-xs text-gray-500">Pick a track or go multi-cloud</span>
+              <span className="text-sky-400 text-xs">📖 Cloud Guide available</span>
+            </div>
+          </div>
+          <svg className="w-5 h-5 text-sky-400 group-hover:translate-x-1 transition-transform flex-shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </Link>
+
       {/* Provider tracks */}
       <div id="tracks">
-        <h2 className="text-lg sm:text-xl font-bold text-bleepx-text mb-4">Choose Your Track</h2>
+        <h2 className="text-lg sm:text-xl font-bold text-bleepx-text mb-1">Choose Your Track</h2>
+        <p className="text-xs text-bleepx-text-secondary mb-4">The big-three providers are peers — each track runs <strong className="text-bleepx-text">Beginner → Master</strong>. Levels reflect mission depth, not "which cloud is harder".</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {CLOUD_PROVIDERS.map((p) => {
             const meta = CLOUD_PROVIDER_META[p];
@@ -143,9 +177,9 @@ export default function CloudHomePage() {
                       )}
                     </div>
                     <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-0.5 line-clamp-2">{meta.desc}</p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <span className="text-[10px] sm:text-xs text-bleepx-text-secondary">{meta.difficulty}</span>
-                      <span className="text-amber-400 text-[10px]">{'⭐'.repeat(meta.stars)}</span>
+                    <div className="mt-2 flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary font-medium">📈 {levelRange(CLOUD_MISSIONS[p])}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary font-medium">{s.total} missions</span>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
                       <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
