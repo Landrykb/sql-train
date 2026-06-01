@@ -4,6 +4,7 @@
  */
 
 import { getGitHubUser, getGitHubToken } from './authClient';
+import { loadInterpretation, formatReportMarkdown } from './reportGeneration';
 
 interface PortfolioFile {
   path: string;
@@ -231,6 +232,12 @@ export async function pushDomainPortfolioToGitHub(
     { path: `${domain}/README.md`, content: readme },
   ];
 
+  // Add interpretation report if available
+  const interpretation = loadInterpretation('query', `${domain}-portfolio`);
+  if (interpretation) {
+    files.push({ path: `${domain}/ANALYSIS.md`, content: formatReportMarkdown(interpretation) });
+  }
+
   caseIds.forEach(id => {
     const data = caseData[id];
     if (data.query) {
@@ -287,6 +294,12 @@ export async function pushLabDomainPortfolioToGitHub(
     { path: `${domain}/README.md`, content: readme },
   ];
 
+  // Add interpretation report if available
+  const interpretation = loadInterpretation('lab', `${domain}-portfolio`);
+  if (interpretation) {
+    files.push({ path: `${domain}/ANALYSIS.md`, content: formatReportMarkdown(interpretation) });
+  }
+
   projectIds.forEach(id => {
     const data = projectData[id];
     if (data.code) {
@@ -340,6 +353,12 @@ export async function pushCloudProviderPortfolioToGitHub(
   const files: PortfolioFile[] = [
     { path: `${provider}/README.md`, content: readme },
   ];
+
+  // Add interpretation report if available
+  const interpretation = loadInterpretation('cloud', `${provider}-portfolio`);
+  if (interpretation) {
+    files.push({ path: `${provider}/ANALYSIS.md`, content: formatReportMarkdown(interpretation) });
+  }
 
   missionSlugs.forEach(slug => {
     const data = missionData[slug];

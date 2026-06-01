@@ -15,6 +15,7 @@ import { track, Events } from '@/lib/analytics';
 import PointsShop from '@/components/PointsShop';
 import { getStoreState, getActivePerks, TITLES, BADGES, type StoreState } from '@/lib/pointsStore';
 import { BleepxHead, BleepxTrophy, BleepxLock, BleepxSpark, BleepxGitHub } from '@/components/BleepxIcons';
+import { InterpretationEditor } from '@/components/InterpretationEditor';
 
 const DOMAINS = ['business', 'crime', 'farming', 'finance', 'healthcare', 'social', 'space', 'sports'] as const;
 
@@ -63,6 +64,7 @@ export default function ProfilePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [storeState, setStoreState] = useState<StoreState>(getStoreState());
+  const [editingItem, setEditingItem] = useState<{ verse: 'query' | 'lab' | 'cloud'; itemId: string; itemName: string; domain?: string } | null>(null);
 
   // Re-read store state whenever it changes (equip badge/title, purchase, etc.)
   const refreshStore = useCallback(() => setStoreState(getStoreState()), []);
@@ -121,6 +123,11 @@ export default function ProfilePage() {
     const completedTracks = cloudStats.filter((c) => c.total > 0 && c.solved === c.total).length;
     return { domainStats, totalSolved, totalCases, totalPoints: points, completedDomains, labSolved, labTotal, cloudStats, cloudSolved, cloudTotal, completedTracks };
   }, [completed, points]);
+
+  // Helper variables for portfolio interpretation buttons
+  const hasCompletedQueryCases = stats.totalSolved > 0;
+  const hasCompletedLabCases = stats.labSolved > 0;
+  const hasCompletedCloudMissions = stats.cloudSolved > 0;
 
   // Solve time stats
   const solveTimeStats = useMemo(() => {
@@ -566,122 +573,168 @@ export default function ProfilePage() {
 
       {tab === 'exports' && (
         <div className="space-y-6">
-          <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
-            <h2 className="text-lg font-bold mb-4 text-bleepx-text flex items-center gap-2">
-              <span>📤</span> Portfolio Exports
-            </h2>
-            <p className="text-sm text-bleepx-text-secondary mb-6">
-              Export your completed work to GitHub as professional portfolios. You can export individual items or entire domains at once.
-            </p>
-
-            <div className="space-y-4">
-              {/* BleepxQuery Exports */}
-              <div className="border border-bleepx-border rounded-lg p-4">
-                <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
-                  <span className="text-bleepx-blue">💠</span> BleepxQuery
-                </h3>
-                <p className="text-xs text-bleepx-text-secondary mb-3">Export SQL challenges to your GitHub portfolio.</p>
-                <div className="flex flex-wrap gap-2">
-                  {DOMAINS.map((domain) => {
-                    const all = fullCaseOrder[domain] || [];
-                    const solved = all.filter((c) => completed.has(c)).length;
-                    const hasWork = solved > 0;
-                    return (
-                      <button
-                        key={domain}
-                        disabled={!hasWork || !isSignedIn}
-                        onClick={() => {
-                          playBleep();
-                          // TODO: Implement domain export
-                          console.log('Export domain:', domain);
-                        }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                          hasWork && isSignedIn
-                            ? 'bg-bleepx-blue text-white hover:bg-blue-600'
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-                        }`}
-                      >
-                        {domainMeta[domain]?.label || domain} ({solved}/{all})
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* BleepxLab Exports */}
-              <div className="border border-bleepx-border rounded-lg p-4">
-                <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
-                  <span className="text-teal-500">🔬</span> BleepxLab
-                </h3>
-                <p className="text-xs text-bleepx-text-secondary mb-3">Export data science projects to your GitHub portfolio.</p>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(LAB_CASE_ORDER).map(([domain, cases]) => {
-                    const solved = cases.filter(c => completed.has(c) || completed.has(`lab_${c}`)).length;
-                    const hasWork = solved > 0;
-                    return (
-                      <button
-                        key={domain}
-                        disabled={!hasWork || !isSignedIn}
-                        onClick={() => {
-                          playBleep();
-                          // TODO: Implement domain export
-                          console.log('Export lab domain:', domain);
-                        }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                          hasWork && isSignedIn
-                            ? 'bg-teal-600 text-white hover:bg-teal-700'
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-                        }`}
-                      >
-                        {LAB_DOMAIN_META[domain]?.name || domain} ({solved}/{cases.length})
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* BleepxCloud Exports */}
-              <div className="border border-bleepx-border rounded-lg p-4">
-                <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
-                  <span className="text-sky-500">☁️</span> BleepxCloud
-                </h3>
-                <p className="text-xs text-bleepx-text-secondary mb-3">Export cloud architecture missions to your GitHub portfolio.</p>
-                <div className="flex flex-wrap gap-2">
-                  {CLOUD_PROVIDERS.map((provider) => {
-                    const missions = CLOUD_MISSIONS[provider] || [];
-                    const solved = missions.filter((m) => completed.has(cloudMissionId(provider, m.slug))).length;
-                    const hasWork = solved > 0;
-                    return (
-                      <button
-                        key={provider}
-                        disabled={!hasWork || !isSignedIn}
-                        onClick={() => {
-                          playBleep();
-                          // TODO: Implement provider export
-                          console.log('Export cloud provider:', provider);
-                        }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                          hasWork && isSignedIn
-                            ? 'bg-sky-600 text-white hover:bg-sky-700'
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-                        }`}
-                      >
-                        {CLOUD_PROVIDER_META[provider].name} ({solved}/{missions.length})
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+          {editingItem ? (
+            <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
+              <InterpretationEditor
+                verse={editingItem.verse}
+                itemId={editingItem.itemId}
+                itemName={editingItem.itemName}
+                domain={editingItem.domain}
+                onSave={() => setEditingItem(null)}
+                onCancel={() => setEditingItem(null)}
+              />
             </div>
+          ) : (
+            <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
+              <h2 className="text-lg font-bold mb-4 text-bleepx-text flex items-center gap-2">
+                <span>📤</span> Portfolio Exports
+              </h2>
+              <p className="text-sm text-bleepx-text-secondary mb-6">
+                Export your completed work to GitHub as professional portfolios. Add interpretations to create executive-ready reports.
+              </p>
 
-            {!isSignedIn && (
-              <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                <p className="text-xs text-amber-800 dark:text-amber-300">
-                  ⚠️ Sign in with GitHub to enable portfolio exports.
-                </p>
+              <div className="space-y-4">
+                {/* BleepxQuery Exports */}
+                <div className="border border-bleepx-border rounded-lg p-4">
+                  <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
+                    <span className="text-bleepx-blue">💠</span> BleepxQuery
+                  </h3>
+                  <p className="text-xs text-bleepx-text-secondary mb-3">Export SQL challenges to your GitHub portfolio.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {DOMAINS.map((domain) => {
+                      const all = fullCaseOrder[domain] || [];
+                      const solved = all.filter((c) => completed.has(c)).length;
+                      const hasWork = solved > 0;
+                      return (
+                        <button
+                          key={domain}
+                          disabled={!hasWork || !isSignedIn}
+                          onClick={() => {
+                            playBleep();
+                            // TODO: Implement domain export
+                            console.log('Export domain:', domain);
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            hasWork && isSignedIn
+                              ? 'bg-bleepx-blue text-white hover:bg-blue-600'
+                              : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
+                          }`}
+                        >
+                          {domainMeta[domain]?.label || domain} ({solved}/{all})
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {hasCompletedQueryCases && (
+                    <button
+                      onClick={() => {
+                        playBleep();
+                        setEditingItem({ verse: 'query', itemId: 'query-portfolio', itemName: 'Query Portfolio Report' });
+                      }}
+                      className="mt-3 px-4 py-2 rounded-lg border border-bleepx-border text-bleepx-text text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      📝 Write Portfolio Interpretation
+                    </button>
+                  )}
+                </div>
+
+                {/* BleepxLab Exports */}
+                <div className="border border-bleepx-border rounded-lg p-4">
+                  <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
+                    <span className="text-teal-500">🔬</span> BleepxLab
+                  </h3>
+                  <p className="text-xs text-bleepx-text-secondary mb-3">Export data science projects to your GitHub portfolio.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(LAB_CASE_ORDER).map(([domain, cases]) => {
+                      const solved = cases.filter(c => completed.has(c) || completed.has(`lab_${c}`)).length;
+                      const hasWork = solved > 0;
+                      return (
+                        <button
+                          key={domain}
+                          disabled={!hasWork || !isSignedIn}
+                          onClick={() => {
+                            playBleep();
+                            // TODO: Implement domain export
+                            console.log('Export lab domain:', domain);
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            hasWork && isSignedIn
+                              ? 'bg-teal-600 text-white hover:bg-teal-700'
+                              : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
+                          }`}
+                        >
+                          {LAB_DOMAIN_META[domain]?.name || domain} ({solved}/{cases.length})
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {hasCompletedLabCases && (
+                    <button
+                      onClick={() => {
+                        playBleep();
+                        setEditingItem({ verse: 'lab', itemId: 'lab-portfolio', itemName: 'Lab Portfolio Report' });
+                      }}
+                      className="mt-3 px-4 py-2 rounded-lg border border-bleepx-border text-bleepx-text text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      📝 Write Portfolio Interpretation
+                    </button>
+                  )}
+                </div>
+
+                {/* BleepxCloud Exports */}
+                <div className="border border-bleepx-border rounded-lg p-4">
+                  <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
+                    <span className="text-sky-500">☁️</span> BleepxCloud
+                  </h3>
+                  <p className="text-xs text-bleepx-text-secondary mb-3">Export cloud architecture missions to your GitHub portfolio.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {CLOUD_PROVIDERS.map((provider) => {
+                      const missions = CLOUD_MISSIONS[provider] || [];
+                      const solved = missions.filter((m) => completed.has(cloudMissionId(provider, m.slug))).length;
+                      const hasWork = solved > 0;
+                      return (
+                        <button
+                          key={provider}
+                          disabled={!hasWork || !isSignedIn}
+                          onClick={() => {
+                            playBleep();
+                            // TODO: Implement provider export
+                            console.log('Export cloud provider:', provider);
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            hasWork && isSignedIn
+                              ? 'bg-sky-600 text-white hover:bg-sky-700'
+                              : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
+                          }`}
+                        >
+                          {CLOUD_PROVIDER_META[provider].name} ({solved}/{missions.length})
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {hasCompletedCloudMissions && (
+                    <button
+                      onClick={() => {
+                        playBleep();
+                        setEditingItem({ verse: 'cloud', itemId: 'cloud-portfolio', itemName: 'Cloud Portfolio Report' });
+                      }}
+                      className="mt-3 px-4 py-2 rounded-lg border border-bleepx-border text-bleepx-text text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      📝 Write Portfolio Interpretation
+                    </button>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
+
+              {!isSignedIn && (
+                <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <p className="text-xs text-amber-800 dark:text-amber-300">
+                    ⚠️ Sign in with GitHub to enable portfolio exports.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
