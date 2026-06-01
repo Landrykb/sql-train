@@ -3,7 +3,7 @@
  * Uses the GitHub API directly — no backend needed.
  */
 
-import { getGitHubUser, getGitHubToken } from './authClient';
+import { getGitHubUser, getGitHubToken, GitHubUser } from './authClient';
 import { loadInterpretation, formatReportMarkdown } from './reportGeneration';
 
 interface PortfolioFile {
@@ -163,8 +163,8 @@ export async function pushLabProjectToGitHub(
   projectName: string,
   files: PortfolioFile[],
   onProgress?: (msg: string) => void,
+  user?: GitHubUser | null,
 ): Promise<PushResult> {
-  const user = getGitHubUser();
   const token = await getGitHubToken();
   if (!user || !token) {
     return { success: false, error: 'Sign in with GitHub first to push your work.' };
@@ -210,8 +210,8 @@ export async function pushDomainPortfolioToGitHub(
   caseIds: string[],
   caseData: Record<string, { name: string; query?: string; solution?: string }>,
   onProgress?: (msg: string) => void,
+  user?: GitHubUser | null,
 ): Promise<PushResult> {
-  const user = getGitHubUser();
   const token = await getGitHubToken();
   if (!user || !token) {
     return { success: false, error: 'Sign in with GitHub first to push your portfolio.' };
@@ -332,8 +332,8 @@ export async function pushCloudProviderPortfolioToGitHub(
   missionSlugs: string[],
   missionData: Record<string, { title: string; skills: string[]; description: string; iacCode?: string }>,
   onProgress?: (msg: string) => void,
+  user?: GitHubUser | null,
 ): Promise<PushResult> {
-  const user = getGitHubUser();
   const token = await getGitHubToken();
   if (!user || !token) {
     return { success: false, error: 'Sign in with GitHub first to push your portfolio.' };
@@ -398,8 +398,8 @@ export async function pushCloudMissionToGitHub(
   providerName: string,
   iacCode: string | null,
   onProgress?: (msg: string) => void,
+  user?: GitHubUser | null,
 ): Promise<PushResult> {
-  const user = getGitHubUser();
   const token = await getGitHubToken();
   if (!user || !token) {
     return { success: false, error: 'Sign in with GitHub first to push your work.' };

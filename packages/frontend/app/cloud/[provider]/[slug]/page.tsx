@@ -209,11 +209,12 @@ export default function CloudMissionPage() {
       meta.name,
       template?.code || null,
       (msg) => setPushMsg(msg),
+      ghUser,
     );
     setPushResult(result);
     setPushing(false);
     setPushMsg(null);
-  }, [p, mission, meta.name, template, requireAuth]);
+  }, [p, mission, meta.name, template, requireAuth, ghUser]);
 
   // Render the auth gate component
   if (!ghUser?.login) {

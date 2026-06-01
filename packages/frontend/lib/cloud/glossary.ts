@@ -157,6 +157,170 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     analogy: 'Like having the finance team, engineers, and business leaders at the same table to decide cloud spending. Instead of a surprise bill each month, everyone plans and optimizes together.',
     example: 'Implement cost visibility, optimization, and governance practices across the organization.',
   },
+
+  // ── AWS Services ───────────────────────────────────────────────────
+  sqs: {
+    term: 'SQS',
+    definition: 'Simple Queue Service - fully managed message queuing for decoupling distributed systems.',
+    analogy: 'Like a message box where people can leave notes for you. You can check the box whenever you want, process messages in order, and nobody needs to be online at the same time.',
+    example: 'Queue background jobs, process orders, or decouple microservices.',
+  },
+  sns: {
+    term: 'SNS',
+    definition: 'Simple Notification Service - pub/sub messaging for pushing messages to subscribers.',
+    analogy: 'Like a town crier who announces news to everyone listening. When something happens, the crier shouts it out and all subscribers get the message simultaneously.',
+    example: 'Send push notifications, SMS, or emails to multiple recipients.',
+  },
+  kinesis: {
+    term: 'Kinesis',
+    definition: 'Real-time data streaming service for collecting and processing large streams of data.',
+    analogy: 'Like a conveyor belt that never stops, bringing data to your processing line. Data flows continuously and you can process it in real-time as it arrives.',
+    example: 'Stream clickstream data, IoT sensor data, or application logs for real-time analysis.',
+  },
+  'api-gateway': {
+    term: 'API Gateway',
+    definition: 'Managed API service for creating, publishing, and securing APIs at any scale.',
+    analogy: 'Like a receptionist who handles all incoming requests, checks credentials, routes them to the right service, and returns responses. You don\'t need to build your own API infrastructure.',
+    example: 'Create REST or WebSocket APIs for your applications with authentication and throttling.',
+  },
+  cloudwatch: {
+    term: 'CloudWatch',
+    definition: 'Monitoring and observability service for AWS resources and applications.',
+    analogy: 'Like a security camera system and dashboard combined. It watches your resources, collects metrics, logs events, and alerts you when something goes wrong.',
+    example: 'Monitor EC2 instances, track application logs, and set up alarms for metrics.',
+  },
+  route53: {
+    term: 'Route 53',
+    definition: 'DNS web service - routes internet traffic to your resources.',
+    analogy: 'Like a phone book for the internet. When someone types your domain name, Route 53 looks up the IP address and directs them to the right server.',
+    example: 'Route traffic to your load balancer, S3 website, or CloudFront distribution.',
+  },
+  efs: {
+    term: 'EFS',
+    definition: 'Elastic File System - scalable file storage for Linux workloads.',
+    analogy: 'Like a network drive that can be accessed by multiple computers simultaneously. It grows automatically as you add files and can be mounted from many instances.',
+    example: 'Shared file storage for web servers, content management systems, or big data analytics.',
+  },
+  eks: {
+    term: 'EKS',
+    definition: 'Elastic Kubernetes Service - managed Kubernetes for container orchestration.',
+    analogy: 'Like having a Kubernetes expert who manages the control plane for you. You just deploy your containers and EKS handles the master nodes, upgrades, and scaling.',
+    example: 'Run Kubernetes clusters without managing the control plane infrastructure.',
+  },
+  'elastic-cache': {
+    term: 'ElastiCache',
+    definition: 'Managed in-memory data store service (Redis or Memcached).',
+    analogy: 'Like a super-fast scratchpad for frequently accessed data. Instead of reading from a slow disk every time, you keep hot data in memory for instant access.',
+    example: 'Cache database queries, session state, or real-time analytics.',
+  },
+
+  // ── Azure Services ─────────────────────────────────────────────────
+  'azure-functions': {
+    term: 'Azure Functions',
+    definition: 'Serverless compute service for running event-triggered code.',
+    analogy: 'Like Lambda on AWS - tiny workers who wake up when there\'s work, do it, then sleep. You don\'t manage servers, just write code.',
+    example: 'Process HTTP requests, timer events, or Azure service triggers.',
+  },
+  'app-service': {
+    term: 'Azure App Service',
+    definition: 'Managed web app hosting service for web apps, mobile backends, and REST APIs.',
+    analogy: 'Like a fully managed web hosting service where you just upload your code and it runs. Azure handles servers, scaling, and patching.',
+    example: 'Host web applications built with .NET, Node.js, Python, or Java.',
+  },
+  'cosmos-db': {
+    term: 'Azure Cosmos DB',
+    definition: 'Globally distributed, multi-model database service.',
+    analogy: 'Like a database that lives everywhere at once. You can read and write data from any region in the world with single-digit millisecond latency, and it supports multiple data models.',
+    example: 'Build global applications with low-latency access from anywhere.',
+  },
+  'azure-sql': {
+    term: 'Azure SQL Database',
+    definition: 'Managed SQL database service in the cloud.',
+    analogy: 'Like RDS on AWS - a database administrator who manages backups, updates, and high availability for you. Just use your SQL database.',
+    example: 'Run SQL Server databases without managing the underlying infrastructure.',
+  },
+  'blob-storage': {
+    term: 'Azure Blob Storage',
+    definition: 'Object storage for unstructured data like text, binary, and media files.',
+    analogy: 'Like S3 on AWS - an infinite cloud drive for storing any type of file. Highly reliable, scalable, and accessible from anywhere.',
+    example: 'Store images, videos, documents, backups, and application data.',
+  },
+  'azure-kubernetes-service': {
+    term: 'Azure Kubernetes Service (AKS)',
+    definition: 'Managed Kubernetes service for container orchestration.',
+    analogy: 'Like EKS on AWS - managed Kubernetes where Azure handles the control plane. You deploy containers and AKS manages the cluster.',
+    example: 'Run Kubernetes clusters without managing the master nodes.',
+  },
+
+  // ── GCP Services ───────────────────────────────────────────────────
+  'compute-engine': {
+    term: 'Compute Engine',
+    definition: 'Infrastructure as a Service (IaaS) for running virtual machines.',
+    analogy: 'Like EC2 on AWS - virtual computers you can rent in Google\'s data centers. You choose the specs, install software, and pay for what you use.',
+    example: 'Run custom VMs with your choice of OS and applications.',
+  },
+  'cloud-run': {
+    term: 'Cloud Run',
+    definition: 'Serverless container platform that automatically scales containers.',
+    analogy: 'Like a magic container platform where you just upload your container and it runs. Google handles scaling to zero, load balancing, and infrastructure.',
+    example: 'Run containerized web applications without managing servers or clusters.',
+  },
+  bigquery: {
+    term: 'BigQuery',
+    definition: 'Serverless, highly scalable data warehouse for analytics.',
+    analogy: 'Like a super-powered Excel that can analyze billions of rows in seconds. You write SQL queries and Google handles the infrastructure, scaling, and optimization.',
+    example: 'Analyze petabytes of data for business intelligence and machine learning.',
+  },
+  'cloud-sql': {
+    term: 'Cloud SQL',
+    definition: 'Managed relational database service for MySQL, PostgreSQL, and SQL Server.',
+    analogy: 'Like RDS on AWS - a managed database where Google handles backups, replication, and maintenance. You just use the database.',
+    example: 'Run relational databases without managing the underlying infrastructure.',
+  },
+  'cloud-storage': {
+    term: 'Cloud Storage',
+    definition: 'Unified object storage for data of any size.',
+    analogy: 'Like S3 on AWS - an infinite cloud drive for storing any type of file. Highly durable, scalable, and accessible from anywhere.',
+    example: 'Store images, videos, backups, and application data.',
+  },
+  dataflow: {
+    term: 'Dataflow',
+    definition: 'Managed service for stream and batch data processing.',
+    analogy: 'Like a data processing pipeline that can handle both streaming data (real-time) and batch data (historical). Google manages the infrastructure and scaling.',
+    example: 'Process streaming data from Pub/Sub or batch data from BigQuery.',
+  },
+  'cloud-pubsub': {
+    term: 'Cloud Pub/Sub',
+    definition: 'Real-time messaging service for event-driven systems.',
+    analogy: 'Like SNS + SQS combined - you can publish messages and subscribe to them. Great for decoupling services and building event-driven architectures.',
+    example: 'Send messages between microservices or process event streams.',
+  },
+
+  // ── Additional ESG Terms ───────────────────────────────────────────
+  'net-zero': {
+    term: 'Net Zero',
+    definition: 'Balancing greenhouse gas emissions with removal, resulting in no net emissions.',
+    analogy: 'Like your bank account - you can spend money (emit carbon) but if you deposit the same amount (remove carbon), you end up at zero. Companies aim for this by reducing emissions and offsetting the rest.',
+    example: 'A company achieves net zero by cutting emissions by 80% and buying carbon credits for the remaining 20%.',
+  },
+  sbti: {
+    term: 'SBTi (Science Based Targets)',
+    definition: 'Framework for companies to set emission reduction targets aligned with climate science.',
+    analogy: 'Like getting a fitness plan from a doctor based on your health data, not just guessing. SBTi gives companies science-based targets that actually help achieve climate goals.',
+    example: 'A company commits to reducing emissions by 50% by 2030, validated by SBTi.',
+  },
+  'greenhouse-gas': {
+    term: 'Greenhouse Gas',
+    definition: 'Gases that trap heat in the atmosphere, causing global warming (CO2, methane, nitrous oxide).',
+    analogy: 'Like a blanket around the Earth - these gases let sunlight in but trap heat, making the planet warmer. The thicker the blanket, the hotter it gets.',
+    example: 'Carbon dioxide from burning fossil fuels is the most common greenhouse gas.',
+  },
+  'carbon-offset': {
+    term: 'Carbon Offset',
+    definition: 'Reduction in greenhouse gas emissions used to compensate for emissions elsewhere.',
+    analogy: 'Like paying someone else to exercise for you. If you can\'t reduce your own emissions, you pay for a project that reduces emissions elsewhere to balance it out.',
+    example: 'A company buys offsets from a wind farm project to compensate for their factory emissions.',
+  },
 };
 
 /** Get a glossary entry by term (case-insensitive) */
