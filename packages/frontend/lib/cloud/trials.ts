@@ -1,6 +1,7 @@
 import type { CloudProvider } from './types';
 
 export type TrialDifficulty = 'easy' | 'medium' | 'hard' | 'expert';
+export type ExamLevel = 'Practitioner' | 'Associate' | 'Professional' | 'Specialty' | 'None';
 
 export interface CloudTrialQuestion {
   id: string;
@@ -11,6 +12,8 @@ export interface CloudTrialQuestion {
   provider: CloudProvider | 'multi';
   difficulty: TrialDifficulty;
   topic: string;
+  examLevel: ExamLevel;
+  hint?: string; // Hint for struggling users
 }
 
 export const cloudTrials: CloudTrialQuestion[] = [
@@ -26,6 +29,8 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'aws',
     difficulty: 'easy',
     topic: 's3-fundamentals',
+    examLevel: 'Associate',
+    hint: 'Look for a storage class that automatically moves data between tiers based on access patterns.',
   },
   {
     id: 'ct-002',
@@ -38,6 +43,8 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'aws',
     difficulty: 'easy',
     topic: 'lambda-serverless',
+    examLevel: 'Associate',
+    hint: 'Serverless means no servers to manage - you only pay when code runs.',
   },
   {
     id: 'ct-003',
@@ -50,6 +57,8 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'aws',
     difficulty: 'medium',
     topic: 'vpc-advanced',
+    examLevel: 'Professional',
+    hint: 'Think about what allows outbound traffic but blocks inbound traffic from the internet.',
   },
   {
     id: 'ct-004',
@@ -61,6 +70,8 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'aws',
     difficulty: 'medium',
     topic: 'rds-basics',
+    examLevel: 'Associate',
+    hint: 'Synchronous means the standby is always up-to-date - automatic failover requires this.',
   },
   {
     id: 'ct-005',
@@ -72,6 +83,60 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'aws',
     difficulty: 'medium',
     topic: 'cost-optimization',
+    examLevel: 'Professional',
+    hint: 'The cheapest option has a catch - your instances can be interrupted.',
+  },
+  {
+    id: 'ct-006',
+    question: 'Which AWS service provides a managed message queue for decoupling distributed systems?',
+    options: ['SNS', 'SQS', 'Kinesis', 'EventBridge'],
+    answer: 'SQS',
+    explanation:
+      'SQS is a fully managed message queuing service that decouples and scales microservices, distributed systems, and serverless apps.',
+    provider: 'aws',
+    difficulty: 'easy',
+    topic: 'messaging',
+    examLevel: 'Associate',
+    hint: 'Queue = store messages for later processing. Pub/Sub = broadcast to multiple subscribers.',
+  },
+  {
+    id: 'ct-007',
+    question: 'You need to route traffic based on URL paths across multiple services. Which AWS service provides this at Layer 7?',
+    options: ['Classic Load Balancer', 'Network Load Balancer', 'Application Load Balancer', 'Gateway Load Balancer'],
+    answer: 'Application Load Balancer',
+    explanation:
+      'ALB operates at Layer 7 and supports content-based routing, path-based routing, and host-based routing.',
+    provider: 'aws',
+    difficulty: 'medium',
+    topic: 'elb',
+    examLevel: 'Professional',
+    hint: 'Layer 7 = HTTP/HTTPS - can inspect URLs and headers. Layer 4 = TCP/UDP.',
+  },
+  {
+    id: 'ct-008',
+    question: 'Which AWS service provides a globally distributed key management service?',
+    options: ['Secrets Manager', 'Parameter Store', 'AWS KMS', 'CloudHSM'],
+    answer: 'AWS KMS',
+    explanation:
+      'AWS KMS is a managed service that makes it easy for you to create and control the encryption keys used to encrypt your data.',
+    provider: 'aws',
+    difficulty: 'medium',
+    topic: 'security',
+    examLevel: 'Professional',
+    hint: 'The service for managing encryption keys at a global scale.',
+  },
+  {
+    id: 'ct-009',
+    question: 'Which database option is best for storing user sessions with millisecond latency requirements?',
+    options: ['RDS', 'DynamoDB', 'Redshift', 'Aurora Serverless'],
+    answer: 'DynamoDB',
+    explanation:
+      'DynamoDB provides single-digit millisecond latency at any scale, making it ideal for session storage and real-time use cases.',
+    provider: 'aws',
+    difficulty: 'medium',
+    topic: 'database-selection',
+    examLevel: 'Professional',
+    hint: 'Think about which database offers the fastest read/write latency for key-value lookups.',
   },
 
   // ── AZURE ────────────────────────────────────────────────────────
@@ -85,6 +150,8 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'azure',
     difficulty: 'easy',
     topic: 'azure-iam',
+    examLevel: 'Associate',
+    hint: 'IAM is about identity - authentication and authorization of users.',
   },
   {
     id: 'ct-011',
@@ -101,6 +168,8 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'azure',
     difficulty: 'medium',
     topic: 'azure-fundamentals',
+    examLevel: 'Associate',
+    hint: 'Management groups organize subscriptions. Subscriptions contain resource groups. Resource groups contain resources.',
   },
   {
     id: 'ct-012',
@@ -112,6 +181,73 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'azure',
     difficulty: 'medium',
     topic: 'azure-networking',
+    examLevel: 'Professional',
+    hint: 'WAF (Web Application Firewall) operates at Layer 7 - HTTP/HTTPS level.',
+  },
+  {
+    id: 'ct-013',
+    question: 'Which Azure service provides serverless compute for event-driven applications?',
+    options: ['Azure Functions', 'Azure App Service', 'Azure Container Instances', 'Azure Virtual Machine Scale Sets'],
+    answer: 'Azure Functions',
+    explanation:
+      'Azure Functions is a serverless compute service that enables you to run event-triggered code without having to provision or manage infrastructure.',
+    provider: 'azure',
+    difficulty: 'easy',
+    topic: 'azure-serverless',
+    examLevel: 'Associate',
+    hint: 'Serverless = no infrastructure management, pay per execution.',
+  },
+  {
+    id: 'ct-014',
+    question: 'Which Azure database service is a fully managed PostgreSQL and MySQL database?',
+    options: ['Azure SQL Database', 'Azure Cosmos DB', 'Azure Database for PostgreSQL/MySQL', 'SQL Server on Azure VM'],
+    answer: 'Azure Database for PostgreSQL/MySQL',
+    explanation:
+      'Azure Database for PostgreSQL and MySQL are fully managed database services for open-source databases.',
+    provider: 'azure',
+    difficulty: 'easy',
+    topic: 'azure-databases',
+    examLevel: 'Associate',
+    hint: 'The service specifically for PostgreSQL and MySQL open-source databases.',
+  },
+  {
+    id: 'ct-015',
+    question: 'Which Azure service provides a globally distributed, multi-model database?',
+    options: ['Azure SQL Database', 'Azure Cosmos DB', 'Azure Table Storage', 'Azure Cache for Redis'],
+    answer: 'Azure Cosmos DB',
+    explanation:
+      'Azure Cosmos DB is a globally distributed, multi-model database service that supports multiple data models and APIs.',
+    provider: 'azure',
+    difficulty: 'medium',
+    topic: 'cosmosdb',
+    examLevel: 'Professional',
+    hint: 'Globally distributed + multiple data models (document, key-value, graph, table).',
+  },
+  {
+    id: 'ct-016',
+    question: 'Which Azure service provides private connectivity between Azure resources and on-premises networks?',
+    options: ['VPN Gateway', 'ExpressRoute', 'Virtual Network Peering', 'Azure Firewall'],
+    answer: 'ExpressRoute',
+    explanation:
+      'ExpressRoute provides a private, dedicated fiber connection between your on-premises infrastructure and Azure datacenters.',
+    provider: 'azure',
+    difficulty: 'medium',
+    topic: 'azure-hybrid',
+    examLevel: 'Professional',
+    hint: 'Private, dedicated connection - not over the public internet.',
+  },
+  {
+    id: 'ct-017',
+    question: 'Which Azure service provides container orchestration with Kubernetes?',
+    options: ['Azure Container Instances', 'Azure Kubernetes Service (AKS)', 'Azure App Service', 'Azure Service Fabric'],
+    answer: 'Azure Kubernetes Service (AKS)',
+    explanation:
+      'AKS is a managed Kubernetes service that simplifies deploying, managing, and operating containerized applications.',
+    provider: 'azure',
+    difficulty: 'medium',
+    topic: 'azure-containers',
+    examLevel: 'Professional',
+    hint: 'Kubernetes = container orchestration. The Azure managed version is AKS.',
   },
 
   // ── GCP ──────────────────────────────────────────────────────────
@@ -125,6 +261,8 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'gcp',
     difficulty: 'medium',
     topic: 'gke',
+    examLevel: 'Professional',
+    hint: 'Zero node management means you don\'t even see or manage the nodes.',
   },
   {
     id: 'ct-021',
@@ -136,6 +274,8 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'gcp',
     difficulty: 'easy',
     topic: 'bigquery',
+    examLevel: 'Associate',
+    hint: 'Serverless SQL analytics at petabyte scale - think data warehouse.',
   },
   {
     id: 'ct-022',
@@ -147,6 +287,73 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'gcp',
     difficulty: 'easy',
     topic: 'gcp-fundamentals',
+    examLevel: 'Associate',
+    hint: 'In GCP, everything belongs to a Project - it\'s the fundamental unit of organization.',
+  },
+  {
+    id: 'ct-023',
+    question: 'Which GCP service provides a fully managed relational database compatible with MySQL and PostgreSQL?',
+    options: ['Cloud Spanner', 'Cloud SQL', 'Bigtable', 'Firestore'],
+    answer: 'Cloud SQL',
+    explanation:
+      'Cloud SQL is a fully managed relational database service for MySQL, PostgreSQL, and SQL Server.',
+    provider: 'gcp',
+    difficulty: 'easy',
+    topic: 'gcp-databases',
+    examLevel: 'Associate',
+    hint: 'The service specifically for relational databases (MySQL, PostgreSQL, SQL Server).',
+  },
+  {
+    id: 'ct-024',
+    question: 'Which GCP service provides serverless containers that automatically scale to zero?',
+    options: ['GKE', 'Cloud Run', 'App Engine', 'Compute Engine'],
+    answer: 'Cloud Run',
+    explanation:
+      'Cloud Run is a fully managed compute platform that automatically scales your stateless containers. It scales to zero when not in use.',
+    provider: 'gcp',
+    difficulty: 'easy',
+    topic: 'cloud-run',
+    examLevel: 'Associate',
+    hint: 'Serverless containers - runs containers, scales to zero, no infrastructure management.',
+  },
+  {
+    id: 'ct-025',
+    question: 'Which GCP service provides a globally distributed, strongly consistent database?',
+    options: ['BigQuery', 'Cloud Spanner', 'Bigtable', 'Firestore'],
+    answer: 'Cloud Spanner',
+    explanation:
+      'Cloud Spanner is a fully managed, mission-critical, relational database that offers global consistency and horizontal scalability.',
+    provider: 'gcp',
+    difficulty: 'hard',
+    topic: 'spanner',
+    examLevel: 'Professional',
+    hint: 'The only database that offers both global distribution AND strong consistency (CAP theorem trade-off).',
+  },
+  {
+    id: 'ct-026',
+    question: 'Which GCP service provides managed Hadoop and Spark for big data processing?',
+    options: ['BigQuery', 'Dataproc', 'Dataflow', 'Pub/Sub'],
+    answer: 'Dataproc',
+    explanation:
+      'Dataproc is a managed service for running Apache Spark and Hadoop clusters on Google Cloud Platform.',
+    provider: 'gcp',
+    difficulty: 'medium',
+    topic: 'dataproc',
+    examLevel: 'Professional',
+    hint: 'The GCP equivalent of EMR (Elastic MapReduce) - managed Hadoop/Spark.',
+  },
+  {
+    id: 'ct-027',
+    question: 'Which GCP service provides a fully managed, real-time messaging service?',
+    options: ['Cloud Pub/Sub', 'Cloud Tasks', 'Cloud Scheduler', 'Eventarc'],
+    answer: 'Cloud Pub/Sub',
+    explanation:
+      'Cloud Pub/Sub is a fully-managed real-time messaging service that allows you to send and receive messages between independent applications.',
+    provider: 'gcp',
+    difficulty: 'medium',
+    topic: 'pubsub',
+    examLevel: 'Professional',
+    hint: 'Pub/Sub = publish/subscribe messaging pattern for asynchronous communication.',
   },
 
   // ── ESG ──────────────────────────────────────────────────────────
@@ -165,6 +372,8 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'esg',
     difficulty: 'easy',
     topic: 'carbon-credits-explained',
+    examLevel: 'None',
+    hint: 'Carbon credits are about the right to emit - think "permission" or "allowance".',
   },
   {
     id: 'ct-031',
@@ -177,10 +386,12 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'esg',
     difficulty: 'medium',
     topic: 'farmer-iot-platform',
+    examLevel: 'Specialty',
+    hint: 'IoT = Internet of Things - the service specifically for device connectivity and messaging.',
   },
   {
     id: 'ct-032',
-    question: 'Emissions from a company’s purchased electricity fall under which scope?',
+    question: 'Emissions from a company\'s purchased electricity fall under which scope?',
     options: ['Scope 1', 'Scope 2', 'Scope 3', 'Scope 0'],
     answer: 'Scope 2',
     explanation:
@@ -188,6 +399,8 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'esg',
     difficulty: 'medium',
     topic: 'net-zero-roadmap',
+    examLevel: 'None',
+    hint: 'Scope 1 = what you burn directly. Scope 2 = what you buy (electricity). Scope 3 = everything else.',
   },
   {
     id: 'ct-033',
@@ -200,6 +413,39 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'esg',
     difficulty: 'hard',
     topic: 'carbon-ledger',
+    examLevel: 'Specialty',
+    hint: 'Ledger database = immutable transactions with cryptographic verification.',
+  },
+  {
+    id: 'ct-034',
+    question: 'Which AWS service helps calculate and report carbon emissions for cloud usage?',
+    options: ['CloudWatch', 'AWS Cost Explorer', 'AWS Customer Carbon Footprint Tool', 'AWS Trusted Advisor'],
+    answer: 'AWS Customer Carbon Footprint Tool',
+    explanation:
+      'The Carbon Footprint Tool provides estimates of the carbon emissions associated with your AWS usage.',
+    provider: 'esg',
+    difficulty: 'easy',
+    topic: 'carbon-footprint',
+    examLevel: 'Specialty',
+    hint: 'The tool specifically designed for carbon emissions reporting.',
+  },
+  {
+    id: 'ct-035',
+    question: 'What is the main goal of the Science Based Targets initiative (SBTi)?',
+    options: [
+      'To certify companies as carbon neutral',
+      'To help companies set emission reduction targets aligned with climate science',
+      'To trade carbon credits globally',
+      'To regulate carbon pricing',
+    ],
+    answer: 'To help companies set emission reduction targets aligned with climate science',
+    explanation:
+      'SBTi provides companies with a clearly-defined path to reduce emissions in line with the Paris Agreement goals.',
+    provider: 'esg',
+    difficulty: 'medium',
+    topic: 'sbti',
+    examLevel: 'None',
+    hint: 'SBTi is about setting targets based on science (climate science, not arbitrary goals).',
   },
 
   // ── FINANCE / TRANSVERSAL ────────────────────────────────────────
@@ -213,6 +459,8 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'finance',
     difficulty: 'easy',
     topic: 'finops-foundations',
+    examLevel: 'None',
+    hint: 'You need visibility (information) before you can optimize anything.',
   },
   {
     id: 'ct-041',
@@ -230,6 +478,8 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'finance',
     difficulty: 'hard',
     topic: 'realtime-fraud-arch',
+    examLevel: 'Professional',
+    hint: 'Real-time = streaming + low-latency processing + online model inference.',
   },
   {
     id: 'ct-042',
@@ -242,6 +492,8 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'finance',
     difficulty: 'medium',
     topic: 'media-streaming',
+    examLevel: 'Professional',
+    hint: 'Streaming means sending data OUT to users - think about what costs money when data leaves the cloud.',
   },
   {
     id: 'ct-043',
@@ -258,6 +510,65 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'finance',
     difficulty: 'medium',
     topic: 'healthcare-hipaa',
+    examLevel: 'Specialty',
+    hint: 'HIPAA is about protecting patient health information - encryption and access control are key.',
+  },
+  {
+    id: 'ct-044',
+    question: 'Which AWS service helps implement resource tagging for cost allocation?',
+    options: ['AWS Cost Explorer', 'AWS Budgets', 'AWS Tag Editor', 'AWS Trusted Advisor'],
+    answer: 'AWS Tag Editor',
+    explanation:
+      'Tag Editor allows you to bulk manage tags on resources, which is essential for cost allocation and organization.',
+    provider: 'finance',
+    difficulty: 'medium',
+    topic: 'cost-allocation',
+    examLevel: 'Professional',
+    hint: 'Tagging is about labeling resources - the tool for bulk tag management.',
+  },
+  {
+    id: 'ct-045',
+    question: 'What is the primary purpose of a showback in FinOps?',
+    options: [
+      'To charge departments for their cloud usage',
+      'To show teams their cloud costs without actually charging them',
+      'To reduce overall cloud spending',
+      'To negotiate better pricing with cloud providers',
+    ],
+    answer: 'To show teams their cloud costs without actually charging them',
+    explanation:
+      'Showback is about visibility - showing teams their costs to encourage cost-conscious behavior without actual billing.',
+    provider: 'finance',
+    difficulty: 'easy',
+    topic: 'finops-showback',
+    examLevel: 'None',
+    hint: 'Show vs Charge - showback is about showing, not charging.',
+  },
+  {
+    id: 'ct-046',
+    question: 'Which compliance framework is specifically for payment card industry security?',
+    options: ['HIPAA', 'PCI-DSS', 'SOC 2', 'GDPR'],
+    answer: 'PCI-DSS',
+    explanation:
+      'PCI-DSS (Payment Card Industry Data Security Standard) is specifically for protecting payment card data.',
+    provider: 'finance',
+    difficulty: 'easy',
+    topic: 'pci-dss',
+    examLevel: 'Specialty',
+    hint: 'PCI = Payment Card Industry - think about payment card security.',
+  },
+  {
+    id: 'ct-047',
+    question: 'Which cloud architecture pattern involves deploying resources across multiple geographic regions?',
+    options: ['Multi-AZ', 'Multi-region', 'Hybrid cloud', 'Serverless'],
+    answer: 'Multi-region',
+    explanation:
+      'Multi-region architecture deploys resources across multiple geographic regions for disaster recovery and reduced latency.',
+    provider: 'finance',
+    difficulty: 'medium',
+    topic: 'multi-region',
+    examLevel: 'Professional',
+    hint: 'Multiple geographic regions = multi-region. Multiple availability zones = multi-AZ.',
   },
 
   // ── MULTI-CLOUD ──────────────────────────────────────────────────
@@ -276,6 +587,8 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'multi',
     difficulty: 'medium',
     topic: 'ha-patterns',
+    examLevel: 'Professional',
+    hint: 'RTO = Time (how fast). RPO = Data (how much loss).',
   },
   {
     id: 'ct-051',
@@ -292,6 +605,65 @@ export const cloudTrials: CloudTrialQuestion[] = [
     provider: 'multi',
     difficulty: 'easy',
     topic: 'iac',
+    examLevel: 'Associate',
+    hint: 'IaC treats infrastructure like code - versioning, review, reproduction.',
+  },
+  {
+    id: 'ct-052',
+    question: 'Which deployment strategy updates infrastructure with minimal downtime by using blue/green environments?',
+    options: ['Rolling update', 'Blue/green deployment', 'Canary deployment', 'In-place update'],
+    answer: 'Blue/green deployment',
+    explanation:
+      'Blue/green deployment maintains two identical environments (blue and green) and switches traffic between them, enabling instant rollback.',
+    provider: 'multi',
+    difficulty: 'medium',
+    topic: 'deployment-strategies',
+    examLevel: 'Professional',
+    hint: 'Two complete environments - one live, one ready - switch traffic between them.',
+  },
+  {
+    id: 'ct-053',
+    question: 'What is the primary benefit of using a CDN (Content Delivery Network)?',
+    options: [
+      'Reduced storage costs',
+      'Improved security',
+      'Reduced latency for content delivery',
+      'Simplified database management',
+    ],
+    answer: 'Reduced latency for content delivery',
+    explanation:
+      'CDNs cache content at edge locations closer to users, reducing latency and improving performance.',
+    provider: 'multi',
+    difficulty: 'easy',
+    topic: 'cdn',
+    examLevel: 'Associate',
+    hint: 'CDN = Content Delivery Network - delivers content from locations closer to users.',
+  },
+  {
+    id: 'ct-054',
+    question: 'Which disaster recovery strategy has the lowest RPO but highest cost?',
+    options: ['Backup and restore', 'Pilot light', 'Warm standby', 'Hot standby'],
+    answer: 'Hot standby',
+    explanation:
+      'Hot standby keeps a fully replicated environment running at all times, enabling near-zero RPO but at highest cost.',
+    provider: 'multi',
+    difficulty: 'hard',
+    topic: 'disaster-recovery',
+    examLevel: 'Professional',
+    hint: 'Lowest RPO = least data loss = everything replicated in real-time = highest cost.',
+  },
+  {
+    id: 'ct-055',
+    question: 'Which principle of the Shared Responsibility Model states that customers are responsible for data classification?',
+    options: ['Security of the cloud', 'Security in the cloud', 'Both', 'Neither'],
+    answer: 'Security in the cloud',
+    explanation:
+      'Security in the cloud (customer responsibility) includes data classification, IAM, and configuration. Security of the cloud (provider responsibility) includes physical security and network protection.',
+    provider: 'multi',
+    difficulty: 'medium',
+    topic: 'shared-responsibility',
+    examLevel: 'Associate',
+    hint: 'Security OF the cloud = provider (physical). Security IN the cloud = customer (data, config).',
   },
 ];
 

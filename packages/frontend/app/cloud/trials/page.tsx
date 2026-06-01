@@ -30,6 +30,7 @@ export default function CloudTrialsPage() {
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
   const pool = useMemo(
     () => (filter === 'all' ? cloudTrials : cloudTrials.filter((q) => q.provider === filter)),
@@ -37,7 +38,8 @@ export default function CloudTrialsPage() {
   );
 
   const start = () => {
-    const qs = shuffle(pool).slice(0, Math.min(10, pool.length));
+    // When "All" is selected, ask all questions. Otherwise limit to 10.
+    const qs = shuffle(pool).slice(0, filter === 'all' ? pool.length : Math.min(10, pool.length));
     setQuestions(qs);
     setCurrent(0);
     setSelected(null);
@@ -45,6 +47,7 @@ export default function CloudTrialsPage() {
     setScore(0);
     setFinished(false);
     setStarted(true);
+    setShowHint(false);
   };
 
   const submit = () => {
@@ -69,6 +72,7 @@ export default function CloudTrialsPage() {
       setCurrent((c) => c + 1);
       setSelected(null);
       setRevealed(false);
+      setShowHint(false);
     }
   };
 
@@ -111,7 +115,7 @@ export default function CloudTrialsPage() {
             </div>
           </div>
           <button onClick={start} disabled={!pool.length} className="w-full px-5 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-sky-600 text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-md disabled:opacity-50">
-            Start Trial ({Math.min(10, pool.length)} questions)
+            Start Trial ({filter === 'all' ? pool.length : Math.min(10, pool.length)} questions)
           </button>
         </div>
       ) : finished ? (
@@ -133,6 +137,14 @@ export default function CloudTrialsPage() {
             <span className="flex items-center gap-2">
               <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800">{providerLabel(q.provider)}</span>
               <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 capitalize">{q.difficulty}</span>
+              {q.examLevel !== 'None' && (
+                <span className={`px-2 py-0.5 rounded-full ${
+                  q.examLevel === 'Professional' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' :
+                  q.examLevel === 'Associate' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' :
+                  q.examLevel === 'Specialty' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' :
+                  'bg-gray-100 dark:bg-gray-800'
+                }`}>{q.examLevel}</span>
+              )}
             </span>
           </div>
           <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -162,6 +174,19 @@ export default function CloudTrialsPage() {
             })}
           </div>
           {revealed && <p className="text-xs text-bleepx-text-secondary italic bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">{q.explanation}</p>}
+          {!revealed && q.hint && (
+            <button
+              onClick={() => setShowHint(!showHint)}
+              className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
+            >
+              {showHint ? 'Hide Hint' : '💡 Need a hint?'}
+            </button>
+          )}
+          {showHint && q.hint && !revealed && (
+            <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-200 dark:border-amber-800">
+              {q.hint}
+            </p>
+          )}
           {!revealed ? (
             <button onClick={submit} disabled={!selected} className="w-full px-5 py-2.5 rounded-full bg-sky-600 text-white text-sm font-semibold hover:bg-sky-700 transition-colors disabled:opacity-50">Submit</button>
           ) : (
