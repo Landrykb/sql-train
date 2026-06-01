@@ -8,6 +8,9 @@ import { useProgress } from '@/lib/useProgress';
 import { getGitHubUser } from '@/lib/authClient';
 import { pushCloudMissionToGitHub } from '@/lib/githubPush';
 import { playBleep } from '@/lib/audio';
+import { useAuthGate } from '@/components/SignInGate';
+import { GlossaryTooltip } from '@/components/GlossaryTooltip';
+import { hasGlossaryEntry } from '@/lib/cloud/glossary';
 import {
   CLOUD_PROVIDER_META,
   getMission,
@@ -81,10 +84,27 @@ function ArchitectureFlow({ nodes }: { nodes: { icon: string; label: string; not
   );
 }
 
+/** Helper to wrap text with glossary tooltips for detected technical terms */
+function wrapWithGlossary(text: string): React.ReactNode {
+  if (!text) return text;
+  
+  // Split text into words and check each for glossary entries
+  const words = text.split(/(\s+)/);
+  return words.map((word, index) => {
+    // Remove punctuation for lookup
+    const cleanWord = word.replace(/[^a-zA-Z0-9-_]/g, '');
+    if (cleanWord && hasGlossaryEntry(cleanWord)) {
+      return <GlossaryTooltip key={index} term={cleanWord}>{word}</GlossaryTooltip>;
+    }
+    return word;
+  });
+}
+
 export default function CloudMissionPage() {
   const params = useParams<{ provider: string; slug: string }>();
   const { provider, slug } = params;
   const { completed, markComplete } = useProgress();
+  const { user: ghUser, requireAuth, GateComponent } = useAuthGate();
 
   if (!isCloudProvider(provider)) notFound();
   const p = provider as CloudProvider;
@@ -172,7 +192,7 @@ export default function CloudMissionPage() {
   }, [isDone, markComplete, missionCaseId, tier]);
 
   const canComplete = isQuiz
-    ? quizPassed
+    ? quizPassed && (learnList.length === 0 || allUnderstood)
     : learnList.length > 0
       ? allUnderstood && kcPassed
       : reviewed;
@@ -180,6 +200,7 @@ export default function CloudMissionPage() {
   const template = mission.labType === 'iac' ? iacTemplate(p, mission) : null;
 
   const handlePush = useCallback(async () => {
+    if (!requireAuth('export to GitHub')) return;
     setPushing(true);
     setPushResult(null);
     const result = await pushCloudMissionToGitHub(
@@ -192,9 +213,29 @@ export default function CloudMissionPage() {
     setPushResult(result);
     setPushing(false);
     setPushMsg(null);
-  }, [p, mission, meta.name, template]);
+  }, [p, mission, meta.name, template, requireAuth]);
 
-  const ghUser = typeof window !== 'undefined' ? getGitHubUser() : null;
+  // Render the auth gate component
+  if (!ghUser?.login) {
+    return (
+      <>
+        <main className="max-w-3xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-12">
+          {/* Breadcrumb */}
+          <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
+            <Link href="/cloud" className="hover:underline">BleepxCloud</Link>
+            <span>/</span>
+            <Link href={`/cloud/${p}`} className="hover:underline">{meta.short}</Link>
+            <span>/</span>
+            <span className="font-semibold text-bleepx-gray truncate">{mission.title}</span>
+          </nav>
+          <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-8 text-center">
+            <p className="text-bleepx-text-secondary">Loading authentication...</p>
+          </div>
+        </main>
+        {GateComponent()}
+      </>
+    );
+  }
 
   return (
     <main className="max-w-3xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-12">
@@ -232,12 +273,14 @@ export default function CloudMissionPage() {
       {/* Briefing */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
         <h2 className="text-base font-bold text-bleepx-text mb-2">📋 Mission Briefing</h2>
-        <div className="text-sm text-bleepx-text-secondary leading-relaxed whitespace-pre-line">{mission.description}</div>
+        <div className="text-sm text-bleepx-text-secondary leading-relaxed whitespace-pre-line">
+          {wrapWithGlossary(mission.description)}
+        </div>
 
         {mission.realWorld && (
           <div className="mt-4 rounded-lg border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-900/15 p-3">
             <p className="text-xs font-bold text-amber-700 dark:text-amber-300 mb-0.5">🏢 Real-world scenario</p>
-            <p className="text-sm text-bleepx-text-secondary leading-relaxed">{mission.realWorld}</p>
+            <p className="text-sm text-bleepx-text-secondary leading-relaxed">{wrapWithGlossary(mission.realWorld)}</p>
           </div>
         )}
 
@@ -247,7 +290,7 @@ export default function CloudMissionPage() {
             <ul className="space-y-1">
               {mission.objectives.map((o) => (
                 <li key={o} className="flex items-start gap-2 text-sm text-bleepx-text-secondary">
-                  <span className="text-sky-500 mt-0.5">▸</span><span>{o}</span>
+                  <span className="text-sky-500 mt-0.5">▸</span><span>{wrapWithGlossary(o)}</span>
                 </li>
               ))}
             </ul>
@@ -264,8 +307,8 @@ export default function CloudMissionPage() {
         </div>
       )}
 
-      {/* Concept walkthrough (the learning core) */}
-      {!isQuiz && learnList.length > 0 && (() => {
+      {/* Concept walkthrough (the learning core) - shown for all missions with concepts */}
+      {learnList.length > 0 && (() => {
         const current = learnList[Math.min(stepIdx, learnList.length - 1)];
         const c = current.concept;
         const isUnderstood = understood.has(current.key);
@@ -313,7 +356,7 @@ export default function CloudMissionPage() {
                 <span className="text-2xl">{c.icon}</span>
                 <div>
                   <h3 className="font-bold text-bleepx-text leading-tight">{c.name}</h3>
-                  <p className="text-xs text-bleepx-text-secondary">{c.what}</p>
+                  <p className="text-xs text-bleepx-text-secondary">{wrapWithGlossary(c.what)}</p>
                 </div>
               </div>
               <div className="p-4 space-y-3">
@@ -519,7 +562,9 @@ export default function CloudMissionPage() {
             {canComplete
               ? `✓ Complete Mission (+${tier * 10} pts)`
               : isQuiz
-                ? 'Pass the quiz to complete'
+                ? learnList.length > 0 && !allUnderstood
+                  ? 'Work through every concept to continue'
+                  : 'Pass the quiz to complete'
                 : !allUnderstood && learnList.length > 0
                   ? 'Work through every concept to continue'
                   : !kcPassed
@@ -527,20 +572,25 @@ export default function CloudMissionPage() {
                     : 'Confirm your review to complete'}
           </button>
         ) : (
-          <div className="text-center text-sm font-semibold text-emerald-600">🎉 Mission complete — nice work, human.</div>
+          <div className="text-center space-y-3">
+            <div className="text-sm font-semibold text-emerald-600">🎉 Mission complete — nice work, human.</div>
+            {nextSlug && (
+              <Link href={`/cloud/${p}/${nextSlug}`}>
+                <button className="px-5 py-2.5 rounded-full bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors">
+                  Next Mission →
+                </button>
+              </Link>
+            )}
+          </div>
         )}
 
         {/* GitHub export */}
         <div className="pt-3 border-t border-bleepx-border">
           <h3 className="text-sm font-bold text-bleepx-text mb-1">Export to GitHub</h3>
           <p className="text-xs text-bleepx-text-secondary mb-2">Push a mission README{template ? ' + IaC template' : ''} to your <code>cloud-portfolio</code> repo.</p>
-          {ghUser ? (
-            <button onClick={handlePush} disabled={pushing} className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50">
-              {pushing ? pushMsg || 'Pushing...' : '⬆ Push to GitHub'}
-            </button>
-          ) : (
-            <Link href="/profile" className="text-sm text-sky-600 hover:underline">Sign in on your profile to enable GitHub export →</Link>
-          )}
+          <button onClick={handlePush} disabled={pushing} className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50">
+            {pushing ? pushMsg || 'Pushing...' : '⬆ Push to GitHub'}
+          </button>
           {pushResult?.success && (
             <p className="mt-2 text-sm text-emerald-600">✅ Pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline">{pushResult.repoUrl}</a></p>
           )}
@@ -560,6 +610,7 @@ export default function CloudMissionPage() {
       </div>
 
       <AchievementNotification />
+      <GateComponent />
     </main>
   );
 }

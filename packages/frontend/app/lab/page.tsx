@@ -195,6 +195,12 @@ export default function LabHomePage() {
       </div>
 
       <AchievementNotification />
+      
+      <div className="text-center pt-2">
+        <Link href="/profile?tab=exports" className="inline-flex items-center gap-1.5 text-sm text-teal-600 hover:underline font-medium">
+          📤 Draft Your Report (Export to GitHub)
+        </Link>
+      </div>
     </main>
   );
 }

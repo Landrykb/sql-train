@@ -79,9 +79,13 @@ export default function CasesPage() {
         </div>
       )}
 
-      <div className="text-center pt-2">
+      <div className="text-center pt-2 space-y-2">
         <Link href="/cases/guide" className="inline-flex items-center gap-1.5 text-sm text-bleepx-blue hover:underline font-medium">
           📖 SQL Reference Guide
+        </Link>
+        <br />
+        <Link href="/profile?tab=exports" className="inline-flex items-center gap-1.5 text-sm text-teal-600 hover:underline font-medium">
+          📤 Draft Your Report (Export to GitHub)
         </Link>
       </div>
       <AchievementNotification />
