@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import LabProjectViewer from '@/components/LabProjectViewer';
+import { CaseInterpretationButton } from '@/components/CaseInterpretationButton';
 import { LAB_DOMAIN_META, LAB_DOMAIN_FOLDER_MAP, LAB_CASE_ORDER } from '@/lib/labConstants';
 import { getKaggleInfo, extractLabDatasetPath } from '@/lib/kaggleDatasets';
 
@@ -74,6 +75,20 @@ export default async function LabProjectPage({ params }: { params: Promise<{ dom
         <span>/</span>
         <span className="font-semibold text-bleepx-gray">{doc.name}</span>
       </nav>
+
+      {/* Header with Report Button */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text">{doc.name}</h1>
+          <p className="text-sm text-bleepx-text-secondary mt-1">{doc.description}</p>
+        </div>
+        <CaseInterpretationButton 
+          verse="lab" 
+          itemId={projectId} 
+          itemName={`${doc.name} - ${meta.name}`} 
+          domain={domain} 
+        />
+      </div>
 
       <LabProjectViewer
         projectId={doc.id}

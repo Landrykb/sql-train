@@ -540,6 +540,7 @@ export default function ProfilePage() {
             </h2>
             <div className="space-y-3">
               {Object.entries(LAB_CASE_ORDER).map(([domain, cases]) => {
+                // Check for both formats: caseId and lab_caseId
                 const solved = cases.filter(c => completed.has(c) || completed.has(`lab_${c}`)).length;
                 const total = cases.length;
                 const pct = total ? Math.round((solved / total) * 100) : 0;
@@ -566,6 +567,9 @@ export default function ProfilePage() {
                   </Link>
                 );
               })}
+            </div>
+            <div className="mt-4 pt-4 border-t border-bleepx-border">
+              <Link href="/lab" className="text-sm text-teal-600 hover:underline font-medium">← View All Lab Projects</Link>
             </div>
           </div>
 
