@@ -352,6 +352,14 @@ export default function LabProjectViewer({
       playBleep();
       try {
         markProgressComplete(`lab_${projectId}`, 2);
+        // Also save to the completed key for consistency with Supabase sync
+        const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+        if (!completed.includes(`lab_${projectId}`)) {
+          completed.push(`lab_${projectId}`);
+          localStorage.setItem('completed', JSON.stringify(completed));
+          localStorage.setItem('completedCases', JSON.stringify(completed));
+          window.dispatchEvent(new Event('storage'));
+        }
         track(Events.LAB_SOLVED, { project_id: projectId, domain, step_number: stepNumber, language, points_earned: 2 });
       } catch { /* ignore */ }
     }

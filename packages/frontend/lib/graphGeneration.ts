@@ -47,52 +47,32 @@ async function generateSingleGraph(
   config: any
 ): Promise<GeneratedGraph | null> {
   try {
-    await initSQL();
-    
-    // Try to load datasets for this domain/case
-    const datasets = getDatasetsForCase(domain, caseId);
-    let dataLoaded = false;
-    for (const ds of datasets) {
-      try {
-        await loadCSV(ds.name, ds.file);
-        dataLoaded = true;
-      } catch (e) {
-        // Dataset might not be available, try to continue
-        console.log(`Dataset ${ds.name} could not be loaded from ${ds.file}`);
+    // Try to use saved query results from localStorage instead of reloading datasets
+    const saved = localStorage.getItem(`bleepx_solved_${domain}_${caseId}`);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.results && parsed.results.length > 0) {
+        const rows = parsed.results;
+        const chartType = inferChartType(config.layout);
+        const insights = generateChartInsights(config, caseId, rows);
+        
+        // Generate actual chart from saved data
+        const chartSvg = generateChartFromData(config.layout, rows, chartType);
+        
+        return {
+          title: config.layout?.title?.text || `Analysis for ${caseId}`,
+          chartType,
+          imageData: svgToBase64(chartSvg),
+          description: `Data visualization for ${caseId} showing ${insights.join(', ')}`,
+          insights,
+          query: config.query,
+          rows
+        };
       }
     }
     
-    if (!dataLoaded) {
-      console.warn(`No datasets could be loaded for ${domain}/${caseId}, skipping graph generation`);
-      return null;
-    }
-    
-    // Run the query to get actual data
-    const { columns, data } = await runQuery(config.query);
-    const rows = data.map((row: unknown[]) =>
-      Object.fromEntries(columns.map((c, i) => [c, row[i]]))
-    );
-    
-    if (rows.length === 0) {
-      console.warn(`Query returned no results for ${domain}/${caseId}, skipping graph generation`);
-      return null;
-    }
-    
-    const chartType = inferChartType(config.layout);
-    const insights = generateChartInsights(config, caseId, rows);
-    
-    // Generate actual chart from real data
-    const chartSvg = generateChartFromData(config.layout, rows, chartType);
-    
-    return {
-      title: config.layout?.title?.text || `Analysis for ${caseId}`,
-      chartType,
-      imageData: svgToBase64(chartSvg),
-      description: `Data visualization for ${caseId} showing ${insights.join(', ')}`,
-      insights,
-      query: config.query,
-      rows
-    };
+    console.warn(`No saved results found for ${domain}/${caseId}, skipping graph generation`);
+    return null;
   } catch (err) {
     console.error('Error generating graph:', err);
     return null;
