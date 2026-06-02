@@ -124,3 +124,45 @@ hints:
   - "Try creating a 'season' feature from month (winter=Dec-Feb, etc.)"
   - "Lag features (yesterday's delay) can be very predictive for time series"
   - "Use df.corr()['delay_minutes'].sort_values() to find top correlating features"
+visualizations:
+  - title: "Feature Correlation Heatmap"
+    code: |
+      import seaborn as sns
+      import matplotlib.pyplot as plt
+      feature_cols = ['hour', 'day_of_week', 'month', 'is_weekend',
+                      'is_rush_hour', 'weather_encoded', 'event_encoded',
+                      'weather_rush', 'event_peak', 'temperature_C']
+      sns.heatmap(df[feature_cols + ['actual_departure_delay_min']].corr(), annot=True, cmap='coolwarm', fmt='.2f')
+      plt.title('Feature Correlation with Delay')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows which features correlate most strongly with delay minutes"
+  - title: "Rush Hour vs Non-Rush Hour Delays"
+    code: |
+      import matplotlib.pyplot as plt
+      df.groupby('is_rush_hour')['actual_departure_delay_min'].mean().plot(kind='bar', color=['blue', 'orange'])
+      plt.title('Average Delay: Rush Hour vs Non-Rush Hour')
+      plt.xlabel('Rush Hour (0=No, 1=Yes)')
+      plt.ylabel('Average Delay (minutes)')
+      plt.xticks([0, 1], ['Non-Rush Hour', 'Rush Hour'])
+      plt.show()
+    description: "Compares delay patterns during rush hour vs non-rush hour"
+  - title: "Feature Importance via Correlation"
+    code: |
+      import matplotlib.pyplot as plt
+      correlations = df[feature_cols].corrwith(df['actual_departure_delay_min']).abs().sort_values(ascending=True)
+      correlations.plot(kind='barh', color='steelblue')
+      plt.title('Feature Importance (Absolute Correlation)')
+      plt.xlabel('Absolute Correlation with Delay')
+      plt.tight_layout()
+      plt.show()
+    description: "Ranks features by their correlation strength with delay"
+  - title: "Weather Encoded Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      df['weather_encoded'].hist(bins=len(df['weather_encoded'].unique()), edgecolor='black')
+      plt.title('Distribution of Weather Encodings')
+      plt.xlabel('Weather Encoded')
+      plt.ylabel('Count')
+      plt.show()
+    description: "Shows the distribution of weather condition encodings"

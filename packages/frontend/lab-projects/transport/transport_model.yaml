@@ -136,3 +136,55 @@ hints:
   - "Try GridSearchCV for hyperparameter tuning"
   - "Use cross_val_score for more robust evaluation"
   - "Consider adding polynomial features for linear regression"
+visualizations:
+  - title: "Model Performance Comparison"
+    code: |
+      import matplotlib.pyplot as plt
+      model_names = list(results.keys())
+      mae_values = [results[name]['MAE'] for name in model_names]
+      r2_values = [results[name]['R²'] for name in model_names]
+      
+      fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+      axes[0].bar(model_names, mae_values, color='steelblue')
+      axes[0].set_title('Mean Absolute Error (Lower is Better)')
+      axes[0].set_ylabel('MAE (minutes)')
+      
+      axes[1].bar(model_names, r2_values, color='coral')
+      axes[1].set_title('R² Score (Higher is Better)')
+      axes[1].set_ylabel('R²')
+      plt.tight_layout()
+      plt.show()
+    description: "Compare MAE and R² across all models to pick the best performer"
+  - title: "Feature Importance Plot"
+    code: |
+      import matplotlib.pyplot as plt
+      importances = pd.Series(
+          best_model.feature_importances_, index=feature_cols
+      ).sort_values(ascending=True)
+      importances.plot(kind='barh', figsize=(10, 6), color='teal')
+      plt.title('Feature Importance (Random Forest)')
+      plt.xlabel('Importance')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows which features have the most impact on delay predictions"
+  - title: "Actual vs Predicted Scatter"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.scatter(y_test, y_pred, alpha=0.5)
+      plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+      plt.xlabel('Actual Delay (minutes)')
+      plt.ylabel('Predicted Delay (minutes)')
+      plt.title('Actual vs Predicted Delays')
+      plt.show()
+    description: "Perfect predictions fall on the red diagonal line"
+  - title: "Prediction Error Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      errors = y_test - y_pred
+      errors.hist(bins=30, edgecolor='black')
+      plt.title('Prediction Error Distribution')
+      plt.xlabel('Error (Actual - Predicted)')
+      plt.ylabel('Count')
+      plt.axvline(x=0, color='r', linestyle='--')
+      plt.show()
+    description: "Shows if errors are centered around zero (unbiased)"

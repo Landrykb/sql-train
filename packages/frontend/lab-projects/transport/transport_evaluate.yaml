@@ -138,3 +138,42 @@ hints:
   - "Try SHAP values for detailed per-prediction explanations"
   - "Consider a learning curve plot to diagnose if you need more data"
   - "Save your model with joblib.dump(model, 'delay_predictor.pkl')"
+visualizations:
+  - title: "Prediction vs Actual Scatter"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.scatter(y_test, y_pred, alpha=0.3, s=10)
+      plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+      plt.xlabel('Actual Delay (minutes)')
+      plt.ylabel('Predicted Delay (minutes)')
+      plt.title('Predicted vs Actual Delays')
+      plt.show()
+    description: "Perfect predictions fall on the red diagonal line"
+  - title: "Residual Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      residuals.hist(bins=50, color='steelblue', edgecolor='white')
+      plt.title('Residual Distribution')
+      plt.xlabel('Residual (Actual - Predicted)')
+      plt.ylabel('Count')
+      plt.axvline(0, color='red', linestyle='--')
+      plt.show()
+    description: "Residuals should be normally distributed around 0"
+  - title: "Residuals vs Predicted"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.scatter(y_pred, residuals, alpha=0.3, s=10)
+      plt.axhline(0, color='red', linestyle='--')
+      plt.xlabel('Predicted Delay (minutes)')
+      plt.ylabel('Residuals')
+      plt.title('Residuals vs Predicted Values')
+      plt.show()
+    description: "Should show random scatter around zero - patterns indicate model bias"
+  - title: "Cross-Validation Scores Box Plot"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.boxplot(-cv_scores, labels=['MAE'])
+      plt.ylabel('Mean Absolute Error (minutes)')
+      plt.title('5-Fold Cross-Validation Performance')
+      plt.show()
+    description: "Shows distribution of CV scores - smaller spread means more stable model"

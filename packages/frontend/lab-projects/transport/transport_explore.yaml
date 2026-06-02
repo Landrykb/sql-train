@@ -91,3 +91,51 @@ hints:
   - "Use sns.heatmap(df.corr(), annot=True) for a correlation matrix"
   - "Try df.value_counts() on categorical columns"
   - "Box plots help identify outliers: sns.boxplot(x='weather', y='delay', data=df)"
+visualizations:
+  - title: "Delay Distribution Histogram"
+    code: |
+      import matplotlib.pyplot as plt
+      df['actual_departure_delay_min'].hist(bins=30, edgecolor='black', color='steelblue')
+      plt.title('Distribution of Delay Duration')
+      plt.xlabel('Delay (minutes)')
+      plt.ylabel('Count')
+      plt.show()
+    description: "Shows the overall distribution of delays - check for skewness and outliers"
+  - title: "Delay vs Temperature Scatter"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.scatter(df['temperature_C'], df['actual_departure_delay_min'], alpha=0.5)
+      plt.title('Delay vs Temperature')
+      plt.xlabel('Temperature (°C)')
+      plt.ylabel('Delay (minutes)')
+      plt.show()
+    description: "Examines relationship between temperature and delay duration"
+  - title: "Correlation Heatmap"
+    code: |
+      import seaborn as sns
+      import matplotlib.pyplot as plt
+      sns.heatmap(df.select_dtypes('number').corr(), annot=True, cmap='coolwarm', fmt='.2f')
+      plt.title('Correlation Matrix')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows correlations between numerical features like temperature, delay, etc."
+  - title: "Delay by Weather Box Plot"
+    code: |
+      import seaborn as sns
+      import matplotlib.pyplot as plt
+      sns.boxplot(data=df, x='weather_condition', y='actual_departure_delay_min')
+      plt.xticks(rotation=45)
+      plt.title('Delay Distribution by Weather Condition')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows delay distribution across different weather conditions"
+  - title: "Delay Trend Over Time"
+    code: |
+      import matplotlib.pyplot as plt
+      df.groupby('date')['actual_departure_delay_min'].mean().plot(figsize=(10,4))
+      plt.title('Average Delay Trend Over Time')
+      plt.xlabel('Date')
+      plt.ylabel('Average Delay (minutes)')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows how delays change over time to identify patterns"

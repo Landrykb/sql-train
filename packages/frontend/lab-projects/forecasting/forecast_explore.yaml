@@ -93,3 +93,51 @@ hints:
   - "Try df.rolling(window=7).mean() for a moving average smoothing"
   - "Use df.resample('M').mean() to aggregate to monthly frequency"
   - "ACF and PACF plots help determine ARIMA parameters"
+visualizations:
+  - title: "Time Series Line Plot"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.figure(figsize=(14, 5))
+      plt.plot(df['value'], color='steelblue', linewidth=0.8)
+      plt.title('Historical Data Over Time')
+      plt.xlabel('Date')
+      plt.ylabel('Value')
+      plt.grid(alpha=0.3)
+      plt.show()
+    description: "Shows the overall trend and any seasonal patterns in the data"
+  - title: "Moving Average Smoothing"
+    code: |
+      import matplotlib.pyplot as plt
+      df['MA_7'] = df['value'].rolling(window=7).mean()
+      df['MA_30'] = df['value'].rolling(window=30).mean()
+      plt.figure(figsize=(14, 5))
+      plt.plot(df['value'], label='Original', alpha=0.5)
+      plt.plot(df['MA_7'], label='7-Day MA', linewidth=2)
+      plt.plot(df['MA_30'], label='30-Day MA', linewidth=2)
+      plt.title('Moving Average Smoothing')
+      plt.legend()
+      plt.show()
+    description: "Smooths out noise to reveal underlying trends"
+  - title: "Seasonal Decomposition"
+    code: |
+      from statsmodels.tsa.seasonal import seasonal_decompose
+      import matplotlib.pyplot as plt
+      decomposition = seasonal_decompose(df['value'], model='additive', period=30)
+      fig, axes = plt.subplots(4, 1, figsize=(14, 10), sharex=True)
+      decomposition.observed.plot(ax=axes[0], title='Observed')
+      decomposition.trend.plot(ax=axes[1], title='Trend')
+      decomposition.seasonal.plot(ax=axes[2], title='Seasonal')
+      decomposition.resid.plot(ax=axes[3], title='Residual')
+      plt.tight_layout()
+      plt.show()
+    description: "Separates time series into trend, seasonal, and residual components"
+  - title: "Monthly Aggregation"
+    code: |
+      import matplotlib.pyplot as plt
+      monthly = df['value'].resample('M').mean()
+      monthly.plot(figsize=(10, 4))
+      plt.title('Monthly Aggregated Values')
+      plt.ylabel('Average Value')
+      plt.tight_layout()
+      plt.show()
+    description: "Aggregates daily data to monthly to reduce noise"

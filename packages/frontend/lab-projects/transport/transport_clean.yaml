@@ -102,3 +102,43 @@ hints:
   - "Use df.duplicated().sum() to check for duplicate rows"
   - "Consider pd.get_dummies() for one-hot encoding categoricals"
   - "Always check df.shape before and after cleaning to track data loss"
+visualizations:
+  - title: "Delay Distribution Before & After Cleaning"
+    code: |
+      import matplotlib.pyplot as plt
+      fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+      # Before cleaning (you'd save this before cleaning)
+      df['actual_departure_delay_min'].hist(bins=30, ax=axes[0], edgecolor='black')
+      axes[0].set_title('Before Cleaning')
+      # After cleaning
+      df['actual_departure_delay_min'].hist(bins=30, ax=axes[1], edgecolor='black', color='green')
+      axes[1].set_title('After Cleaning')
+      plt.tight_layout()
+      plt.show()
+    description: "Compare delay distribution before and after outlier removal"
+  - title: "Missing Values Heatmap"
+    code: |
+      import seaborn as sns
+      import matplotlib.pyplot as plt
+      sns.heatmap(df.isnull(), cbar=False, cmap='viridis')
+      plt.title('Missing Values Pattern')
+      plt.show()
+    description: "Visualize missing value patterns before imputation"
+  - title: "Outlier Detection Box Plot"
+    code: |
+      import seaborn as sns
+      import matplotlib.pyplot as plt
+      sns.boxplot(data=df, y='actual_departure_delay_min')
+      plt.title('Delay Outliers Detection')
+      plt.ylabel('Delay (minutes)')
+      plt.show()
+    description: "Box plot helps identify outliers before applying IQR method"
+  - title: "Hour of Day Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      df['hour'].hist(bins=24, edgecolor='black')
+      plt.title('Distribution of Trips by Hour')
+      plt.xlabel('Hour of Day')
+      plt.ylabel('Count')
+      plt.show()
+    description: "Shows peak hours for transport activity after time feature extraction"

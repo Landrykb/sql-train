@@ -87,3 +87,53 @@ hints:
   - "If ACF decays slowly, the series needs differencing"
   - "PACF cutoff at lag p → AR(p); ACF cutoff at lag q → MA(q)"
   - "Use auto_arima from pmdarima to automatically select (p,d,q)"
+visualizations:
+  - title: "ACF and PACF Plots"
+    code: |
+      from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+      import matplotlib.pyplot as plt
+      fig, axes = plt.subplots(1, 2, figsize=(14, 4))
+      plot_acf(df['value'].dropna(), lags=40, ax=axes[0])
+      plot_pacf(df['value'].dropna(), lags=40, ax=axes[1])
+      plt.tight_layout()
+      plt.show()
+    description: "Autocorrelation plots help determine ARIMA parameters p and q"
+  - title: "Differencing Comparison"
+    code: |
+      import matplotlib.pyplot as plt
+      df['diff_1'] = df['value'].diff()
+      df['diff_seasonal'] = df['value'].diff(periods=7)
+      fig, axes = plt.subplots(3, 1, figsize=(14, 8), sharex=True)
+      df['value'].plot(ax=axes[0], title='Original')
+      df['diff_1'].plot(ax=axes[1], title='First Difference (d=1)')
+      df['diff_seasonal'].plot(ax=axes[2], title='Seasonal Difference (D=1, s=7)')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows effect of differencing to achieve stationarity"
+  - title: "Rolling Mean and Std Dev"
+    code: |
+      import matplotlib.pyplot as plt
+      rolling_mean = df['value'].rolling(window=30).mean()
+      rolling_std = df['value'].rolling(window=30).std()
+      plt.figure(figsize=(14, 5))
+      plt.plot(df['value'], label='Original', alpha=0.5)
+      plt.plot(rolling_mean, label='30-Day Rolling Mean', color='red', linewidth=2)
+      plt.fill_between(rolling_mean.index,
+                       rolling_mean - 2*rolling_std,
+                       rolling_mean + 2*rolling_std,
+                       alpha=0.1, color='red')
+      plt.legend()
+      plt.title('Rolling Mean ± 2σ')
+      plt.show()
+    description: "Shows trend and variability over time"
+  - title: "Stationarity Test Before/After"
+    code: |
+      import matplotlib.pyplot as plt
+      fig, axes = plt.subplots(1, 2, figsize=(14, 4))
+      df['value'].hist(bins=30, ax=axes[0], edgecolor='black')
+      axes[0].set_title('Original Distribution')
+      df['diff_1'].hist(bins=30, ax=axes[1], edgecolor='black')
+      axes[1].set_title('After Differencing')
+      plt.tight_layout()
+      plt.show()
+    description: "Compare distributions before and after differencing"
