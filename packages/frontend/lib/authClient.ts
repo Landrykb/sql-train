@@ -86,7 +86,12 @@ export async function getGitHubToken(): Promise<string | null> {
   if (!supabase) return null;
   try {
     const { data } = await supabase.auth.getSession();
-    return data?.session?.provider_token || null;
+    if (data?.session?.provider_token) {
+      return data.session.provider_token;
+    }
+    // If provider_token is not available, try to refresh the session
+    const { data: refreshData } = await supabase.auth.refreshSession();
+    return refreshData?.session?.provider_token || null;
   } catch {
     return null;
   }
