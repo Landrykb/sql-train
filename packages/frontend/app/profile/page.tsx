@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { getActiveVerse, VERSE_THEMES, type Verse } from '@/lib/verse';
-import { clearGitHubUser, startGitHubLogin, logoutUser, GitHubUser, getGitHubUser } from '@/lib/authClient';
+import { clearGitHubUser, startGitHubLogin, logoutUser, GitHubUser, getGitHubUser, refreshGitHubToken } from '@/lib/authClient';
 import { useSupabaseUser } from '@/lib/useSupabaseUser';
 import { useProgress } from '@/lib/useProgress';
 import { useTheme } from '@/lib/useTheme';
@@ -743,6 +743,19 @@ export default function ProfilePage() {
                     <span className="text-bleepx-blue">💠</span> BleepxQuery
                   </h3>
                   <p className="text-xs text-bleepx-text-secondary mb-3">Export SQL challenges to your GitHub portfolio.</p>
+                  {isSignedIn && (
+                    <div className="mb-3 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                      <p className="text-xs text-amber-800 dark:text-amber-300 mb-1">
+                        If export fails due to token issues, you may need to refresh your GitHub session.
+                      </p>
+                      <button
+                        onClick={() => { playBleep(); refreshGitHubToken(); }}
+                        className="px-2 py-1 rounded text-xs font-medium bg-amber-600 text-white hover:bg-amber-700 transition-colors"
+                      >
+                        Refresh GitHub Token
+                      </button>
+                    </div>
+                  )}
                   <div className="space-y-3">
                     {DOMAINS.map((domain) => {
                       const all = fullCaseOrder[domain] || [];

@@ -49,15 +49,22 @@ async function generateSingleGraph(
   try {
     await initSQL();
     
-    // Load datasets for this domain/case
+    // Try to load datasets for this domain/case
     const datasets = getDatasetsForCase(domain, caseId);
+    let dataLoaded = false;
     for (const ds of datasets) {
       try {
         await loadCSV(ds.name, ds.file);
+        dataLoaded = true;
       } catch (e) {
-        // Dataset might already be loaded
-        console.log(`Dataset ${ds.name} already loaded or failed to load`);
+        // Dataset might not be available, try to continue
+        console.log(`Dataset ${ds.name} could not be loaded from ${ds.file}`);
       }
+    }
+    
+    if (!dataLoaded) {
+      console.warn(`No datasets could be loaded for ${domain}/${caseId}, skipping graph generation`);
+      return null;
     }
     
     // Run the query to get actual data
@@ -65,6 +72,11 @@ async function generateSingleGraph(
     const rows = data.map((row: unknown[]) =>
       Object.fromEntries(columns.map((c, i) => [c, row[i]]))
     );
+    
+    if (rows.length === 0) {
+      console.warn(`Query returned no results for ${domain}/${caseId}, skipping graph generation`);
+      return null;
+    }
     
     const chartType = inferChartType(config.layout);
     const insights = generateChartInsights(config, caseId, rows);

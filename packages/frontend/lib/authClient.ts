@@ -93,6 +93,14 @@ export async function getGitHubToken(): Promise<string | null> {
 }
 
 /**
+ * Refresh the GitHub session by triggering a new OAuth flow.
+ * Use this when the provider_token is expired or unavailable.
+ */
+export async function refreshGitHubToken(): Promise<void> {
+  await startGitHubLogin();
+}
+
+/**
  * Start GitHub OAuth flow via Supabase Auth (PKCE).
  * Falls back to the Render backend if Supabase is not configured.
  */
