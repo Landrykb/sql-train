@@ -4,7 +4,7 @@
  */
 
 import { getGitHubUser, getGitHubToken, GitHubUser } from './authClient';
-import { loadInterpretation, formatReportMarkdown } from './reportGeneration';
+import { loadInterpretation, formatReportMarkdown, type ReportData } from './reportGeneration';
 
 interface PortfolioFile {
   path: string;
@@ -172,6 +172,25 @@ export async function pushLabProjectToGitHub(
 
   const repoName = 'ds-portfolio';
 
+  // Add interpretation report if available
+  const interpretation = loadInterpretation('lab', `lab-${domain}`);
+  if (interpretation) {
+    const reportContent = formatReportMarkdown(interpretation);
+    files.push({ path: `${domain}/${projectId}/ANALYSIS.md`, content: reportContent });
+    
+    // Add graphs if available
+    if (interpretation.graphs && interpretation.graphs.length > 0) {
+      interpretation.graphs.forEach((graph, idx) => {
+        if (graph.imageData) {
+          files.push({ 
+            path: `${domain}/${projectId}/graphs/graph-${idx + 1}.svg`, 
+            content: graph.imageData 
+          });
+        }
+      });
+    }
+  }
+
   try {
     onProgress?.('Creating repository...');
     const repo = await ensureRepo(token, repoName);
@@ -233,9 +252,22 @@ export async function pushDomainPortfolioToGitHub(
   ];
 
   // Add interpretation report if available
-  const interpretation = loadInterpretation('query', `${domain}-portfolio`);
+  const interpretation = loadInterpretation('query', `query-${domain}`);
   if (interpretation) {
-    files.push({ path: `${domain}/ANALYSIS.md`, content: formatReportMarkdown(interpretation) });
+    const reportContent = formatReportMarkdown(interpretation);
+    files.push({ path: `${domain}/ANALYSIS.md`, content: reportContent });
+    
+    // Add graphs if available
+    if (interpretation.graphs && interpretation.graphs.length > 0) {
+      interpretation.graphs.forEach((graph, idx) => {
+        if (graph.imageData) {
+          files.push({ 
+            path: `${domain}/graphs/graph-${idx + 1}.svg`, 
+            content: graph.imageData 
+          });
+        }
+      });
+    }
   }
 
   caseIds.forEach(id => {
@@ -295,9 +327,22 @@ export async function pushLabDomainPortfolioToGitHub(
   ];
 
   // Add interpretation report if available
-  const interpretation = loadInterpretation('lab', `${domain}-portfolio`);
+  const interpretation = loadInterpretation('lab', `lab-${domain}`);
   if (interpretation) {
-    files.push({ path: `${domain}/ANALYSIS.md`, content: formatReportMarkdown(interpretation) });
+    const reportContent = formatReportMarkdown(interpretation);
+    files.push({ path: `${domain}/ANALYSIS.md`, content: reportContent });
+    
+    // Add graphs if available
+    if (interpretation.graphs && interpretation.graphs.length > 0) {
+      interpretation.graphs.forEach((graph, idx) => {
+        if (graph.imageData) {
+          files.push({ 
+            path: `${domain}/graphs/graph-${idx + 1}.svg`, 
+            content: graph.imageData 
+          });
+        }
+      });
+    }
   }
 
   projectIds.forEach(id => {
@@ -355,9 +400,22 @@ export async function pushCloudProviderPortfolioToGitHub(
   ];
 
   // Add interpretation report if available
-  const interpretation = loadInterpretation('cloud', `${provider}-portfolio`);
+  const interpretation = loadInterpretation('cloud', `cloud-${provider}`);
   if (interpretation) {
-    files.push({ path: `${provider}/ANALYSIS.md`, content: formatReportMarkdown(interpretation) });
+    const reportContent = formatReportMarkdown(interpretation);
+    files.push({ path: `${provider}/ANALYSIS.md`, content: reportContent });
+    
+    // Add graphs if available
+    if (interpretation.graphs && interpretation.graphs.length > 0) {
+      interpretation.graphs.forEach((graph, idx) => {
+        if (graph.imageData) {
+          files.push({ 
+            path: `${provider}/graphs/graph-${idx + 1}.svg`, 
+            content: graph.imageData 
+          });
+        }
+      });
+    }
   }
 
   missionSlugs.forEach(slug => {

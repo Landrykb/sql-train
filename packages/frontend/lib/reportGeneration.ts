@@ -2,12 +2,15 @@
 // Allows users to add their analysis and interpretations to completed challenges
 // Bleepx provides hints and guidance for writing executive-ready reports
 
+import { generateContextHints } from './portfolioData';
+
 export interface InterpretationSection {
   id: string;
   title: string;
   hint: string; // Bleepx hint for what to write
   placeholder: string; // Example text to guide the user
   userContent: string; // User's actual interpretation
+  context?: string; // Additional context from actual completed work
 }
 
 export interface ReportData {
@@ -17,6 +20,15 @@ export interface ReportData {
   domain?: string;
   sections: InterpretationSection[];
   completedAt: string;
+  graphs?: GraphData[]; // Actual graphs/charts to include in report
+}
+
+export interface GraphData {
+  title: string;
+  chartType: string;
+  imageData?: string; // Base64 encoded chart image
+  description: string;
+  insights: string[];
 }
 
 export const BLEEPX_HINTS = {
@@ -88,8 +100,23 @@ export const BLEEPX_HINTS = {
   }
 };
 
-/** Get default interpretation sections for a verse */
-export function getDefaultSections(verse: 'query' | 'lab' | 'cloud'): InterpretationSection[] {
+/** Get default interpretation sections for a verse with context-aware hints */
+export function getDefaultSections(verse: 'query' | 'lab' | 'cloud', itemId: string, domain?: string): InterpretationSection[] {
+  // Try to get context-aware hints first
+  const contextHints = domain ? generateContextHints(verse, itemId, domain) : [];
+  
+  if (contextHints.length > 0) {
+    return contextHints.map(h => ({
+      id: h.title.toLowerCase().replace(/\s+/g, '_'),
+      title: h.title,
+      hint: h.hint,
+      placeholder: h.placeholder,
+      userContent: '',
+      context: h.context
+    }));
+  }
+  
+  // Fall back to generic hints if no context available
   const hints = BLEEPX_HINTS[verse];
   const sections: InterpretationSection[] = [];
   

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import AchievementNotification from '@/components/AchievementNotification';
 import { useProgress } from '@/lib/useProgress';
 import { playBleep } from '@/lib/audio';
-import { cloudTrials, TRIAL_PROVIDERS, type CloudTrialQuestion } from '@/lib/cloud/trials';
+import { cloudTrials, TRIAL_PROVIDERS, type CloudTrialQuestion, isAnswerCorrect } from '@/lib/cloud/trials';
 import { CLOUD_PROVIDER_META } from '@/lib/cloud';
 
 function shuffle<T>(arr: T[]): T[] {
@@ -26,7 +26,7 @@ export default function CloudTrialsPage() {
   const [started, setStarted] = useState(false);
   const [questions, setQuestions] = useState<CloudTrialQuestion[]>([]);
   const [current, setCurrent] = useState(0);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
@@ -42,7 +42,7 @@ export default function CloudTrialsPage() {
     const qs = shuffle(pool).slice(0, filter === 'all' ? pool.length : Math.min(10, pool.length));
     setQuestions(qs);
     setCurrent(0);
-    setSelected(null);
+    setSelected([]);
     setRevealed(false);
     setScore(0);
     setFinished(false);
@@ -50,10 +50,22 @@ export default function CloudTrialsPage() {
     setShowHint(false);
   };
 
+  const toggleOption = (opt: string) => {
+    if (revealed) return;
+    const isMulti = Array.isArray(questions[current].answer);
+    if (isMulti) {
+      setSelected((prev) => 
+        prev.includes(opt) ? prev.filter((s) => s !== opt) : [...prev, opt]
+      );
+    } else {
+      setSelected([opt]);
+    }
+  };
+
   const submit = () => {
-    if (!selected) return;
+    if (selected.length === 0) return;
     setRevealed(true);
-    if (selected === questions[current].answer) {
+    if (isAnswerCorrect(selected, questions[current].answer)) {
       setScore((s) => s + 1);
       playBleep();
     }
@@ -63,14 +75,14 @@ export default function CloudTrialsPage() {
     if (current + 1 >= questions.length) {
       setFinished(true);
       // Award points for a passing run (>=70%), once per filter scope.
-      const pct = (score + (selected === questions[current].answer ? 0 : 0)) / questions.length;
+      const pct = score / questions.length;
       if (pct >= 0.7) {
         const id = `cloud_trial_${filter}`;
         if (!completed.has(id)) markComplete(id, 2);
       }
     } else {
       setCurrent((c) => c + 1);
-      setSelected(null);
+      setSelected([]);
       setRevealed(false);
       setShowHint(false);
     }
@@ -153,14 +165,16 @@ export default function CloudTrialsPage() {
           <p className="text-base font-medium text-bleepx-text">{q.question}</p>
           <div className="space-y-2">
             {q.options.map((opt) => {
-              const isSel = selected === opt;
-              const showCorrect = revealed && opt === q.answer;
-              const showWrong = revealed && isSel && opt !== q.answer;
+              const isSel = selected.includes(opt);
+              const isMulti = Array.isArray(q.answer);
+              const correctAnswers = isMulti ? q.answer as string[] : [q.answer as string];
+              const showCorrect = revealed && correctAnswers.includes(opt);
+              const showWrong = revealed && isSel && !correctAnswers.includes(opt);
               return (
                 <button
                   key={opt}
                   disabled={revealed}
-                  onClick={() => setSelected(opt)}
+                  onClick={() => toggleOption(opt)}
                   className={`w-full text-left text-sm px-3 py-2.5 rounded-lg border transition-colors ${
                     showCorrect ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'
                     : showWrong ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-600'
@@ -168,7 +182,16 @@ export default function CloudTrialsPage() {
                     : 'border-bleepx-border text-bleepx-text hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                 >
-                  {opt}
+                  <span className="flex items-center gap-2">
+                    {isMulti && (
+                      <span className={`w-4 h-4 rounded border flex items-center justify-center ${
+                        isSel ? 'bg-sky-500 border-sky-500 text-white' : 'border-gray-300 dark:border-gray-600'
+                      }`}>
+                        {isSel && '✓'}
+                      </span>
+                    )}
+                    <span>{opt}</span>
+                  </span>
                 </button>
               );
             })}
@@ -188,7 +211,13 @@ export default function CloudTrialsPage() {
             </p>
           )}
           {!revealed ? (
-            <button onClick={submit} disabled={!selected} className="w-full px-5 py-2.5 rounded-full bg-sky-600 text-white text-sm font-semibold hover:bg-sky-700 transition-colors disabled:opacity-50">Submit</button>
+            <button 
+              onClick={submit} 
+              disabled={selected.length === 0} 
+              className="w-full px-5 py-2.5 rounded-full bg-sky-600 text-white text-sm font-semibold hover:bg-sky-700 transition-colors disabled:opacity-50"
+            >
+              Submit
+            </button>
           ) : (
             <button onClick={next} className="w-full px-5 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-sky-600 text-white text-sm font-bold hover:opacity-90 transition-opacity">
               {current + 1 >= questions.length ? 'See Results' : 'Next Question →'}

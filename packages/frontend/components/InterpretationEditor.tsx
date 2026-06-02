@@ -7,9 +7,17 @@ import {
   getDefaultSections, 
   saveInterpretation, 
   loadInterpretation,
-  deleteInterpretation 
+  deleteInterpretation,
+  formatReportMarkdown
 } from '@/lib/reportGeneration';
 import { BleepxFace } from './BleepxIcons';
+import { 
+  useReportGeneration, 
+  recordReportGeneration,
+  getReportGenerationTier,
+  canGenerateReports
+} from '@/lib/pointsStore';
+import { generateDomainGraphs, generateLabGraphs, mergeGraphsIntoReport, GeneratedGraph } from '@/lib/graphGeneration';
 
 interface InterpretationEditorProps {
   verse: 'query' | 'lab' | 'cloud';
@@ -18,6 +26,7 @@ interface InterpretationEditorProps {
   domain?: string;
   onSave?: (data: ReportData) => void;
   onCancel?: () => void;
+  currentPoints?: number;
 }
 
 export function InterpretationEditor({ 
@@ -26,23 +35,43 @@ export function InterpretationEditor({
   itemName, 
   domain,
   onSave,
-  onCancel 
+  onCancel,
+  currentPoints = 0
 }: InterpretationEditorProps) {
   const [sections, setSections] = useState<InterpretationSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [generatingGraphs, setGeneratingGraphs] = useState(false);
+  const [showAddSection, setShowAddSection] = useState(false);
+  const [newSectionTitle, setNewSectionTitle] = useState('');
+
+  // Check report generation permissions
+  const reportPerms = useReportGeneration(itemId);
+  const canGenerate = canGenerateReports();
+  const reportTier = getReportGenerationTier();
 
   useEffect(() => {
-    // Load existing interpretation or create new
+    // Load existing interpretation or create new with context-aware hints
     const existing = loadInterpretation(verse, itemId);
     if (existing) {
       setSections(existing.sections);
+      setReportData(existing);
     } else {
-      setSections(getDefaultSections(verse));
+      const defaultSections = getDefaultSections(verse, itemId, domain);
+      setSections(defaultSections);
+      setReportData({
+        verse,
+        itemId,
+        itemName,
+        domain,
+        sections: defaultSections,
+        completedAt: new Date().toISOString()
+      });
     }
     setLoading(false);
-  }, [verse, itemId]);
+  }, [verse, itemId, domain, itemName]);
 
   const handleSectionChange = (index: number, content: string) => {
     const updated = [...sections];
@@ -51,20 +80,86 @@ export function InterpretationEditor({
     setHasChanges(true);
   };
 
+  const handleAddSection = () => {
+    if (!newSectionTitle.trim()) return;
+    const newSection: InterpretationSection = {
+      id: newSectionTitle.toLowerCase().replace(/\s+/g, '_'),
+      title: newSectionTitle,
+      hint: '💡 *bleep* Add your custom analysis here.',
+      placeholder: 'Write your custom interpretation...',
+      userContent: ''
+    };
+    setSections([...sections, newSection]);
+    setNewSectionTitle('');
+    setShowAddSection(false);
+    setHasChanges(true);
+  };
+
+  const handleRemoveSection = (index: number) => {
+    const updated = sections.filter((_, i) => i !== index);
+    setSections(updated);
+    setHasChanges(true);
+  };
+
+  const handleGenerateGraphs = async () => {
+    if (!reportPerms.allowed || !domain) return;
+    
+    setGeneratingGraphs(true);
+    try {
+      let graphs: GeneratedGraph[] = [];
+      if (verse === 'query') {
+        const progressData = JSON.parse(localStorage.getItem('bleepx_progress') || '{}');
+        const completed = new Set<string>(progressData.completed || []);
+        const { fullCaseOrder } = await import('@/lib/constants');
+        const completedCases = (fullCaseOrder[domain] || []).filter(c => completed.has(c));
+        graphs = await generateDomainGraphs(domain, completedCases);
+      } else if (verse === 'lab') {
+        const { LAB_CASE_ORDER } = await import('@/lib/labConstants');
+        const progressData = JSON.parse(localStorage.getItem('bleepx_progress') || '{}');
+        const completed = new Set<string>(progressData.completed || []);
+        const completedProjects = (LAB_CASE_ORDER[domain] || []).filter(p => completed.has(p) || completed.has(`lab_${p}`));
+        graphs = await generateLabGraphs(domain, completedProjects);
+      }
+      
+      if (graphs.length > 0) {
+        const updated = mergeGraphsIntoReport(reportData, graphs);
+        setReportData(updated);
+        recordReportGeneration(itemId);
+      }
+    } catch (err) {
+      console.error('Error generating graphs:', err);
+    } finally {
+      setGeneratingGraphs(false);
+    }
+  };
+
   const handleSave = () => {
     setSaving(true);
-    const data: ReportData = {
+    const updatedReport: ReportData = {
       verse,
       itemId,
       itemName,
       domain,
       sections,
-      completedAt: new Date().toISOString()
+      completedAt: new Date().toISOString(),
+      graphs: reportData?.graphs
     };
-    saveInterpretation(data);
-    setSaving(false);
+    saveInterpretation(updatedReport);
     setHasChanges(false);
-    onSave?.(data);
+    setSaving(false);
+    onSave?.(updatedReport);
+  };
+
+  const handleExportMarkdown = () => {
+    if (!reportData) return;
+    const markdown = formatReportMarkdown(reportData);
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${itemName.replace(/\s+/g, '_')}_report.md`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleClear = () => {
@@ -95,10 +190,27 @@ export function InterpretationEditor({
             {itemName}
           </h3>
           <p className="text-xs text-bleepx-text-secondary mt-1">
-            Write your analysis and interpretations. Bleepx will guide you with hints.
+            {verse === 'query' ? 'SQL' : verse === 'lab' ? 'Data Science' : 'Cloud'} Portfolio Interpretation
           </p>
         </div>
         <div className="flex gap-2">
+          {reportTier?.perks.includeGraphs && domain && (
+            <button
+              onClick={handleGenerateGraphs}
+              disabled={generatingGraphs || !reportPerms.allowed}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 transition-colors"
+            >
+              {generatingGraphs ? 'Generating...' : '📊 Generate Graphs'}
+            </button>
+          )}
+          {reportTier?.perks.multipleFormats && (
+            <button
+              onClick={handleExportMarkdown}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              📥 Export
+            </button>
+          )}
           {hasChanges && (
             <button
               onClick={handleSave}
@@ -119,13 +231,43 @@ export function InterpretationEditor({
         </div>
       </div>
 
+      {!canGenerate && (
+        <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+          <p className="text-xs text-amber-800 dark:text-amber-300">
+            ⚠️ Purchase a Report Generation tier to unlock AI-powered reports (100 pts for Basic, 300 pts for Pro, 600 pts for Elite)
+          </p>
+        </div>
+      )}
+
+      {reportPerms.error && canGenerate && (
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-xs text-red-800 dark:text-red-300">
+            ⚠️ {reportPerms.error}
+          </p>
+        </div>
+      )}
+
       <div className="space-y-6">
         {sections.map((section, index) => (
-          <div key={section.id} className="border border-bleepx-border rounded-lg p-4">
-            <div className="flex items-start gap-2 mb-2">
+          <div key={section.id} className="border border-bleepx-border rounded-lg p-4 relative">
+            <div className="flex items-start justify-between mb-2">
               <h4 className="font-bold text-bleepx-text">{section.title}</h4>
+              <button
+                onClick={() => handleRemoveSection(index)}
+                className="text-xs text-red-600 hover:text-red-700"
+              >
+                Remove
+              </button>
             </div>
             
+            {section.context && (
+              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 p-3 border-l-4 border-emerald-400 mb-3">
+                <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                  <span className="font-semibold">📊 Context:</span> {section.context}
+                </p>
+              </div>
+            )}
+
             <div className="rounded-lg bg-sky-50 dark:bg-sky-900/20 p-3 border-l-4 border-sky-400 mb-3">
               <p className="text-xs text-sky-700 dark:text-sky-300">{section.hint}</p>
             </div>
@@ -139,6 +281,55 @@ export function InterpretationEditor({
           </div>
         ))}
       </div>
+
+      <div className="border border-dashed border-bleepx-border rounded-lg p-4">
+        {showAddSection ? (
+          <div className="space-y-2">
+            <input
+              type="text"
+              value={newSectionTitle}
+              onChange={(e) => setNewSectionTitle(e.target.value)}
+              placeholder="Section title (e.g., 'Risk Analysis')"
+              className="w-full px-3 py-2 rounded-lg border border-bleepx-border bg-bleepx-white text-bleepx-text text-sm focus:outline-none focus:ring-2 focus:ring-bleepx-blue"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleAddSection}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-bleepx-blue text-white hover:bg-blue-600 transition-colors"
+              >
+                Add Section
+              </button>
+              <button
+                onClick={() => setShowAddSection(false)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowAddSection(true)}
+            className="w-full text-center text-sm text-bleepx-text-secondary hover:text-bleepx-text"
+          >
+            + Add Custom Section
+          </button>
+        )}
+      </div>
+
+      {reportData?.graphs && reportData.graphs.length > 0 && (
+        <div className="border border-bleepx-border rounded-lg p-4">
+          <h4 className="font-bold text-bleepx-text mb-3">Generated Graphs</h4>
+          <div className="grid grid-cols-2 gap-4">
+            {reportData.graphs.map((graph, idx) => (
+              <div key={idx} className="border border-bleepx-border rounded-lg p-2">
+                <img src={graph.imageData} alt={graph.title} className="w-full h-auto" />
+                <p className="text-xs text-bleepx-text-secondary mt-2">{graph.title}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-between pt-4 border-t border-bleepx-border">
         <button

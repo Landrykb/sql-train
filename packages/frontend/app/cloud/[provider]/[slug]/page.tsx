@@ -180,11 +180,6 @@ export default function CloudMissionPage() {
 
   const [reviewed, setReviewed] = useState(false);
 
-  // GitHub export
-  const [pushing, setPushing] = useState(false);
-  const [pushMsg, setPushMsg] = useState<string | null>(null);
-  const [pushResult, setPushResult] = useState<{ success: boolean; repoUrl?: string; error?: string } | null>(null);
-
   const handleComplete = useCallback(() => {
     if (isDone) return;
     markComplete(missionCaseId, tier);
@@ -198,23 +193,6 @@ export default function CloudMissionPage() {
       : reviewed;
 
   const template = mission.labType === 'iac' ? iacTemplate(p, mission) : null;
-
-  const handlePush = useCallback(async () => {
-    if (!requireAuth('export to GitHub')) return;
-    setPushing(true);
-    setPushResult(null);
-    const result = await pushCloudMissionToGitHub(
-      p,
-      mission,
-      meta.name,
-      template?.code || null,
-      (msg) => setPushMsg(msg),
-      ghUser,
-    );
-    setPushResult(result);
-    setPushing(false);
-    setPushMsg(null);
-  }, [p, mission, meta.name, template, requireAuth, ghUser]);
 
   // Render the auth gate component
   if (!ghUser?.login) {
@@ -584,19 +562,6 @@ export default function CloudMissionPage() {
             )}
           </div>
         )}
-
-        {/* GitHub export */}
-        <div className="pt-3 border-t border-bleepx-border">
-          <h3 className="text-sm font-bold text-bleepx-text mb-1">Export to GitHub</h3>
-          <p className="text-xs text-bleepx-text-secondary mb-2">Push a mission README{template ? ' + IaC template' : ''} to your <code>cloud-portfolio</code> repo.</p>
-          <button onClick={handlePush} disabled={pushing} className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50">
-            {pushing ? pushMsg || 'Pushing...' : '⬆ Push to GitHub'}
-          </button>
-          {pushResult?.success && (
-            <p className="mt-2 text-sm text-emerald-600">✅ Pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline">{pushResult.repoUrl}</a></p>
-          )}
-          {pushResult?.error && <p className="mt-2 text-sm text-red-600">❌ {pushResult.error}</p>}
-        </div>
       </div>
 
       {/* Prev / Next */}

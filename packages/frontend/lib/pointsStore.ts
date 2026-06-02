@@ -124,6 +124,126 @@ export function getFlairTier(totalPointsEarned: number): FlairTier {
   return best;
 }
 
+// ─── Report Generation ─────────────────────────────────────────────────────────
+
+export interface ReportGenerationPerks {
+  /** Whether user can generate AI-powered reports */
+  canGenerateReports: boolean;
+  /** Maximum number of reports that can be generated */
+  maxReports: number;
+  /** Whether reports include auto-generated graphs */
+  includeGraphs: boolean;
+  /** Whether reports can be exported to multiple formats */
+  multipleFormats: boolean;
+}
+
+export interface ReportGenerationTier {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  minPointsRequired?: number;
+  perks: ReportGenerationPerks;
+}
+
+export const REPORT_GENERATION_TIERS: ReportGenerationTier[] = [
+  {
+    id: 'report_basic',
+    name: 'Basic Report Generator',
+    description: 'Generate simple text reports with context-aware hints',
+    cost: 100,
+    perks: {
+      canGenerateReports: true,
+      maxReports: 3,
+      includeGraphs: false,
+      multipleFormats: false
+    }
+  },
+  {
+    id: 'report_pro',
+    name: 'Pro Report Generator',
+    description: 'Generate full reports with graphs and visualizations',
+    cost: 300,
+    minPointsRequired: 200,
+    perks: {
+      canGenerateReports: true,
+      maxReports: 10,
+      includeGraphs: true,
+      multipleFormats: false
+    }
+  },
+  {
+    id: 'report_elite',
+    name: 'Elite Report Generator',
+    description: 'Unlimited reports with graphs, multiple export formats, and AI suggestions',
+    cost: 600,
+    minPointsRequired: 500,
+    perks: {
+      canGenerateReports: true,
+      maxReports: Infinity,
+      includeGraphs: true,
+      multipleFormats: true
+    }
+  }
+];
+
+export function getReportGenerationTier(): ReportGenerationTier | null {
+  const store = getStoreState();
+  // Find the highest tier the user has purchased
+  let bestTier: ReportGenerationTier | null = null;
+  for (const tier of REPORT_GENERATION_TIERS) {
+    if (store.purchasedTitles.includes(tier.id)) {
+      bestTier = tier;
+    }
+  }
+  return bestTier;
+}
+
+export function canGenerateReports(): boolean {
+  const tier = getReportGenerationTier();
+  return tier?.perks.canGenerateReports || false;
+}
+
+export function purchaseReportTier(tierId: string, currentPoints: number): PurchaseResult & { store: StoreState } {
+  const store = getStoreState();
+  const tier = REPORT_GENERATION_TIERS.find(t => t.id === tierId);
+  if (!tier) return { success: false, error: 'Report tier not found', store };
+  if (store.purchasedTitles.includes(tierId)) return { success: false, error: 'Already owned', store };
+  if (tier.minPointsRequired && store.totalPointsEarned < tier.minPointsRequired) {
+    return { success: false, error: `Need ${tier.minPointsRequired} lifetime points to unlock`, store };
+  }
+  if (currentPoints < tier.cost) return { success: false, error: `Need ${tier.cost} pts (you have ${currentPoints})`, store };
+
+  store.purchasedTitles.push(tierId);
+  const newBalance = currentPoints - tier.cost;
+  saveStoreState(store);
+  return { success: true, newBalance, store };
+}
+
+export function useReportGeneration(itemId: string): { allowed: boolean; remaining: number; error?: string } {
+  const store = getStoreState();
+  const tier = getReportGenerationTier();
+  
+  if (!tier || !tier.perks.canGenerateReports) {
+    return { allowed: false, remaining: 0, error: 'Purchase a report generation tier first' };
+  }
+  
+  const used = store.reportsGenerated[itemId] || 0;
+  const remaining = tier.perks.maxReports === Infinity ? Infinity : tier.perks.maxReports - used;
+  
+  if (remaining <= 0) {
+    return { allowed: false, remaining: 0, error: 'Report generation limit reached for this item' };
+  }
+  
+  return { allowed: true, remaining };
+}
+
+export function recordReportGeneration(itemId: string): void {
+  const store = getStoreState();
+  store.reportsGenerated[itemId] = (store.reportsGenerated[itemId] || 0) + 1;
+  saveStoreState(store);
+}
+
 // ─── Persistence (localStorage) ──────────────────────────────────────────────
 
 const STORE_KEY = 'bleepx_store';
@@ -138,6 +258,7 @@ export interface StoreState {
   totalPointsEarned: number;      // lifetime points (never decreases)
   totalPointsSpent: number;        // cumulative points spent (purchases, hints, skips, unlocks)
   hintsPurchased: Record<string, number>; // caseId -> extra hints purchased count
+  reportsGenerated: Record<string, number>; // itemId -> count of reports generated
 }
 
 const DEFAULT_STORE: StoreState = {
@@ -150,6 +271,7 @@ const DEFAULT_STORE: StoreState = {
   totalPointsEarned: 0,
   totalPointsSpent: 0,
   hintsPurchased: {},
+  reportsGenerated: {},
 };
 
 export function getStoreState(): StoreState {

@@ -600,42 +600,50 @@ export default function ProfilePage() {
                     <span className="text-bleepx-blue">💠</span> BleepxQuery
                   </h3>
                   <p className="text-xs text-bleepx-text-secondary mb-3">Export SQL challenges to your GitHub portfolio.</p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="space-y-3">
                     {DOMAINS.map((domain) => {
                       const all = fullCaseOrder[domain] || [];
                       const solved = all.filter((c) => completed.has(c)).length;
                       const hasWork = solved > 0;
                       return (
-                        <button
-                          key={domain}
-                          disabled={!hasWork || !isSignedIn}
-                          onClick={() => {
-                            playBleep();
-                            // TODO: Implement domain export
-                            console.log('Export domain:', domain);
-                          }}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                            hasWork && isSignedIn
-                              ? 'bg-bleepx-blue text-white hover:bg-blue-600'
-                              : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-                          }`}
-                        >
-                          {domainMeta[domain]?.label || domain} ({solved}/{all})
-                        </button>
+                        <div key={domain} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{domainMeta[domain]?.icon}</span>
+                            <span className="text-sm font-medium text-bleepx-text">{domainMeta[domain]?.label || domain}</span>
+                            <span className="text-xs text-bleepx-text-secondary">({solved}/{all})</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              disabled={!hasWork || !isSignedIn}
+                              onClick={() => {
+                                playBleep();
+                                // TODO: Implement domain export
+                                console.log('Export domain:', domain);
+                              }}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                                hasWork && isSignedIn
+                                  ? 'bg-bleepx-blue text-white hover:bg-blue-600'
+                                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+                              }`}
+                            >
+                              Export
+                            </button>
+                            {hasWork && isSignedIn && (
+                              <button
+                                onClick={() => {
+                                  playBleep();
+                                  setEditingItem({ verse: 'query', itemId: `query-${domain}`, itemName: `${domainMeta[domain]?.label || domain} Portfolio`, domain });
+                                }}
+                                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                              >
+                                📝 Write
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
-                  {hasCompletedQueryCases && (
-                    <button
-                      onClick={() => {
-                        playBleep();
-                        setEditingItem({ verse: 'query', itemId: 'query-portfolio', itemName: 'Query Portfolio Report' });
-                      }}
-                      className="mt-3 px-4 py-2 rounded-lg border border-bleepx-border text-bleepx-text text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    >
-                      📝 Write Portfolio Interpretation
-                    </button>
-                  )}
                 </div>
 
                 {/* BleepxLab Exports */}
@@ -644,41 +652,50 @@ export default function ProfilePage() {
                     <span className="text-teal-500">🔬</span> BleepxLab
                   </h3>
                   <p className="text-xs text-bleepx-text-secondary mb-3">Export data science projects to your GitHub portfolio.</p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="space-y-3">
                     {Object.entries(LAB_CASE_ORDER).map(([domain, cases]) => {
                       const solved = cases.filter(c => completed.has(c) || completed.has(`lab_${c}`)).length;
                       const hasWork = solved > 0;
+                      const meta = LAB_DOMAIN_META[domain];
                       return (
-                        <button
-                          key={domain}
-                          disabled={!hasWork || !isSignedIn}
-                          onClick={() => {
-                            playBleep();
-                            // TODO: Implement domain export
-                            console.log('Export lab domain:', domain);
-                          }}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                            hasWork && isSignedIn
-                              ? 'bg-teal-600 text-white hover:bg-teal-700'
-                              : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-                          }`}
-                        >
-                          {LAB_DOMAIN_META[domain]?.name || domain} ({solved}/{cases.length})
-                        </button>
+                        <div key={domain} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{meta?.icon || '📊'}</span>
+                            <span className="text-sm font-medium text-bleepx-text">{meta?.name || domain}</span>
+                            <span className="text-xs text-bleepx-text-secondary">({solved}/{cases.length})</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              disabled={!hasWork || !isSignedIn}
+                              onClick={() => {
+                                playBleep();
+                                // TODO: Implement domain export
+                                console.log('Export lab domain:', domain);
+                              }}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                                hasWork && isSignedIn
+                                  ? 'bg-teal-600 text-white hover:bg-teal-700'
+                                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+                              }`}
+                            >
+                              Export
+                            </button>
+                            {hasWork && isSignedIn && (
+                              <button
+                                onClick={() => {
+                                  playBleep();
+                                  setEditingItem({ verse: 'lab', itemId: `lab-${domain}`, itemName: `${meta?.name || domain} Portfolio`, domain });
+                                }}
+                                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                              >
+                                📝 Write
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
-                  {hasCompletedLabCases && (
-                    <button
-                      onClick={() => {
-                        playBleep();
-                        setEditingItem({ verse: 'lab', itemId: 'lab-portfolio', itemName: 'Lab Portfolio Report' });
-                      }}
-                      className="mt-3 px-4 py-2 rounded-lg border border-bleepx-border text-bleepx-text text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    >
-                      📝 Write Portfolio Interpretation
-                    </button>
-                  )}
                 </div>
 
                 {/* BleepxCloud Exports */}
@@ -687,42 +704,51 @@ export default function ProfilePage() {
                     <span className="text-sky-500">☁️</span> BleepxCloud
                   </h3>
                   <p className="text-xs text-bleepx-text-secondary mb-3">Export cloud architecture missions to your GitHub portfolio.</p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="space-y-3">
                     {CLOUD_PROVIDERS.map((provider) => {
                       const missions = CLOUD_MISSIONS[provider] || [];
                       const solved = missions.filter((m) => completed.has(cloudMissionId(provider, m.slug))).length;
                       const hasWork = solved > 0;
+                      const meta = CLOUD_PROVIDER_META[provider];
                       return (
-                        <button
-                          key={provider}
-                          disabled={!hasWork || !isSignedIn}
-                          onClick={() => {
-                            playBleep();
-                            // TODO: Implement provider export
-                            console.log('Export cloud provider:', provider);
-                          }}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                            hasWork && isSignedIn
-                              ? 'bg-sky-600 text-white hover:bg-sky-700'
-                              : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-                          }`}
-                        >
-                          {CLOUD_PROVIDER_META[provider].name} ({solved}/{missions.length})
-                        </button>
+                        <div key={provider} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{meta?.icon}</span>
+                            <span className="text-sm font-medium text-bleepx-text">{meta?.name}</span>
+                            <span className="text-xs text-bleepx-text-secondary">({solved}/{missions.length})</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              disabled={!hasWork || !isSignedIn}
+                              onClick={() => {
+                                playBleep();
+                                // TODO: Implement provider export
+                                console.log('Export cloud provider:', provider);
+                              }}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                                hasWork && isSignedIn
+                                  ? 'bg-sky-600 text-white hover:bg-sky-700'
+                                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+                              }`}
+                            >
+                              Export
+                            </button>
+                            {hasWork && isSignedIn && (
+                              <button
+                                onClick={() => {
+                                  playBleep();
+                                  setEditingItem({ verse: 'cloud', itemId: `cloud-${provider}`, itemName: `${meta?.name} Portfolio`, domain: provider });
+                                }}
+                                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                              >
+                                📝 Write
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
-                  {hasCompletedCloudMissions && (
-                    <button
-                      onClick={() => {
-                        playBleep();
-                        setEditingItem({ verse: 'cloud', itemId: 'cloud-portfolio', itemName: 'Cloud Portfolio Report' });
-                      }}
-                      className="mt-3 px-4 py-2 rounded-lg border border-bleepx-border text-bleepx-text text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    >
-                      📝 Write Portfolio Interpretation
-                    </button>
-                  )}
                 </div>
               </div>
 
