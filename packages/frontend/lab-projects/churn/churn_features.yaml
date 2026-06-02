@@ -82,3 +82,48 @@ hints:
   - "Try creating a 'charge_per_month' = TotalCharges / tenure feature"
   - "stratify=y ensures train/test have the same churn ratio"
   - "Consider class_weight='balanced' as an alternative to SMOTE"
+visualizations:
+  - title: "Class Distribution Before/After SMOTE"
+    code: |
+      import matplotlib.pyplot as plt
+      fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+      y_train.value_counts().plot(kind='bar', ax=axes[0], color=['steelblue', 'coral'])
+      axes[0].set_title('Before SMOTE')
+      axes[0].set_xticklabels(['No Churn', 'Churn'], rotation=0)
+      pd.Series(y_train_bal).value_counts().plot(kind='bar', ax=axes[1], color=['steelblue', 'coral'])
+      axes[1].set_title('After SMOTE')
+      axes[1].set_xticklabels(['No Churn', 'Churn'], rotation=0)
+      plt.tight_layout()
+      plt.show()
+    description: "Shows how SMOTE balances the classes"
+  - title: "Feature Correlation with Churn"
+    code: |
+      import matplotlib.pyplot as plt
+      import seaborn as sns
+      correlations = df_encoded.corr()['Churn_binary'].abs().sort_values(ascending=False).head(10)
+      correlations.plot(kind='barh', color='steelblue')
+      plt.title('Top 10 Features Correlated with Churn')
+      plt.xlabel('Absolute Correlation')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows which features correlate most with churn"
+  - title: "TotalCharges vs MonthlyCharges Scatter"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.scatter(df['tenure'], df['MonthlyCharges'], alpha=0.5, c=df['Churn_binary'], cmap='coolwarm')
+      plt.xlabel('Tenure (months)')
+      plt.ylabel('Monthly Charges ($)')
+      plt.title('Tenure vs Monthly Charges by Churn')
+      plt.colorbar(label='Churn')
+      plt.show()
+    description: "Shows relationship between tenure, charges, and churn"
+  - title: "Feature Importance via Correlation"
+    code: |
+      import matplotlib.pyplot as plt
+      top_features = correlations.head(10)
+      top_features.plot(kind='barh', color='coral')
+      plt.title('Feature Importance (Correlation with Churn)')
+      plt.xlabel('Correlation Coefficient')
+      plt.tight_layout()
+      plt.show()
+    description: "Ranks features by their correlation strength"

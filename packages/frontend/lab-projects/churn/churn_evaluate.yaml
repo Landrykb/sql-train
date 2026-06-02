@@ -97,3 +97,56 @@ hints:
   - "Try precision_recall_curve for imbalanced classes"
   - "Use SHAP for per-customer explanations"
   - "Save model: joblib.dump(best, 'churn_model.pkl')"
+visualizations:
+  - title: "ROC Curve"
+    code: |
+      import matplotlib.pyplot as plt
+      from sklearn.metrics import roc_curve, roc_auc_score
+      y_proba = best.predict_proba(X_test)[:, 1]
+      fpr, tpr, thresholds = roc_curve(y_test, y_proba)
+      auc = roc_auc_score(y_test, y_proba)
+      plt.figure(figsize=(8, 6))
+      plt.plot(fpr, tpr, color='coral', linewidth=2, label=f'AUC = {auc:.3f}')
+      plt.plot([0, 1], [0, 1], 'k--', alpha=0.3)
+      plt.xlabel('False Positive Rate')
+      plt.ylabel('True Positive Rate')
+      plt.title('ROC Curve — Churn Prediction')
+      plt.legend()
+      plt.show()
+    description: "Shows tradeoff between true positive and false positive rates"
+  - title: "Confusion Matrix Heatmap"
+    code: |
+      import seaborn as sns
+      import matplotlib.pyplot as plt
+      from sklearn.metrics import confusion_matrix
+      y_pred = best.predict(X_test)
+      cm = confusion_matrix(y_test, y_pred)
+      sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+      plt.title('Confusion Matrix')
+      plt.ylabel('True')
+      plt.xlabel('Predicted')
+      plt.show()
+    description: "Shows true vs predicted churn classifications"
+  - title: "Precision-Recall Curve"
+    code: |
+      import matplotlib.pyplot as plt
+      from sklearn.metrics import precision_recall_curve
+      precision, recall, _ = precision_recall_curve(y_test, y_proba)
+      plt.plot(recall, precision, color='steelblue')
+      plt.xlabel('Recall')
+      plt.ylabel('Precision')
+      plt.title('Precision-Recall Curve')
+      plt.show()
+    description: "Better than ROC for imbalanced datasets"
+  - title: "Business Impact Visualization"
+    code: |
+      import matplotlib.pyplot as plt
+      categories = ['Revenue Saved', 'Cost of False Alarms', 'Net Value']
+      values = [saved, cost, saved - cost]
+      colors = ['green', 'red', 'blue' if saved - cost > 0 else 'red']
+      plt.bar(categories, values, color=colors)
+      plt.title('Business Impact Analysis ($)')
+      plt.ylabel('Amount ($)')
+      plt.axhline(0, color='black', linestyle='--')
+      plt.show()
+    description: "Shows financial impact of the churn model"

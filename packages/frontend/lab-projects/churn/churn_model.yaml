@@ -92,3 +92,51 @@ hints:
   - "Use ROC AUC score for comparing models on imbalanced data"
   - "Try adjusting the classification threshold (default 0.5) for better recall"
   - "Logistic Regression coefficients show direction: positive = increases churn probability"
+visualizations:
+  - title: "Model Performance Comparison"
+    code: |
+      import matplotlib.pyplot as plt
+      model_names = ['Logistic Regression', 'Random Forest', 'Gradient Boosting']
+      f1_scores = [f1_lr, f1_rf, f1_gb]
+      plt.bar(model_names, f1_scores, color=['steelblue', 'coral', 'green'])
+      plt.title('F1 Score Comparison')
+      plt.ylabel('F1 Score')
+      plt.show()
+    description: "Compare F1 scores across all models"
+  - title: "Feature Importance Plot"
+    code: |
+      import matplotlib.pyplot as plt
+      importances = pd.Series(best.feature_importances_, index=X.columns).sort_values(ascending=True).tail(15)
+      importances.plot(kind='barh', figsize=(10, 6), color='coral')
+      plt.title('Top 15 Churn Predictors')
+      plt.xlabel('Feature Importance')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows which features most strongly predict churn"
+  - title: "ROC Curve Comparison"
+    code: |
+      import matplotlib.pyplot as plt
+      from sklearn.metrics import roc_curve, auc
+      for name, model in models.items():
+        y_proba = model.predict_proba(X_test)[:, 1]
+        fpr, tpr, _ = roc_curve(y_test, y_proba)
+        plt.plot(fpr, tpr, label=f'{name} (AUC = {auc(fpr, tpr):.3f})')
+      plt.plot([0, 1], [0, 1], 'k--')
+      plt.xlabel('False Positive Rate')
+      plt.ylabel('True Positive Rate')
+      plt.title('ROC Curves')
+      plt.legend()
+      plt.show()
+    description: "Compares ROC curves - higher AUC is better"
+  - title: "Confusion Matrix Heatmap"
+    code: |
+      import seaborn as sns
+      import matplotlib.pyplot as plt
+      from sklearn.metrics import confusion_matrix
+      cm = confusion_matrix(y_test, y_pred)
+      sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+      plt.title('Confusion Matrix')
+      plt.ylabel('True')
+      plt.xlabel('Predicted')
+      plt.show()
+    description: "Shows true vs predicted churn classifications"

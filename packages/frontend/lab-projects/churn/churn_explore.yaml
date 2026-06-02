@@ -84,3 +84,41 @@ hints:
   - "Use df.describe() to see statistical summaries"
   - "Check correlations: df.corr()['Churn_numeric']"
   - "Try sns.countplot for categorical breakdowns"
+visualizations:
+  - title: "Churn Distribution (Class Imbalance)"
+    code: |
+      import matplotlib.pyplot as plt
+      df['Churn'].value_counts().plot(kind='bar', color=['steelblue', 'coral'])
+      plt.title('Churn Distribution')
+      plt.xlabel('Churn Status')
+      plt.ylabel('Count')
+      plt.xticks(rotation=0)
+      plt.show()
+    description: "Shows class imbalance in the target variable"
+  - title: "Tenure Distribution by Churn"
+    code: |
+      import matplotlib.pyplot as plt
+      df.groupby('Churn')['tenure'].plot(kind='hist', alpha=0.6, legend=True)
+      plt.title('Tenure Distribution by Churn')
+      plt.xlabel('Tenure (months)')
+      plt.ylabel('Count')
+      plt.show()
+    description: "Shows how tenure differs between churners and non-churners"
+  - title: "Monthly Charges Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      df.groupby('Churn')['MonthlyCharges'].plot(kind='hist', alpha=0.6, legend=True)
+      plt.title('Monthly Charges by Churn')
+      plt.xlabel('Monthly Charges ($)')
+      plt.ylabel('Count')
+      plt.show()
+    description: "Shows if higher charges correlate with churn"
+  - title: "Churn Rate by Contract Type"
+    code: |
+      import matplotlib.pyplot as plt
+      pd.crosstab(df['Contract'], df['Churn'], normalize='index').plot(kind='bar', color=['steelblue', 'coral'])
+      plt.title('Churn Rate by Contract Type')
+      plt.ylabel('Proportion')
+      plt.legend(title='Churn')
+      plt.show()
+    description: "Shows churn rate by contract type"
