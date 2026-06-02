@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { getActiveVerse, VERSE_THEMES, type Verse } from '@/lib/verse';
-import { clearGitHubUser, startGitHubLogin, logoutUser, GitHubUser } from '@/lib/authClient';
+import { clearGitHubUser, startGitHubLogin, logoutUser, GitHubUser, getGitHubUser } from '@/lib/authClient';
 import { useSupabaseUser } from '@/lib/useSupabaseUser';
 import { useProgress } from '@/lib/useProgress';
 import { useTheme } from '@/lib/useTheme';
@@ -133,10 +133,11 @@ export default function ProfilePage() {
   const hasCompletedCloudMissions = stats.cloudSolved > 0;
 
   // Export handlers
-  const isSignedIn = !!ghUser;
+  const isSignedIn = !!ghUser || !!getGitHubUser();
   
   const handleExportQueryDomain = async (domain: string) => {
-    if (!isSignedIn) return;
+    const user = ghUser || getGitHubUser();
+    if (!user) return;
     setExporting(domain);
     setExportResult(null);
     try {
@@ -156,7 +157,7 @@ export default function ProfilePage() {
           }
         } catch { /* ignore */ }
       }
-      const result = await pushDomainPortfolioToGitHub(domain, solved, caseData, (msg) => console.log(msg), ghUser);
+      const result = await pushDomainPortfolioToGitHub(domain, solved, caseData, (msg) => console.log(msg), user);
       setExportResult(result);
     } catch (err: any) {
       setExportResult({ success: false, error: err.message || 'Export failed' });
@@ -166,7 +167,8 @@ export default function ProfilePage() {
   };
 
   const handleExportLabDomain = async (domain: string) => {
-    if (!isSignedIn) return;
+    const user = ghUser || getGitHubUser();
+    if (!user) return;
     setExporting(`lab-${domain}`);
     setExportResult(null);
     try {
@@ -195,7 +197,8 @@ export default function ProfilePage() {
   };
 
   const handleExportCloudProvider = async (provider: string) => {
-    if (!isSignedIn) return;
+    const user = ghUser || getGitHubUser();
+    if (!user) return;
     setExporting(`cloud-${provider}`);
     setExportResult(null);
     try {
@@ -210,7 +213,7 @@ export default function ProfilePage() {
           iacCode: mission.labType === 'iac' ? '' : undefined
         };
       }
-      const result = await pushCloudProviderPortfolioToGitHub(provider as any, solved.map((m: any) => m.slug), missionData, (msg) => console.log(msg), ghUser);
+      const result = await pushCloudProviderPortfolioToGitHub(provider as any, solved.map((m: any) => m.slug), missionData, (msg) => console.log(msg), user);
       setExportResult(result);
     } catch (err: any) {
       setExportResult({ success: false, error: err.message || 'Export failed' });
@@ -750,7 +753,7 @@ export default function ProfilePage() {
                           <div className="flex items-center gap-2">
                             <span className="text-lg">{domainMeta[domain]?.icon}</span>
                             <span className="text-sm font-medium text-bleepx-text">{domainMeta[domain]?.label || domain}</span>
-                            <span className="text-xs text-bleepx-text-secondary">({solved}/{all})</span>
+                            <span className="text-xs text-bleepx-text-secondary">({solved}/{all.length})</span>
                           </div>
                           <div className="flex gap-2">
                             <button
