@@ -148,3 +148,49 @@ hints:
   - "Look at ESG_Environmental trends over Year for climate transition tracking"
   - "Use seaborn's regplot for trend lines on scatter plots"
   - "The raw CSV has multiple Years per CompanyID — group/aggregate before cross-sectional plots"
+visualizations:
+  - title: "ESG Pillars by Industry"
+    code: |
+      import matplotlib.pyplot as plt
+      industry_esg = df.groupby('Industry')[['ESG_Environmental', 'ESG_Social', 'ESG_Governance']].mean()
+      industry_esg.plot(kind='barh', figsize=(10, 6), color=['#2ecc71', '#3498db', '#9b59b6'])
+      plt.title('Average ESG Scores by Industry')
+      plt.xlabel('Score')
+      plt.legend(title='Pillar')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows ESG pillar performance across different industries"
+  - title: "ESG Score Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+      axes[0, 0].hist(df['ESG_Environmental'], bins=30, edgecolor='black', color='#2ecc71')
+      axes[0, 0].set_title('Environmental Score')
+      axes[0, 1].hist(df['ESG_Social'], bins=30, edgecolor='black', color='#3498db')
+      axes[0, 1].set_title('Social Score')
+      axes[1, 0].hist(df['ESG_Governance'], bins=30, edgecolor='black', color='#9b59b6')
+      axes[1, 0].set_title('Governance Score')
+      axes[1, 1].hist(df['ESG_Overall'], bins=30, edgecolor='black', color='teal')
+      axes[1, 1].set_title('Overall ESG Score')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows distribution of ESG scores across all companies"
+  - title: "ESG vs Growth Rate Scatter"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.scatter(df['ESG_Overall'], df['GrowthRate'], alpha=0.3, s=15, color='teal')
+      plt.xlabel('Overall ESG Score')
+      plt.ylabel('Revenue Growth Rate (%)')
+      plt.title('ESG Score vs Growth')
+      plt.show()
+    description: "Explores relationship between ESG and financial growth"
+  - title: "ESG Correlation Heatmap"
+    code: |
+      import seaborn as sns
+      import matplotlib.pyplot as plt
+      corr = df[['ESG_Overall', 'ESG_Environmental', 'ESG_Social', 'ESG_Governance', 'GrowthRate', 'Volatility', 'MarketCap']].corr()
+      sns.heatmap(corr, annot=True, cmap='coolwarm', fmt='.2f')
+      plt.title('ESG Metrics Correlation Matrix')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows correlations between ESG metrics and financial performance"

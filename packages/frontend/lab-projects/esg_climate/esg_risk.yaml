@@ -142,3 +142,46 @@ hints:
   - "Replace CarbonEmissions with CarbonEmissions/Revenue (intensity) for size-neutral ranking"
   - "Add WaterUsage and EnergyConsumption to extend beyond carbon to broader physical risk"
   - "Use Monte Carlo over carbon_price in a realistic range ($30-$250) for probabilistic VaR"
+visualizations:
+  - title: "Carbon Price Impact by Industry"
+    code: |
+      import matplotlib.pyplot as plt
+      industry_impact = df.groupby('Industry')['carbon_impact_pct'].mean().sort_values(ascending=True)
+      industry_impact.plot(kind='barh', figsize=(10, 6), color='coral')
+      plt.title('Revenue Impact of $75/ton Carbon Price by Industry')
+      plt.xlabel('Revenue Impact (%)')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows which industries are most exposed to carbon pricing"
+  - title: "Climate Scenario Impact Comparison"
+    code: |
+      import matplotlib.pyplot as plt
+      scenarios = ['1.5°C', '2.0°C', '3.0°C']
+      impacts = [port_impact_15c, port_impact_20c, port_impact_30c]
+      colors = ['green', 'orange', 'red']
+      plt.bar(scenarios, impacts, color=colors)
+      plt.title('Portfolio MarketCap Impact by Climate Scenario')
+      plt.ylabel('Impact (%)')
+      plt.axhline(0, color='black', linestyle='--')
+      plt.show()
+    description: "Compares portfolio impact across different climate scenarios"
+  - title: "Carbon Intensity Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      carbon_intensity = df['CarbonEmissions'] / df['Revenue']
+      plt.hist(carbon_intensity, bins=30, edgecolor='black', color='brown')
+      plt.xlabel('Carbon Intensity (Emissions/Revenue)')
+      plt.ylabel('Count')
+      plt.title('Carbon Intensity Distribution by Company')
+      plt.show()
+    description: "Shows distribution of carbon intensity across companies"
+  - title: "ESG Environmental vs Carbon Emissions"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.scatter(df['ESG_Environmental'], df['CarbonEmissions'], alpha=0.5, c=df['Industry'].astype('category').cat.codes, cmap='tab10')
+      plt.xlabel('ESG Environmental Score')
+      plt.ylabel('Carbon Emissions')
+      plt.title('ESG Score vs Carbon Emissions')
+      plt.colorbar(label='Industry')
+      plt.show()
+    description: "Shows relationship between ESG scores and actual carbon emissions"

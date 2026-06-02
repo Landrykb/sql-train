@@ -128,3 +128,51 @@ hints:
   - "Add a carbon budget constraint: cap weighted CarbonEmissions/Revenue"
   - "Run mean-variance optimisation using GrowthRate volatility per CompanyID"
   - "Backtest by rolling the 'latest year' forward through the 11-year panel"
+visualizations:
+  - title: "Portfolio Weights Comparison"
+    code: |
+      import matplotlib.pyplot as plt
+      fig, axes = plt.subplots(1, 2, figsize=(14, 4))
+      df.nlargest(10, 'market_weight').plot(kind='barh', x='CompanyName', y='market_weight', ax=axes[0], color='steelblue')
+      axes[0].set_title('Top 10 Market-Cap Weights')
+      axes[0].set_xlabel('Weight')
+      df.nlargest(10, 'tilt').plot(kind='barh', x='CompanyName', y='tilt', ax=axes[1], color='green')
+      axes[1].set_title('Top 10 ESG-Tilted Weights')
+      axes[1].set_xlabel('Weight')
+      plt.tight_layout()
+      plt.show()
+    description: "Compares market-cap vs ESG-tilted portfolio weights"
+  - title: "Portfolio Return Comparison"
+    code: |
+      import matplotlib.pyplot as plt
+      portfolios = ['Market-Cap', 'ESG-Tilted']
+      returns = [market_return, esg_return]
+      plt.bar(portfolios, returns, color=['steelblue', 'green'])
+      plt.title('Portfolio Growth Rate Comparison')
+      plt.ylabel('Growth Rate (%)')
+      plt.show()
+    description: "Shows return comparison between market-cap and ESG-tilted portfolios"
+  - title: "Carbon Intensity Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      carbon_intensity = df['CarbonEmissions'] / df['Revenue']
+      plt.hist(carbon_intensity, bins=30, edgecolor='black', color='brown')
+      plt.xlabel('Carbon Intensity (Emissions/Revenue)')
+      plt.ylabel('Count')
+      plt.title('Carbon Intensity Distribution')
+      plt.axvline(weighted_intensity, color='red', linestyle='--', label='Portfolio Weighted')
+      plt.legend()
+      plt.show()
+    description: "Shows distribution of carbon intensity across companies"
+  - title: "Industry Exposure Comparison"
+    code: |
+      import matplotlib.pyplot as plt
+      high_carbon_industries = {'Energy', 'Utilities', 'Materials'}
+      df['is_high_carbon'] = df['Industry'].isin(high_carbon_industries)
+      market_exposure = df.loc[df['is_high_carbon'], 'market_weight'].sum() * 100
+      esg_exposure = df.loc[df['is_high_carbon'], 'tilt'].sum() * 100
+      plt.bar(['Market-Cap', 'ESG-Tilted'], [market_exposure, esg_exposure], color=['steelblue', 'green'])
+      plt.title('High-Carbon Industry Exposure')
+      plt.ylabel('Portfolio Weight (%)')
+      plt.show()
+    description: "Compares exposure to high-carbon industries"

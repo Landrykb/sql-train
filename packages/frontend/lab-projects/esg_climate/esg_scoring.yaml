@@ -138,3 +138,44 @@ hints:
   - "Try different E/S/G weight schemes and see how rankings shift"
   - "Replace Industry with Region for geography-adjusted ratings"
   - "Use PCA on the three pillar scores for a data-driven composite"
+visualizations:
+  - title: "ESG Rating Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      df['esg_rating'].value_counts().sort_index().plot(kind='bar', color=['#d62728', '#ff7f0e', '#ffbb78', '#98df8a', '#2ca02c'])
+      plt.title('ESG Rating Distribution')
+      plt.xlabel('Rating')
+      plt.ylabel('Count')
+      plt.xticks(rotation=0)
+      plt.show()
+    description: "Shows distribution of ESG ratings across companies"
+  - title: "Custom ESG Score Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      df['custom_esg'].hist(bins=30, edgecolor='black', color='teal')
+      plt.xlabel('Custom ESG Score')
+      plt.ylabel('Count')
+      plt.title('Custom ESG Score Distribution')
+      plt.show()
+    description: "Shows distribution of the custom ESG composite score"
+  - title: "ESG Pillar Comparison"
+    code: |
+      import matplotlib.pyplot as plt
+      pillars = ['ESG_Environmental', 'ESG_Social', 'ESG_Governance']
+      df[pillars].boxplot()
+      plt.title('ESG Pillar Score Distribution')
+      plt.ylabel('Normalized Score (0-1)')
+      plt.xticks(rotation=45)
+      plt.tight_layout()
+      plt.show()
+    description: "Compares distributions of the three ESG pillars"
+  - title: "Industry ESG Performance"
+    code: |
+      import matplotlib.pyplot as plt
+      industry_esg = df.groupby('Industry')['custom_esg'].mean().sort_values(ascending=True)
+      industry_esg.plot(kind='barh', figsize=(10, 6), color='teal')
+      plt.title('Average Custom ESG Score by Industry')
+      plt.xlabel('Custom ESG Score')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows average ESG performance across industries"
