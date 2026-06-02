@@ -21,6 +21,16 @@ export interface ReportData {
   sections: InterpretationSection[];
   completedAt: string;
   graphs?: GraphData[]; // Actual graphs/charts to include in report
+  analysisResults?: AnalysisResult[]; // Actual analysis results to include in report
+}
+
+export interface AnalysisResult {
+  type: 'query' | 'lab_step' | 'visualization';
+  title: string;
+  data: any; // Query results, model outputs, etc.
+  query?: string; // SQL query used
+  summary?: string; // Summary of the result
+  timestamp?: string;
 }
 
 export interface GraphData {
@@ -190,6 +200,134 @@ export function deleteInterpretation(verse: 'query' | 'lab' | 'cloud', itemId: s
   }
 }
 
+/** Pull analysis results from localStorage for a completed item */
+export function pullAnalysisResults(verse: 'query' | 'lab' | 'cloud', itemId: string, domain?: string): AnalysisResult[] {
+  const results: AnalysisResult[] = [];
+
+  try {
+    if (verse === 'query' && domain) {
+      // Pull saved query results from localStorage
+      const savedKey = `bleepx_solved_${domain}_${itemId}`;
+      const savedData = localStorage.getItem(savedKey);
+      
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        if (parsed.results && parsed.results.length > 0) {
+          results.push({
+            type: 'query',
+            title: `${itemId} - Query Results`,
+            data: parsed.results,
+            query: parsed.query,
+            summary: `${parsed.results.length} rows returned`,
+            timestamp: parsed.timestamp || new Date().toISOString()
+          });
+        }
+      }
+    } else if (verse === 'lab') {
+      // Pull Lab step results from localStorage
+      const labKey = `bleepx_lab_step_${itemId}`;
+      const labData = localStorage.getItem(labKey);
+      
+      if (labData) {
+        const parsed = JSON.parse(labData);
+        results.push({
+          type: 'lab_step',
+          title: `${itemId} - Lab Step Result`,
+          data: parsed,
+          summary: parsed.output || 'Lab step completed',
+          timestamp: parsed.timestamp || new Date().toISOString()
+        });
+      }
+    }
+  } catch (e) {
+    console.error('Failed to pull analysis results:', e);
+  }
+
+  return results;
+}
+
+/** Format analysis results into markdown */
+function formatAnalysisResults(results: AnalysisResult[]): string {
+  if (!results || results.length === 0) return '';
+  
+  let md = `## Analysis Results\n\n`;
+  
+  for (const result of results) {
+    md += `### ${result.title}\n\n`;
+    
+    if (result.query) {
+      md += `**Query:**\n\`\`\`sql\n${result.query}\n\`\`\`\n\n`;
+    }
+    
+    if (result.summary) {
+      md += `**Summary:** ${result.summary}\n\n`;
+    }
+    
+    if (result.data) {
+      const data = result.data;
+      if (Array.isArray(data) && data.length > 0) {
+        // Format as table
+        const headers = Object.keys(data[0]);
+        md += `**Data Preview:**\n\n`;
+        md += `| ${headers.join(' | ')} |\n`;
+        md += `| ${headers.map(() => '---').join(' | ')} |\n`;
+        
+        // Show first 10 rows
+        const previewRows = data.slice(0, 10);
+        for (const row of previewRows) {
+          md += `| ${headers.map(h => String(row[h] ?? '')).join(' | ')} |\n`;
+        }
+        
+        if (data.length > 10) {
+          md += `\n*... and ${data.length - 10} more rows*\n\n`;
+        } else {
+          md += `\n`;
+        }
+      } else if (typeof data === 'object') {
+        // Format as key-value pairs
+        md += `**Result:**\n\`\`\`json\n${JSON.stringify(data, null, 2)}\n\`\`\`\n\n`;
+      }
+    }
+    
+    md += `\n`;
+  }
+  
+  return md;
+}
+
+/** Format graphs into markdown */
+function formatGraphs(graphs: GraphData[]): string {
+  if (!graphs || graphs.length === 0) return '';
+  
+  let md = `## Visualizations\n\n`;
+  
+  for (const graph of graphs) {
+    md += `### ${graph.title}\n\n`;
+    
+    if (graph.imageData) {
+      md += `
+![${graph.title}](${graph.imageData})
+`;
+    }
+    
+    if (graph.description) {
+      md += `**Description:** ${graph.description}\n\n`;
+    }
+    
+    if (graph.insights && graph.insights.length > 0) {
+      md += `**Insights:**\n`;
+      for (const insight of graph.insights) {
+        md += `- ${insight}\n`;
+      }
+      md += `\n`;
+    }
+    
+    md += `\n`;
+  }
+  
+  return md;
+}
+
 /** Format interpretation sections into a markdown report */
 export function formatReportMarkdown(data: ReportData): string {
   let md = `# ${data.itemName}\n\n`;
@@ -200,6 +338,19 @@ export function formatReportMarkdown(data: ReportData): string {
   md += `**Completed:** ${new Date(data.completedAt).toLocaleDateString()}\n\n`;
   md += `---\n\n`;
 
+  // Include analysis results if available
+  if (data.analysisResults && data.analysisResults.length > 0) {
+    md += formatAnalysisResults(data.analysisResults);
+    md += `---\n\n`;
+  }
+
+  // Include graphs if available
+  if (data.graphs && data.graphs.length > 0) {
+    md += formatGraphs(data.graphs);
+    md += `---\n\n`;
+  }
+
+  // Include user interpretation sections
   for (const section of data.sections) {
     if (section.userContent.trim()) {
       md += `## ${section.title}\n\n${section.userContent}\n\n`;
@@ -208,4 +359,35 @@ export function formatReportMarkdown(data: ReportData): string {
 
   md += `---\n*Generated via [Bleepx](https://bleepxacademy.vercel.app) — Your AI Learning Companion*\n`;
   return md;
+}
+
+/** Generate a complete report with analysis results automatically pulled */
+export function generateCompleteReport(
+  verse: 'query' | 'lab' | 'cloud',
+  itemId: string,
+  itemName: string,
+  domain?: string,
+  includeAnalysisResults: boolean = true
+): ReportData {
+  // Load existing interpretation or create new
+  let reportData = loadInterpretation(verse, itemId);
+  
+  if (!reportData) {
+    const defaultSections = getDefaultSections(verse, itemId, domain);
+    reportData = {
+      verse,
+      itemId,
+      itemName,
+      domain,
+      sections: defaultSections,
+      completedAt: new Date().toISOString()
+    };
+  }
+
+  // Pull analysis results if requested
+  if (includeAnalysisResults && !reportData.analysisResults) {
+    reportData.analysisResults = pullAnalysisResults(verse, itemId, domain);
+  }
+
+  return reportData;
 }

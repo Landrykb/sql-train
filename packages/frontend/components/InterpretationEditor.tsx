@@ -8,7 +8,9 @@ import {
   saveInterpretation, 
   loadInterpretation,
   deleteInterpretation,
-  formatReportMarkdown
+  formatReportMarkdown,
+  pullAnalysisResults,
+  generateCompleteReport
 } from '@/lib/reportGeneration';
 import { BleepxFace } from './BleepxIcons';
 import { 
@@ -66,6 +68,7 @@ export function InterpretationEditor({
       setReportData(existing);
     } else {
       const defaultSections = getDefaultSections(verse, itemId, domain);
+      const analysisResults = pullAnalysisResults(verse, itemId, domain);
       setSections(defaultSections);
       setReportData({
         verse,
@@ -73,7 +76,8 @@ export function InterpretationEditor({
         itemName,
         domain,
         sections: defaultSections,
-        completedAt: new Date().toISOString()
+        completedAt: new Date().toISOString(),
+        analysisResults
       });
     }
     setLoading(false);
@@ -148,7 +152,8 @@ export function InterpretationEditor({
       domain,
       sections,
       completedAt: new Date().toISOString(),
-      graphs: reportData?.graphs
+      graphs: reportData?.graphs,
+      analysisResults: reportData?.analysisResults || pullAnalysisResults(verse, itemId, domain)
     };
     saveInterpretation(updatedReport);
     setHasChanges(false);
@@ -158,7 +163,12 @@ export function InterpretationEditor({
 
   const handleExportMarkdown = () => {
     if (!reportData) return;
-    const markdown = formatReportMarkdown(reportData);
+    // Ensure analysis results are included in the export
+    const reportWithResults = {
+      ...reportData,
+      analysisResults: reportData.analysisResults || pullAnalysisResults(verse, itemId, domain)
+    };
+    const markdown = formatReportMarkdown(reportWithResults);
     const blob = new Blob([markdown], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -336,6 +346,64 @@ export function InterpretationEditor({
           </button>
         )}
       </div>
+
+      {/* Analysis Results Display */}
+      {reportData?.analysisResults && reportData.analysisResults.length > 0 && (
+        <div className="border border-bleepx-border rounded-lg p-4">
+          <h4 className="font-bold text-bleepx-text mb-3">Analysis Results</h4>
+          <div className="space-y-4">
+            {reportData.analysisResults.map((result, idx) => (
+              <div key={idx} className="border border-bleepx-border rounded-lg p-3">
+                <div className="flex items-start justify-between mb-2">
+                  <h5 className="font-semibold text-bleepx-text text-sm">{result.title}</h5>
+                  <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
+                    {result.type}
+                  </span>
+                </div>
+                {result.summary && (
+                  <p className="text-xs text-bleepx-text-secondary mb-2">{result.summary}</p>
+                )}
+                {result.query && (
+                  <div className="mb-2">
+                    <p className="text-xs font-semibold text-bleepx-text mb-1">Query:</p>
+                    <pre className="text-xs bg-gray-50 dark:bg-gray-900 p-2 rounded overflow-x-auto">
+                      <code>{result.query}</code>
+                    </pre>
+                  </div>
+                )}
+                {result.data && Array.isArray(result.data) && result.data.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-bleepx-text mb-1">Data Preview ({result.data.length} rows):</p>
+                    <div className="overflow-x-auto">
+                      <table className="text-xs w-full border-collapse">
+                        <thead>
+                          <tr className="border-b border-bleepx-border">
+                            {Object.keys(result.data[0]).map(key => (
+                              <th key={key} className="text-left p-1 font-semibold text-bleepx-text">{key}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {result.data.slice(0, 5).map((row, rowIdx) => (
+                            <tr key={rowIdx} className="border-b border-gray-200 dark:border-gray-700">
+                              {Object.values(row).map((val, valIdx) => (
+                                <td key={valIdx} className="p-1 text-bleepx-text-secondary">{String(val ?? '')}</td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {result.data.length > 5 && (
+                        <p className="text-xs text-bleepx-text-secondary mt-1">... and {result.data.length - 5} more rows</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Graphs Display */}
       {reportData?.graphs && reportData.graphs.length > 0 && (
