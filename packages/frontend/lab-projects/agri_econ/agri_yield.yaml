@@ -118,3 +118,43 @@ hints:
   - "Add lagged yields (previous 1-3 years per country/crop)"
   - "Train one model per crop and compare per-crop R² — some crops are much harder"
   - "Try gradient boosting (lightgbm) for a 2-5% accuracy bump"
+visualizations:
+  - title: "Feature Importance"
+    code: |
+      import matplotlib.pyplot as plt
+      imp = pd.Series(model.feature_importances_, index=X.columns).nlargest(10).sort_values()
+      imp.plot(kind='barh', figsize=(10, 5), color='forestgreen')
+      plt.title('Top 10 Feature Importances')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows which features most strongly predict crop yield"
+  - title: "Actual vs Predicted Yield"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.scatter(y_test, y_pred, alpha=0.5)
+      plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+      plt.xlabel('Actual Yield (hg/ha)')
+      plt.ylabel('Predicted Yield (hg/ha)')
+      plt.title('Actual vs Predicted Yield')
+      plt.show()
+    description: "Shows prediction accuracy - points on red line are perfect predictions"
+  - title: "Prediction Error Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      errors = y_test - y_pred
+      errors.hist(bins=30, edgecolor='black')
+      plt.title('Prediction Error Distribution')
+      plt.xlabel('Error (Actual - Predicted)')
+      plt.ylabel('Count')
+      plt.axvline(0, color='red', linestyle='--')
+      plt.show()
+    description: "Shows if errors are centered around zero (unbiased model)"
+  - title: "Yield by Crop Comparison"
+    code: |
+      import matplotlib.pyplot as plt
+      df.groupby('Item')['hg/ha_yield'].mean().nlargest(10).plot(kind='barh', color='forestgreen')
+      plt.title('Average Yield by Crop')
+      plt.xlabel('Yield (hg/ha)')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows average yield across different crop types"

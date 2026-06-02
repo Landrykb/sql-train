@@ -111,3 +111,41 @@ hints:
   - "Add Granger-causality tests between crops for lead-lag relationships"
   - "Break out by country — volatility in developing markets is much higher"
   - "Use avg_temp deviations as an exogenous regressor in the YoY model"
+visualizations:
+  - title: "Yield Over Time by Crop"
+    code: |
+      import matplotlib.pyplot as plt
+      wide.plot(figsize=(14, 5), linewidth=1.5)
+      plt.title('Average Yield Over Time — Selected Crops')
+      plt.ylabel('hg/ha_yield')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows historical yield trends for different crops"
+  - title: "Rolling Volatility"
+    code: |
+      import matplotlib.pyplot as plt
+      vol.plot(linewidth=1.5)
+      plt.title('5-Year Rolling YoY Yield Volatility (%)')
+      plt.ylabel('Volatility (%)')
+      plt.show()
+    description: "Shows rolling 5-year volatility of year-over-year yield changes"
+  - title: "Cross-Crop Correlation Heatmap"
+    code: |
+      import seaborn as sns
+      import matplotlib.pyplot as plt
+      corr = yoy.corr()
+      sns.heatmap(corr, annot=True, cmap='RdYlGn', center=0, fmt='.2f')
+      plt.title('Cross-Crop YoY Correlation')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows correlation between yield changes across crops"
+  - title: "YoY Yield Change Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      yoy.hist(bins=30, edgecolor='black', figsize=(10, 6))
+      plt.title('Year-over-Year Yield Change Distribution')
+      plt.xlabel('YoY Change')
+      plt.ylabel('Count')
+      plt.legend(yoy.columns)
+      plt.show()
+    description: "Shows distribution of year-over-year yield changes"

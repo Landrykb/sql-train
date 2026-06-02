@@ -119,3 +119,42 @@ hints:
   - "Re-estimate elasticity per Item — cassava vs wheat will differ massively"
   - "Layer on rainfall shifts (+/- 10% precipitation) alongside warming"
   - "Use a Gini coefficient to measure yield-inequality across Areas"
+visualizations:
+  - title: "Top Countries by Yield"
+    code: |
+      import matplotlib.pyplot as plt
+      country.nlargest(10, 'avg_yield').plot(kind='barh', x='Area', y='avg_yield', color='forestgreen')
+      plt.title('Top 10 Countries by Average Yield')
+      plt.xlabel('Yield (hg/ha)')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows countries with highest average crop yields"
+  - title: "Yield Volatility (Coefficient of Variation)"
+    code: |
+      import matplotlib.pyplot as plt
+      country.nlargest(10, 'cv').plot(kind='barh', x='Area', y='cv', color='coral')
+      plt.title('Top 10 Most Volatile Countries')
+      plt.xlabel('Coefficient of Variation')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows countries with most variable yields"
+  - title: "Temperature vs Yield Scatter"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.scatter(country['avg_temp'], country['avg_yield'], alpha=0.5)
+      plt.xlabel('Average Temperature')
+      plt.ylabel('Average Yield (hg/ha)')
+      plt.title('Temperature vs Yield by Country')
+      plt.show()
+    description: "Shows relationship between temperature and yield"
+  - title: "Climate Impact on Yield"
+    code: |
+      import matplotlib.pyplot as plt
+      scenarios = ['+1.5°C', '+2.0°C', '+3.0°C']
+      impacts = [pct_change_15.mean(), pct_change_20.mean(), pct_change_30.mean()]
+      plt.bar(scenarios, impacts, color=['green', 'orange', 'red'])
+      plt.title('Mean Yield Impact by Warming Scenario')
+      plt.ylabel('Percent Change (%)')
+      plt.axhline(0, color='black', linestyle='--')
+      plt.show()
+    description: "Shows average yield impact under different warming scenarios"

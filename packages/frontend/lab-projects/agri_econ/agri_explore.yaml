@@ -110,3 +110,43 @@ hints:
   - "Plot yield vs avg_temp per crop to find each crop's sweet spot"
   - "Compute country-level trend: is yield growing, flat, or falling?"
   - "Segment by decade to see how the rainfall-yield relationship evolves"
+visualizations:
+  - title: "Mean Yield by Crop"
+    code: |
+      import matplotlib.pyplot as plt
+      top_crops = df.groupby('Item')['hg/ha_yield'].mean().nlargest(8)
+      top_crops.plot(kind='barh', color='forestgreen')
+      plt.title('Mean Yield by Crop (hg/ha)')
+      plt.xlabel('Yield (hg/ha)')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows average yield across different crop types"
+  - title: "Mean Yield by Country"
+    code: |
+      import matplotlib.pyplot as plt
+      top_countries = df.groupby('Area')['hg/ha_yield'].mean().nlargest(8)
+      top_countries.plot(kind='barh', color='steelblue')
+      plt.title('Mean Yield by Country (hg/ha)')
+      plt.xlabel('Yield (hg/ha)')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows top yielding countries"
+  - title: "Yield Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      df['hg/ha_yield'].hist(bins=60, color='coral', edgecolor='black')
+      plt.title('Yield Distribution')
+      plt.xlabel('hg/ha_yield')
+      plt.ylabel('Count')
+      plt.show()
+    description: "Shows distribution of crop yields"
+  - title: "Climate-Yield Correlation Heatmap"
+    code: |
+      import seaborn as sns
+      import matplotlib.pyplot as plt
+      corr = df[['hg/ha_yield', 'average_rain_fall_mm_per_year', 'pesticides_tonnes', 'avg_temp']].corr()
+      sns.heatmap(corr, annot=True, cmap='coolwarm', fmt='.2f')
+      plt.title('Climate-Yield Correlation Matrix')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows correlations between yield and climate variables"
