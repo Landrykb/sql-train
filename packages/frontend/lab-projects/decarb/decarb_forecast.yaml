@@ -97,3 +97,53 @@ hints:
   - "Consider technology adoption curves (S-curves) for realistic modeling"
   - "Add cost estimates per ton of CO2 reduced for each intervention"
   - "Use marginal abatement cost curves (MACCs) for optimization"
+visualizations:
+  - title: "Baseline Emission Forecast"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.plot(yearly['year'], y, 'bo-', label='Historical')
+      plt.plot(future_years, baseline, 'r--', label='BAU Forecast', linewidth=2)
+      plt.axhline(0, color='green', linestyle=':', alpha=0.5)
+      plt.title('Emission Trajectory — Business as Usual')
+      plt.ylabel('MT CO2e')
+      plt.legend()
+      plt.show()
+    description: "Shows historical emissions and business-as-usual forecast"
+  - title: "Decarbonization Pathways"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.plot(yearly['year'], y, 'ko-', label='Historical')
+      for name, params in scenarios.items():
+          trajectory = [y[-1]]
+          for yr in range(2024, 2051):
+              reduced = trajectory[-1] * (1 - params['annual_reduction'])
+              offset = reduced * params['offsets_pct']
+              trajectory.append(max(0, reduced - offset))
+          net_zero_year = 2024 + next((i for i, v in enumerate(trajectory) if v < y[-1]*0.05), len(trajectory))
+          plt.plot(range(2023, 2051), trajectory, linewidth=2, label=f'{name} (net-zero ~{net_zero_year})')
+      plt.axhline(0, color='green', linestyle=':', alpha=0.5)
+      plt.title('Decarbonization Pathways')
+      plt.ylabel('MT CO2e')
+      plt.legend()
+      plt.show()
+    description: "Compares different decarbonization scenarios"
+  - title: "Annual Reduction Rates Comparison"
+    code: |
+      import matplotlib.pyplot as plt
+      scenarios_list = list(scenarios.keys())
+      reduction_rates = [v['annual_reduction']*100 for v in scenarios.values()]
+      plt.bar(scenarios_list, reduction_rates, color=['green', 'orange', 'red'])
+      plt.title('Annual Emission Reduction Rates by Scenario')
+      plt.ylabel('Annual Reduction (%)')
+      plt.xticks(rotation=45)
+      plt.show()
+    description: "Compares reduction rates across scenarios"
+  - title: "Net Zero Timeline"
+    code: |
+      import matplotlib.pyplot as plt
+      net_zero_years = [2035, 2045, 2055]
+      plt.barh(scenarios_list, net_zero_years, color=['green', 'orange', 'red'])
+      plt.title('Net Zero Achievement Year by Scenario')
+      plt.xlabel('Year')
+      plt.show()
+    description: "Shows when net zero is achieved under each scenario"

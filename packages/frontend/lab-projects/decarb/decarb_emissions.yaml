@@ -72,3 +72,42 @@ hints:
   - "Use location-based vs market-based factors for Scope 2"
   - "Consider Scope 3 categories: purchased goods, business travel, employee commuting"
   - "Emission factors vary by country — use regional data when available"
+visualizations:
+  - title: "Emissions by Category (Pie Chart)"
+    code: |
+      import matplotlib.pyplot as plt
+      cat_totals.head(8).plot(kind='pie', autopct='%1.1f%%')
+      plt.title('Emissions by Category')
+      plt.ylabel('')
+      plt.show()
+    description: "Shows proportion of emissions by category"
+  - title: "Top Emitting Countries"
+    code: |
+      import matplotlib.pyplot as plt
+      top10 = emissions.groupby('country_or_area')['value'].sum().nlargest(10)
+      top10.plot(kind='barh', color='coral')
+      plt.title('Top 10 Emitting Countries')
+      plt.xlabel('GHG Value')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows countries with highest emissions"
+  - title: "Emission Category Bar Chart"
+    code: |
+      import matplotlib.pyplot as plt
+      cat_totals.head(10).plot(kind='barh', color='brown')
+      plt.title('Top 10 Emission Categories')
+      plt.xlabel('GHG Value')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows emission breakdown by category"
+  - title: "Emission Trend Over Time"
+    code: |
+      import matplotlib.pyplot as plt
+      yearly = emissions.groupby('year')['value'].sum()
+      yearly.plot(linewidth=2, color='steelblue')
+      plt.title('Total Emissions Over Time')
+      plt.ylabel('GHG Value')
+      plt.xlabel('Year')
+      plt.grid(alpha=0.3)
+      plt.show()
+    description: "Shows historical emission trends"

@@ -71,3 +71,43 @@ hints:
   - "Calculate carbon intensity: emissions / revenue for fair comparison"
   - "Look for companies with Science Based Targets (SBTi)"
   - "Try grouping by region to see geographic patterns"
+visualizations:
+  - title: "Top Emitters by Country"
+    code: |
+      import matplotlib.pyplot as plt
+      top_emitters = emissions.groupby('country_or_area')['value'].sum().nlargest(10)
+      top_emitters.plot(kind='barh', color='coral')
+      plt.title('Top 10 Emitters (Total)')
+      plt.xlabel('GHG Value')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows countries with highest total greenhouse gas emissions"
+  - title: "Global Emissions Over Time"
+    code: |
+      import matplotlib.pyplot as plt
+      yearly = emissions.groupby('year')['value'].sum()
+      yearly.plot(linewidth=2, color='steelblue')
+      plt.title('Global Emissions Over Time')
+      plt.ylabel('GHG Value')
+      plt.xlabel('Year')
+      plt.grid(alpha=0.3)
+      plt.show()
+    description: "Shows historical trend of global greenhouse gas emissions"
+  - title: "Emissions by Category"
+    code: |
+      import matplotlib.pyplot as plt
+      emissions.groupby('category')['value'].sum().nlargest(10).plot(kind='barh', color='brown')
+      plt.title('Emissions by Category')
+      plt.xlabel('GHG Value')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows emission breakdown by category/sector"
+  - title: "Emission Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      emissions['value'].hist(bins=30, edgecolor='black', color='gray')
+      plt.xlabel('GHG Value')
+      plt.ylabel('Count')
+      plt.title('Emission Value Distribution')
+      plt.show()
+    description: "Shows distribution of emission values across all records"

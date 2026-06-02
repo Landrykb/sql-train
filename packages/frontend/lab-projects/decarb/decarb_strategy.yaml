@@ -102,3 +102,47 @@ hints:
   - "Add a 'traffic light' status for each milestone (on track / at risk / behind)"
   - "Include Scope 3 engagement strategy with key suppliers"
   - "Reference GHG Protocol and SBTi standards for credibility"
+visualizations:
+  - title: "Emission Reduction Pathway with Targets"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.plot(yearly['year'], y, 'bo-')
+      for yr, tgt in targets.items():
+          plt.plot(yr, tgt, 'r*', markersize=15)
+          plt.annotate(f'{yr}\n-{(1-tgt/base_year_emissions)*100:.0f}%', (yr, tgt), fontsize=8)
+      plt.title('Emission Reduction Pathway')
+      plt.ylabel('MT CO2e')
+      plt.show()
+    description: "Shows emission trajectory with milestone targets"
+  - title: "Emissions by Category Pie Chart"
+    code: |
+      import matplotlib.pyplot as plt
+      cat_totals = emissions.groupby('category')['value'].sum().nlargest(4)
+      cat_totals.plot(kind='pie', autopct='%1.0f%%', colors=['#e74c3c','#f39c12','#3498db','#2ecc71'])
+      plt.title('Emissions by Category')
+      plt.ylabel('')
+      plt.show()
+    description: "Shows breakdown of emissions by category"
+  - title: "Reduction Potential by Action"
+    code: |
+      import matplotlib.pyplot as plt
+      actions = pd.DataFrame({
+          'Action': ['Renewable Energy', 'Fleet Electrification', 'Efficiency', 'Supply Chain', 'Offsets'],
+          'Reduction_MT': [500, 300, 200, 400, 100],
+      })
+      actions.plot(kind='barh', x='Action', y='Reduction_MT', color='teal')
+      plt.title('Reduction Potential by Action')
+      plt.xlabel('MT CO2e Reduction')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows potential emission reductions by action"
+  - title: "Marginal Abatement Cost Curve"
+    code: |
+      import matplotlib.pyplot as plt
+      actions_sorted = actions.sort_values('Cost_per_MT')
+      plt.bar(actions_sorted['Action'], actions_sorted['Cost_per_MT'], color='coral')
+      plt.title('Marginal Abatement Cost')
+      plt.ylabel('$/MT CO2e')
+      plt.xticks(rotation=30)
+      plt.show()
+    description: "Shows cost per ton of CO2 reduced by action"
