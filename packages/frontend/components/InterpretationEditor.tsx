@@ -112,16 +112,14 @@ export function InterpretationEditor({
     try {
       let graphs: GeneratedGraph[] = [];
       if (verse === 'query') {
-        const progressData = JSON.parse(localStorage.getItem('bleepx_progress') || '{}');
-        const completed = new Set<string>(progressData.completed || []);
         const { fullCaseOrder } = await import('@/lib/constants');
         const completedCases = (fullCaseOrder[domain] || []).filter(c => completed.has(c));
+        console.log('Generating graphs for domain:', domain, 'completed cases:', completedCases);
         graphs = await generateDomainGraphs(domain, completedCases);
       } else if (verse === 'lab') {
         const { LAB_CASE_ORDER } = await import('@/lib/labConstants');
-        const progressData = JSON.parse(localStorage.getItem('bleepx_progress') || '{}');
-        const completed = new Set<string>(progressData.completed || []);
         const completedProjects = (LAB_CASE_ORDER[domain] || []).filter(p => completed.has(p) || completed.has(`lab_${p}`));
+        console.log('Generating graphs for lab domain:', domain, 'completed projects:', completedProjects);
         graphs = await generateLabGraphs(domain, completedProjects);
       }
       
@@ -130,7 +128,7 @@ export function InterpretationEditor({
         setReportData(updated);
         recordReportGeneration(itemId);
       } else {
-        console.warn('No graphs generated - no completed cases/projects found');
+        console.warn('No graphs generated - no completed cases/projects found for domain:', domain);
       }
     } catch (err) {
       console.error('Error generating graphs:', err);
