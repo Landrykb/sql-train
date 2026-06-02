@@ -85,3 +85,60 @@ hints:
   - "Lower AIC = better model (penalizes complexity)"
   - "Check residuals: they should look like white noise"
   - "SARIMA adds seasonal components: ARIMA(p,d,q)(P,D,Q,m)"
+visualizations:
+  - title: "ARIMA Forecast with Confidence Intervals"
+    code: |
+      import matplotlib.pyplot as plt
+      forecast_steps = 30
+      fc_index = pd.date_range(df.index[-1], periods=forecast_steps+1, freq='D')[1:]
+      plt.figure(figsize=(14, 5))
+      plt.plot(df['value'][-90:], label='Historical', color='steelblue')
+      plt.plot(fc_index, fc_values, label='Forecast', color='coral', linewidth=2)
+      plt.fill_between(fc_index, fc_conf[:, 0], fc_conf[:, 1], alpha=0.2, color='coral')
+      plt.legend()
+      plt.title('30-Day ARIMA Forecast')
+      plt.show()
+    description: "Shows forecast with 95% confidence interval bands"
+  - title: "Model Residuals Diagnostics"
+    code: |
+      import matplotlib.pyplot as plt
+      residuals = results.resid
+      fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+      residuals.plot(ax=axes[0, 0], title='Residuals Over Time')
+      residuals.hist(bins=30, ax=axes[0, 1], edgecolor='black')
+      axes[0, 1].set_title('Residual Distribution')
+      from statsmodels.graphics.tsaplots import plot_acf
+      plot_acf(residuals, lags=20, ax=axes[1, 0])
+      axes[1, 0].set_title('Residual ACF')
+      axes[1, 1].axis('off')
+      plt.tight_layout()
+      plt.show()
+    description: "Check if residuals look like white noise (no patterns)"
+  - title: "Model Comparison Bar Chart"
+    code: |
+      import matplotlib.pyplot as plt
+      models = ['Manual ARIMA', 'Auto ARIMA']
+      aic_values = [results.aic, auto_model.aic()]
+      plt.bar(models, aic_values, color=['steelblue', 'coral'])
+      plt.title('Model Comparison (Lower AIC is Better)')
+      plt.ylabel('AIC Score')
+      plt.show()
+    description: "Compare AIC scores to select the best model"
+  - title: "Forecast Accuracy on Test Set"
+    code: |
+      import matplotlib.pyplot as plt
+      from sklearn.metrics import mean_absolute_error
+      # Split data for validation
+      train = df['value'][:-30]
+      test = df['value'][-30:]
+      model_test = ARIMA(train, order=(2, 1, 2))
+      results_test = model_test.fit()
+      pred = results_test.forecast(steps=30)
+      mae = mean_absolute_error(test, pred)
+      plt.figure(figsize=(10, 4))
+      plt.plot(test.index, test, label='Actual', marker='o')
+      plt.plot(test.index, pred, label='Predicted', marker='s', linestyle='--')
+      plt.title(f'Validation: MAE = {mae:.2f}')
+      plt.legend()
+      plt.show()
+    description: "Validate forecast accuracy on holdout test set"

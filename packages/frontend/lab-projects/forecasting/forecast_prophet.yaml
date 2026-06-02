@@ -92,3 +92,50 @@ hints:
   - "Prophet is best for business data with clear weekly/yearly patterns"
   - "LSTM requires more data and tuning but handles non-linear patterns"
   - "Always compare simple models first — complexity isn't always better"
+visualizations:
+  - title: "Prophet Forecast Plot"
+    code: |
+      from prophet import Prophet
+      import matplotlib.pyplot as plt
+      prophet_df = df.reset_index().rename(columns={'date': 'ds', 'value': 'y'})
+      m = Prophet(yearly_seasonality=True, weekly_seasonality=True)
+      m.fit(prophet_df)
+      future = m.make_future_dataframe(periods=30)
+      forecast = m.predict(future)
+      fig = m.plot(forecast)
+      plt.title('Prophet Forecast')
+      plt.show()
+    description: "Prophet's built-in forecast visualization with confidence intervals"
+  - title: "Prophet Component Plots"
+    code: |
+      from prophet import Prophet
+      import matplotlib.pyplot as plt
+      prophet_df = df.reset_index().rename(columns={'date': 'ds', 'value': 'y'})
+      m = Prophet(yearly_seasonality=True, weekly_seasonality=True)
+      m.fit(prophet_df)
+      future = m.make_future_dataframe(periods=30)
+      forecast = m.predict(future)
+      fig2 = m.plot_components(forecast)
+      plt.show()
+    description: "Decomposes forecast into trend, weekly, and yearly components"
+  - title: "Model Comparison: ARIMA vs Prophet"
+    code: |
+      import matplotlib.pyplot as plt
+      models = ['ARIMA', 'Prophet', 'LSTM']
+      mse_values = [arima_mse, prophet_mse, lstm_mse]
+      plt.bar(models, mse_values, color=['steelblue', 'coral', 'green'])
+      plt.title('Model Comparison (Lower MSE is Better)')
+      plt.ylabel('Mean Squared Error')
+      plt.show()
+    description: "Compare performance of different forecasting models"
+  - title: "LSTM Training Loss"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.plot(history.history['loss'], label='Training Loss')
+      plt.plot(history.history['val_loss'], label='Validation Loss')
+      plt.title('LSTM Training Progress')
+      plt.xlabel('Epoch')
+      plt.ylabel('Loss')
+      plt.legend()
+      plt.show()
+    description: "Shows LSTM model convergence during training"
