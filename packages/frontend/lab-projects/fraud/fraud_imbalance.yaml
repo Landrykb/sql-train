@@ -82,3 +82,62 @@ hints:
   - "For fraud, recall (catching fraud) is more important than precision"
   - "Try combining undersampling + SMOTE with imblearn's SMOTEENN"
   - "Always evaluate on the original imbalanced test set, never resampled"
+visualizations:
+  - title: "Class Distribution Before/After Resampling"
+    code: |
+      import matplotlib.pyplot as plt
+      fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+      y_train.value_counts().plot(kind='bar', ax=axes[0], color=['steelblue', 'coral'])
+      axes[0].set_title('Original')
+      axes[0].set_xticklabels(['Legit', 'Fraud'], rotation=0)
+      pd.Series(y_under).value_counts().plot(kind='bar', ax=axes[1], color=['steelblue', 'coral'])
+      axes[1].set_title('Undersampled')
+      axes[1].set_xticklabels(['Legit', 'Fraud'], rotation=0)
+      pd.Series(y_smote).value_counts().plot(kind='bar', ax=axes[2], color=['steelblue', 'coral'])
+      axes[2].set_title('SMOTE')
+      axes[2].set_xticklabels(['Legit', 'Fraud'], rotation=0)
+      plt.tight_layout()
+      plt.show()
+    description: "Shows how resampling balances the classes"
+  - title: "Feature Distribution by Class"
+    code: |
+      import matplotlib.pyplot as plt
+      fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+      for i, col in enumerate(['V1', 'V2', 'V3', 'Amount']):
+        ax = axes[i//2, i%2]
+        df[df['Class']==0][col].hist(bins=30, ax=ax, alpha=0.6, label='Legit', color='steelblue')
+        df[df['Class']==1][col].hist(bins=30, ax=ax, alpha=0.6, label='Fraud', color='coral')
+        ax.set_title(f'{col} Distribution')
+        ax.legend()
+      plt.tight_layout()
+      plt.show()
+    description: "Compares feature distributions between classes"
+  - title: "PCA 2D Visualization"
+    code: |
+      import matplotlib.pyplot as plt
+      from sklearn.decomposition import PCA
+      pca = PCA(n_components=2)
+      X_2d = pca.fit_transform(df[['V1','V2','V3','V4','V5']])
+      plt.scatter(X_2d[:, 0], X_2d[:, 1], c=df['Class'], alpha=0.5, cmap='coolwarm')
+      plt.colorbar(label='Class')
+      plt.title('PCA Visualization of Fraud Data')
+      plt.xlabel('PC1')
+      plt.ylabel('PC2')
+      plt.show()
+    description: "Shows 2D projection of fraud data"
+  - title: "Amount Distribution (Log Scale)"
+    code: |
+      import matplotlib.pyplot as plt
+      import numpy as np
+      fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+      df[df['Class']==0]['Amount'].hist(bins=30, ax=axes[0], alpha=0.6, label='Legit', color='steelblue')
+      df[df['Class']==1]['Amount'].hist(bins=30, ax=axes[0], alpha=0.6, label='Fraud', color='coral')
+      axes[0].set_title('Amount Distribution')
+      axes[0].legend()
+      np.log1p(df[df['Class']==0]['Amount']).hist(bins=30, ax=axes[1], alpha=0.6, label='Legit', color='steelblue')
+      np.log1p(df[df['Class']==1]['Amount']).hist(bins=30, ax=axes[1], alpha=0.6, label='Fraud', color='coral')
+      axes[1].set_title('Log(Amount) Distribution')
+      axes[1].legend()
+      plt.tight_layout()
+      plt.show()
+    description: "Log transform helps visualize skewed amount distributions"

@@ -82,3 +82,47 @@ hints:
   - "Features V1-V28 are PCA components — already preprocessed"
   - "Use log transform on Amount for better distribution"
   - "Try t-SNE for 2D visualization of fraud vs legitimate clusters"
+visualizations:
+  - title: "Class Distribution (Extreme Imbalance)"
+    code: |
+      import matplotlib.pyplot as plt
+      df['Class'].value_counts().plot(kind='bar', color=['steelblue', 'coral'])
+      plt.title('Class Distribution')
+      plt.xlabel('Class (0=Legit, 1=Fraud)')
+      plt.ylabel('Count')
+      plt.xticks(rotation=0)
+      plt.show()
+    description: "Shows extreme class imbalance typical in fraud data"
+  - title: "Transaction Amount Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      fig, axes = plt.subplots(1, 2, figsize=(14, 4))
+      axes[0].hist(df[df['Class']==0]['Amount'], bins=50, alpha=0.6, label='Legit', color='steelblue')
+      axes[0].hist(df[df['Class']==1]['Amount'], bins=50, alpha=0.6, label='Fraud', color='coral')
+      axes[0].set_title('Amount Distribution')
+      axes[0].legend()
+      df.groupby('Class')['Amount'].mean().plot(kind='bar', ax=axes[1], color=['steelblue', 'coral'])
+      axes[1].set_title('Avg Amount by Class')
+      axes[1].set_xticklabels(['Legit', 'Fraud'], rotation=0)
+      plt.tight_layout()
+      plt.show()
+    description: "Compares transaction amounts between fraud and legitimate"
+  - title: "Feature Correlation Heatmap"
+    code: |
+      import seaborn as sns
+      import matplotlib.pyplot as plt
+      sns.heatmap(df[['V1','V2','V3','V4','V5','Amount','Class']].corr(), annot=True, cmap='RdBu_r', fmt='.2f')
+      plt.title('Feature Correlations')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows correlations between PCA features and target"
+  - title: "Time Series of Transactions"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.scatter(df['Time'], df['Amount'], alpha=0.1, c=df['Class'], cmap='coolwarm')
+      plt.xlabel('Time (seconds)')
+      plt.ylabel('Amount')
+      plt.title('Transaction Time vs Amount')
+      plt.colorbar(label='Class')
+      plt.show()
+    description: "Shows transaction patterns over time"
