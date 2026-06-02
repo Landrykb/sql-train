@@ -94,3 +94,55 @@ hints:
   - "Inspect cluster centroids: km.cluster_centers_ mapped back to feature names"
   - "Try DBSCAN for density-based clustering (no need to specify K)"
   - "Use silhouette_score to quantify cluster quality"
+visualizations:
+  - title: "Elbow Method for Optimal K"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.plot(range(2, 11), inertias, 'bo-')
+      plt.xlabel('Number of Clusters (K)')
+      plt.ylabel('Inertia')
+      plt.title('Elbow Method')
+      plt.show()
+    description: "Helps determine the optimal number of clusters"
+  - title: "PCA Cluster Visualization"
+    code: |
+      import matplotlib.pyplot as plt
+      from sklearn.decomposition import PCA
+      pca = PCA(n_components=2)
+      X_2d = pca.fit_transform(X)
+      plt.figure(figsize=(10, 7))
+      scatter = plt.scatter(X_2d[:, 0], X_2d[:, 1], c=df['cluster'],
+                           cmap='Set2', alpha=0.4, s=5)
+      plt.colorbar(scatter, label='Cluster')
+      plt.title(f'Song Clusters (PCA — {pca.explained_variance_ratio_.sum():.0%} variance)')
+      plt.xlabel('PC1')
+      plt.ylabel('PC2')
+      plt.show()
+    description: "Visualizes clusters in 2D using PCA"
+  - title: "Silhouette Score Comparison"
+    code: |
+      import matplotlib.pyplot as plt
+      from sklearn.metrics import silhouette_score
+      silhouette_scores = []
+      k_range = range(2, 11)
+      for k in k_range:
+          km = KMeans(n_clusters=k, random_state=42, n_init=10)
+          labels = km.fit_predict(X)
+          score = silhouette_score(X, labels)
+          silhouette_scores.append(score)
+      plt.plot(k_range, silhouette_scores, 'go-')
+      plt.xlabel('Number of Clusters (K)')
+      plt.ylabel('Silhouette Score')
+      plt.title('Silhouette Score by K')
+      plt.show()
+    description: "Higher silhouette score indicates better clustering"
+  - title: "Cluster Size Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      df['cluster'].value_counts().plot(kind='bar', color='#1DB954')
+      plt.title('Cluster Size Distribution')
+      plt.xlabel('Cluster')
+      plt.ylabel('Number of Songs')
+      plt.xticks(rotation=0)
+      plt.show()
+    description: "Shows how many songs are in each cluster"

@@ -79,3 +79,43 @@ hints:
   - "Use df.describe() for statistical overview of audio features"
   - "Try sns.pairplot for relationships between audio features"
   - "Filter to popular tracks (popularity > 70) for focused analysis"
+visualizations:
+  - title: "Popularity Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      df['popularity'].hist(bins=50, color='#1DB954', edgecolor='white')
+      plt.title('Popularity Distribution')
+      plt.xlabel('Popularity Score')
+      plt.ylabel('Count')
+      plt.show()
+    description: "Shows the distribution of track popularity scores"
+  - title: "Top Genres by Popularity"
+    code: |
+      import matplotlib.pyplot as plt
+      top_genres = df.groupby('track_genre')['popularity'].mean().nlargest(15)
+      top_genres.plot(kind='barh', color='#1DB954')
+      plt.title('Top 15 Genres by Avg Popularity')
+      plt.xlabel('Average Popularity')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows which genres have the highest average popularity"
+  - title: "Audio Features Correlation Heatmap"
+    code: |
+      import seaborn as sns
+      import matplotlib.pyplot as plt
+      audio_features = ['danceability', 'energy', 'loudness', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']
+      sns.heatmap(df[audio_features].corr(), annot=True, cmap='coolwarm', fmt='.2f')
+      plt.title('Audio Features Correlation Matrix')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows correlations between audio features"
+  - title: "Danceability vs Energy Scatter"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.scatter(df['danceability'], df['energy'], alpha=0.5, c=df['popularity'], cmap='viridis')
+      plt.xlabel('Danceability')
+      plt.ylabel('Energy')
+      plt.title('Danceability vs Energy (colored by popularity)')
+      plt.colorbar(label='Popularity')
+      plt.show()
+    description: "Shows relationship between danceability and energy"

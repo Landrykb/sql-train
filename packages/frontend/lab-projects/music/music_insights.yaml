@@ -84,3 +84,44 @@ hints:
   - "Try building a simple recommendation system using cluster similarity"
   - "Analyze trends over time if the dataset includes release dates"
   - "Consider creating a Streamlit dashboard for interactive exploration"
+visualizations:
+  - title: "Feature Importance for Popularity"
+    code: |
+      import matplotlib.pyplot as plt
+      importances = pd.Series(model.feature_importances_, index=features).sort_values()
+      importances.plot(kind='barh', color='#1DB954')
+      plt.title('Feature Importance for Popularity Prediction')
+      plt.xlabel('Importance')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows which audio features most strongly predict popularity"
+  - title: "Actual vs Predicted Popularity"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.scatter(y_test, y_pred, alpha=0.5)
+      plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+      plt.xlabel('Actual Popularity')
+      plt.ylabel('Predicted Popularity')
+      plt.title('Actual vs Predicted Popularity')
+      plt.show()
+    description: "Perfect predictions fall on the red diagonal line"
+  - title: "Prediction Error Distribution"
+    code: |
+      import matplotlib.pyplot as plt
+      errors = y_test - y_pred
+      errors.hist(bins=30, edgecolor='black')
+      plt.title('Prediction Error Distribution')
+      plt.xlabel('Error (Actual - Predicted)')
+      plt.ylabel('Count')
+      plt.axvline(0, color='red', linestyle='--')
+      plt.show()
+    description: "Shows if errors are centered around zero (unbiased)"
+  - title: "Tempo vs Popularity Scatter"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.scatter(df['tempo'], df['popularity'], alpha=0.3)
+      plt.xlabel('Tempo (BPM)')
+      plt.ylabel('Popularity')
+      plt.title('Tempo vs Popularity')
+      plt.show()
+    description: "Shows relationship between tempo and popularity"
