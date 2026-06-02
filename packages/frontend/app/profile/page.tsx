@@ -802,7 +802,18 @@ export default function ProfilePage() {
                   <p className="text-xs text-bleepx-text-secondary mb-3">Export data science projects to your GitHub portfolio.</p>
                   <div className="space-y-3">
                     {Object.entries(LAB_CASE_ORDER).map(([domain, cases]) => {
-                      const solved = cases.filter(c => completed.has(c) || completed.has(`lab_${c}`)).length;
+                      const solved = cases.filter(c => {
+                        const hasId = completed.has(c) || completed.has(`lab_${c}`);
+                        if (!hasId && domain === 'transport') {
+                          console.log(`[Lab Progress Debug] Checking ${domain}:`, {
+                            projectId: c,
+                            hasPlain: completed.has(c),
+                            hasLabPrefix: completed.has(`lab_${c}`),
+                            completedSet: Array.from(completed).filter(id => id.includes('transport'))
+                          });
+                        }
+                        return hasId;
+                      }).length;
                       const hasWork = solved > 0;
                       const meta = LAB_DOMAIN_META[domain];
                       return (
