@@ -11,6 +11,7 @@ import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
 import BleepxLogo from '@/components/BleepxLogo';
 import PathMap from '@/components/PathMap';
+import { CaseInterpretationButton } from '@/components/CaseInterpretationButton';
 import { domainFolderMap, caseOrder, fullCaseOrder, hiddenCaseOrder } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
 
@@ -158,6 +159,14 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
         </div>
         <div className="flex gap-2 items-center flex-wrap">
           {domainKey !== 'trials' && <DashboardButton domainKey={domainKey} />}
+          {domainKey !== 'trials' && (
+            <CaseInterpretationButton 
+              verse="query" 
+              itemId={`query-${domainKey}`} 
+              itemName={`${domainKey.charAt(0).toUpperCase() + domainKey.slice(1).replace('_', ' ')} Portfolio Analysis`} 
+              domain={domainKey} 
+            />
+          )}
           {domainKey === 'trials' && (
             <Link href="/cases/trials/master-quiz" className="px-3 py-1.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">
               🧠 Master Quiz

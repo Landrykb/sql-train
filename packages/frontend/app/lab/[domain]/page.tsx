@@ -6,6 +6,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import BleepxLogo from '@/components/BleepxLogo';
 import AchievementNotification from '@/components/AchievementNotification';
+import { CaseInterpretationButton } from '@/components/CaseInterpretationButton';
 import { LAB_DOMAIN_META, LAB_DOMAIN_FOLDER_MAP, LAB_CASE_ORDER } from '@/lib/labConstants';
 
 export function generateStaticParams() {
@@ -74,7 +75,7 @@ export default async function LabDomainPage({ params }: { params: Promise<{ doma
       {/* Header */}
       <div className="flex items-start gap-3">
         <span className="text-3xl sm:text-4xl">{meta.icon}</span>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text">{meta.name}</h1>
           <p className="text-sm text-bleepx-text-secondary mt-1">{meta.desc}</p>
           <div className="mt-2 flex items-center gap-3 flex-wrap">
@@ -88,6 +89,12 @@ export default async function LabDomainPage({ params }: { params: Promise<{ doma
             )}
           </div>
         </div>
+        <CaseInterpretationButton 
+          verse="lab" 
+          itemId={`lab-${domain}`} 
+          itemName={`${meta.name} Portfolio Analysis`} 
+          domain={domain} 
+        />
       </div>
 
       {/* Steps list */}
