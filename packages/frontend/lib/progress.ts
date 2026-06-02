@@ -2,7 +2,8 @@
 export function getCompletedCases(): Set<string> {
   if (typeof window === 'undefined') return new Set();
   try {
-    const raw = localStorage.getItem('completed') ?? '[]';
+    // Try both keys for backward compatibility
+    const raw = localStorage.getItem('completedCases') ?? localStorage.getItem('completed') ?? '[]';
     const arr = JSON.parse(raw) as string[];
     return new Set(arr);
   } catch {

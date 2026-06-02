@@ -10,6 +10,7 @@ import ClientSQLPlayground from '@/components/ClientSQLPlayground';
 import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
 import BleepxLogo from '@/components/BleepxLogo';
+import { CaseInterpretationButton } from '@/components/CaseInterpretationButton';
 import { caseOrder, fullCaseOrder, domainFolderMap, visualizationConfigs } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
 
@@ -170,6 +171,7 @@ export default async function CasePage({
             View Visualizations
           </Link>
         )}
+        <CaseInterpretationButton verse="query" itemId={`query-${domainKey}`} itemName={`${caseData.name} Analysis`} domain={domainKey} />
       </div>
       <Suspense fallback={<div>Loading challenge...</div>}>
         <ClientSQLPlayground caseData={caseData} guideData={guideData} />

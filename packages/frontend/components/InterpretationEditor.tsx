@@ -15,7 +15,8 @@ import {
   useReportGeneration, 
   recordReportGeneration,
   getReportGenerationTier,
-  canGenerateReports
+  canGenerateReports,
+  REPORT_GENERATION_TIERS
 } from '@/lib/pointsStore';
 import { generateDomainGraphs, generateLabGraphs, mergeGraphsIntoReport, GeneratedGraph } from '@/lib/graphGeneration';
 
@@ -51,6 +52,9 @@ export function InterpretationEditor({
   const reportPerms = useReportGeneration(itemId);
   const canGenerate = canGenerateReports();
   const reportTier = getReportGenerationTier();
+  
+  // Check if user has any report tier (including if they're elite from other purchases)
+  const hasReportTier = reportTier !== null;
 
   useEffect(() => {
     // Load existing interpretation or create new with context-aware hints
@@ -231,15 +235,29 @@ export function InterpretationEditor({
         </div>
       </div>
 
-      {!canGenerate && (
+      {!hasReportTier && (
         <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-          <p className="text-xs text-amber-800 dark:text-amber-300">
-            ⚠️ Purchase a Report Generation tier to unlock AI-powered reports (100 pts for Basic, 300 pts for Pro, 600 pts for Elite)
+          <p className="text-xs text-amber-800 dark:text-amber-300 mb-2">
+            ⚠️ Purchase a Report Generation tier to unlock AI-powered reports with graphs
           </p>
+          <div className="flex flex-wrap gap-2">
+            {REPORT_GENERATION_TIERS.map((tier) => (
+              <button
+                key={tier.id}
+                onClick={() => {
+                  // Navigate to profile page to purchase
+                  window.location.href = '/profile?tab=shop';
+                }}
+                className="px-2 py-1 rounded text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
+              >
+                {tier.name} ({tier.cost} pts)
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
-      {reportPerms.error && canGenerate && (
+      {reportPerms.error && hasReportTier && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <p className="text-xs text-red-800 dark:text-red-300">
             ⚠️ {reportPerms.error}
@@ -317,17 +335,44 @@ export function InterpretationEditor({
         )}
       </div>
 
+      {/* Graphs Display */}
       {reportData?.graphs && reportData.graphs.length > 0 && (
         <div className="border border-bleepx-border rounded-lg p-4">
           <h4 className="font-bold text-bleepx-text mb-3">Generated Graphs</h4>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {reportData.graphs.map((graph, idx) => (
               <div key={idx} className="border border-bleepx-border rounded-lg p-2">
                 <img src={graph.imageData} alt={graph.title} className="w-full h-auto" />
                 <p className="text-xs text-bleepx-text-secondary mt-2">{graph.title}</p>
+                {graph.insights && graph.insights.length > 0 && (
+                  <div className="mt-2 text-xs text-bleepx-text-secondary">
+                    <strong>Insights:</strong>
+                    <ul className="list-disc list-inside">
+                      {graph.insights.map((insight, i) => (
+                        <li key={i}>{insight}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Generate Graphs Button for users with tier */}
+      {hasReportTier && reportTier?.perks.includeGraphs && domain && !reportData?.graphs?.length && (
+        <div className="border border-dashed border-bleepx-border rounded-lg p-4 text-center">
+          <button
+            onClick={handleGenerateGraphs}
+            disabled={generatingGraphs || !reportPerms.allowed}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 transition-colors"
+          >
+            {generatingGraphs ? 'Generating...' : '📊 Generate Graphs from Your Data'}
+          </button>
+          <p className="text-xs text-bleepx-text-secondary mt-2">
+            Generate data-driven graphs from your completed work
+          </p>
         </div>
       )}
 
