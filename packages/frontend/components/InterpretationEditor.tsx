@@ -106,7 +106,7 @@ export function InterpretationEditor({
   };
 
   const handleGenerateGraphs = async () => {
-    if (!reportPerms.allowed || !domain) return;
+    if (!domain) return;
     
     setGeneratingGraphs(true);
     try {
@@ -129,6 +129,8 @@ export function InterpretationEditor({
         const updated = mergeGraphsIntoReport(reportData, graphs);
         setReportData(updated);
         recordReportGeneration(itemId);
+      } else {
+        console.warn('No graphs generated - no completed cases/projects found');
       }
     } catch (err) {
       console.error('Error generating graphs:', err);
@@ -361,14 +363,14 @@ export function InterpretationEditor({
       )}
 
       {/* Generate Graphs Button for users with tier */}
-      {hasReportTier && reportTier?.perks.includeGraphs && domain && !reportData?.graphs?.length && (
+      {hasReportTier && reportTier?.perks.includeGraphs && domain && (
         <div className="border border-dashed border-bleepx-border rounded-lg p-4 text-center">
           <button
             onClick={handleGenerateGraphs}
-            disabled={generatingGraphs || !reportPerms.allowed}
+            disabled={generatingGraphs}
             className="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 transition-colors"
           >
-            {generatingGraphs ? 'Generating...' : '📊 Generate Graphs from Your Data'}
+            {generatingGraphs ? 'Generating...' : reportData?.graphs?.length ? '📊 Regenerate Graphs' : '📊 Generate Graphs from Your Data'}
           </button>
           <p className="text-xs text-bleepx-text-secondary mt-2">
             Generate data-driven graphs from your completed work
