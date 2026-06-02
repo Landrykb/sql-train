@@ -92,8 +92,11 @@ export async function pushPortfolioToGitHub(
 ): Promise<PushResult> {
   const user = getGitHubUser();
   const token = await getGitHubToken();
-  if (!user || !token) {
+  if (!user) {
     return { success: false, error: 'Sign in with GitHub first to push your portfolio.' };
+  }
+  if (!token) {
+    return { success: false, error: 'GitHub token not available. Please sign in again to refresh your session.' };
   }
 
   const repoName = `sql-portfolio-${domain}`;
@@ -129,8 +132,11 @@ export async function pushCaseToGitHub(
 ): Promise<PushResult> {
   const user = getGitHubUser();
   const token = await getGitHubToken();
-  if (!user || !token) {
+  if (!user) {
     return { success: false, error: 'Sign in with GitHub first to push your work.' };
+  }
+  if (!token) {
+    return { success: false, error: 'GitHub token not available. Please sign in again to refresh your session.' };
   }
 
   const repoName = 'sql-portfolio';
@@ -166,8 +172,11 @@ export async function pushLabProjectToGitHub(
   user?: GitHubUser | null,
 ): Promise<PushResult> {
   const token = await getGitHubToken();
-  if (!user || !token) {
+  if (!user) {
     return { success: false, error: 'Sign in with GitHub first to push your work.' };
+  }
+  if (!token) {
+    return { success: false, error: 'GitHub token not available. Please sign in again to refresh your session.' };
   }
 
   const repoName = 'ds-portfolio';
@@ -232,8 +241,11 @@ export async function pushDomainPortfolioToGitHub(
   user?: GitHubUser | null,
 ): Promise<PushResult> {
   const token = await getGitHubToken();
-  if (!user || !token) {
+  if (!user) {
     return { success: false, error: 'Sign in with GitHub first to push your portfolio.' };
+  }
+  if (!token) {
+    return { success: false, error: 'GitHub token not available. Please sign in again to refresh your session.' };
   }
 
   const repoName = 'sql-portfolio';
@@ -308,8 +320,11 @@ export async function pushLabDomainPortfolioToGitHub(
 ): Promise<PushResult> {
   const user = getGitHubUser();
   const token = await getGitHubToken();
-  if (!user || !token) {
+  if (!user) {
     return { success: false, error: 'Sign in with GitHub first to push your portfolio.' };
+  }
+  if (!token) {
+    return { success: false, error: 'GitHub token not available. Please sign in again to refresh your session.' };
   }
 
   const repoName = 'ds-portfolio';
@@ -380,8 +395,11 @@ export async function pushCloudProviderPortfolioToGitHub(
   user?: GitHubUser | null,
 ): Promise<PushResult> {
   const token = await getGitHubToken();
-  if (!user || !token) {
+  if (!user) {
     return { success: false, error: 'Sign in with GitHub first to push your portfolio.' };
+  }
+  if (!token) {
+    return { success: false, error: 'GitHub token not available. Please sign in again to refresh your session.' };
   }
 
   const repoName = 'cloud-portfolio';
@@ -459,8 +477,11 @@ export async function pushCloudMissionToGitHub(
   user?: GitHubUser | null,
 ): Promise<PushResult> {
   const token = await getGitHubToken();
-  if (!user || !token) {
+  if (!user) {
     return { success: false, error: 'Sign in with GitHub first to push your work.' };
+  }
+  if (!token) {
+    return { success: false, error: 'GitHub token not available. Please sign in again to refresh your session.' };
   }
 
   const repoName = 'cloud-portfolio';
