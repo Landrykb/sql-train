@@ -19,6 +19,7 @@ import {
   REPORT_GENERATION_TIERS
 } from '@/lib/pointsStore';
 import { generateDomainGraphs, generateLabGraphs, mergeGraphsIntoReport, GeneratedGraph } from '@/lib/graphGeneration';
+import { useProgress } from '@/lib/useProgress';
 
 interface InterpretationEditorProps {
   verse: 'query' | 'lab' | 'cloud';
@@ -52,6 +53,7 @@ export function InterpretationEditor({
   const reportPerms = useReportGeneration(itemId);
   const canGenerate = canGenerateReports();
   const reportTier = getReportGenerationTier();
+  const { completed } = useProgress();
   
   // Check if user has any report tier (including if they're elite from other purchases)
   const hasReportTier = reportTier !== null;
