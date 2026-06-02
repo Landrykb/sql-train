@@ -97,3 +97,46 @@ hints:
   - "Try Student-t distribution for more realistic fat tails"
   - "Scale daily VaR to 10-day: VaR_10d = VaR_1d × √10"
   - "Backtest VaR by counting how often actual losses exceed the VaR estimate"
+visualizations:
+  - title: "Monte Carlo VaR Simulation"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.hist(simulated * 100, bins=100, color='steelblue', alpha=0.7, edgecolor='white')
+      plt.axvline(var_mc * 100, color='red', linewidth=2, label=f'VaR 95% = {var_mc*100:.2f}%')
+      plt.axvline(var_hist * 100, color='orange', linewidth=2, linestyle='--', label=f'Historical VaR = {var_hist*100:.2f}%')
+      plt.title('Monte Carlo VaR Simulation (10,000 scenarios)')
+      plt.xlabel('Daily Return (%)')
+      plt.legend()
+      plt.show()
+    description: "Shows simulated return distribution with VaR thresholds"
+  - title: "VaR Comparison Bar Chart"
+    code: |
+      import matplotlib.pyplot as plt
+      methods = ['Historical', 'Parametric', 'Monte Carlo']
+      var_values = [abs(var_hist*100), abs(var_param*100), abs(var_mc*100)]
+      plt.bar(methods, var_values, color=['steelblue', 'coral', 'green'])
+      plt.title('VaR Comparison at 95% Confidence')
+      plt.ylabel('VaR (%)')
+      plt.show()
+    description: "Compares VaR estimates across different methods"
+  - title: "Return Distribution with VaR"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.hist(portfolio_returns * 100, bins=50, edgecolor='black', color='steelblue')
+      plt.axvline(var_hist * 100, color='red', linewidth=2, label=f'VaR 95% = {var_hist*100:.2f}%')
+      plt.axvline(cvar_hist * 100, color='orange', linewidth=2, linestyle='--', label=f'CVaR = {cvar_hist*100:.2f}%')
+      plt.title('Portfolio Return Distribution')
+      plt.xlabel('Daily Return (%)')
+      plt.legend()
+      plt.show()
+    description: "Shows historical returns with VaR and CVaR thresholds"
+  - title: "VaR Over Time (Rolling)"
+    code: |
+      import matplotlib.pyplot as plt
+      rolling_var = portfolio_returns.rolling(252).quantile(0.05)
+      rolling_var.plot(figsize=(12, 5))
+      plt.title('Rolling 252-Day VaR (95%)')
+      plt.ylabel('VaR (%)')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows how VaR changes over time"

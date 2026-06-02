@@ -107,3 +107,38 @@ hints:
   - "Add a 'worst month' and 'best month' to the summary stats"
   - "Consider adding regime detection (bull/bear market identification)"
   - "Try Black-Litterman model for incorporating market views"
+visualizations:
+  - title: "Cumulative Portfolio Performance"
+    code: |
+      import matplotlib.pyplot as plt
+      cum_returns.plot(figsize=(12, 5), color='steelblue', linewidth=1.5)
+      plt.title('Cumulative Portfolio Performance')
+      plt.ylabel('Growth of $1')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows portfolio growth over time"
+  - title: "Portfolio Drawdowns"
+    code: |
+      import matplotlib.pyplot as plt
+      drawdown = cum_returns / cum_returns.cummax() - 1
+      plt.fill_between(drawdown.index, drawdown.values * 100, 0, color='coral', alpha=0.5)
+      plt.title('Portfolio Drawdowns')
+      plt.ylabel('Drawdown (%)')
+      plt.show()
+    description: "Shows peak-to-trough drawdowns"
+  - title: "Rolling Sharpe Ratio"
+    code: |
+      import matplotlib.pyplot as plt
+      rolling_sharpe.plot(color='teal', linewidth=1.5)
+      plt.axhline(0, color='red', linestyle='--', alpha=0.3)
+      plt.title('Rolling 1Y Sharpe Ratio')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows risk-adjusted returns over time"
+  - title: "Optimal Asset Allocation"
+    code: |
+      import matplotlib.pyplot as plt
+      plt.pie(optimal_w, labels=returns.columns, autopct='%1.0f%%', colors=plt.cm.Set3.colors)
+      plt.title('Optimal Allocation')
+      plt.show()
+    description: "Shows portfolio asset allocation"

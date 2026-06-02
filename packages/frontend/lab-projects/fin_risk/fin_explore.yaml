@@ -97,3 +97,44 @@ hints:
   - "Use QQ plots (stats.probplot) to visualize departure from normality"
   - "Try rolling volatility to see how risk changes over time"
   - "Compare Sharpe ratios across assets for relative performance"
+visualizations:
+  - title: "Return Distribution vs Normal"
+    code: |
+      import matplotlib.pyplot as plt
+      from scipy import stats
+      asset = returns.columns[0]
+      plt.hist(returns[asset], bins=100, density=True, color='steelblue', alpha=0.7, edgecolor='white')
+      x = np.linspace(returns[asset].min(), returns[asset].max(), 100)
+      plt.plot(x, stats.norm.pdf(x, returns[asset].mean(), returns[asset].std()), 'r-', linewidth=2, label='Normal')
+      plt.title(f'{asset} Return Distribution')
+      plt.legend()
+      plt.show()
+    description: "Compares actual return distribution to normal curve"
+  - title: "Drawdown Chart"
+    code: |
+      import matplotlib.pyplot as plt
+      cumulative = (1 + returns[asset]).cumprod()
+      drawdown = cumulative / cumulative.cummax() - 1
+      plt.fill_between(drawdown.index, drawdown.values, 0, color='coral', alpha=0.5)
+      plt.title(f'{asset} Drawdowns')
+      plt.ylabel('Drawdown (%)')
+      plt.show()
+    description: "Shows peak-to-trough drawdowns over time"
+  - title: "Asset Performance Comparison"
+    code: |
+      import matplotlib.pyplot as plt
+      stats.plot(kind='bar', figsize=(12, 6))
+      plt.title('Annualized Returns, Volatility, and Sharpe Ratios')
+      plt.xticks(rotation=45)
+      plt.tight_layout()
+      plt.show()
+    description: "Compares risk-return metrics across assets"
+  - title: "Cumulative Returns"
+    code: |
+      import matplotlib.pyplot as plt
+      (1 + returns).cumprod().plot(figsize=(14, 6))
+      plt.title('Cumulative Returns')
+      plt.ylabel('Cumulative Return')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows cumulative performance of all assets"

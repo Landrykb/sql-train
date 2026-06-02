@@ -108,3 +108,55 @@ hints:
   - "Use scipy.optimize.minimize for exact optimization instead of random sampling"
   - "Add constraints: max 30% per asset, min 5% per asset"
   - "Try adding a risk-free rate to compute the Capital Market Line"
+visualizations:
+  - title: "Efficient Frontier"
+    code: |
+      import matplotlib.pyplot as plt
+      scatter = plt.scatter(results[:, 1]*100, results[:, 0]*100, c=results[:, 2],
+                           cmap='RdYlGn', s=5, alpha=0.5)
+      plt.colorbar(scatter, label='Sharpe Ratio')
+      plt.scatter(results[max_sharpe_idx, 1]*100, results[max_sharpe_idx, 0]*100,
+                 marker='*', color='red', s=300, label='Max Sharpe')
+      plt.xlabel('Volatility (%)')
+      plt.ylabel('Expected Return (%)')
+      plt.title('Efficient Frontier')
+      plt.legend()
+      plt.show()
+    description: "Shows risk-return tradeoff with optimal portfolio marked"
+  - title: "Optimal Portfolio Weights"
+    code: |
+      import matplotlib.pyplot as plt
+      optimal_weights.plot(kind='bar', color='steelblue')
+      plt.title('Optimal Portfolio Weights (Max Sharpe)')
+      plt.ylabel('Weight')
+      plt.xticks(rotation=45)
+      plt.tight_layout()
+      plt.show()
+    description: "Shows asset allocation in optimal portfolio"
+  - title: "Portfolio Performance Comparison"
+    code: |
+      import matplotlib.pyplot as plt
+      portfolios = ['Equal-Weight', 'Max Sharpe']
+      rets = [eq_ret, results[max_sharpe_idx, 0]]
+      vols = [eq_vol, results[max_sharpe_idx, 1]]
+      x = np.arange(len(portfolios))
+      width = 0.35
+      fig, ax = plt.subplots()
+      ax.bar(x - width/2, rets, width, label='Return', color='green')
+      ax.bar(x + width/2, vols, width, label='Volatility', color='coral')
+      ax.set_xticks(x)
+      ax.set_xticklabels(portfolios)
+      ax.legend()
+      plt.title('Portfolio Performance Comparison')
+      plt.ylabel('Annualized (%)')
+      plt.show()
+    description: "Compares equal-weight vs optimal portfolio performance"
+  - title: "Correlation Matrix Heatmap"
+    code: |
+      import seaborn as sns
+      import matplotlib.pyplot as plt
+      sns.heatmap(returns.corr(), annot=True, cmap='coolwarm', fmt='.2f')
+      plt.title('Asset Return Correlation Matrix')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows correlations between asset returns"
