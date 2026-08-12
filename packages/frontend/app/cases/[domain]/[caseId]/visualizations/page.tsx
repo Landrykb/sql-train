@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import yamlLib from 'js-yaml';
+import { load } from 'js-yaml';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Visualizations from '@/components/Visualizations';
@@ -41,7 +41,7 @@ export default async function VisualizationsPage({
   try {
     const caseFilePath = path.join(casesDir, `${caseId}.yaml`);
     const caseContent = await fs.readFile(caseFilePath, 'utf-8');
-    const caseData = yamlLib.load(caseContent) as CaseYaml;
+    const caseData = load(caseContent) as CaseYaml;
     caseName = caseData.name || caseId;
     datasets = caseData.datasets.map((d) => ({ name: d.name, file: d.file }));
   } catch (err) {

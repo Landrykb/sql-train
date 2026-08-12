@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
+import { load } from 'js-yaml';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import Link from 'next/link';
@@ -31,7 +31,7 @@ async function loadProject(domain: string, projectId: string) {
   try {
     const filePath = path.join(process.cwd(), 'lab-projects', folder, `${projectId}.yaml`);
     const raw = await fs.readFile(filePath, 'utf8');
-    return yaml.load(raw) as any;
+    return load(raw) as any;
   } catch {
     return null;
   }

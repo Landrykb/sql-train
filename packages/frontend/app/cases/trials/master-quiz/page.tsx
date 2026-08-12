@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
+import { load } from 'js-yaml';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
@@ -30,7 +30,7 @@ async function loadAllTrials(): Promise<TrialInfo[]> {
   for (const caseId of allCaseIds) {
     try {
       const raw = await fs.readFile(path.join(trialsDir, `${caseId}.yaml`), 'utf8');
-      const doc = yaml.load(raw) as any;
+      const doc = load(raw) as any;
       if (!doc?.id || !doc?.name) continue;
       const skills = (doc.skills || [])
         .filter((s: any) => typeof s === 'string' && !s.startsWith('name:'));

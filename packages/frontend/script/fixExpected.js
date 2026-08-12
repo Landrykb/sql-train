@@ -12,7 +12,7 @@
 
 const fs      = require('fs');
 const path    = require('path');
-const YAML    = require('js-yaml');
+const { load, dump } = require('js-yaml');
 const Papa    = require('papaparse');
 const initSql = require('sql.js');
 
@@ -33,7 +33,7 @@ const initSql = require('sql.js');
   }
 
   // ─── Load central solutions.yaml ───────────────────────────────────────────
-  let central = YAML.load(fs.readFileSync(SOL_PATH, 'utf8')) || {};
+  let central = load(fs.readFileSync(SOL_PATH, 'utf8')) || {};
 
   // ─── Init SQL.js ───────────────────────────────────────────────────────────
   const SQL = await initSql();
@@ -45,7 +45,7 @@ const initSql = require('sql.js');
     if (!fs.existsSync(caseYamlPath)) {
       throw new Error(`Missing case YAML: ${caseYamlPath}`);
     }
-    const doc = YAML.load(fs.readFileSync(caseYamlPath, 'utf8'));
+    const doc = load(fs.readFileSync(caseYamlPath, 'utf8'));
     // 2) Build in-memory DB
     const db = new SQL.Database();
     for (const ds of doc.datasets || []) {
@@ -102,7 +102,7 @@ const initSql = require('sql.js');
   }
 
   // ─── Write back central solutions.yaml ────────────────────────────────────
-  const yamlStr = YAML.dump(central, {
+  const yamlStr = dump(central, {
     sortKeys: true,
     lineWidth: 120,
   });

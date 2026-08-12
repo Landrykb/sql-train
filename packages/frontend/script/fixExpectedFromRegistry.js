@@ -12,7 +12,7 @@
 
 const fs      = require('fs');
 const path    = require('path');
-const YAML    = require('js-yaml');
+const { load, dump } = require('js-yaml');
 const Papa    = require('papaparse');
 const initSql = require('sql.js');
 const fetch   = require('node-fetch');
@@ -40,8 +40,8 @@ if (!fs.existsSync(SOL_PATH)) {
 }
 
 // ─── Load registry & central solutions ──────────────────────────────────────
-const registry = YAML.load(fs.readFileSync(REG_PATH, 'utf8')).datasets;
-const central  = YAML.load(fs.readFileSync(SOL_PATH, 'utf8')) || {};
+const registry = load(fs.readFileSync(REG_PATH, 'utf8')).datasets;
+const central  = load(fs.readFileSync(SOL_PATH, 'utf8')) || {};
 
 // ─── Main async function ────────────────────────────────────────────────────
 ;(async () => {
@@ -127,7 +127,7 @@ const central  = YAML.load(fs.readFileSync(SOL_PATH, 'utf8')) || {};
         if (!fs.existsSync(caseYamlPath)) {
           throw new Error(`Case YAML not found: ${caseYamlPath}`);
         }
-        const caseDoc = YAML.load(fs.readFileSync(caseYamlPath, 'utf8'));
+        const caseDoc = load(fs.readFileSync(caseYamlPath, 'utf8'));
         const key = caseDoc.dataset_key
                   || caseDoc.datasets?.[0]?.file.replace(/\.csv$/, '');
         if (!key) throw new Error('Cannot determine dataset key');
@@ -162,7 +162,7 @@ const central  = YAML.load(fs.readFileSync(SOL_PATH, 'utf8')) || {};
   // Write back updated solutions.yaml
   fs.writeFileSync(
     SOL_PATH,
-    YAML.dump(central, { sortKeys: true, lineWidth: 120 }),
+    dump(central, { sortKeys: true, lineWidth: 120 }),
     'utf8'
   );
   console.log('\n✅ Updated solutions.yaml');

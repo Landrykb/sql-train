@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
+import { load } from 'js-yaml';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import Link from 'next/link';
@@ -39,7 +39,7 @@ async function loadSteps(domain: string): Promise<StepInfo[]> {
   for (const caseId of caseIds) {
     try {
       const raw = await fs.readFile(path.join(dir, `${caseId}.yaml`), 'utf8');
-      const doc = yaml.load(raw) as any;
+      const doc = load(raw) as any;
       steps.push({
         id: doc.id,
         name: doc.name || caseId,

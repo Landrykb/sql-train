@@ -10,7 +10,7 @@
 
 const fs      = require('fs');
 const path    = require('path');
-const YAML    = require('js-yaml');
+const { load } = require('js-yaml');
 const Papa    = require('papaparse');
 const initSql = require('sql.js');
 
@@ -35,7 +35,7 @@ const initSql = require('sql.js');
   // ─── Load central solutions.yaml ───────────────────────────────────────────
   let centralSols = {};
   if (fs.existsSync(SOL_PATH)) {
-    centralSols = YAML.load(fs.readFileSync(SOL_PATH, 'utf8')) || {};
+    centralSols = load(fs.readFileSync(SOL_PATH, 'utf8')) || {};
   }
 
   // ─── Initialize SQL.js ─────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ const initSql = require('sql.js');
       if (file === 'solutions.yaml') continue;
 
       const yamlPath = path.join(domainDir, file);
-      const doc      = YAML.load(fs.readFileSync(yamlPath, 'utf8'));
+      const doc      = load(fs.readFileSync(yamlPath, 'utf8'));
       const exId     = doc.id;
 
       // 1) Merge solutionQuery & expected[][] from central or inline

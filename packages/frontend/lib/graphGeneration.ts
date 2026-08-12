@@ -330,8 +330,8 @@ async function generateLabDataGraph(
   try {
     // Import YAML to get project details
     const yamlContent = await fetch(`/lab-projects/${domain}/${projectId}.yaml`).then(r => r.text());
-    const yaml = await import('js-yaml');
-    const project = yaml.load(yamlContent) as any;
+    const { load } = await import('js-yaml');
+    const project = load(yamlContent) as any;
     
     const insights: string[] = [];
     

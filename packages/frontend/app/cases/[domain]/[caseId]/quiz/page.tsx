@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
+import { load } from 'js-yaml';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
@@ -55,7 +55,7 @@ export default async function QuizPage({
 
   try {
     const raw = await fs.readFile(caseFile, 'utf8');
-    const doc = yaml.load(raw) as any;
+    const doc = load(raw) as any;
     if (!doc?.id || !doc?.name) throw new Error('Invalid YAML');
     caseName = doc.name;
     skills = (doc.skills || []).filter((s: string) => !s.startsWith('name:'));

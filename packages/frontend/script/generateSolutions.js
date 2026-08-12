@@ -8,7 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const YAML = require('js-yaml');
+const { load, dump } = require('js-yaml');
 const glob = require('glob');
 
 // Paths
@@ -19,14 +19,14 @@ const CASE_PATTERN = path.join(CASES_DIR, '*', '*.yaml');
 // 1) Load or init central solutions object
 let central = {};
 if (fs.existsSync(SOL_PATH)) {
-  central = YAML.load(fs.readFileSync(SOL_PATH, 'utf8')) || {};
+  central = load(fs.readFileSync(SOL_PATH, 'utf8')) || {};
 }
 
 // 2) Find all case YAMLs, except the central file itself
 const files = glob.sync(CASE_PATTERN).filter(p => !p.endsWith('solutions.yaml'));
 
 files.forEach(filePath => {
-  const doc = YAML.load(fs.readFileSync(filePath, 'utf8'));
+  const doc = load(fs.readFileSync(filePath, 'utf8'));
   if (!doc.id || !doc.datasets) return; // skip malformed
 
   const domain = path.basename(path.dirname(filePath));
@@ -45,7 +45,7 @@ files.forEach(filePath => {
 });
 
 // 3) Write back sorted YAML
-const dump = YAML.dump(central, {
+const dump = dump(central, {
   sortKeys: true,
   lineWidth: 120,
 });

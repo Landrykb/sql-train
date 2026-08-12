@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
+import { load } from 'js-yaml';
 import Link from 'next/link';
 import ClientCaseGrid from '@/components/ClientCaseGrid';
 import ProgressSummary from '@/components/ProgressSummary';
@@ -87,7 +87,7 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
         try {
           const filePath = path.join(casesDir, file);
           const content = await fs.readFile(filePath, 'utf-8');
-          const caseData = yaml.load(content) as CaseData;
+          const caseData = load(content) as CaseData;
           if (caseData?.id) {
             caseData.id = caseData.id.trim();
             if (caseOrder[domainKey].includes(caseData.id)) {

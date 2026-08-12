@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
+import { load } from 'js-yaml';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
@@ -78,7 +78,7 @@ export default async function CasePage({
   let caseData: CaseData;
   try {
     const raw = await fs.readFile(caseFile, 'utf8');
-    const doc = yaml.load(raw) as any;
+    const doc = load(raw) as any;
     if (!doc?.id || !doc?.name || !doc?.datasets) {
       throw new Error(`Missing required fields in ${caseId}.yaml`);
     }
@@ -110,7 +110,7 @@ export default async function CasePage({
 
   try {
     const solRaw = await fs.readFile(path.join(process.cwd(), 'cases', 'solutions.yaml'), 'utf8');
-    const allSolutions = yaml.load(solRaw) as Record<
+    const allSolutions = load(solRaw) as Record<
       string,
       Record<string, { solutionQuery: string; expected: any[][] }>
     >;
@@ -135,7 +135,7 @@ export default async function CasePage({
   try {
     const guidePath = path.join(process.cwd(), 'cases', 'guide', 'guide.yaml');
     const guideRaw = await fs.readFile(guidePath, 'utf8');
-    const guideParsed = yaml.load(guideRaw) as any;
+    const guideParsed = load(guideRaw) as any;
     if (guideParsed?.query_types) {
       guideData = { id: guideParsed.id, title: guideParsed.title, description: guideParsed.description, query_types: guideParsed.query_types };
     }
