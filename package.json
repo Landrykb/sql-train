@@ -9,7 +9,7 @@
     "test": "node scripts/test_cases.mjs"
   },
   "devDependencies": {
-    "turbo": "^2.8.10"
+    "turbo": ">=2.9.14"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "1.33.1-dev18.0",
@@ -21,12 +21,12 @@
     "flatted": ">=3.4.0",
     "picomatch": ">=4.0.4",
     "yaml": ">=2.8.3",
-    "brace-expansion": ">=5.0.5",
+    "brace-expansion": ">=5.0.7",
     "lodash": ">=4.17.21",
-    "axios": ">=1.15.0",
+    "axios": ">=1.18.0",
     "follow-redirects": ">=1.16.0",
     "protocol-buffers-schema": ">=3.6.1",
-    "js-yaml": ">=4.1.1",
+    "js-yaml": ">=4.3.1",
     "webpack": ">=5.104.0",
     "glob": ">=10.5.0",
     "ajv": ">=8.18.0",
@@ -36,7 +36,17 @@
     "@codemirror/commands": "6.10.2",
     "@codemirror/autocomplete": "6.20.0",
     "@codemirror/lint": "6.9.4",
-    "@codemirror/search": "6.6.0"
+    "@codemirror/search": "6.6.0",
+    "protobufjs": ">=8.4.1",
+    "postcss": ">=8.5.23",
+    "turbo": ">=2.9.14",
+    "dompurify": ">=3.4.13",
+    "nanoid": ">=3.3.17",
+    "next-auth": ">=4.24.15",
+    "form-data": ">=4.0.6",
+    "next": ">=16.2.11",
+    "@opentelemetry/core": ">=2.8.0",
+    "fast-uri": ">=3.1.5"
   },
   "pnpm": {
     "overrides": {
@@ -45,12 +55,12 @@
       "flatted": ">=3.4.0",
       "picomatch": ">=4.0.4",
       "yaml": ">=2.8.3",
-      "brace-expansion": ">=5.0.5",
+      "brace-expansion": ">=5.0.7",
       "lodash": ">=4.17.21",
-      "axios": ">=1.15.2",
+      "axios": ">=1.18.0",
       "follow-redirects": ">=1.16.0",
       "protocol-buffers-schema": ">=3.6.1",
-      "js-yaml": ">=4.1.1",
+      "js-yaml": ">=4.3.1",
       "webpack": ">=5.104.0",
       "glob": ">=10.5.0",
       "ajv": ">=8.18.0",
@@ -61,14 +71,20 @@
       "@codemirror/autocomplete": "6.20.0",
       "@codemirror/lint": "6.9.4",
       "@codemirror/search": "6.6.0",
-      "fast-uri": "^3.1.1",
-      "protobufjs": "^8.2.0",
-      "postcss": "^8.5.10",
+      "fast-uri": ">=3.1.5",
+      "protobufjs": ">=8.4.1",
+      "postcss": ">=8.5.23",
+      "turbo": ">=2.9.14",
+      "dompurify": ">=3.4.13",
+      "nanoid": ">=3.3.17",
+      "form-data": ">=4.0.6",
+      "next-auth": ">=4.24.15",
       "uuid": ">=11.1.1",
       "qs": ">=6.15.2",
-      "turbo": ">=2.9.14",
-      "brace-expansion": ">=5.0.6",
-      "ws": ">=8.20.1"
+      "brace-expansion": ">=5.0.7",
+      "ws": ">=8.20.1",
+      "next": ">=16.2.11",
+      "@opentelemetry/core": ">=2.8.0"
     }
   }
 }
