@@ -11,7 +11,51 @@ export type CloudLevel =
   | 'Expert'
   | 'Master';
 
-export type CloudLabType = 'diagram' | 'iac' | 'quiz';
+export type CloudLabType = 'diagram' | 'iac' | 'quiz' | 'scenario' | 'sandbox';
+
+/** A single step in an interactive cloud scenario lab. */
+export interface CloudScenarioStep {
+  id: string;
+  title: string;
+  instruction: string;
+  service: 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'console';
+  action:
+    | 'create-bucket'
+    | 'delete-bucket'
+    | 'put-object'
+    | 'set-bucket-policy'
+    | 'set-public-access'
+    | 'set-encryption'
+    | 'create-user'
+    | 'create-policy'
+    | 'attach-policy'
+    | 'launch-ec2'
+    | 'stop-ec2'
+    | 'terminate-ec2'
+    | 'create-vpc'
+    | 'create-subnet'
+    | 'create-security-group'
+    | 'add-sg-rule'
+    | 'create-igw'
+    | 'create-route-table'
+    | 'associate-route-table'
+    | 'observe'
+    | 'manual';
+  /** Additional fields needed to configure the step or validate it. */
+  config?: Record<string, any>;
+  /** Extra educational note shown after step succeeds. */
+  explanation?: string;
+  /** Certification concept this step tests. */
+  examConcept?: string;
+}
+
+/** A check that validates the sandbox state for a scenario. */
+export interface CloudScenarioCheck {
+  id: string;
+  description: string;
+  service: 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb';
+  check: (state: any) => { pass: boolean; message: string };
+}
 
 /** A node in an architecture flow diagram (rendered as connected cards). */
 export interface ArchNode {
@@ -42,6 +86,14 @@ export interface CloudMission {
   objectives?: string[];
   /** Ordered architecture flow, rendered as connected cards. */
   architecture?: ArchNode[];
+
+  // ── Scenario missions (BleepxCloud Sandbox) ─────────────────────
+  /** Ordered interactive steps for the cloud sandbox. */
+  steps?: CloudScenarioStep[];
+  /** Initial sandbox state for the scenario (preset resources). */
+  initialState?: any;
+  /** Certification-style exam questions for this mission. */
+  examQuestions?: { question: string; options: string[]; answer: number; explanation: string }[];
 }
 
 export interface CloudProviderMeta {

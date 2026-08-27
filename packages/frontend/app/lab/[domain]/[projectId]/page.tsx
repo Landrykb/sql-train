@@ -8,6 +8,7 @@ import LabProjectViewer from '@/components/LabProjectViewer';
 import { CaseInterpretationButton } from '@/components/CaseInterpretationButton';
 import { LAB_DOMAIN_META, LAB_DOMAIN_FOLDER_MAP, LAB_CASE_ORDER } from '@/lib/labConstants';
 import { getKaggleInfo, extractLabDatasetPath } from '@/lib/kaggleDatasets';
+import { getDataWorldInfo } from '@/lib/dataWorldDatasets';
 
 export function generateStaticParams() {
   const params: { domain: string; projectId: string }[] = [];
@@ -102,6 +103,9 @@ export default async function LabProjectPage({ params }: { params: Promise<{ dom
         datasetUrl={doc.dataset_url}
         kaggleFilename={getKaggleInfo(doc.dataset_url)?.filename}
         kaggleNote={getKaggleInfo(doc.dataset_url)?.note}
+        dataWorldFilename={getDataWorldInfo(doc.dataset_url)?.filename}
+        dataWorldNote={getDataWorldInfo(doc.dataset_url)?.note}
+        dataWorldTable={getDataWorldInfo(doc.dataset_url)?.table}
         datasetPath={extractLabDatasetPath(doc.solution_code) || extractLabDatasetPath((doc.sections || []).map((s: any) => s.code).join('\n'))}
         sections={(doc.sections || []).map((s: any) => ({
           title: s.title || '',

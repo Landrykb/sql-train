@@ -434,4 +434,550 @@ export const awsMissions: CloudMission[] = [
     isBonus: true,
     crossDomain: 'esg',
   },
+
+  // ─── BLEEPXCLOUD SANDBOX SCENARIOS ─────────────────────────────────────────
+  // Hands-on, browser-native AWS simulations. No account required.
+
+  // ── S3 ─────────────────────────────────────────────────────────────────────
+  {
+    slug: 's3-create-bucket',
+    title: 'Create Your First S3 Bucket',
+    section: 'Storage',
+    level: 'Beginner',
+    stars: 1,
+    skills: ['s3', 'regions'],
+    description:
+      "Every data lake, backup, and application asset on AWS usually passes through S3 at some point. Start by creating a bucket in a specific region and understand why bucket names must be globally unique.",
+    prerequisites: [],
+    labType: 'scenario',
+    realWorld:
+      'A new team needs a place to drop nightly CSV exports. You create an S3 bucket with a clear, globally unique name and a region close to the consumers.',
+    objectives: [
+      'Create an S3 bucket',
+      'Choose a region for the bucket',
+      'Understand global namespace uniqueness',
+    ],
+    architecture: [
+      { icon: '👤', label: 'You', note: 'console' },
+      { icon: '📦', label: 'S3', note: 'bucket' },
+      { icon: '🌍', label: 'Region', note: 'us-east-1' },
+    ],
+    steps: [
+      {
+        id: 's3-bucket-create',
+        title: 'Create the bucket',
+        instruction: 'Use the S3 panel to create a bucket named exactly "etl-exports-bleepx" in us-east-1.',
+        service: 's3',
+        action: 'create-bucket',
+        config: { bucketName: 'etl-exports-bleepx' },
+        explanation: 'S3 bucket names are globally unique across all AWS accounts and regions.',
+        examConcept: 'S3 bucket names must be DNS-compliant and globally unique.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'Which statement about S3 bucket names is true?',
+        options: ['Bucket names must be unique per region.', 'Bucket names must be unique across all AWS accounts globally.', 'Bucket names can be reused after deletion.', 'Bucket names are not case sensitive and can contain spaces.'],
+        answer: 1,
+        explanation: 'S3 bucket names are globally unique across all AWS accounts and all regions.',
+      },
+    ],
+  },
+  {
+    slug: 's3-upload-csv',
+    title: 'Upload a CSV to S3',
+    section: 'Storage',
+    level: 'Beginner',
+    stars: 1,
+    skills: ['s3', 'objects'],
+    description:
+      'Now that the bucket exists, upload a dataset. Learn how S3 stores objects under keys, and why a folder-like prefix is just a naming convention in S3.',
+    prerequisites: ['s3-create-bucket'],
+    labType: 'scenario',
+    realWorld:
+      'The first nightly CSV export arrives. You upload it to S3 as an object with a dated key so downstream jobs can find the latest file.',
+    objectives: [
+      'Upload an object to a bucket',
+      'Understand object keys vs folders',
+      'See the object size in the console',
+    ],
+    steps: [
+      {
+        id: 's3-csv-upload',
+        title: 'Upload sales.csv',
+        instruction: 'In the "etl-exports-bleepx" bucket, upload an object with the key "sales/2026-01-15.csv" and a few rows of CSV content.',
+        service: 's3',
+        action: 'put-object',
+        config: { bucketName: 'etl-exports-bleepx', key: 'sales/2026-01-15.csv' },
+        explanation: 'S3 object keys are flat strings. "sales/" is a prefix, not a real folder.',
+        examConcept: 'S3 has a flat object namespace; prefixes mimic folders.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'In S3, what does a key like "sales/2026/01/data.csv" represent?',
+        options: ['A folder hierarchy with three nested folders.', 'A single object with a flat key that uses delimiters as a convention.', 'A multi-part upload path.', 'A Glacier archive location.'],
+        answer: 1,
+        explanation: 'S3 keys are flat. The slashes are conventions for organizing but do not create real directories.',
+      },
+    ],
+  },
+  {
+    slug: 's3-block-public-access',
+    title: 'Block Public Access on S3',
+    section: 'Storage',
+    level: 'Beginner',
+    stars: 1,
+    skills: ['s3', 'public-access', 'compliance'],
+    description:
+      'S3 bucket policies and ACLs can accidentally expose data. AWS provides a safety switch: Block Public Access. Turn it on to prevent public reads.',
+    prerequisites: ['s3-create-bucket'],
+    labType: 'scenario',
+    realWorld:
+      'Security audit flags a new bucket. Before any objects arrive, you enable S3 Block Public Access to prevent accidental data leaks.',
+    objectives: [
+      'Enable S3 Block Public Access',
+      'Understand why it is the default best practice',
+      'Distinguish bucket ACLs from bucket policies',
+    ],
+    steps: [
+      {
+        id: 's3-public-access-block',
+        title: 'Enable Block Public Access',
+        instruction: 'Enable the S3 Block Public Access setting on the "etl-exports-bleepx" bucket.',
+        service: 's3',
+        action: 'set-public-access',
+        config: { bucketName: 'etl-exports-bleepx', block: true },
+        explanation: 'Block Public Access is an account/bucket-level guard that overrules policies and ACLs trying to grant public access.',
+        examConcept: 'S3 Block Public Access takes precedence over bucket policies and ACLs.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'Which S3 feature acts as an override to prevent buckets from becoming public, regardless of bucket policies or ACLs?',
+        options: ['S3 Object Lock', 'S3 Block Public Access', 'S3 Versioning', 'S3 Transfer Acceleration'],
+        answer: 1,
+        explanation: 'S3 Block Public Access is designed to prevent accidental or malicious public exposure by overriding policies and ACLs.',
+      },
+    ],
+  },
+  {
+    slug: 's3-encrypt-bucket',
+    title: 'Enable S3 Default Encryption',
+    section: 'Storage',
+    level: 'Intermediate',
+    stars: 2,
+    skills: ['s3', 'kms', 'encryption'],
+    description:
+      'Regulatory requirements often demand encryption at rest. Set the default encryption on a bucket so every object is automatically encrypted without the uploader doing anything.',
+    prerequisites: ['s3-create-bucket', 's3-block-public-access'],
+    labType: 'scenario',
+    realWorld:
+      'Compliance requires all customer data to be encrypted at rest. You enable SSE-S3 default encryption so uploads are encrypted automatically.',
+    objectives: [
+      'Set default bucket encryption to SSE-S3',
+      'Compare SSE-S3, SSE-KMS, and DSSE-KMS',
+      'Understand automatic server-side encryption',
+    ],
+    steps: [
+      {
+        id: 's3-sse-s3',
+        title: 'Set default encryption to SSE-S3',
+        instruction: 'Set the default encryption on "etl-exports-bleepx" to SSE-S3 (AES256).',
+        service: 's3',
+        action: 'set-encryption',
+        config: { bucketName: 'etl-exports-bleepx', encryption: 'AES256' },
+        explanation: 'SSE-S3 encrypts every object with AES-256 using AWS-managed keys. No key management required.',
+        examConcept: 'SSE-S3 uses AWS-managed keys and is the simplest encryption option.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'Which S3 encryption option requires no key management by the customer and uses AWS-managed AES-256 keys?',
+        options: ['SSE-C', 'SSE-KMS', 'SSE-S3', 'Client-side encryption'],
+        answer: 2,
+        explanation: 'SSE-S3 (Amazon S3 managed keys) encrypts with AWS-managed AES-256 keys and does not require customer key management.',
+      },
+    ],
+  },
+
+  // ── IAM ────────────────────────────────────────────────────────────────────
+  {
+    slug: 'iam-create-user',
+    title: 'Create an IAM User',
+    section: 'Identity',
+    level: 'Beginner',
+    stars: 1,
+    skills: ['iam', 'users'],
+    description:
+      'IAM users represent humans or applications that interact with AWS. Create a dedicated user for an ETL script instead of using the root account.',
+    prerequisites: [],
+    labType: 'scenario',
+    realWorld:
+      'A data engineer writes an ETL script. Instead of embedding root credentials, you create an IAM user named "etl-uploader" with scoped permissions.',
+    objectives: [
+      'Create an IAM user',
+      'Attach a policy later (least privilege)',
+      'Never use root credentials for automation',
+    ],
+    steps: [
+      {
+        id: 'iam-user-create',
+        title: 'Create IAM user',
+        instruction: 'Create an IAM user named "etl-uploader".',
+        service: 'iam',
+        action: 'create-user',
+        config: { userName: 'etl-uploader' },
+        explanation: 'IAM users are long-term credentials for people or applications.',
+        examConcept: 'IAM users are one type of principal; best practice is least privilege.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'Which AWS principal should be used for an automated ETL script?',
+        options: ['Root account', 'IAM user with limited permissions', 'Federation token from a social identity provider', 'AWS Marketplace role'],
+        answer: 1,
+        explanation: 'An IAM user or IAM role with limited permissions is appropriate for an application or script.',
+      },
+    ],
+  },
+  {
+    slug: 'iam-least-privilege-s3',
+    title: 'Least-Privilege S3 Policy',
+    section: 'Identity',
+    level: 'Intermediate',
+    stars: 2,
+    skills: ['iam', 'policies', 's3'],
+    description:
+      'A common exam and interview question: write the smallest IAM policy that lets an ETL uploader put objects into exactly one bucket.',
+    prerequisites: ['iam-create-user', 's3-create-bucket'],
+    labType: 'scenario',
+    realWorld:
+      'Security pushes back on a wildcard S3 permission. You craft an IAM policy that only allows s3:PutObject on the ETL bucket.',
+    objectives: [
+      'Create an IAM policy with a specific action',
+      'Scope the resource to one bucket',
+      'Attach the policy to the ETL user',
+    ],
+    steps: [
+      {
+        id: 'iam-policy-create',
+        title: 'Create the PutObject policy',
+        instruction: 'Create an IAM policy named "ETLPutOnly" that allows s3:PutObject on arn:aws:s3:::etl-exports-bleepx/*.',
+        service: 'iam',
+        action: 'create-policy',
+        config: { policyName: 'ETLPutOnly' },
+        explanation: 'The policy uses a single action and a specific resource ARN for least privilege.',
+        examConcept: 'Least privilege means granting only the actions and resources required.',
+      },
+      {
+        id: 'iam-attach-policy',
+        title: 'Attach policy to user',
+        instruction: 'Attach the "ETLPutOnly" policy to the "etl-uploader" user.',
+        service: 'iam',
+        action: 'attach-policy',
+        config: { userName: 'etl-uploader', policyName: 'ETLPutOnly' },
+        explanation: 'User-based permissions are the union of all attached policies.',
+        examConcept: 'IAM users can have multiple policies attached; explicit deny always wins.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'Which principle is most important when writing an IAM policy for an ETL uploader?',
+        options: ['Grant all S3 actions for flexibility.', 'Use least privilege: only the actions and resources required.', 'Use the root account for simplicity.', 'Share credentials across teams.'],
+        answer: 1,
+        explanation: 'Least privilege is a core AWS security best practice and a frequent exam topic.',
+      },
+    ],
+  },
+  {
+    slug: 'iam-deny-vs-allow',
+    title: 'Explicit Deny in IAM',
+    section: 'Identity',
+    level: 'Advanced',
+    stars: 3,
+    skills: ['iam', 'policies', 'deny'],
+    description:
+      'In AWS, an explicit Deny always overrides an Allow. Attach a policy that allows broad access but denies a specific bucket, and observe the effective result.',
+    prerequisites: ['iam-least-privilege-s3'],
+    labType: 'scenario',
+    realWorld:
+      'A contractor needs broad read access but must never touch the finance-reports bucket. A Deny statement blocks that specific bucket while Allow permits the rest.',
+    objectives: [
+      'Create a policy with both Allow and Deny',
+      'Observe that Deny wins over Allow',
+      'Test whether the user can access the denied bucket',
+    ],
+    steps: [
+      {
+        id: 'iam-deny-policy',
+        title: 'Create deny policy',
+        instruction: 'Create a policy named "ContractorReadOnly" that allows s3:GetObject on * but denies s3:GetObject on arn:aws:s3:::finance-reports-bleepx/*.',
+        service: 'iam',
+        action: 'create-policy',
+        config: { policyName: 'ContractorReadOnly' },
+        explanation: 'Explicit Deny statements in IAM and bucket policies always override Allow.',
+        examConcept: 'Explicit Deny always takes precedence over Allow in AWS authorization.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'What is the final decision when one IAM policy allows an action and another IAM policy explicitly denies it?',
+        options: ['Allow wins because it was defined first.', 'Deny wins because explicit Deny overrides Allow.', 'The two policies cancel out and the default is allowed.', 'The user receives a warning but the action succeeds.'],
+        answer: 1,
+        explanation: 'AWS authorization logic states that an explicit Deny always overrides any Allow.',
+      },
+    ],
+  },
+
+  // ── EC2 ────────────────────────────────────────────────────────────────────
+  {
+    slug: 'ec2-launch-sandbox',
+    title: 'Launch an EC2 Instance',
+    section: 'Compute',
+    level: 'Beginner',
+    stars: 1,
+    skills: ['ec2', 'ami', 'instances'],
+    description:
+      'Launch a real-looking EC2 instance from the browser sandbox. Choose an AMI, instance size, and see the on-demand cost.',
+    prerequisites: [],
+    labType: 'scenario',
+    realWorld:
+      'A developer needs a t3.micro web server for a quick prototype. You launch it with Amazon Linux 2023.',
+    objectives: [
+      'Choose an AMI',
+      'Select an instance size',
+      'Understand on-demand billing',
+    ],
+    steps: [
+      {
+        id: 'ec2-launch',
+        title: 'Launch t3.micro',
+        instruction: 'Launch an EC2 instance named "web-prototype" using the Amazon Linux 2023 AMI and a t3.micro instance size.',
+        service: 'ec2',
+        action: 'launch-ec2',
+        config: { name: 'web-prototype', ami: 'ami-amazon-linux-2023', size: 't3.micro' },
+        explanation: 't3.micro is burstable, cheap, and a common starting point for small workloads.',
+        examConcept: 'EC2 on-demand pricing: you pay per hour or per second while the instance runs.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'Which EC2 instance size is best suited for a low-traffic web prototype on a tight budget?',
+        options: ['m5.4xlarge', 't3.micro', 'r6g.2xlarge', 'c6g.4xlarge'],
+        answer: 1,
+        explanation: 't3.micro is burstable, has 1 GiB of RAM, and is part of the AWS Free Tier, making it ideal for prototypes.',
+      },
+    ],
+  },
+  {
+    slug: 'ec2-right-size',
+    title: 'Right-Size an EC2 Instance',
+    section: 'Compute',
+    level: 'Intermediate',
+    stars: 2,
+    skills: ['ec2', 'cost', 'resizing'],
+    description:
+      'A t3.micro is pegged at 100% CPU. Choose the correct general-purpose m6i instance for a memory-bound workload.',
+    prerequisites: ['ec2-launch-sandbox'],
+    labType: 'scenario',
+    realWorld:
+      'Monitoring shows 95% CPU and OOM crashes. The app needs more vCPU and memory, but not a GPU. You move to an m6i.large.',
+    objectives: [
+      'Match instance family to workload type',
+      'Estimate cost impact of resizing',
+      'Understand when to stop vs terminate',
+    ],
+    steps: [
+      {
+        id: 'ec2-right-size',
+        title: 'Launch m6i.large',
+        instruction: 'Launch an EC2 instance named "web-prod" using the Ubuntu Server 22.04 AMI and an m6i.large size.',
+        service: 'ec2',
+        action: 'launch-ec2',
+        config: { name: 'web-prod', ami: 'ami-ubuntu-22-lts', size: 'm6i.large' },
+        explanation: 'm6i is a general-purpose Intel instance family; "large" has 2 vCPU and 8 GiB RAM.',
+        examConcept: 'M-family is general-purpose; C-family is compute-optimized; R-family is memory-optimized.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'Which EC2 family is best for a compute-intensive batch processing job?',
+        options: ['T family (burstable)', 'M family (general-purpose)', 'C family (compute-optimized)', 'R family (memory-optimized)'],
+        answer: 2,
+        explanation: 'C-family instances are compute-optimized, making them ideal for CPU-bound batch jobs.',
+      },
+    ],
+  },
+
+  // ── VPC / Networking ───────────────────────────────────────────────────────
+  {
+    slug: 'vpc-create-subnets',
+    title: 'Create a VPC with Public Subnet',
+    section: 'Networking',
+    level: 'Intermediate',
+    stars: 2,
+    skills: ['vpc', 'subnets', 'cidr'],
+    description:
+      'A VPC is your private network in the cloud. Create a VPC, a public subnet, and an internet gateway so an EC2 instance can reach the internet.',
+    prerequisites: ['ec2-launch-sandbox'],
+    labType: 'scenario',
+    realWorld:
+      'A web server must be reachable from the internet. You build a VPC with a public subnet, an IGW, and a route table.',
+    objectives: [
+      'Create a VPC with a CIDR',
+      'Create a public subnet',
+      'Attach an internet gateway and update routes',
+    ],
+    steps: [
+      {
+        id: 'vpc-create',
+        title: 'Create VPC',
+        instruction: 'Create a VPC with CIDR 10.0.0.0/16.',
+        service: 'vpc',
+        action: 'create-vpc',
+        config: { cidr: '10.0.0.0/16' },
+        explanation: 'A VPC spans all AZs in a region and contains one or more subnets.',
+        examConcept: 'A VPC is an isolated, virtual network in an AWS region.',
+      },
+      {
+        id: 'subnet-public',
+        title: 'Create public subnet',
+        instruction: 'In that VPC, create a public subnet (10.0.1.0/24) in us-east-1a.',
+        service: 'vpc',
+        action: 'create-subnet',
+        config: { cidr: '10.0.1.0/24', az: 'us-east-1a', isPublic: true },
+        explanation: 'A public subnet has a route to an internet gateway (0.0.0.0/0 → igw).',
+        examConcept: 'Subnets are tied to a single availability zone.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'What makes a subnet "public" in AWS?',
+        options: ['It contains only public IP addresses.', 'Its route table has a route to an internet gateway.', 'It is located in the default VPC.', 'It has no network ACL rules.'],
+        answer: 1,
+        explanation: 'A public subnet has a route table with a route to an internet gateway for 0.0.0.0/0.',
+      },
+    ],
+  },
+  {
+    slug: 'security-group-web',
+    title: 'Secure a Web Server with Security Groups',
+    section: 'Networking',
+    level: 'Intermediate',
+    stars: 2,
+    skills: ['security-groups', 'firewall', 'ports'],
+    description:
+      'Security groups are stateful firewalls for EC2. Allow only HTTPS and SSH to a web server, and understand why overly permissive rules are dangerous.',
+    prerequisites: ['vpc-create-subnets'],
+    labType: 'scenario',
+    realWorld:
+      'The security team requires the web server to accept HTTPS (443) from anywhere and SSH (22) only from the office IP.',
+    objectives: [
+      'Create a security group',
+      'Add inbound rules for 443 and 22',
+      'Understand stateful firewall behavior',
+    ],
+    steps: [
+      {
+        id: 'sg-create',
+        title: 'Create security group',
+        instruction: 'Create a security group in your VPC named "web-sg" that allows TCP 443 from 0.0.0.0/0 and TCP 22 from 203.0.113.0/24.',
+        service: 'vpc',
+        action: 'create-security-group',
+        config: { name: 'web-sg' },
+        explanation: 'Security groups are stateful: if inbound is allowed, the matching outbound response is allowed automatically.',
+        examConcept: 'Security groups are stateful; NACLs are stateless.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'Which statement about security groups is true?',
+        options: ['They are stateless.', 'They are stateful and only support allow rules.', 'They can explicitly deny traffic.', 'They operate at the subnet level.'],
+        answer: 1,
+        explanation: 'Security groups are stateful and support only allow rules; NACLs are stateless and support allow and deny.',
+      },
+    ],
+  },
+
+  // ── Capstone / Multi-service ───────────────────────────────────────────────
+  {
+    slug: 'aws-sandbox-capstone',
+    title: 'Capstone: Secure Data Lake on S3',
+    section: 'Capstone',
+    level: 'Advanced',
+    stars: 3,
+    skills: ['s3', 'iam', 'encryption', 'public-access'],
+    description:
+      'Build a mini data lake: encrypted S3 bucket, Block Public Access, and a least-privilege IAM user that can only upload to it.',
+    prerequisites: ['s3-encrypt-bucket', 'iam-least-privilege-s3', 's3-block-public-access'],
+    labType: 'scenario',
+    realWorld:
+      'A startup needs a data lake for analytics CSVs. The bucket must be private, encrypted, and only a designated IAM user may upload.',
+    objectives: [
+      'Create and encrypt the data lake bucket',
+      'Block all public access',
+      'Create a scoped IAM user and attach a least-privilege policy',
+    ],
+    steps: [
+      {
+        id: 'cap-bucket',
+        title: 'Create data-lake bucket',
+        instruction: 'Create an S3 bucket named "data-lake-bleepx" in us-east-1.',
+        service: 's3',
+        action: 'create-bucket',
+        config: { bucketName: 'data-lake-bleepx' },
+        explanation: 'Start with the bucket that will hold all analytics data.',
+        examConcept: 'Bucket names are globally unique.',
+      },
+      {
+        id: 'cap-encrypt',
+        title: 'Enable SSE-S3 encryption',
+        instruction: 'Set default encryption to SSE-S3 on "data-lake-bleepx".',
+        service: 's3',
+        action: 'set-encryption',
+        config: { bucketName: 'data-lake-bleepx', encryption: 'AES256' },
+        explanation: 'Default encryption ensures every object is protected without user action.',
+        examConcept: 'SSE-S3 uses AWS-managed keys for server-side encryption.',
+      },
+      {
+        id: 'cap-block',
+        title: 'Block public access',
+        instruction: 'Enable S3 Block Public Access on "data-lake-bleepx".',
+        service: 's3',
+        action: 'set-public-access',
+        config: { bucketName: 'data-lake-bleepx', block: true },
+        explanation: 'Block Public Access prevents public data leaks from policies or ACLs.',
+        examConcept: 'Block Public Access is the strongest public-access guard.',
+      },
+      {
+        id: 'cap-user',
+        title: 'Create lake uploader user',
+        instruction: 'Create an IAM user named "lake-uploader".',
+        service: 'iam',
+        action: 'create-user',
+        config: { userName: 'lake-uploader' },
+        explanation: 'Each application or automation should use its own IAM user or role.',
+        examConcept: 'Use IAM users or roles, never the root account.',
+      },
+      {
+        id: 'cap-policy',
+        title: 'Create scoped policy',
+        instruction: 'Create an IAM policy named "LakePutOnly" and attach it to "lake-uploader" allowing s3:PutObject on arn:aws:s3:::data-lake-bleepx/*.',
+        service: 'iam',
+        action: 'create-policy',
+        config: { policyName: 'LakePutOnly' },
+        explanation: 'The uploader can only PutObject; it cannot list, delete, or read.',
+        examConcept: 'Least privilege limits blast radius if credentials leak.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'A data lake must be private and encrypted at rest. Which combination is best?',
+        options: ['SSE-S3 + S3 Block Public Access', 'No encryption + public-read ACL', 'SSE-KMS with no key rotation + public bucket policy', 'Client-side encryption + public bucket'],
+        answer: 0,
+        explanation: 'SSE-S3 provides automatic encryption and Block Public Access prevents accidental public exposure.',
+      },
+    ],
+  },
 ];

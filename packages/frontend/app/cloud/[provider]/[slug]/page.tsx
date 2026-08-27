@@ -23,6 +23,7 @@ import {
 import { cloudTrials } from '@/lib/cloud/trials';
 import { iacTemplate } from '@/lib/cloud/templates';
 import { getConcept, hasConcept, CLOUD_CONCEPTS } from '@/lib/cloud/concepts';
+import CloudSandbox from '@/components/CloudSandbox';
 
 const META_SKILLS = new Set(['everything', 'exam-prep']);
 
@@ -123,6 +124,8 @@ export default function CloudMissionPage() {
   const nextSlug = idx < slugs.length - 1 ? slugs[idx + 1] : null;
 
   const isQuiz = mission.labType === 'quiz';
+  const isScenario = mission.labType === 'scenario' || mission.labType === 'sandbox';
+  const [sandboxDone, setSandboxDone] = useState(false);
 
   // Quiz state (for quiz-type missions)
   const quizQuestions = useMemo(() => {
@@ -186,11 +189,13 @@ export default function CloudMissionPage() {
     playBleep();
   }, [isDone, markComplete, missionCaseId, tier]);
 
-  const canComplete = isQuiz
-    ? quizPassed && (learnList.length === 0 || allUnderstood)
-    : learnList.length > 0
-      ? allUnderstood && kcPassed
-      : reviewed;
+  const canComplete = isScenario
+    ? sandboxDone
+    : isQuiz
+      ? quizPassed && (learnList.length === 0 || allUnderstood)
+      : learnList.length > 0
+        ? allUnderstood && kcPassed
+        : reviewed;
 
   const template = mission.labType === 'iac' ? iacTemplate(p, mission) : null;
 
@@ -520,8 +525,19 @@ export default function CloudMissionPage() {
         </div>
       )}
 
+      {/* Scenario / Sandbox missions: hands-on cloud simulator */}
+      {isScenario && !isDone && (
+        <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
+          <h2 className="text-base font-bold text-bleepx-text mb-1">🧪 Hands-on Cloud Sandbox</h2>
+          <p className="text-xs text-bleepx-text-secondary mb-4">
+            Use the simulated AWS console below to complete each mission step. No real AWS account is required.
+          </p>
+          <CloudSandbox mission={mission} onComplete={() => setSandboxDone(true)} />
+        </div>
+      )}
+
       {/* Design-led missions with no concepts: simple review confirmation */}
-      {!isQuiz && learnList.length === 0 && !isDone && (
+      {!isQuiz && !isScenario && learnList.length === 0 && !isDone && (
         <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
           <label className="flex items-start gap-3 cursor-pointer">
             <input type="checkbox" checked={reviewed} onChange={(e) => setReviewed(e.target.checked)} className="mt-1 w-4 h-4 accent-sky-600" />

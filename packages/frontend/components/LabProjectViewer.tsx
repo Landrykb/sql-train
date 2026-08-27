@@ -35,6 +35,12 @@ interface LabProjectViewerProps {
   kaggleFilename?: string;
   /** Optional short human-readable note about the dataset. */
   kaggleNote?: string;
+  /** The exact filename data.world ships inside the dataset export. */
+  dataWorldFilename?: string;
+  /** Optional short human-readable note about the dataset. */
+  dataWorldNote?: string;
+  /** Optional data.world table / file name. */
+  dataWorldTable?: string;
   /** The `/datasets/...csv` path the lab code reads from (auto-detected). */
   datasetPath?: string | null;
   sections: Section[];
@@ -225,6 +231,9 @@ export default function LabProjectViewer({
   datasetUrl,
   kaggleFilename,
   kaggleNote,
+  dataWorldFilename,
+  dataWorldNote,
+  dataWorldTable,
   datasetPath,
   sections,
   hints,
@@ -238,6 +247,11 @@ export default function LabProjectViewer({
   prevStep,
   nextStep,
 }: LabProjectViewerProps) {
+  const sourceFilename = kaggleFilename || dataWorldFilename;
+  const sourceName = kaggleFilename ? 'Kaggle' : dataWorldFilename ? 'data.world' : 'Source';
+  const labBasename = datasetPath ? datasetPath.split('/').pop() : null;
+  const sourceMatchesPath = !!(sourceFilename && labBasename && sourceFilename === labBasename);
+
   const terminalRef = useRef<PythonTerminalHandle | null>(null);
   const editorSectionRef = useRef<HTMLDivElement | null>(null);
 
@@ -522,7 +536,7 @@ export default function LabProjectViewer({
             </div>
           )}
 
-          {/* Dataset source — kagglehub download instructions */}
+          {/* Dataset source — Kaggle or data.world download instructions */}
           {datasetUrl && (
             <div className="mt-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
               <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
@@ -535,52 +549,40 @@ export default function LabProjectViewer({
                   rel="noopener noreferrer"
                   className="text-[10px] px-2.5 py-1 rounded-full bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors inline-flex items-center gap-1"
                 >
-                  ⬇ View on Kaggle
+                  ⬇ View on {sourceName}
                 </a>
               </div>
 
-              {/* Filename panel.
-                  • If the lab path basename equals the Kaggle filename → show a
-                    single "✅ Matches Kaggle exactly" tile so learners know
-                    their Kaggle download drops straight in.
-                  • Otherwise fall back to the two-column mapping so learners
-                    see both names side-by-side. */}
-              {(() => {
-                const labBasename = datasetPath ? datasetPath.split('/').pop() : null;
-                const matches = !!(kaggleFilename && labBasename && kaggleFilename === labBasename);
-                if (matches) {
-                  return (
-                    <div className="mb-2 p-2.5 rounded-lg bg-white dark:bg-gray-900 border border-green-300 dark:border-green-800 flex items-center gap-2.5">
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 font-bold whitespace-nowrap flex-shrink-0">✓ Matches Kaggle</span>
-                      <div className="flex-1 min-w-0">
-                        <CopyInline value={kaggleFilename!} />
-                      </div>
+              {/* Filename panel. */}
+              {sourceMatchesPath ? (
+                <div className="mb-2 p-2.5 rounded-lg bg-white dark:bg-gray-900 border border-green-300 dark:border-green-800 flex items-center gap-2.5">
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 font-bold whitespace-nowrap flex-shrink-0">✓ Matches {sourceName}</span>
+                  <div className="flex-1 min-w-0">
+                    <CopyInline value={sourceFilename} />
+                  </div>
+                </div>
+              ) : (sourceFilename || datasetPath) ? (
+                <div className="mb-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {sourceFilename && (
+                    <div className="p-2 rounded-lg bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-800">
+                      <div className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-0.5">{sourceName} filename</div>
+                      <CopyInline value={sourceFilename} />
                     </div>
-                  );
-                }
-                if (kaggleFilename || datasetPath) {
-                  return (
-                    <div className="mb-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {kaggleFilename && (
-                        <div className="p-2 rounded-lg bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-800">
-                          <div className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-0.5">Kaggle filename</div>
-                          <CopyInline value={kaggleFilename} />
-                        </div>
-                      )}
-                      {datasetPath && (
-                        <div className="p-2 rounded-lg bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-800">
-                          <div className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-0.5">Lab path (browser)</div>
-                          <CopyInline value={datasetPath} />
-                        </div>
-                      )}
+                  )}
+                  {datasetPath && (
+                    <div className="p-2 rounded-lg bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-800">
+                      <div className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-0.5">Lab path (browser)</div>
+                      <CopyInline value={datasetPath} />
                     </div>
-                  );
-                }
-                return null;
-              })()}
+                  )}
+                </div>
+              ) : null}
 
               {kaggleNote && (
                 <p className="text-[10px] text-blue-700/80 dark:text-blue-300/80 mb-2 italic">{kaggleNote}</p>
+              )}
+              {dataWorldNote && (
+                <p className="text-[10px] text-blue-700/80 dark:text-blue-300/80 mb-2 italic">{dataWorldNote}</p>
               )}
 
               <p className="text-[10px] text-blue-600 dark:text-blue-400 mb-1.5">
@@ -589,13 +591,13 @@ export default function LabProjectViewer({
               <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto">
                 <code className="text-[11px] text-green-400 font-mono whitespace-pre">{`from pyodide.http import open_url\nimport pandas as pd\n\ndf = pd.read_csv(open_url("${datasetPath || '/datasets/YOUR_FILE.csv'}"))\nprint(df.shape)\nprint(df.columns.tolist())`}</code>
               </div>
-              {kaggleFilename && datasetPath && kaggleFilename === datasetPath.split('/').pop() ? (
+              {sourceFilename && datasetPath && sourceFilename === labBasename ? (
                 <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
-                  💡 Running locally? The file inside the Kaggle download is already named <code className="px-1 bg-white dark:bg-gray-900 rounded font-mono">{kaggleFilename}</code> — drop it into the notebook's working directory and the code above runs unchanged (swap <code>open_url(...)</code> for <code>"{kaggleFilename}"</code>).
+                  💡 Running locally? The file inside the {sourceName} download is already named <code className="px-1 bg-white dark:bg-gray-900 rounded font-mono">{sourceFilename}</code> — drop it into the notebook's working directory and the code above runs unchanged (swap <code>open_url(...)</code> for <code>"{sourceFilename}"</code>).
                 </p>
-              ) : kaggleFilename ? (
+              ) : sourceFilename ? (
                 <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
-                  💡 Running locally? Kaggle's ZIP contains <code className="px-1 bg-white dark:bg-gray-900 rounded font-mono">{kaggleFilename}</code>. Point <code>read_csv</code> at that path and everything else works unchanged.
+                  💡 Running locally? {sourceName} ships <code className="px-1 bg-white dark:bg-gray-900 rounded font-mono">{sourceFilename}</code>. Point <code>read_csv</code> at that path and everything else works unchanged.
                 </p>
               ) : null}
             </div>
