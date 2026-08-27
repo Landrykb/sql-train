@@ -31,18 +31,19 @@
     "noEmit": true,
     "incremental": true,
     /* ----------------------------------------------------------
-       Path aliases
+       Path aliases (resolved relative to this tsconfig.json)
+       Note: baseUrl is deprecated in modern TypeScript, so we rely
+       on paths only, with entries relative to the project root.
     ---------------------------------------------------------- */
-    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./*"
       ],
       "@/components/*": [
-        "components/*"
+        "./components/*"
       ],
       "@/lib/*": [
-        "lib/*"
+        "./lib/*"
       ]
     },
     "plugins": [
