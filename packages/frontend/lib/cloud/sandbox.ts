@@ -534,3 +534,279 @@ def handler(event, context):
     lambda: { functions: { 'flag-large-transfers': fraudLambda } },
   };
 }
+
+export function createBleepxRetailScenario(): CloudSandboxState {
+  const state = createEmptySandboxState();
+  const { accountId } = state;
+
+  const ordersCsv = [
+    'order_id,customer_id,product_id,quantity,total_usd,status,shipped',
+    'ORD-1001,c-201,p-501,2,59.98,completed,true',
+    'ORD-1002,c-202,p-502,1,1200.00,completed,false',
+    'ORD-1003,c-203,p-503,5,24.95,returned,true',
+    'ORD-1004,c-204,p-502,1,1200.00,fraud,false',
+    'ORD-1005,c-205,p-504,3,89.97,completed,true',
+  ].join('\n');
+
+  const inventoryCsv = [
+    'product_id,name,category,stock,restock_threshold',
+    'p-501,Noise-Cancel Headphones,Electronics,45,10',
+    'p-502,Gaming Laptop,Electronics,3,5',
+    'p-503,Recycled Notebook,Office,200,50',
+    'p-504,USB-C Cable,Accessories,12,20',
+  ].join('\n');
+
+  const dataLake: S3Bucket = {
+    name: 'bleepx-retail-data-lake',
+    region: 'us-east-1',
+    createdAt: new Date().toISOString(),
+    versioning: true,
+    defaultEncryption: 'aws:kms',
+    publicAccessBlock: true,
+    blockPublicAcls: true,
+    ignorePublicAcls: true,
+    blockPublicPolicy: true,
+    restrictPublicBuckets: true,
+    acl: 'private',
+    bucketPolicy: '',
+    objects: [
+      { key: 'raw/orders/2026-01-15.csv', size: ordersCsv.length, contentType: 'text/csv', lastModified: new Date().toISOString(), body: ordersCsv, owner: `arn:aws:iam::${accountId}:role/etl-service-role` },
+      { key: 'raw/inventory/2026-01-15.csv', size: inventoryCsv.length, contentType: 'text/csv', lastModified: new Date().toISOString(), body: inventoryCsv, owner: `arn:aws:iam::${accountId}:role/etl-service-role` },
+    ],
+  };
+
+  const productsTable: DynamoDBTable = {
+    tableName: 'BleepxRetailProducts',
+    partitionKey: 'product_id',
+    billingMode: 'PAY_PER_REQUEST',
+    items: [
+      { pk: 'p-501', attributes: { product_id: 'p-501', name: 'Noise-Cancel Headphones', category: 'Electronics', stock: 45 } },
+      { pk: 'p-502', attributes: { product_id: 'p-502', name: 'Gaming Laptop', category: 'Electronics', stock: 3 } },
+      { pk: 'p-503', attributes: { product_id: 'p-503', name: 'Recycled Notebook', category: 'Office', stock: 200 } },
+    ],
+    streamEnabled: false,
+    pointInTimeRecovery: true,
+    encrypted: true,
+  };
+
+  const restockRole: IAMRole = {
+    name: 'etl-service-role',
+    arn: `arn:aws:iam::${accountId}:role/etl-service-role`,
+    assumeRolePolicy: JSON.stringify({ Version: '2012-10-17', Statement: [{ Effect: 'Allow', Principal: { Service: 'lambda.amazonaws.com' }, Action: 'sts:AssumeRole' }] }, null, 2),
+    attachedPolicies: ['RetailETLAccess'],
+  };
+
+  const etlPolicy: IAMPolicy = {
+    name: 'RetailETLAccess',
+    version: '2012-10-17',
+    description: 'Allow retail ETL to read inventory and write products',
+    statements: [
+      { Effect: 'Allow', Action: ['s3:GetObject'], Resource: ['arn:aws:s3:::bleepx-retail-data-lake/raw/*'] },
+      { Effect: 'Allow', Action: ['dynamodb:PutItem', 'dynamodb:GetItem', 'dynamodb:Query'], Resource: [`arn:aws:dynamodb:us-east-1:${accountId}:table/BleepxRetailProducts`] },
+    ],
+    attachedTo: [restockRole.arn],
+  };
+
+  const restockLambda: LambdaFunction = {
+    functionName: 'restock-alerts',
+    runtime: 'python3.12',
+    handler: 'index.handler',
+    roleArn: restockRole.arn,
+    code: `import json\n\ndef handler(event, context):\n    low = [r for r in event.get("Records", []) if int(r.get("stock", 0)) < int(r.get("restock_threshold", 10))]\n    return {\n        "statusCode": 200,\n        "body": json.dumps({\n            "alert_count": len(low),\n            "products_to_restock": low\n        })\n    }`,
+    memoryMb: 128,
+    timeout: 30,
+    environment: { LOG_LEVEL: 'INFO' },
+  };
+
+  const publicWebsite: S3Bucket = {
+    name: 'bleepx-retail-website',
+    region: 'us-east-1',
+    createdAt: new Date().toISOString(),
+    versioning: false,
+    defaultEncryption: 'none',
+    publicAccessBlock: false,
+    blockPublicAcls: false,
+    ignorePublicAcls: false,
+    blockPublicPolicy: false,
+    restrictPublicBuckets: false,
+    acl: 'public-read',
+    bucketPolicy: '',
+    objects: [{ key: 'index.html', size: 420, contentType: 'text/html', lastModified: new Date().toISOString(), body: '<h1>BleepxRetail</h1>', owner: `arn:aws:iam::${accountId}:user/web-admin` }],
+  };
+
+  const webAdmin: IAMUser = {
+    name: 'web-admin',
+    arn: `arn:aws:iam::${accountId}:user/web-admin`,
+    createdAt: new Date().toISOString(),
+    attachedPolicies: ['PowerUserAccess'],
+    accessKeys: [{ keyId: 'AKIAIOSFODNN7EXAMPLE', active: true }],
+    groups: [],
+    tags: { Department: 'Engineering' },
+  };
+
+  const powerUserPolicy: IAMPolicy = {
+    name: 'PowerUserAccess',
+    version: '2012-10-17',
+    description: 'Overly broad — replace with least-privilege retail policies',
+    statements: [{ Effect: 'Allow', Action: ['*'], Resource: ['*'] }],
+    attachedTo: [webAdmin.arn],
+  };
+
+  const webSg: SecurityGroup = {
+    groupId: 'sg-web-01',
+    vpcId: 'vpc-default',
+    name: 'web-sg',
+    description: 'Web server security group',
+    inbound: [
+      { protocol: 'tcp', fromPort: 80, toPort: 80, source: '0.0.0.0/0', description: 'HTTP from anywhere' },
+      { protocol: 'tcp', fromPort: 22, toPort: 22, source: '0.0.0.0/0', description: 'SSH from anywhere' },
+    ],
+    outbound: [{ protocol: '-1', fromPort: 0, toPort: 65535, source: '0.0.0.0/0', description: 'Allow all outbound' }],
+  };
+
+  return {
+    ...state,
+    s3: { buckets: { 'bleepx-retail-data-lake': dataLake, 'bleepx-retail-website': publicWebsite } },
+    dynamodb: { tables: { 'BleepxRetailProducts': productsTable } },
+    iam: { ...state.iam, users: { 'web-admin': webAdmin }, roles: { 'etl-service-role': restockRole }, policies: { 'RetailETLAccess': etlPolicy, 'PowerUserAccess': powerUserPolicy } },
+    vpc: { ...state.vpc, securityGroups: { 'sg-web-01': webSg } },
+    lambda: { functions: { 'restock-alerts': restockLambda } },
+  };
+}
+
+export function createBleepxHealthScenario(): CloudSandboxState {
+  const state = createEmptySandboxState();
+  const { accountId } = state;
+
+  const vitalsCsv = [
+    'patient_id,timestamp,heart_rate,bp_systolic,bp_diastolic,alert',
+    'P-1001,2026-01-15T08:00:00Z,72,118,78,false',
+    'P-1002,2026-01-15T08:00:00Z,110,145,92,true',
+    'P-1003,2026-01-15T08:00:00Z,65,112,74,false',
+    'P-1004,2026-01-15T08:00:00Z,140,190,115,true',
+  ].join('\n');
+
+  const patientsCsv = [
+    'patient_id,name,age,region,consent',
+    'P-1001,Alex Rivera,34,us-east-1,true',
+    'P-1002,Jordan Lee,67,us-west-2,true',
+    'P-1003,Casey Kim,28,eu-west-1,true',
+    'P-1004,Morgan Patel,55,us-east-1,false',
+  ].join('\n');
+
+  const recordsBucket: S3Bucket = {
+    name: 'bleepx-health-records',
+    region: 'us-east-1',
+    createdAt: new Date().toISOString(),
+    versioning: true,
+    defaultEncryption: 'aws:kms',
+    publicAccessBlock: true,
+    blockPublicAcls: true,
+    ignorePublicAcls: true,
+    blockPublicPolicy: true,
+    restrictPublicBuckets: true,
+    acl: 'private',
+    bucketPolicy: '',
+    objects: [
+      { key: 'raw/vitals/2026-01-15.csv', size: vitalsCsv.length, contentType: 'text/csv', lastModified: new Date().toISOString(), body: vitalsCsv, owner: `arn:aws:iam::${accountId}:role/etl-service-role` },
+      { key: 'raw/patients/2026-01-15.csv', size: patientsCsv.length, contentType: 'text/csv', lastModified: new Date().toISOString(), body: patientsCsv, owner: `arn:aws:iam::${accountId}:role/etl-service-role` },
+    ],
+  };
+
+  const reportsBucket: S3Bucket = {
+    name: 'bleepx-health-reports',
+    region: 'us-east-1',
+    createdAt: new Date().toISOString(),
+    versioning: false,
+    defaultEncryption: 'none',
+    publicAccessBlock: false,
+    blockPublicAcls: false,
+    ignorePublicAcls: false,
+    blockPublicPolicy: false,
+    restrictPublicBuckets: false,
+    acl: 'public-read',
+    bucketPolicy: '',
+    objects: [{ key: 'report.html', size: 520, contentType: 'text/html', lastModified: new Date().toISOString(), body: '<h1>Patient Report</h1>', owner: `arn:aws:iam::${accountId}:user/dev-admin` }],
+  };
+
+  const patientsTable: DynamoDBTable = {
+    tableName: 'BleepxHealthPatients',
+    partitionKey: 'patient_id',
+    billingMode: 'PAY_PER_REQUEST',
+    items: [
+      { pk: 'P-1001', attributes: { patient_id: 'P-1001', name: 'Alex Rivera', age: 34, region: 'us-east-1', consent: true } },
+      { pk: 'P-1002', attributes: { patient_id: 'P-1002', name: 'Jordan Lee', age: 67, region: 'us-west-2', consent: true } },
+    ],
+    streamEnabled: false,
+    pointInTimeRecovery: true,
+    encrypted: true,
+  };
+
+  const healthRole: IAMRole = {
+    name: 'etl-service-role',
+    arn: `arn:aws:iam::${accountId}:role/etl-service-role`,
+    assumeRolePolicy: JSON.stringify({ Version: '2012-10-17', Statement: [{ Effect: 'Allow', Principal: { Service: 'lambda.amazonaws.com' }, Action: 'sts:AssumeRole' }] }, null, 2),
+    attachedPolicies: ['HealthETLAccess'],
+  };
+
+  const etlPolicy: IAMPolicy = {
+    name: 'HealthETLAccess',
+    version: '2012-10-17',
+    description: 'Allow health ETL to read vitals and write patients',
+    statements: [
+      { Effect: 'Allow', Action: ['s3:GetObject'], Resource: ['arn:aws:s3:::bleepx-health-records/raw/*'] },
+      { Effect: 'Allow', Action: ['dynamodb:PutItem', 'dynamodb:GetItem', 'dynamodb:Query'], Resource: [`arn:aws:dynamodb:us-east-1:${accountId}:table/BleepxHealthPatients`] },
+    ],
+    attachedTo: [healthRole.arn],
+  };
+
+  const vitalsLambda: LambdaFunction = {
+    functionName: 'check-vitals',
+    runtime: 'python3.12',
+    handler: 'index.handler',
+    roleArn: healthRole.arn,
+    code: `import json\n\ndef handler(event, context):\n    critical = [r for r in event.get("Records", [])\n                if int(r.get("heart_rate", 0)) > 120 or int(r.get("bp_systolic", 0)) > 180]\n    return {\n        "statusCode": 200,\n        "body": json.dumps({\n            "critical_count": len(critical),\n            "patients_to_alert": critical\n        })\n    }`,
+    memoryMb: 128,
+    timeout: 30,
+    environment: { LOG_LEVEL: 'INFO' },
+  };
+
+  const devAdmin: IAMUser = {
+    name: 'dev-admin',
+    arn: `arn:aws:iam::${accountId}:user/dev-admin`,
+    createdAt: new Date().toISOString(),
+    attachedPolicies: ['PowerUserAccess'],
+    accessKeys: [{ keyId: 'AKIAIOSFODNN7EXAMPLE', active: true }],
+    groups: [],
+    tags: { Department: 'Engineering' },
+  };
+
+  const powerUser: IAMPolicy = {
+    name: 'PowerUserAccess',
+    version: '2012-10-17',
+    description: 'Overly broad — replace with a scoped health-dev policy',
+    statements: [{ Effect: 'Allow', Action: ['*'], Resource: ['*'] }],
+    attachedTo: [devAdmin.arn],
+  };
+
+  const appSg: SecurityGroup = {
+    groupId: 'sg-app-01',
+    vpcId: 'vpc-default',
+    name: 'app-sg',
+    description: 'Application server security group',
+    inbound: [
+      { protocol: 'tcp', fromPort: 443, toPort: 443, source: '0.0.0.0/0', description: 'HTTPS from anywhere' },
+      { protocol: 'tcp', fromPort: 22, toPort: 22, source: '0.0.0.0/0', description: 'SSH from anywhere' },
+    ],
+    outbound: [{ protocol: '-1', fromPort: 0, toPort: 65535, source: '0.0.0.0/0', description: 'Allow all outbound' }],
+  };
+
+  return {
+    ...state,
+    s3: { buckets: { 'bleepx-health-records': recordsBucket, 'bleepx-health-reports': reportsBucket } },
+    dynamodb: { tables: { 'BleepxHealthPatients': patientsTable } },
+    iam: { ...state.iam, users: { 'dev-admin': devAdmin }, roles: { 'etl-service-role': healthRole }, policies: { 'HealthETLAccess': etlPolicy, 'PowerUserAccess': powerUser } },
+    vpc: { ...state.vpc, securityGroups: { 'sg-app-01': appSg } },
+    lambda: { functions: { 'check-vitals': vitalsLambda } },
+  };
+}

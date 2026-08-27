@@ -47,9 +47,10 @@ interface CloudSandboxProps {
   onComplete?: () => void;
   freePlay?: boolean;
   initialState?: CloudSandboxState;
+  onStateChange?: (state: CloudSandboxState) => void;
 }
 
-export default function CloudSandbox({ mission, onComplete, freePlay, initialState }: CloudSandboxProps) {
+export default function CloudSandbox({ mission, onComplete, freePlay, initialState, onStateChange }: CloudSandboxProps) {
   const [state, setState] = useState<CloudSandboxState>(initialState || createEmptySandboxState());
   const [activeTab, setActiveTab] = useState<'s3' | 'iam' | 'ec2' | 'vpc' | 'dynamodb' | 'lambda' | 'terraform' | 'security' | 'events'>('s3');
   const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
@@ -63,7 +64,8 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
 
   useEffect(() => {
     saveSandboxState(state);
-  }, [state]);
+    onStateChange?.(state);
+  }, [state, onStateChange]);
 
   const applyAction = useCallback((next: CloudSandboxState) => {
     setState(next);
