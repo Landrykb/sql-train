@@ -6,16 +6,18 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import LabProjectViewer from '@/components/LabProjectViewer';
 import { CaseInterpretationButton } from '@/components/CaseInterpretationButton';
+import CrossVerseNav from '@/components/CrossVerseNav';
 import { LAB_DOMAIN_META, LAB_DOMAIN_FOLDER_MAP, LAB_CASE_ORDER } from '@/lib/labConstants';
 import { getKaggleInfo, extractLabDatasetPath } from '@/lib/kaggleDatasets';
 import { getDataWorldInfo } from '@/lib/dataWorldDatasets';
 
+// Render one lab project per domain at build time; the rest generate on demand.
+export const dynamicParams = true;
+
 export function generateStaticParams() {
   const params: { domain: string; projectId: string }[] = [];
   for (const [domain, cases] of Object.entries(LAB_CASE_ORDER)) {
-    for (const caseId of cases) {
-      params.push({ domain, projectId: caseId });
-    }
+    if (cases.length) params.push({ domain, projectId: cases[0] });
   }
   return params;
 }
@@ -125,6 +127,8 @@ export default async function LabProjectPage({ params }: { params: Promise<{ dom
         prevStep={prevStep}
         nextStep={nextStep}
       />
+
+      <CrossVerseNav path={`/lab/${domain}/${projectId}`} currentVerse="lab" />
     </main>
   );
 }

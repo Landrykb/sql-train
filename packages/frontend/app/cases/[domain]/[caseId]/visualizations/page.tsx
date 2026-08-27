@@ -5,18 +5,11 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Visualizations from '@/components/Visualizations';
 import AchievementNotification from '@/components/AchievementNotification';
-import { fullCaseOrder, domainFolderMap } from '@/lib/constants';
+import { domainFolderMap } from '@/lib/constants';
 
-export async function generateStaticParams() {
-  const params: { domain: string; caseId: string }[] = [];
-  for (const [domain, cases] of Object.entries(fullCaseOrder)) {
-    if (domain === 'guide') continue;
-    for (const caseId of cases) {
-      params.push({ domain, caseId });
-    }
-  }
-  return params;
-}
+// This route is rendered on the server at request time. It reads case YAML
+// to show charts, so pre-rendering all 350 pages at build would be excessive.
+export const dynamic = 'force-dynamic';
 
 interface CaseYaml {
   id: string;

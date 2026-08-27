@@ -12,15 +12,9 @@ import TrialQuiz from '@/components/TrialQuiz';
 import { caseOrder, fullCaseOrder, domainFolderMap } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
 
-export async function generateStaticParams() {
-  const params: { domain: string; caseId: string }[] = [];
-  // Only generate quiz pages for trials
-  const trialCases = fullCaseOrder['trials'] || [];
-  for (const caseId of trialCases) {
-    params.push({ domain: 'trials', caseId });
-  }
-  return params;
-}
+// Render quiz pages on the server at request time to avoid pre-building
+// every trial quiz during static generation.
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({
   params,

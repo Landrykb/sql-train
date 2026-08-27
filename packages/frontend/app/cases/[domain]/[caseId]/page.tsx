@@ -10,16 +10,19 @@ import ClientSQLPlayground from '@/components/ClientSQLPlayground';
 import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
 import BleepxLogo from '@/components/BleepxLogo';
+import CrossVerseNav from '@/components/CrossVerseNav';
 import { caseOrder, fullCaseOrder, domainFolderMap, visualizationConfigs } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
+
+// Render only one case per domain at build time to keep SSG fast.
+// The rest are generated on demand when first visited (ISR-style).
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const params: { domain: string; caseId: string }[] = [];
   for (const [domain, cases] of Object.entries(fullCaseOrder)) {
-    if (domain === 'guide') continue;
-    for (const caseId of cases) {
-      params.push({ domain, caseId });
-    }
+    if (domain === 'guide' || !cases.length) continue;
+    params.push({ domain, caseId: cases[0] });
   }
   return params;
 }
@@ -174,6 +177,7 @@ export default async function CasePage({
       <Suspense fallback={<div>Loading challenge...</div>}>
         <ClientSQLPlayground caseData={caseData} guideData={guideData} />
       </Suspense>
+      <CrossVerseNav path={`/cases/${domainKey}/${caseId}`} currentVerse="query" />
       <AchievementNotification />
     </main>
   );

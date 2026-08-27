@@ -24,6 +24,7 @@ import { cloudTrials } from '@/lib/cloud/trials';
 import { iacTemplate } from '@/lib/cloud/templates';
 import { getConcept, hasConcept, CLOUD_CONCEPTS } from '@/lib/cloud/concepts';
 import CloudSandbox from '@/components/CloudSandbox';
+import CrossVerseNav from '@/components/CrossVerseNav';
 
 const META_SKILLS = new Set(['everything', 'exam-prep']);
 
@@ -545,6 +546,9 @@ export default function CloudMissionPage() {
           </label>
         </div>
       )}
+
+      {/* Cross-verse navigation */}
+      <CrossVerseNav path={`/cloud/${p}/${slug}`} currentVerse="cloud" />
 
       {/* Complete + Export */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm space-y-3">
