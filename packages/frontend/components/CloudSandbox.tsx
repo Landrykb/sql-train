@@ -35,11 +35,12 @@ import type { CloudScenarioStep, CloudMission } from '@/lib/cloud/types';
 import { BleepxFace } from '@/components/BleepxIcons';
 
 interface CloudSandboxProps {
-  mission: CloudMission;
+  mission?: CloudMission;
   onComplete?: () => void;
+  freePlay?: boolean;
 }
 
-export default function CloudSandbox({ mission, onComplete }: CloudSandboxProps) {
+export default function CloudSandbox({ mission, onComplete, freePlay }: CloudSandboxProps) {
   const [state, setState] = useState<CloudSandboxState>(createEmptySandboxState());
   const [activeTab, setActiveTab] = useState<'s3' | 'iam' | 'ec2' | 'vpc' | 'events'>('s3');
   const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
@@ -60,20 +61,23 @@ export default function CloudSandbox({ mission, onComplete }: CloudSandboxProps)
     if (last) setMessage({ text: last.message, type: last.status === 'success' ? 'success' : last.status === 'failure' ? 'error' : 'info' });
   }, []);
 
+  const steps = freePlay ? [] : mission?.steps || [];
+
   const checkSteps = useCallback(() => {
     const completed: Record<string, boolean> = {};
-    mission.steps?.forEach((step) => {
+    steps.forEach((step) => {
       completed[step.id] = evaluateStep(step, state);
     });
     setCompletedSteps(completed);
-  }, [state, mission.steps]);
+  }, [state, steps]);
 
   useEffect(() => {
+    if (freePlay) return;
     checkSteps();
-    if (mission.steps && mission.steps.every((s) => evaluateStep(s, state))) {
+    if (steps.length && steps.every((s) => evaluateStep(s, state))) {
       onComplete?.();
     }
-  }, [checkSteps, mission.steps, onComplete, state]);
+  }, [checkSteps, freePlay, steps, onComplete, state]);
 
   return (
     <div className="space-y-4">
@@ -109,10 +113,15 @@ export default function CloudSandbox({ mission, onComplete }: CloudSandboxProps)
 
       <div className="rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50/50 dark:bg-sky-900/10 p-4">
         <h4 className="text-sm font-bold text-sky-800 dark:text-sky-200 mb-2 flex items-center gap-2">
-          <BleepxFace /> Mission Steps
+          <BleepxFace /> {freePlay ? 'Free Play Console' : 'Mission Steps'}
         </h4>
+        {freePlay ? (
+          <p className="text-xs text-sky-700 dark:text-sky-300">
+            No mission steps — use the tabs above to experiment with S3, IAM, EC2, VPC, and events. Everything is simulated in the browser.
+          </p>
+        ) : (
         <div className="space-y-2">
-          {mission.steps?.map((step, idx) => (
+          {steps.map((step, idx) => (
             <div key={step.id} className={`p-2.5 rounded-lg border text-sm ${
               completedSteps[step.id]
                 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
@@ -137,6 +146,7 @@ export default function CloudSandbox({ mission, onComplete }: CloudSandboxProps)
             </div>
           ))}
         </div>
+      )}
       </div>
 
       <div className="flex justify-end">

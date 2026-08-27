@@ -145,6 +145,41 @@ export default function CloudHomePage() {
         </div>
       </Link>
 
+      {/* Sandbox & ETL tools */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <Link
+          href="/cloud/sandbox"
+          className="group block bg-gradient-to-br from-sky-900 via-blue-900 to-indigo-900 border border-sky-500/30 rounded-xl shadow-lg hover:shadow-sky-500/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+        >
+          <div className="p-5 flex items-center gap-4">
+            <div className="text-3xl">🧪</div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-extrabold text-white text-lg group-hover:text-sky-300 transition-colors">Cloud Sandbox</h3>
+              <p className="text-sm text-gray-400 mt-0.5">Hands-on S3, IAM, EC2, and VPC simulation. No AWS account required — inspired by local cloud emulators like Floci.</p>
+            </div>
+            <svg className="w-5 h-5 text-sky-400 group-hover:translate-x-1 transition-transform flex-shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
+
+        <Link
+          href="/cloud/pipelines"
+          className="group block bg-gradient-to-br from-teal-900 via-emerald-900 to-blue-900 border border-teal-500/30 rounded-xl shadow-lg hover:shadow-teal-500/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+        >
+          <div className="p-5 flex items-center gap-4">
+            <div className="text-3xl">🛠️</div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-extrabold text-white text-lg group-hover:text-teal-300 transition-colors">ETL Pipeline Canvas</h3>
+              <p className="text-sm text-gray-400 mt-0.5">Extract from Kaggle / data.world, run SQL and Python transforms, then load the final CSV into the S3 sandbox.</p>
+            </div>
+            <svg className="w-5 h-5 text-teal-400 group-hover:translate-x-1 transition-transform flex-shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
+      </div>
+
       {/* Provider tracks */}
       <div id="tracks">
         <h2 className="text-lg sm:text-xl font-bold text-bleepx-text mb-1">Choose Your Track</h2>
