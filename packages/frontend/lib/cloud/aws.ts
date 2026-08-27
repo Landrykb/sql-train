@@ -980,4 +980,193 @@ export const awsMissions: CloudMission[] = [
       },
     ],
   },
+
+  // ─── BleepxBank Security Audit ──────────────────────────────────────────────
+  {
+    slug: 'bleepx-bank-security-audit',
+    title: 'BleepxBank Security Audit',
+    section: 'Security',
+    level: 'Advanced',
+    stars: 3,
+    skills: ['s3', 'iam', 'vpc', 'compliance', 'least-privilege'],
+    description:
+      'You are the cloud security engineer for BleepxBank. A pre-configured environment is loaded with realistic transaction data, a DynamoDB customer table, an ETL Lambda, and an intentionally insecure public website bucket. Find and fix the critical misconfigurations before the auditor arrives.',
+    prerequisites: ['aws-sandbox-capstone'],
+    labType: 'scenario',
+    preset: 'bleepxbank',
+    realWorld:
+      'A fintech startup rushes to launch. They leave an S3 website public, an EC2 security group open to 0.0.0.0/0 on SSH, and a PowerUserAccess policy on a human user. You audit and remediate.',
+    objectives: [
+      'Enable S3 Block Public Access on the website bucket',
+      'Restrict the SSH security group rule',
+      'Remove the overly permissive PowerUserAccess policy',
+      'Export the cleaned architecture as Terraform',
+    ],
+    architecture: [
+      { icon: '🏦', label: 'BleepxBank', note: 'data + customers' },
+      { icon: '📦', label: 'S3', note: 'data lake + website' },
+      { icon: '🗝️', label: 'IAM', note: 'roles + policies' },
+      { icon: '🛡️', label: 'Security', note: 'remediate findings' },
+    ],
+    steps: [
+      {
+        id: 'audit-website-public',
+        title: 'Block public access on website bucket',
+        instruction: 'In the S3 tab, enable S3 Block Public Access on the "bleepx-bank-website" bucket.',
+        service: 's3',
+        action: 'set-public-access',
+        config: { bucketName: 'bleepx-bank-website', block: true },
+        explanation: 'Block Public Access overrules any bucket policy or ACL that tries to grant public access.',
+        examConcept: 'S3 Block Public Access takes precedence over bucket policies and ACLs.',
+      },
+      {
+        id: 'audit-ssh',
+        title: 'Restrict SSH ingress',
+        instruction: 'Replace the SSH (port 22) rule on the web-sg security group so it only allows 203.0.113.0/24.',
+        service: 'vpc',
+        action: 'add-sg-rule',
+        config: { groupId: 'sg-web-01', rule: { protocol: 'tcp', fromPort: 22, toPort: 22, source: '203.0.113.0/24' } },
+        explanation: 'SSH should never be open to 0.0.0.0/0. Restrict it to a trusted office IP or use SSM Session Manager.',
+        examConcept: 'Systems Manager Session Manager removes the need for inbound SSH entirely.',
+      },
+      {
+        id: 'audit-poweruser',
+        title: 'Detach PowerUserAccess',
+        instruction: 'Create a new scoped policy named "WebAdminReadOnly" and attach it to web-admin, replacing the PowerUserAccess wildcard.',
+        service: 'iam',
+        action: 'create-policy',
+        config: { policyName: 'WebAdminReadOnly' },
+        explanation: 'PowerUserAccess allows all actions except IAM; it is far too broad for a web admin.',
+        examConcept: 'Least privilege means granting only the actions the role actually needs.',
+      },
+      {
+        id: 'audit-terraform',
+        title: 'Export as Terraform',
+        instruction: 'Open the Terraform tab and click "Generate & Save Terraform" to export the remediated infrastructure as IaC.',
+        service: 'terraform',
+        action: 'export-terraform',
+        config: {},
+        explanation: 'Terraform lets you version, review, and repeatedly deploy the same infrastructure.',
+        examConcept: 'Infrastructure as Code (IaC) improves auditability and reduces drift.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'What is the strongest S3 control to prevent accidental public data exposure?',
+        options: ['Bucket policy with Deny', 'S3 Block Public Access', 'Object ACLs set to private', 'CloudTrail logging'],
+        answer: 1,
+        explanation: 'Block Public Access is an account and bucket-level guard that overrides any permissive policy or ACL.',
+      },
+      {
+        question: 'Which AWS service can replace inbound SSH for EC2 administration?',
+        options: ['AWS Systems Manager Session Manager', 'AWS Direct Connect', 'Amazon Cognito', 'AWS Certificate Manager'],
+        answer: 0,
+        explanation: 'Session Manager provides shell access without opening port 22, improving security and auditability.',
+      },
+    ],
+  },
+
+  // ─── DynamoDB Foundations ───────────────────────────────────────────────────
+  {
+    slug: 'dynamodb-create-and-query',
+    title: 'DynamoDB: Create and Query a Table',
+    section: 'Database',
+    level: 'Intermediate',
+    stars: 2,
+    skills: ['dynamodb', 'nosql', 'partition-key'],
+    description:
+      'DynamoDB is AWS\'s fully managed NoSQL key-value and document database. Create a Customers table, insert a few items, and query by partition key to see how it differs from SQL.',
+    prerequisites: [],
+    labType: 'scenario',
+    realWorld:
+      'A new mobile app needs a low-latency user profile store. DynamoDB\'s single-digit millisecond reads and pay-per-request billing fit the workload.',
+    objectives: [
+      'Create a DynamoDB table with a partition key',
+      'Put an item',
+      'Query the item by partition key',
+      'Understand partition key vs sort key',
+    ],
+    steps: [
+      {
+        id: 'ddb-create',
+        title: 'Create the Customers table',
+        instruction: 'Create a DynamoDB table named "Customers" with partition key "customer_id".',
+        service: 'dynamodb',
+        action: 'create-dynamodb-table',
+        config: { tableName: 'Customers', partitionKey: 'customer_id' },
+        explanation: 'A partition key uniquely identifies each item and determines how data is distributed across storage.',
+        examConcept: 'DynamoDB requires a partition key; a sort key is optional and enables composite access patterns.',
+      },
+      {
+        id: 'ddb-put',
+        title: 'Insert an item',
+        instruction: 'Put a JSON item: {"customer_id":"c-900","region":"us-east-1","tier":"premium"} into the Customers table.',
+        service: 'dynamodb',
+        action: 'put-dynamodb-item',
+        config: { tableName: 'Customers', pk: 'c-900' },
+        explanation: 'DynamoDB stores schemaless items with the attributes you provide.',
+        examConcept: 'DynamoDB is schemaless except for the key attributes.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'What is the minimum key required for every DynamoDB table?',
+        options: ['Partition key', 'Sort key', 'Global secondary index', 'Local secondary index'],
+        answer: 0,
+        explanation: 'Every DynamoDB table must have a partition key. A sort key is optional.',
+      },
+    ],
+  },
+
+  // ─── Lambda Fraud Detection ─────────────────────────────────────────────────
+  {
+    slug: 'lambda-fraud-detection',
+    title: 'Lambda: Real-Time Fraud Detection',
+    section: 'Serverless',
+    level: 'Intermediate',
+    stars: 2,
+    skills: ['lambda', 'event-driven', 'python'],
+    description:
+      'Build a serverless function that flags high-value transfers as they arrive. This is the same fraud logic BleepxBank uses on its transaction stream.',
+    prerequisites: [],
+    labType: 'scenario',
+    realWorld:
+      'A payment processor streams transactions to Lambda. Functions under 1000 ms detect anomalies without running a 24/7 server.',
+    objectives: [
+      'Create a Lambda function with a handler',
+      'Configure an environment variable threshold',
+      'Invoke the function with sample transaction records',
+      'See the flagging result',
+    ],
+    steps: [
+      {
+        id: 'lambda-create',
+        title: 'Create the fraud detector',
+        instruction: 'Create a Lambda function named "fraud-detector", runtime python3.12, handler index.handler, role arn:aws:iam::123456789012:role/etl-service-role, with any Python code.',
+        service: 'lambda',
+        action: 'create-lambda',
+        config: { functionName: 'fraud-detector' },
+        explanation: 'Lambda functions are triggered by events and run only when called, so you pay only for invocation time.',
+        examConcept: 'Lambda is event-driven, pay-per-use serverless compute.',
+      },
+      {
+        id: 'lambda-invoke',
+        title: 'Invoke the function',
+        instruction: 'Invoke "fraud-detector" with a payload like {"Records":[{"transaction_id":"txn-2001","amount_usd":25000}]}.',
+        service: 'lambda',
+        action: 'invoke-lambda',
+        config: { functionName: 'fraud-detector' },
+        explanation: 'If the amount_usd exceeds the THRESHOLD_USD environment variable, the function flags the record.',
+        examConcept: 'Lambda can transform and respond to streaming data in real time.',
+      },
+    ],
+    examQuestions: [
+      {
+        question: 'Which AWS service is best for running short, event-driven code without provisioning servers?',
+        options: ['EC2', 'Lambda', 'ECS', 'RDS'],
+        answer: 1,
+        explanation: 'Lambda is AWS\'s serverless compute service; you pay only for the time the function runs.',
+      },
+    ],
+  },
 ];

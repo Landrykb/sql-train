@@ -18,7 +18,7 @@ export interface CloudScenarioStep {
   id: string;
   title: string;
   instruction: string;
-  service: 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'console';
+  service: 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'terraform' | 'security' | 'console';
   action:
     | 'create-bucket'
     | 'delete-bucket'
@@ -39,6 +39,11 @@ export interface CloudScenarioStep {
     | 'create-igw'
     | 'create-route-table'
     | 'associate-route-table'
+    | 'create-dynamodb-table'
+    | 'put-dynamodb-item'
+    | 'create-lambda'
+    | 'invoke-lambda'
+    | 'export-terraform'
     | 'observe'
     | 'manual';
   /** Additional fields needed to configure the step or validate it. */
@@ -92,6 +97,8 @@ export interface CloudMission {
   steps?: CloudScenarioStep[];
   /** Initial sandbox state for the scenario (preset resources). */
   initialState?: any;
+  /** Preset scenario key to load on mount if no saved state exists. */
+  preset?: 'bleepxbank' | 'empty';
   /** Certification-style exam questions for this mission. */
   examQuestions?: { question: string; options: string[]; answer: number; explanation: string }[];
 }

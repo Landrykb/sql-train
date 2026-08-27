@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import CloudSandbox from '@/components/CloudSandbox';
+import { createBleepxBankScenario } from '@/lib/cloud/sandbox';
 
 export default function CloudSandboxPage() {
   return (
@@ -24,7 +25,7 @@ export default function CloudSandboxPage() {
         </p>
       </div>
 
-      <CloudSandbox freePlay />
+      <CloudSandbox freePlay initialState={createBleepxBankScenario()} />
 
       <div className="flex items-center justify-between text-sm text-bleepx-text-secondary">
         <Link href="/cloud/pipelines" className="text-sky-600 hover:underline font-medium">

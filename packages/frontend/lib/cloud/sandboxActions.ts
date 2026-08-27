@@ -670,3 +670,414 @@ function matchesResource(requested: string, pattern: string | string[]): boolean
     return false;
   });
 }
+
+// ─── DynamoDB actions ────────────────────────────────────────────────────────
+
+export function createDynamoDBTable(
+  state: CloudSandboxState,
+  tableName: string,
+  partitionKey: string,
+  sortKey?: string
+): CloudSandboxState {
+  if (state.dynamodb.tables[tableName]) {
+    return event(state, 'dynamodb', 'CreateTable', tableName, 'failure', `Table already exists: ${tableName}`);
+  }
+  const table = {
+    tableName,
+    partitionKey,
+    sortKey,
+    billingMode: 'PAY_PER_REQUEST' as const,
+    items: [],
+    streamEnabled: false,
+    pointInTimeRecovery: false,
+    encrypted: true,
+  };
+  return event(
+    { ...state, dynamodb: { ...state.dynamodb, tables: { ...state.dynamodb.tables, [tableName]: table } } },
+    'dynamodb',
+    'CreateTable',
+    tableName,
+    'success',
+    `Created DynamoDB table ${tableName} with PK ${partitionKey}`
+  );
+}
+
+export function putDynamoDBItem(
+  state: CloudSandboxState,
+  tableName: string,
+  item: Record<string, any>
+): CloudSandboxState {
+  const table = state.dynamodb.tables[tableName];
+  if (!table) return event(state, 'dynamodb', 'PutItem', tableName, 'failure', `Table not found: ${tableName}`);
+  const pk = item[table.partitionKey];
+  if (!pk) return event(state, 'dynamodb', 'PutItem', tableName, 'failure', `Missing partition key ${table.partitionKey}`);
+  const record = { pk: String(pk), attributes: item };
+  const existingIdx = table.items.findIndex((i) => i.pk === String(pk));
+  const items = existingIdx >= 0
+    ? table.items.map((i, idx) => (idx === existingIdx ? record : i))
+    : [...table.items, record];
+  return event(
+    { ...state, dynamodb: { ...state.dynamodb, tables: { ...state.dynamodb.tables, [tableName]: { ...table, items } } } },
+    'dynamodb',
+    'PutItem',
+    `${tableName}/${pk}`,
+    'success',
+    `Put item ${pk} into ${tableName}`
+  );
+}
+
+export function queryDynamoDB(
+  state: CloudSandboxState,
+  tableName: string,
+  pkValue: string
+): { items: Record<string, any>[]; message: string } {
+  const table = state.dynamodb.tables[tableName];
+  if (!table) return { items: [], message: `Table not found: ${tableName}` };
+  const items = table.items.filter((i) => i.pk === pkValue).map((i) => i.attributes);
+  return { items, message: `Query on ${tableName} returned ${items.length} item(s) for PK ${pkValue}` };
+}
+
+// ─── Lambda actions ──────────────────────────────────────────────────────────
+
+export function createLambdaFunction(
+  state: CloudSandboxState,
+  functionName: string,
+  runtime: string,
+  handler: string,
+  roleArn: string,
+  code: string,
+  memoryMb: number = 128,
+  timeout: number = 30
+): CloudSandboxState {
+  if (state.lambda.functions[functionName]) {
+    return event(state, 'lambda', 'CreateFunction', functionName, 'failure', `Function already exists: ${functionName}`);
+  }
+  const fn = {
+    functionName,
+    runtime,
+    handler,
+    roleArn,
+    code,
+    memoryMb,
+    timeout,
+    environment: {},
+  };
+  return event(
+    { ...state, lambda: { ...state.lambda, functions: { ...state.lambda.functions, [functionName]: fn } } },
+    'lambda',
+    'CreateFunction',
+    functionName,
+    'success',
+    `Created Lambda function ${functionName} (${runtime}, ${memoryMb} MB)`
+  );
+}
+
+export function invokeLambda(
+  state: CloudSandboxState,
+  functionName: string,
+  payload: Record<string, any>
+): { result: string; next: CloudSandboxState } {
+  const fn = state.lambda.functions[functionName];
+  if (!fn) {
+    const next = event(state, 'lambda', 'Invoke', functionName, 'failure', `Function not found: ${functionName}`);
+    return { result: JSON.stringify({ error: `Function not found: ${functionName}` }), next };
+  }
+
+  // Simple Python-ish simulation: scan for amount_usd and threshold
+  const threshold = parseFloat(fn.environment.THRESHOLD_USD || '10000');
+  const records = payload.Records || [];
+  const flagged: any[] = [];
+  for (const r of records) {
+    const amount = parseFloat(r.amount_usd || 0);
+    if (amount > threshold) {
+      flagged.push({ transaction_id: r.transaction_id, amount, reason: `Amount exceeds $${threshold}` });
+    }
+  }
+
+  const result = JSON.stringify({
+    statusCode: 200,
+    body: JSON.stringify({ flagged_count: flagged.length, flagged }),
+  }, null, 2);
+
+  const next = event(
+    state,
+    'lambda',
+    'Invoke',
+    functionName,
+    'success',
+    `Invoked ${functionName} — ${flagged.length} record(s) flagged`
+  );
+
+  return { result, next };
+}
+
+// ─── Security & Compliance scanner ───────────────────────────────────────────
+
+export interface SecurityFinding {
+  severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
+  service: CloudService;
+  resource: string;
+  issue: string;
+  remediation: string;
+  examConcept: string;
+}
+
+export function scanSecurityPosture(state: CloudSandboxState): SecurityFinding[] {
+  const findings: SecurityFinding[] = [];
+
+  // S3 checks
+  for (const bucket of Object.values(state.s3.buckets)) {
+    if (!bucket.publicAccessBlock) {
+      findings.push({
+        severity: 'critical',
+        service: 's3',
+        resource: bucket.name,
+        issue: 'S3 Block Public Access is disabled.',
+        remediation: 'Enable Block Public Access or add an explicit bucket policy.',
+        examConcept: 'Block Public Access is the strongest guard against public S3 data leaks.',
+      });
+    }
+    if (bucket.defaultEncryption === 'none') {
+      findings.push({
+        severity: 'high',
+        service: 's3',
+        resource: bucket.name,
+        issue: 'Default bucket encryption is not enabled.',
+        remediation: 'Enable SSE-S3 or SSE-KMS default encryption.',
+        examConcept: 'SSE-S3 uses AWS-managed keys; SSE-KMS gives more control and audit trails.',
+      });
+    }
+    if (bucket.acl !== 'private' || !bucket.publicAccessBlock) {
+      findings.push({
+        severity: 'critical',
+        service: 's3',
+        resource: bucket.name,
+        issue: 'Bucket may allow public access via ACL or policy.',
+        remediation: 'Set bucket ACL to private and remove public bucket policies.',
+        examConcept: 'S3 ACLs are legacy; use bucket policies and Block Public Access.',
+      });
+    }
+  }
+
+  // IAM checks
+  for (const user of Object.values(state.iam.users)) {
+    const powerUserPolicy = user.attachedPolicies.some((p) => p === 'PowerUserAccess');
+    if (powerUserPolicy) {
+      findings.push({
+        severity: 'high',
+        service: 'iam',
+        resource: user.name,
+        issue: 'User has PowerUserAccess or an overly permissive policy.',
+        remediation: 'Replace with least-privilege policies scoped to specific actions and resources.',
+        examConcept: 'Least privilege is the most important IAM best practice.',
+      });
+    }
+    if (user.accessKeys.length) {
+      findings.push({
+        severity: 'medium',
+        service: 'iam',
+        resource: user.name,
+        issue: 'User has active access keys.',
+        remediation: 'Rotate regularly; prefer IAM roles for applications.',
+        examConcept: 'Access keys are long-term credentials and should be rotated or avoided.',
+      });
+    }
+  }
+
+  // Security group checks
+  for (const sg of Object.values(state.vpc.securityGroups)) {
+    for (const rule of sg.inbound) {
+      if (rule.source === '0.0.0.0/0') {
+        if (rule.fromPort === 22) {
+          findings.push({
+            severity: 'critical',
+            service: 'vpc',
+            resource: `${sg.name} (${sg.groupId})`,
+            issue: 'SSH (port 22) is open to the entire internet.',
+            remediation: 'Restrict SSH to a specific CIDR or use a bastion host.',
+            examConcept: 'Security groups are stateful; restrict ingress to least privilege.',
+          });
+        }
+        if (rule.fromPort === 80 || rule.fromPort === 443) {
+          findings.push({
+            severity: 'info',
+            service: 'vpc',
+            resource: `${sg.name} (${sg.groupId})`,
+            issue: `${rule.fromPort === 80 ? 'HTTP' : 'HTTPS'} is open to the internet.`,
+            remediation: rule.fromPort === 80 ? 'Redirect to HTTPS and close port 80.' : 'Ensure this is intentional.',
+            examConcept: 'Public web traffic on 443 is normal; 80 should usually redirect to 443.',
+          });
+        }
+      }
+    }
+  }
+
+  // DynamoDB checks
+  for (const table of Object.values(state.dynamodb.tables)) {
+    if (!table.encrypted) {
+      findings.push({
+        severity: 'high',
+        service: 'dynamodb',
+        resource: table.tableName,
+        issue: 'DynamoDB table is not encrypted.',
+        remediation: 'Enable DynamoDB encryption at rest (default is AWS owned).',
+        examConcept: 'DynamoDB encryption at rest protects table data and backups.',
+      });
+    }
+    if (!table.pointInTimeRecovery) {
+      findings.push({
+        severity: 'medium',
+        service: 'dynamodb',
+        resource: table.tableName,
+        issue: 'Point-in-time recovery (PITR) is not enabled.',
+        remediation: 'Enable PITR for 35 days of continuous backup.',
+        examConcept: 'PITR allows table restoration to any point in the last 35 days.',
+      });
+    }
+  }
+
+  return findings.sort((a, b) => {
+    const order = ['critical', 'high', 'medium', 'low', 'info'];
+    return order.indexOf(a.severity) - order.indexOf(b.severity);
+  });
+}
+
+// ─── Infrastructure as Code — Terraform export ─────────────────────────────────
+
+export function generateTerraformFromState(state: CloudSandboxState): string {
+  const lines: string[] = [
+    '# Auto-generated from BleepxCloud Sandbox state',
+    '# Run `terraform init` and `terraform plan` to validate',
+    '',
+    'provider "aws" {',
+    `  region = "${state.activeRegion}"`,
+    '  # profile = "default"  # set via AWS_PROFILE or env vars',
+    '}',
+    '',
+  ];
+
+  // S3
+  for (const bucket of Object.values(state.s3.buckets)) {
+    const bId = bucket.name.replace(/[^a-z0-9_]/g, '_');
+    lines.push(`resource "aws_s3_bucket" "${bId}" {`);
+    lines.push(`  bucket = "${bucket.name}"`);
+    lines.push('}');
+    lines.push('');
+    lines.push(`resource "aws_s3_bucket_public_access_block" "${bId}" {`);
+    lines.push(`  bucket = aws_s3_bucket.${bId}.id`);
+    lines.push(`  block_public_acls       = ${bucket.blockPublicAcls}`);
+    lines.push(`  ignore_public_acls      = ${bucket.ignorePublicAcls}`);
+    lines.push(`  block_public_policy     = ${bucket.blockPublicPolicy}`);
+    lines.push(`  restrict_public_buckets = ${bucket.restrictPublicBuckets}`);
+    lines.push('}');
+    lines.push('');
+    if (bucket.defaultEncryption !== 'none') {
+      lines.push(`resource "aws_s3_bucket_server_side_encryption_configuration" "${bId}" {`);
+      lines.push(`  bucket = aws_s3_bucket.${bId}.id`);
+      lines.push('  rule {');
+      lines.push('    apply_server_side_encryption_by_default {');
+      lines.push(`      sse_algorithm = "${bucket.defaultEncryption}"`);
+      lines.push('    }');
+      lines.push('  }');
+      lines.push('}');
+      lines.push('');
+    }
+  }
+
+  // DynamoDB
+  for (const table of Object.values(state.dynamodb.tables)) {
+    const tId = table.tableName.replace(/[^a-z0-9_]/g, '_');
+    lines.push(`resource "aws_dynamodb_table" "${tId}" {`);
+    lines.push(`  name           = "${table.tableName}"`);
+    lines.push(`  billing_mode   = "${table.billingMode}"`);
+    lines.push(`  hash_key       = "${table.partitionKey}"`);
+    if (table.sortKey) lines.push(`  range_key      = "${table.sortKey}"`);
+    lines.push(`  point_in_time_recovery { enabled = ${table.pointInTimeRecovery} }`);
+    lines.push(`  server_side_encryption { enabled = ${table.encrypted} }`);
+    lines.push('');
+    lines.push(`  attribute {`);
+    lines.push(`    name = "${table.partitionKey}"`);
+    lines.push(`    type = "S"`);
+    lines.push('  }');
+    if (table.sortKey) {
+      lines.push(`  attribute {`);
+      lines.push(`    name = "${table.sortKey}"`);
+      lines.push(`    type = "S"`);
+      lines.push('  }');
+    }
+    lines.push('}');
+    lines.push('');
+  }
+
+  // IAM
+  for (const policy of Object.values(state.iam.policies)) {
+    const pId = policy.name.replace(/[^a-z0-9_]/g, '_');
+    lines.push(`resource "aws_iam_policy" "${pId}" {`);
+    lines.push(`  name        = "${policy.name}"`);
+    lines.push(`  description = "${policy.description || ''}"`);
+    lines.push(`  policy = jsonencode({`);
+    lines.push(`    Version   = "${policy.version}"`);
+    lines.push(`    Statement = [`);
+    for (const stmt of policy.statements) {
+      lines.push('      {');
+      lines.push(`        Effect   = "${stmt.Effect}"`);
+      lines.push(`        Action   = ${JSON.stringify(stmt.Action)}`);
+      lines.push(`        Resource = ${JSON.stringify(stmt.Resource)}`);
+      lines.push('      },');
+    }
+    lines.push('    ]');
+    lines.push('  })');
+    lines.push('}');
+    lines.push('');
+  }
+
+  // Lambda
+  for (const fn of Object.values(state.lambda.functions)) {
+    const fId = fn.functionName.replace(/[^a-z0-9_]/g, '_');
+    lines.push(`resource "aws_lambda_function" "${fId}" {`);
+    lines.push(`  function_name = "${fn.functionName}"`);
+    lines.push(`  role          = "${fn.roleArn}"`);
+    lines.push(`  handler       = "${fn.handler}"`);
+    lines.push(`  runtime       = "${fn.runtime}"`);
+    lines.push(`  memory_size   = ${fn.memoryMb}`);
+    lines.push(`  timeout       = ${fn.timeout}`);
+    lines.push(`  filename      = "${fn.functionName}.zip"`);
+    lines.push('}');
+    lines.push('');
+  }
+
+  // VPC / Security groups
+  for (const vpc of Object.values(state.vpc.vpcs)) {
+    const vId = vpc.vpcId.replace(/-/, '_');
+    lines.push(`resource "aws_vpc" "${vId}" {`);
+    lines.push(`  cidr_block           = "${vpc.cidr}"`);
+    lines.push(`  enable_dns_hostnames = ${vpc.enableDnsHostnames}`);
+    lines.push(`  enable_dns_support   = ${vpc.enableDnsSupport}`);
+    lines.push('}');
+    lines.push('');
+  }
+
+  for (const sg of Object.values(state.vpc.securityGroups)) {
+    const sgId = sg.groupId.replace(/-/, '_');
+    lines.push(`resource "aws_security_group" "${sgId}" {`);
+    lines.push(`  name        = "${sg.name}"`);
+    lines.push(`  description = "${sg.description}"`);
+    if (state.vpc.vpcs[sg.vpcId]) {
+      const vId = sg.vpcId.replace(/-/, '_');
+      lines.push(`  vpc_id      = aws_vpc.${vId}.id`);
+    }
+    for (const rule of sg.inbound) {
+      lines.push('  ingress {');
+      lines.push(`    from_port   = ${rule.fromPort}`);
+      lines.push(`    to_port     = ${rule.toPort}`);
+      lines.push(`    protocol    = "${rule.protocol}"`);
+      lines.push(`    cidr_blocks = ["${rule.source}"]`);
+      lines.push(`    description = "${rule.description || ''}"`);
+      lines.push('  }');
+    }
+    lines.push('}');
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}

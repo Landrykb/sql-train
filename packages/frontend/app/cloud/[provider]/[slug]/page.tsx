@@ -24,6 +24,7 @@ import { cloudTrials } from '@/lib/cloud/trials';
 import { iacTemplate } from '@/lib/cloud/templates';
 import { getConcept, hasConcept, CLOUD_CONCEPTS } from '@/lib/cloud/concepts';
 import CloudSandbox from '@/components/CloudSandbox';
+import { createBleepxBankScenario } from '@/lib/cloud/sandbox';
 import CrossVerseNav from '@/components/CrossVerseNav';
 
 const META_SKILLS = new Set(['everything', 'exam-prep']);
@@ -533,7 +534,11 @@ export default function CloudMissionPage() {
           <p className="text-xs text-bleepx-text-secondary mb-4">
             Use the simulated AWS console below to complete each mission step. No real AWS account is required.
           </p>
-          <CloudSandbox mission={mission} onComplete={() => setSandboxDone(true)} />
+          <CloudSandbox
+            mission={mission}
+            onComplete={() => setSandboxDone(true)}
+            initialState={mission.preset === 'bleepxbank' ? createBleepxBankScenario() : undefined}
+          />
         </div>
       )}
 
