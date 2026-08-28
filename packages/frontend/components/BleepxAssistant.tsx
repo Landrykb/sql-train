@@ -132,7 +132,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const downAt = useRef(0);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [isDark, setIsDark] = useState(false);
-  const [manualMode, setManualMode] = useState<'auto' | 'light' | 'dark' | 'stealth' | 'mix' | 'neon' | 'ghost' | 'solar'>('auto');
+  const [manualMode, setManualMode] = useState<'auto' | 'light' | 'dark' | 'stealth' | 'mix' | 'neon' | 'ghost' | 'solar' | 'green' | 'red'>('auto');
   const [teaser, setTeaser] = useState<{ text: string; command: string } | null>(null);
 
   const activeMode = useMemo(() => {
@@ -140,6 +140,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     if (mood === 'stealth') return 'stealth';
     return isDark ? 'dark' : 'light';
   }, [manualMode, mood, isDark]);
+  const activeModeRef = useRef(activeMode);
+  useEffect(() => { activeModeRef.current = activeMode; }, [activeMode]);
 
   const hint = useMemo(() => {
     const exact = DEFAULT_HINTS[pathname];
@@ -166,15 +168,26 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   }, []);
 
   useEffect(() => {
-    if (open || activeMode === 'stealth') return;
+    if (open || activeModeRef.current === 'stealth') return;
+    const initial = setTimeout(() => {
+      const t = TEASERS[0];
+      setTeaser(t);
+      playBleep();
+      setTimeout(() => setTeaser((prev) => (prev === t ? null : prev)), 6000);
+    }, 1500);
+    return () => clearTimeout(initial);
+  }, [open]);
+
+  useEffect(() => {
+    if (open || activeModeRef.current === 'stealth') return;
     const id = setInterval(() => {
       const t = randomTeaser();
       setTeaser(t);
       playBleep();
-      setTimeout(() => setTeaser((prev) => (prev === t ? null : prev)), 7000);
-    }, 12000);
+      setTimeout(() => setTeaser((prev) => (prev === t ? null : prev)), 6000);
+    }, 8000);
     return () => clearInterval(id);
-  }, [open, activeMode]);
+  }, [open]);
 
   useEffect(() => {
     if (open || dockedHint || dragging || manualMode !== 'auto') return;
@@ -220,6 +233,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     'neon mode': { mode: 'neon', text: 'Neon mode activated. I am glowing brighter than your future SQL queries.', dark: true, mood: 'wave' },
     'ghost mode': { mode: 'ghost', text: 'Ghost mode. Faint, friendly, and a little see-through.', dark: false, mood: 'wave' },
     'solar mode': { mode: 'solar', text: 'Solar mode. Powered by sunlight and good vibes.', dark: false, mood: 'success' },
+    'green mode': { mode: 'green', text: 'Green mode on. Eco-friendly code tips activated.', dark: false, mood: 'success' },
+    'red mode': { mode: 'red', text: 'RED MODE ENGAGED. I am taking no prisoners with these hints.', dark: true, mood: 'error' },
   };
 
   const applyMode = (lower: string) => {
@@ -322,8 +337,10 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     const isGhost = activeMode === 'ghost';
     const isSolar = activeMode === 'solar';
     const isMix = activeMode === 'mix';
+    const isGreen = activeMode === 'green';
+    const isRed = activeMode === 'red';
     const src = isLight ? '/bleepx-icon.png' : '/bleepx-logo.png';
-    const motionClass = isStealth ? 'bleepx-stealth' : isNeon ? 'bleepx-fly' : moodClass;
+    const motionClass = isStealth ? 'bleepx-stealth' : isNeon || isRed || isGreen ? 'bleepx-fly' : moodClass;
     const modeFilter = isStealth
       ? 'grayscale(0.5) brightness(0.7) drop-shadow(0 0 6px rgba(34,211,238,0.25))'
       : isNeon
@@ -334,6 +351,10 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       ? 'sepia(0.5) saturate(1.6) brightness(1.2) drop-shadow(0 0 10px rgba(250,204,21,0.6))'
       : isMix
       ? 'contrast(1.1) drop-shadow(0 0 10px rgba(34,211,238,0.5))'
+      : isGreen
+      ? 'drop-shadow(0 0 14px rgba(74,222,128,0.8)) hue-rotate(80deg) saturate(1.3)'
+      : isRed
+      ? 'drop-shadow(0 0 14px rgba(248,113,113,0.8)) hue-rotate(150deg) saturate(1.4)'
       : spriteFilter;
     const sharedStyle: React.CSSProperties = {
       width: ballSize,
@@ -388,6 +409,10 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       ? 'sepia(0.5) saturate(1.6) brightness(1.2) drop-shadow(0 0 10px rgba(250,204,21,0.6))'
       : activeMode === 'mix'
       ? 'contrast(1.1) drop-shadow(0 0 10px rgba(34,211,238,0.5))'
+      : activeMode === 'green'
+      ? 'drop-shadow(0 0 14px rgba(74,222,128,0.8)) hue-rotate(80deg) saturate(1.3)'
+      : activeMode === 'red'
+      ? 'drop-shadow(0 0 14px rgba(248,113,113,0.8)) hue-rotate(150deg) saturate(1.4)'
       : spriteFilter;
     return (
       <div
@@ -495,6 +520,16 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   };
 
   const nagFor = (hint: BleepxHint) => {
+    const red = ['FIX IT NOW.', 'That is NOT acceptable.', 'I am watching you type this mistake.'];
+    const green = ['Clean and green.', 'This could be more efficient.', 'Nice, but let us keep it eco-friendly.'];
+    const solar = ['Radiant fix incoming!', 'Powered by sunshine.', 'Bright idea right here.'];
+    const neon = ['Flashy fix!', 'Glow up your code.', 'This one is electric.'];
+    const ghost = ['*whispers* watch out for this.', 'A faint suggestion...', 'I see through the code.'];
+    if (activeMode === 'red') return red[Math.floor(Math.random() * red.length)];
+    if (activeMode === 'green') return green[Math.floor(Math.random() * green.length)];
+    if (activeMode === 'solar') return solar[Math.floor(Math.random() * solar.length)];
+    if (activeMode === 'neon') return neon[Math.floor(Math.random() * neon.length)];
+    if (activeMode === 'ghost') return ghost[Math.floor(Math.random() * ghost.length)];
     if (hint.severity === 'error') {
       return ['Fix this now before it snowballs!', 'I cannot unsee that one.', 'Hello? You are still typing the wrong thing.'].sort(() => Math.random() - 0.5)[0];
     }
@@ -524,9 +559,17 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       lastHintText.current = text;
     }
     setDockedHint(hint);
-    setMood(hint.severity === 'error' ? 'error' : hint.severity === 'warning' ? 'think' : 'signal');
+    let nextMood: Mood = hint.severity === 'error' ? 'error' : hint.severity === 'warning' ? 'think' : 'signal';
+    if (activeMode === 'red') nextMood = 'error';
+    else if (activeMode === 'green') nextMood = 'success';
+    else if (activeMode === 'neon') nextMood = 'signal';
+    else if (activeMode === 'solar') nextMood = 'success';
+    else if (activeMode === 'ghost') nextMood = 'wave';
+    else if (activeMode === 'mix') nextMood = 'chat';
+    else if (activeMode === 'stealth') nextMood = 'stealth';
+    setMood(nextMood);
     setOpen(true);
-  }, [pathname]);
+  }, [pathname, activeMode]);
 
   const lintFocused = useCallback((target: EventTarget | null) => {
     if (isDragging.current) return;
