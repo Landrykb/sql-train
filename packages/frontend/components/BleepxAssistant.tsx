@@ -109,7 +109,6 @@ const NAG_MESSAGES = [
   'I have SO many SQL tips and no one to share them with.',
   'Tap me. You know you want to.',
   'I am not going anywhere.',
-  'Want to change my look? Open the chat and type a mode.',
 ];
 const randomNag = () => NAG_MESSAGES[Math.floor(Math.random() * NAG_MESSAGES.length)];
 
@@ -145,7 +144,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const [nickName, setNickName] = useState<string | null>(() => { try { return localStorage.getItem('bleepx_nickname'); } catch { return null; } });
   const [awaitingNickname, setAwaitingNickname] = useState(false);
   const [showModeChips, setShowModeChips] = useState(false);
-  const displayName = nickName ?? userName ?? (signedIn ? 'friend' : 'human');
+  const displayName = nickName ?? (signedIn ? 'friend' : 'human');
 
   useEffect(() => {
     const check = () => {
@@ -231,23 +230,30 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   }, [goal, hint]);
 
   const startChat = () => {
+    const needsName = signedIn && !nickName;
     const intro = signedIn
       ? (nickName ? `Welcome back, ${nickName}!` : `How should I call you?`)
       : `Welcome, human.`;
     const onboarded = (() => { try { return !!localStorage.getItem('bleepx_modes_onboarded'); } catch { return false; } })();
     const msgs: ChatMessage[] = [
-      { role: 'assistant', text: `${intro} ${greeting}` },
+      { role: 'assistant', text: needsName ? intro : `${intro} ${greeting}` },
       { role: 'assistant', text: 'I am here, watching, waiting, ready to chatter about SQL, cloud, Python — anything.' },
     ];
-    if (!onboarded) {
+    const shouldOnboard = !onboarded && !needsName;
+    if (shouldOnboard) {
       try { localStorage.setItem('bleepx_modes_onboarded', '1'); } catch {}
       msgs.push({ role: 'assistant', text: 'I can switch my look to match the vibe. Pick a mode from the chips below, or type it any time.' });
     }
     setMessages(msgs);
-    if (signedIn && !nickName) setAwaitingNickname(true);
-    setShowModeChips(!onboarded);
+    if (needsName) setAwaitingNickname(true);
+    setShowModeChips(shouldOnboard);
     setTimeout(() => {
-      setMessages((prev) => [...prev, { role: 'assistant', text: nickName ? `Go ahead, ${nickName}. I dare you.` : 'Go ahead, type something. I dare you.' }]);
+      const prompt = needsName
+        ? 'Type your name and I will remember it.'
+        : nickName
+        ? `Go ahead, ${nickName}. I dare you.`
+        : 'Go ahead, type something. I dare you.';
+      setMessages((prev) => [...prev, { role: 'assistant', text: prompt }]);
       playBleep();
     }, 900);
   };
@@ -306,7 +312,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     const lower = text.toLowerCase().trim();
     if (applyMode(lower)) return;
     if (awaitingNickname) {
-      const name = text.trim().split(/\s+/)[0];
+      const name = text.trim().split(/[\s,!?]+/)[0].replace(/[^a-zA-Z0-9_\-']/g, '');
       if (name) {
         setNickName(name);
         try { localStorage.setItem('bleepx_nickname', name); } catch {}
