@@ -28,6 +28,8 @@ import type {
   AutoScalingGroup,
   KMSKey,
   CloudWatchAlarm,
+  Route53HostedZone,
+  Route53Record,
 } from './sandbox';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -1473,5 +1475,75 @@ export function putCloudWatchAlarm(
     alarmName,
     'success',
     `Created CloudWatch alarm ${alarmName}: ${metricName} ${comparisonOperator} ${threshold}`
+  );
+}
+
+// ─── Route 53 actions ─────────────────────────────────────────────────────────
+
+export function createRoute53HostedZone(
+  state: CloudSandboxState,
+  name: string,
+  isPrivate: boolean = false,
+  vpcId?: string
+): CloudSandboxState {
+  const id = `Z${Math.random().toString(36).slice(2, 14)}`;
+  if (Object.values(state.route53.hostedZones).some((z) => z.name === name)) {
+    return event(state, 'route53', 'CreateHostedZone', name, 'failure', `Hosted zone already exists for ${name}`);
+  }
+  if (isPrivate && !vpcId) {
+    return event(state, 'route53', 'CreateHostedZone', name, 'failure', 'Private hosted zones require a VPC ID');
+  }
+  const zone: Route53HostedZone = {
+    id,
+    name,
+    records: [],
+    comment: `Managed by BleepxCloud ${isPrivate ? 'private' : 'public'} zone`,
+    isPrivate,
+    vpcId,
+  };
+  return event(
+    { ...state, route53: { ...state.route53, hostedZones: { ...state.route53.hostedZones, [id]: zone } } },
+    'route53',
+    'CreateHostedZone',
+    id,
+    'success',
+    `Created ${isPrivate ? 'private' : 'public'} hosted zone ${name} (${id})`
+  );
+}
+
+export function createRoute53Record(
+  state: CloudSandboxState,
+  zoneId: string,
+  record: Route53Record
+): CloudSandboxState {
+  const zone = state.route53.hostedZones[zoneId];
+  if (!zone) return event(state, 'route53', 'ChangeResourceRecordSets', zoneId, 'failure', `Hosted zone not found: ${zoneId}`);
+  const updated: Route53HostedZone = { ...zone, records: [...zone.records, record] };
+  const routing = record.failover ? ` (${record.failover} failover)` : record.setIdentifier ? ` (${record.setIdentifier})` : '';
+  return event(
+    { ...state, route53: { ...state.route53, hostedZones: { ...state.route53.hostedZones, [zoneId]: updated } } },
+    'route53',
+    'ChangeResourceRecordSets',
+    record.name,
+    'success',
+    `Created ${record.type} record ${record.name} -> ${record.value} in ${zone.name}${routing}`
+  );
+}
+
+export function deleteRoute53Record(
+  state: CloudSandboxState,
+  zoneId: string,
+  recordName: string
+): CloudSandboxState {
+  const zone = state.route53.hostedZones[zoneId];
+  if (!zone) return event(state, 'route53', 'ChangeResourceRecordSets', zoneId, 'failure', `Hosted zone not found: ${zoneId}`);
+  const updated: Route53HostedZone = { ...zone, records: zone.records.filter((r) => r.name !== recordName) };
+  return event(
+    { ...state, route53: { ...state.route53, hostedZones: { ...state.route53.hostedZones, [zoneId]: updated } } },
+    'route53',
+    'ChangeResourceRecordSets',
+    recordName,
+    'success',
+    `Deleted record ${recordName} from ${zone.name}`
   );
 }

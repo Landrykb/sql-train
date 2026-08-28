@@ -50,6 +50,7 @@ import ELBPanel from '@/components/ELBPanel';
 import ASGPanel from '@/components/ASGPanel';
 import KMSPanel from '@/components/KMSPanel';
 import CloudWatchPanel from '@/components/CloudWatchPanel';
+import Route53Panel from '@/components/Route53Panel';
 
 interface CloudSandboxProps {
   mission?: CloudMission;
@@ -61,7 +62,7 @@ interface CloudSandboxProps {
 
 export default function CloudSandbox({ mission, onComplete, freePlay, initialState, onStateChange }: CloudSandboxProps) {
   const [state, setState] = useState<CloudSandboxState>(initialState || createEmptySandboxState());
-  const [activeTab, setActiveTab] = useState<'s3' | 'iam' | 'ec2' | 'vpc' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'lambda' | 'terraform' | 'security' | 'events'>('s3');
+  const [activeTab, setActiveTab] = useState<'s3' | 'iam' | 'ec2' | 'vpc' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'lambda' | 'terraform' | 'security' | 'events'>('s3');
   const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState<{ text: string; type: 'info' | 'success' | 'error' } | null>(null);
 
@@ -120,7 +121,7 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
       )}
 
       <div className="flex gap-1 overflow-x-auto pb-1">
-        {(['s3', 'iam', 'ec2', 'vpc', 'dynamodb', 'rds', 'elb', 'asg', 'kms', 'cloudwatch', 'lambda', 'terraform', 'security', 'events'] as const).map((tab) => (
+        {(['s3', 'iam', 'ec2', 'vpc', 'dynamodb', 'rds', 'elb', 'asg', 'kms', 'cloudwatch', 'route53', 'lambda', 'terraform', 'security', 'events'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -143,6 +144,7 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
       {activeTab === 'asg' && <ASGPanel state={state} onAction={applyAction} />}
       {activeTab === 'kms' && <KMSPanel state={state} onAction={applyAction} />}
       {activeTab === 'cloudwatch' && <CloudWatchPanel state={state} onAction={applyAction} />}
+      {activeTab === 'route53' && <Route53Panel state={state} onAction={applyAction} />}
       {activeTab === 'lambda' && <LambdaPanel state={state} onAction={applyAction} onInvoke={invokeLambdaHandler} />}
       {activeTab === 'terraform' && <TerraformPanel state={state} onAction={applyAction} />}
       {activeTab === 'security' && <SecurityPanel state={state} />}

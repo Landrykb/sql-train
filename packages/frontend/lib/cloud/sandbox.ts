@@ -7,7 +7,7 @@
 //
 // Supported services: S3, IAM, EC2, VPC, Lambda (simplified), DynamoDB (basic)
 
-export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'terraform' | 'security';
+export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'terraform' | 'security';
 
 // ─── S3 ──────────────────────────────────────────────────────────────────────
 
@@ -283,6 +283,30 @@ export interface KMSKey {
   keyPolicy: string;
 }
 
+// ─── Route 53 ─────────────────────────────────────────────────────────────────
+
+export type Route53RecordType = 'A' | 'AAAA' | 'CNAME' | 'MX' | 'TXT' | 'NS' | 'SOA' | 'PTR' | 'SRV' | 'SPF' | 'CAA' | 'Alias';
+
+export interface Route53Record {
+  name: string;
+  type: Route53RecordType;
+  value: string;
+  ttl: number;
+  setIdentifier?: string;
+  weight?: number;
+  failover?: 'PRIMARY' | 'SECONDARY';
+  region?: string;
+}
+
+export interface Route53HostedZone {
+  id: string;
+  name: string;
+  records: Route53Record[];
+  comment: string;
+  isPrivate: boolean;
+  vpcId?: string;
+}
+
 // ─── CloudWatch ───────────────────────────────────────────────────────────────
 
 export interface CloudWatchAlarm {
@@ -360,6 +384,9 @@ export interface CloudSandboxState {
   cloudwatch: {
     alarms: Record<string, CloudWatchAlarm>;
   };
+  route53: {
+    hostedZones: Record<string, Route53HostedZone>;
+  };
   events: CloudEvent[];
 }
 
@@ -405,6 +432,7 @@ export function createEmptySandboxState(): CloudSandboxState {
     asg: { autoScalingGroups: {} },
     kms: { keys: {} },
     cloudwatch: { alarms: {} },
+    route53: { hostedZones: {} },
     events: [],
   };
 }

@@ -8,8 +8,6 @@ import { useProgress } from '@/lib/useProgress';
 
 type AssistantContext = 'home' | 'sql' | 'lab' | 'cloud' | 'journey' | 'general';
 
-const STORAGE_KEY = 'bleepx-assistant-dismissed';
-
 const DEFAULT_HINTS: Record<string, { text: string; cta: string; href: string }> = {
   '/': { text: 'Start with SQL basics, then Python, then pick a cloud or ML goal.', cta: 'Start My Journey', href: '/journey' },
   '/cases': { text: 'Each case teaches one SQL skill. Finish the business basics before the hidden cases.', cta: 'Open Business Case', href: '/cases/business' },
@@ -35,17 +33,6 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const pathname = usePathname();
   const { completed, points } = useProgress();
   const [open, setOpen] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const saved = JSON.parse(raw);
-        if (saved.date === new Date().toDateString()) setDismissed(true);
-      }
-    } catch { /* ignore */ }
-  }, []);
 
   const hint = useMemo(() => {
     const exact = DEFAULT_HINTS[pathname];
@@ -63,15 +50,6 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     const goalText = goal ? `Your current track: ${goal}. ` : '';
     return `${goalText}${hint.text}`;
   }, [goal, hint]);
-
-  const handleDismiss = () => {
-    setDismissed(true);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: new Date().toDateString() }));
-    } catch { /* ignore */ }
-  };
-
-  if (dismissed) return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
@@ -91,7 +69,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
                 >
                   {hint.cta}
                 </Link>
-                <button onClick={handleDismiss} className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Dismiss</button>
+                <button onClick={() => setOpen(false)} className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Close</button>
               </div>
             </div>
           </div>
