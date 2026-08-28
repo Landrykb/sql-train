@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useProgress } from '@/lib/useProgress';
-import { getGitHubUser, AUTH_CHANGE_EVENT } from '@/lib/authClient';
+import { getSupabaseBrowserClient } from '@/lib/supabase';
 import { playBleep } from '@/lib/audio';
 import { lintInput, BleepxHint } from '@/lib/bleepxLinter';
 import {
@@ -147,14 +147,22 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const displayName = nickName ?? (signedIn ? 'friend' : 'human');
 
   useEffect(() => {
-    const check = () => {
-      const u = getGitHubUser();
-      setSignedIn(!!u);
-      setUserName(u?.name ?? null);
+    const sb = getSupabaseBrowserClient();
+    if (!sb) return;
+    const update = (session: any) => {
+      const user = session?.user as any;
+      setSignedIn(!!user);
+      const meta = user?.user_metadata ?? {};
+      const fullName = (meta.full_name as string | undefined) || (meta.name as string | undefined) || (user?.email?.split('@')[0] ?? null);
+      setUserName(fullName ?? null);
     };
-    check();
-    window.addEventListener(AUTH_CHANGE_EVENT, check);
-    return () => window.removeEventListener(AUTH_CHANGE_EVENT, check);
+    const sync = async () => {
+      const { data } = await sb.auth.getSession();
+      update(data?.session ?? null);
+    };
+    sync();
+    const { data } = sb.auth.onAuthStateChange((_event: any, session: any) => update(session));
+    return () => data?.subscription?.unsubscribe?.();
   }, []);
 
   const activeMode = useMemo(() => {
