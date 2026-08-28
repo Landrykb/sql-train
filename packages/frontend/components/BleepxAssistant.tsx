@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useProgress } from '@/lib/useProgress';
 import { playBleep } from '@/lib/audio';
+import { lintInput, BleepxHint } from '@/lib/bleepxLinter';
 
 type AssistantContext = 'home' | 'sql' | 'lab' | 'cloud' | 'journey' | 'general';
 
@@ -79,6 +80,10 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const [mood, setMood] = useState<Mood>('idle');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
+  const [dock, setDock] = useState<{ right: number; bottom: number }>({ right: 16, bottom: 16 });
+  const [dockedHint, setDockedHint] = useState<BleepxHint | null>(null);
+  const lintTimer = useRef<NodeJS.Timeout | null>(null);
+  const lastHintText = useRef<string | null>(null);
 
   const hint = useMemo(() => {
     const exact = DEFAULT_HINTS[pathname];
@@ -136,8 +141,88 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
   const moodClass = mood === 'think' ? 'animate-pulse' : mood === 'wave' ? 'animate-bounce' : 'animate-float';
 
+  const isEditable = (el: EventTarget | null): el is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement => {
+    if (!(el instanceof HTMLElement)) return false;
+    return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable;
+  };
+
+  const applyHint = useCallback((hint: BleepxHint | null) => {
+    if (!hint) {
+      setDockedHint(null);
+      setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle');
+      return;
+    }
+    const text = hint.message + (hint.fix ? `\n\nFix: ${hint.fix}` : '') + (hint.snippet ? `\n\nExample:\n\`${hint.snippet}\`` : '');
+    if (lastHintText.current !== text) {
+      setMessages((prev) => [...prev, { role: 'assistant', text }]);
+      lastHintText.current = text;
+    }
+    setDockedHint(hint);
+    setMood('think');
+    if (hint.severity === 'error' || hint.severity === 'warning') {
+      setOpen(true);
+    }
+  }, [pathname]);
+
+  const lintFocused = useCallback((target: EventTarget | null) => {
+    if (!isEditable(target)) {
+      setDockedHint(null);
+      setDock({ right: 16, bottom: 16 });
+      setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle');
+      return;
+    }
+    const el = target as HTMLInputElement | HTMLTextAreaElement;
+    const rect = el.getBoundingClientRect();
+    const top = Math.max(8, Math.min(window.innerHeight - 80, rect.top + rect.height / 2 - 32));
+    const left = Math.max(8, Math.min(window.innerWidth - 80, rect.right + 16));
+    setDock({ right: window.innerWidth - left - 64, bottom: window.innerHeight - top - 64 });
+
+    const hint = lintInput(el.value, el, pathname ?? undefined);
+    applyHint(hint);
+  }, [applyHint, pathname]);
+
+  const scheduleLint = useCallback((target: EventTarget | null) => {
+    if (lintTimer.current) clearTimeout(lintTimer.current);
+    lintTimer.current = setTimeout(() => lintFocused(target), 600);
+  }, [lintFocused]);
+
+  useEffect(() => {
+    const onFocus = (e: FocusEvent) => lintFocused(e.target);
+    const onInput = (e: Event) => scheduleLint(e.target);
+    const onScrollResize = () => {
+      const active = document.activeElement;
+      if (isEditable(active)) lintFocused(active);
+    };
+
+    document.addEventListener('focusin', onFocus);
+    document.addEventListener('input', onInput);
+    window.addEventListener('scroll', onScrollResize, true);
+    window.addEventListener('resize', onScrollResize);
+
+    return () => {
+      document.removeEventListener('focusin', onFocus);
+      document.removeEventListener('input', onInput);
+      window.removeEventListener('scroll', onScrollResize, true);
+      window.removeEventListener('resize', onScrollResize);
+      if (lintTimer.current) clearTimeout(lintTimer.current);
+    };
+  }, [lintFocused, scheduleLint]);
+
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
+    <div
+      className="fixed z-50 flex flex-col items-end gap-2 transition-all duration-500"
+      style={{ right: dock.right, bottom: dock.bottom }}
+    >
+      {!open && dockedHint && (
+        <div className="relative mb-2 p-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-rose-300 dark:border-rose-700 shadow-2xl text-sm w-72">
+          <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-rose-300 dark:border-t-rose-700" />
+          <div className="font-bold text-bleepx-text mb-1 text-xs uppercase tracking-wide">Bleepx spotted an issue</div>
+          <div className="text-bleepx-text-secondary leading-relaxed">{dockedHint.message}</div>
+          {dockedHint.fix && (
+            <div className="mt-2 text-xs text-emerald-700 dark:text-emerald-400 font-medium">Fix: {dockedHint.fix}</div>
+          )}
+        </div>
+      )}
       {open && (
         <div className="relative w-80 sm:w-96 rounded-2xl bg-white dark:bg-gray-900 border-2 border-sky-300 dark:border-sky-700 shadow-2xl text-sm transform transition-all duration-300 origin-bottom-right overflow-hidden">
           {/* speech bubble tail */}
