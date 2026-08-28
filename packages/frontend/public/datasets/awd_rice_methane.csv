@@ -1,0 +1,11 @@
+field_id,country,season,water_depth_cm,method,methane_kg_ha,credits_tco2e_ha
+A-01,Vietnam,2024-1,5.2,AWD,120.4,4.8
+A-02,Vietnam,2024-1,3.8,AWD,98.7,5.1
+A-03,Vietnam,2024-1,15.0,Flooded,245.0,0.0
+A-04,India,2024-1,4.5,AWD,110.2,5.3
+A-05,India,2024-1,18.0,Flooded,280.5,0.0
+A-06,India,2024-1,6.0,AWD,135.6,4.5
+A-07,Philippines,2024-1,5.5,AWD,115.3,4.9
+A-08,Philippines,2024-1,16.5,Flooded,260.1,0.0
+A-09,Indonesia,2024-1,4.0,AWD,105.8,5.5
+A-10,Indonesia,2024-1,17.0,Flooded,275.0,0.0

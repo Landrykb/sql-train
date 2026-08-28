@@ -1,0 +1,117 @@
+id: carbon_soil
+name: "Regenerative Agriculture Soil Carbon"
+domain: carbon_credits
+project: "Carbon Credits"
+step_number: 2
+tier: 2
+skills: [pandas, eda, regression, climate, agriculture]
+language: python
+dataset_url: "https://data.world/california-chromium/soil-carbon-ratios-for-agricultural-lands"
+description: "Compare conventional and regenerative farms to estimate soil organic carbon increases and the carbon credits they can generate."
+prereq_cases: []
+learning_objectives:
+  - Compute soil carbon stock from lab measurements
+  - Compare conventional and regenerative practices
+  - Convert carbon stock to CO2-equivalent credits
+  - Build a simple model of carbon gain vs years under practice
+sections:
+  - title: "Load Soil Carbon Data"
+    content: "Load farm measurements and inspect the variables."
+    code: |
+      from pyodide.http import open_url
+      import pandas as pd
+
+      df = pd.read_csv(open_url("/datasets/regenerative_soil_carbon.csv"))
+      print(df.head())
+      print(f"\nShape: {df.shape}")
+      print(f"Practices: {df['practice'].unique()}")
+      print(f"Years range: {df['years_under_practice'].min()} - {df['years_under_practice'].max()}")
+    explanation: "Soil organic carbon is usually measured as a percent. To compare stocks, we need to convert percentage to mass per hectare using bulk density and sampling depth."
+  - title: "Compute Carbon Stock & Credits"
+    content: "Calculate Mg C per hectare and tCO2e credits."
+    code: |
+      # Soil carbon stock (Mg/ha) = C% × bulk density × depth (cm) × 10000 / 100
+      df['carbon_stock_Mg_ha'] = df['soil_carbon_pct'] * df['bulk_density_g_cm3'] * df['depth_cm'] * 10000 / 100
+      df['credits_tco2e_ha'] = df['carbon_stock_Mg_ha'] * 3.67
+      print(df[['farm_id','practice','years_under_practice','carbon_stock_Mg_ha','credits_tco2e_ha']].head())
+      print(f"\nMean by practice:\n{df.groupby('practice')[['carbon_stock_Mg_ha','credits_tco2e_ha']].mean()}")
+    explanation: "1 Mg of soil carbon equals about 3.67 tCO2e removed from the atmosphere, which is the mass ratio of CO2 to C."
+  - title: "Model Carbon Gain Over Time"
+    content: "Fit a linear trend of carbon stock vs years under regenerative practice."
+    code: |
+      from sklearn.linear_model import LinearRegression
+      import matplotlib.pyplot as plt
+
+      regen = df[df['practice'] == 'Regenerative']
+      X = regen[['years_under_practice']]
+      y = regen['carbon_stock_Mg_ha']
+      model = LinearRegression().fit(X, y)
+      print(f"Intercept: {model.intercept_:.2f}")
+      print(f"Gain per year: {model.coef_[0]:.2f} Mg C / ha / year")
+
+      fig, ax = plt.subplots(figsize=(8, 5))
+      ax.scatter(regen['years_under_practice'], regen['carbon_stock_Mg_ha'], color='green', label='Regenerative')
+      ax.plot(regen['years_under_practice'], model.predict(X), color='darkgreen', label='Trend')
+      ax.set_xlabel('Years under practice')
+      ax.set_ylabel('Carbon stock (Mg C / ha)')
+      ax.set_title('Soil Carbon Build-up Over Time')
+      ax.legend()
+      plt.tight_layout()
+      plt.show()
+    explanation: "Regenerative agriculture is a long-game practice. A positive slope means each additional year adds carbon."
+schema:
+  - farm_id
+  - practice
+  - years_under_practice
+  - soil_carbon_pct
+  - bulk_density_g_cm3
+  - depth_cm
+  - area_ha
+thought_process:
+  - "Load the soil carbon dataset"
+  - "Convert soil carbon % to stock Mg/ha"
+  - "Convert Mg C to tCO2e credits"
+  - "Model carbon stock increase with years under practice"
+solution_code: |
+  from pyodide.http import open_url
+  import pandas as pd
+
+  df = pd.read_csv(open_url("/datasets/regenerative_soil_carbon.csv"))
+  df['carbon_stock_Mg_ha'] = df['soil_carbon_pct'] * df['bulk_density_g_cm3'] * df['depth_cm'] * 10000 / 100
+  df['credits_tco2e_ha'] = df['carbon_stock_Mg_ha'] * 3.67
+  print(df.groupby('practice')[['carbon_stock_Mg_ha','credits_tco2e_ha']].mean())
+expected_output: |
+  practice  carbon_stock_Mg_ha  credits_tco2e_ha
+hints:
+  - "Bulk density matters: 1.3 vs 1.5 g/cm3 changes total stock by ~15%."
+  - "Use a consistent 30 cm sampling depth for comparisons."
+  - "Verra VCS VM0042 is a common methodology for agricultural soil carbon."
+visualizations:
+  - title: "Carbon Stock by Practice"
+    code: |
+      import matplotlib.pyplot as plt
+      import pandas as pd
+      from pyodide.http import open_url
+      df = pd.read_csv(open_url("/datasets/regenerative_soil_carbon.csv"))
+      df['carbon_stock_Mg_ha'] = df['soil_carbon_pct'] * df['bulk_density_g_cm3'] * df['depth_cm'] * 10000 / 100
+      df.boxplot(column='carbon_stock_Mg_ha', by='practice')
+      plt.title('Soil Carbon Stock by Practice')
+      plt.ylabel('Mg C / ha')
+      plt.tight_layout()
+      plt.show()
+    description: "Compares carbon stock between conventional and regenerative farms."
+  - title: "Carbon Stock vs Years"
+    code: |
+      import matplotlib.pyplot as plt
+      import pandas as pd
+      from pyodide.http import open_url
+      df = pd.read_csv(open_url("/datasets/regenerative_soil_carbon.csv"))
+      df['carbon_stock_Mg_ha'] = df['soil_carbon_pct'] * df['bulk_density_g_cm3'] * df['depth_cm'] * 10000 / 100
+      regen = df[df['practice'] == 'Regenerative']
+      plt.scatter(regen['years_under_practice'], regen['carbon_stock_Mg_ha'], color='green')
+      plt.xlabel('Years under practice')
+      plt.ylabel('Mg C / ha')
+      plt.title('Carbon Build-up Over Time')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows how soil carbon stock changes with time under regenerative management."

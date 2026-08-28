@@ -1,0 +1,11 @@
+project_id,methodology,vintage,issuance_tco2e,retired_tco2e,price_usd,country
+P-001,REDD+,2019,50000,42000,8.50,Brazil
+P-002,REDD+,2020,120000,98000,9.10,Brazil
+P-003,Cookstoves,2020,30000,25000,4.25,Kenya
+P-004,Wind,2021,75000,60000,2.80,India
+P-005,Forestry,2021,45000,30000,12.00,United States
+P-006,Methane Capture,2022,60000,55000,7.40,United States
+P-007,REDD+,2022,90000,70000,8.80,Peru
+P-008,Cookstoves,2023,25000,22000,4.50,Ethiopia
+P-009,Wind,2023,85000,70000,3.00,India
+P-010,Forestry,2023,50000,35000,13.00,United States

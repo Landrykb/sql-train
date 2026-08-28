@@ -1,0 +1,116 @@
+id: carbon_offset
+name: "Voluntary Carbon Offset Market"
+domain: carbon_credits
+project: "Carbon Credits"
+step_number: 3
+tier: 2
+skills: [pandas, eda, finance, climate]
+language: python
+dataset_url: "https://data.world/carbonplan/carbon-offsets"
+description: "Analyze voluntary carbon offset projects by methodology, vintage, issuance, retirement, and price. Identify which projects are undersubscribed or overpriced."
+prereq_cases: []
+learning_objectives:
+  - Explore carbon offset issuance, retirement, and prices by methodology
+  - Compute utilization rate (retired / issued)
+  - Compare average prices across methodologies
+  - Understand additionality and vintage risk
+sections:
+  - title: "Load Offset Project Data"
+    content: "Load the offset market dataset and inspect project types."
+    code: |
+      from pyodide.http import open_url
+      import pandas as pd
+
+      df = pd.read_csv(open_url("/datasets/carbon_offset_projects.csv"))
+      print(df.head())
+      print(f"\nShape: {df.shape}")
+      print(f"Methodologies: {df['methodology'].unique()}")
+      print(f"Vintage range: {df['vintage'].min()} - {df['vintage'].max()}")
+    explanation: "Voluntary carbon offsets represent claimed emissions reductions outside a regulated cap. Key attributes are methodology, vintage, and issuance/retirement."
+  - title: "Utilization & Pricing"
+    content: "Compute how much of each project has been retired and compare prices."
+    code: |
+      df['utilization_rate'] = df['retired_tco2e'] / df['issuance_tco2e']
+      df['unsold_tco2e'] = df['issuance_tco2e'] - df['retired_tco2e']
+      print(df[['project_id','methodology','vintage','utilization_rate','price_usd','unsold_tco2e']].head())
+
+      summary = df.groupby('methodology').agg({
+        'issuance_tco2e': 'sum',
+        'retired_tco2e': 'sum',
+        'unsold_tco2e': 'sum',
+        'price_usd': 'mean',
+        'utilization_rate': 'mean'
+      }).round(2)
+      print(f"\nMethodology summary:\n{summary}")
+    explanation: "A low utilization rate means buyers are not trusting or buying the credits. Higher vintage (newer) often trades at a premium but must have strong additionality."
+  - title: "Visualize Issuance, Retirement, and Price"
+    content: "Compare methodologies."
+    code: |
+      import matplotlib.pyplot as plt
+
+      fig, ax = plt.subplots(1, 2, figsize=(14, 5))
+      method_summary = df.groupby('methodology').agg({'issuance_tco2e':'sum','retired_tco2e':'sum'})
+      method_summary.plot(kind='bar', ax=ax[0])
+      ax[0].set_title('Issuance vs Retired by Methodology')
+      ax[0].set_ylabel('tCO2e')
+      ax[0].tick_params(axis='x', rotation=45)
+
+      df.boxplot(column='price_usd', by='methodology', ax=ax[1])
+      ax[1].set_title('Price Distribution by Methodology')
+      ax[1].set_ylabel('USD / tCO2e')
+      ax[1].tick_params(axis='x', rotation=45)
+      plt.tight_layout()
+      plt.show()
+    explanation: "REDD+ and Forestry often trade at higher prices due to perceived co-benefits. Technical projects like Wind and Cookstoves can be cheaper but face additionality concerns."
+schema:
+  - project_id
+  - methodology
+  - vintage
+  - issuance_tco2e
+  - retired_tco2e
+  - price_usd
+  - country
+thought_process:
+  - "Load the offset project data"
+  - "Calculate utilization and unsold volume"
+  - "Aggregate by methodology to find market patterns"
+  - "Visualize issuance, retirement, and price"
+solution_code: |
+  from pyodide.http import open_url
+  import pandas as pd
+
+  df = pd.read_csv(open_url("/datasets/carbon_offset_projects.csv"))
+  df['utilization_rate'] = df['retired_tco2e'] / df['issuance_tco2e']
+  df['unsold_tco2e'] = df['issuance_tco2e'] - df['retired_tco2e']
+  print(df.groupby('methodology')[['issuance_tco2e','retired_tco2e','unsold_tco2e','price_usd','utilization_rate']].mean())
+expected_output: |
+  methodology  issuance_tco2e  retired_tco2e  unsold_tco2e  price_usd  utilization_rate
+hints:
+  - "Additionality means the project would not have happened without carbon finance."
+  - "Vintage risk: older credits may not meet new buyer quality standards."
+  - "Utilization rate = retired / issued; <50% can signal oversupply or low quality."
+visualizations:
+  - title: "Issuance vs Retired"
+    code: |
+      import matplotlib.pyplot as plt
+      import pandas as pd
+      from pyodide.http import open_url
+      df = pd.read_csv(open_url("/datasets/carbon_offset_projects.csv"))
+      df.groupby('methodology').agg({'issuance_tco2e':'sum','retired_tco2e':'sum'}).plot(kind='bar')
+      plt.title('Issuance vs Retired by Methodology')
+      plt.ylabel('tCO2e')
+      plt.tight_layout()
+      plt.show()
+    description: "Compares total issuance and retirement volumes across methodologies."
+  - title: "Price by Methodology"
+    code: |
+      import matplotlib.pyplot as plt
+      import pandas as pd
+      from pyodide.http import open_url
+      df = pd.read_csv(open_url("/datasets/carbon_offset_projects.csv"))
+      df.boxplot(column='price_usd', by='methodology')
+      plt.title('Price Distribution by Methodology')
+      plt.ylabel('USD / tCO2e')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows which methodologies command higher prices."

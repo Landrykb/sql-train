@@ -11,6 +11,7 @@ export const LAB_DOMAIN_FOLDER_MAP: Record<string, string> = {
   decarb: 'decarb',
   agri_econ: 'agri_econ',
   fin_risk: 'fin_risk',
+  carbon_credits: 'carbon_credits',
 };
 
 export const LAB_CASE_ORDER: Record<string, string[]> = {
@@ -69,6 +70,12 @@ export const LAB_CASE_ORDER: Record<string, string[]> = {
     'fin_var',
     'fin_portfolio',
     'fin_stress',
+  ],
+  carbon_credits: [
+    'carbon_awd',
+    'carbon_soil',
+    'carbon_offset',
+    'carbon_price_ml',
   ],
 };
 
@@ -172,6 +179,16 @@ export const LAB_DOMAIN_META: Record<string, {
     language: 'Python',
     dataset_url: 'https://www.kaggle.com/datasets/szrlee/stock-time-series-20050101-to-20171231',
   },
+  carbon_credits: {
+    icon: '🌱',
+    name: 'Carbon Credits',
+    desc: 'AWD rice, regenerative agriculture, offset markets & carbon price ML',
+    color: 'from-green-600 to-emerald-800',
+    difficulty: 'Intermediate',
+    stars: 2,
+    language: 'Python',
+    dataset_url: 'https://data.world/carbonplan/carbon-offsets',
+  },
 };
 
 // Time limits for test mode on Lab projects (in seconds), keyed by tier
@@ -200,4 +217,6 @@ export const LAB_CASE_TIERS: Record<string, number> = {
   agri_explore: 1, agri_prices: 2, agri_yield: 2, agri_policy: 3,
   // fin_risk
   fin_explore: 1, fin_var: 2, fin_portfolio: 3, fin_stress: 3,
+  // carbon_credits
+  carbon_awd: 1, carbon_soil: 2, carbon_offset: 2, carbon_price_ml: 3,
 };

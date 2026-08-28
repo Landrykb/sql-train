@@ -1,0 +1,106 @@
+id: carbon_awd
+name: "AWD Rice Methane Reduction"
+domain: carbon_credits
+project: "Carbon Credits"
+step_number: 1
+tier: 1
+skills: [pandas, eda, climate, agriculture]
+language: python
+dataset_url: "https://data.world/california-chromium/soil-carbon-ratios-for-agricultural-lands"
+description: "Compare Alternate Wetting and Drying (AWD) rice fields with continuously flooded fields. Estimate methane avoided and carbon credits per hectare."
+prereq_cases: []
+learning_objectives:
+  - Understand how AWD water management reduces methane in rice paddies
+  - Compute avoided methane emissions vs a flooded baseline
+  - Translate avoided methane into carbon credit tCO2e
+  - Visualize the AWD vs Flooded difference
+sections:
+  - title: "Load AWD Field Data"
+    content: "Load the rice field measurements and inspect the columns."
+    code: |
+      from pyodide.http import open_url
+      import pandas as pd
+
+      df = pd.read_csv(open_url("/datasets/awd_rice_methane.csv"))
+      print(df.head())
+      print(f"\nShape: {df.shape}")
+      print(f"Methods: {df['method'].unique()}")
+      print(f"Mean methane by method:\n{df.groupby('method')['methane_kg_ha'].mean()}")
+    explanation: "AWD alternately floods and drains rice paddies, cutting methane-producing anaerobic conditions. Flooded fields are the high-emission baseline."
+  - title: "Estimate Avoided Methane & Credits"
+    content: "Compute the baseline flooded average, then estimate credits for each AWD field."
+    code: |
+      baseline = df[df['method'] == 'Flooded']['methane_kg_ha'].mean()
+      df['avoided_methane_kg_ha'] = baseline - df['methane_kg_ha']
+      df['avoided_tco2e_ha'] = df['avoided_methane_kg_ha'] * 0.025  # GWP100 CH4 ≈ 25x CO2
+      df['credit_value_usd'] = df['credits_tco2e_ha'] * 25
+      print(df[['field_id','method','avoided_methane_kg_ha','avoided_tco2e_ha','credit_value_usd']].head())
+    explanation: "Methane (CH4) has a much higher short-term warming potential than CO2, so avoided CH4 is converted to tCO2e equivalents to quantify carbon credits."
+  - title: "Visualize AWD vs Flooded"
+    content: "Compare methane and credits by method."
+    code: |
+      import matplotlib.pyplot as plt
+      import seaborn as sns
+
+      fig, ax = plt.subplots(1, 2, figsize=(14, 5))
+      df.boxplot(column='methane_kg_ha', by='method', ax=ax[0])
+      ax[0].set_title('Methane Emissions by Method')
+      ax[0].set_ylabel('kg CH4 / ha')
+      df.boxplot(column='credits_tco2e_ha', by='method', ax=ax[1])
+      ax[1].set_title('Carbon Credits by Method')
+      ax[1].set_ylabel('tCO2e / ha')
+      plt.tight_layout()
+      plt.show()
+    explanation: "Boxplots make the treatment effect visible. AWD should show lower methane and, where credits are verified, positive carbon credit yield."
+schema:
+  - field_id
+  - country
+  - season
+  - water_depth_cm
+  - method
+  - methane_kg_ha
+  - credits_tco2e_ha
+thought_process:
+  - "Load the AWD field data and check the methods"
+  - "Calculate the flooded baseline mean methane"
+  - "Convert avoided methane to tCO2e using 25 GWP"
+  - "Visualize the distribution of emissions and credits"
+solution_code: |
+  from pyodide.http import open_url
+  import pandas as pd
+
+  df = pd.read_csv(open_url("/datasets/awd_rice_methane.csv"))
+  baseline = df[df['method'] == 'Flooded']['methane_kg_ha'].mean()
+  df['avoided_tco2e_ha'] = (baseline - df['methane_kg_ha']) * 0.025
+  print(df[['field_id','method','methane_kg_ha','credits_tco2e_ha','avoided_tco2e_ha']].head())
+expected_output: |
+  field_id  method  methane_kg_ha  credits_tco2e_ha  avoided_tco2e_ha
+hints:
+  - "The GWP100 factor for CH4 is about 25x CO2."
+  - "Credits are only issued where a verified baseline can be demonstrated."
+  - "Water depth < 10 cm usually counts as AWD."
+visualizations:
+  - title: "Methane by Method"
+    code: |
+      import matplotlib.pyplot as plt
+      import pandas as pd
+      from pyodide.http import open_url
+      df = pd.read_csv(open_url("/datasets/awd_rice_methane.csv"))
+      df.boxplot(column='methane_kg_ha', by='method')
+      plt.title('Methane Emissions by Method')
+      plt.ylabel('kg CH4 / ha')
+      plt.tight_layout()
+      plt.show()
+    description: "Compares methane emissions between AWD and continuously flooded fields."
+  - title: "Carbon Credits by Method"
+    code: |
+      import matplotlib.pyplot as plt
+      import pandas as pd
+      from pyodide.http import open_url
+      df = pd.read_csv(open_url("/datasets/awd_rice_methane.csv"))
+      df.boxplot(column='credits_tco2e_ha', by='method')
+      plt.title('Carbon Credits by Method')
+      plt.ylabel('tCO2e / ha')
+      plt.tight_layout()
+      plt.show()
+    description: "Shows which method generates verified carbon credits."
