@@ -121,6 +121,13 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const downAt = useRef(0);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [isDark, setIsDark] = useState(false);
+  const [manualMode, setManualMode] = useState<'auto' | 'light' | 'dark' | 'stealth'>('auto');
+
+  const activeMode = useMemo(() => {
+    if (manualMode !== 'auto') return manualMode;
+    if (mood === 'stealth') return 'stealth';
+    return isDark ? 'dark' : 'light';
+  }, [manualMode, mood, isDark]);
 
   const hint = useMemo(() => {
     const exact = DEFAULT_HINTS[pathname];
@@ -182,16 +189,44 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     }, 900);
   };
 
+  const applyMode = (lower: string) => {
+    if (lower === 'light mode') {
+      setManualMode('light');
+      setMood('wave');
+      playBleep();
+      setMessages((prev) => [...prev, { role: 'assistant', text: 'Light mode it is. A bit bright for a ghost, but I will manage.' }]);
+      setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 800);
+      return true;
+    }
+    if (lower === 'dark mode') {
+      setManualMode('dark');
+      setMood('code');
+      playBleep();
+      setMessages((prev) => [...prev, { role: 'assistant', text: 'Dark mode engaged. The shadows suit me perfectly.' }]);
+      setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 800);
+      return true;
+    }
+    if (lower === 'stealth mode') {
+      setManualMode('stealth');
+      setMood('stealth');
+      playBleep();
+      setMessages((prev) => [...prev, { role: 'assistant', text: 'Stealth mode on. I am still watching — just hidden in the dark.' }]);
+      return true;
+    }
+    return false;
+  };
+
   const send = (text: string) => {
     if (!text.trim()) return;
     setInput('');
     setMessages((prev) => [...prev, { role: 'user', text: text.trim() }]);
+    const lower = text.toLowerCase().trim();
+    if (applyMode(lower)) return;
     setMood('think');
     setMessages((prev) => [...prev, { role: 'assistant', text: 'Bleepx is thinking out loud...' }]);
     setTimeout(() => {
-      const lower = text.toLowerCase();
-      const reply = TOPIC_HINTS[lower.trim()] ?? generateBleepxResponse(text, context ?? 'general');
-      const isKnown = TOPIC_HINTS[lower.trim()] !== undefined;
+      const reply = TOPIC_HINTS[lower] ?? generateBleepxResponse(text, context ?? 'general');
+      const isKnown = TOPIC_HINTS[lower] !== undefined;
       let nextMood: Mood = 'chat';
       if (isKnown) nextMood = 'success';
       else if (lower.includes('github')) nextMood = 'github';
@@ -263,63 +298,45 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
   const BallSprite = ({ size = 44 }: { size?: number }) => {
     const ballSize = Math.max(24, size - 8);
-    const mode = mood === 'stealth' ? 'stealth' : isDark ? 'dark' : 'normal';
+    const isStealth = activeMode === 'stealth';
+    const isDark = activeMode === 'dark';
+    const src = isDark || isStealth ? '/bleepx-logo.png' : '/bleepx-icon.png';
+    const motionClass = isStealth ? 'bleepx-stealth' : isDark ? 'bleepx-fly' : moodClass;
     const sharedStyle: React.CSSProperties = {
       width: ballSize,
       height: ballSize,
       transformStyle: 'preserve-3d',
     };
-    if (mode === 'dark') {
-      return (
-        <div
-          className={`rounded-full overflow-hidden ${moodClass}`}
-          style={{ ...sharedStyle, filter: spriteFilter }}
-        >
-          <img
-            src="/bleepx-logo.png"
-            alt="Bleepx"
-            width={ballSize}
-            height={ballSize}
-            className="object-cover w-full h-full"
-          />
-        </div>
-      );
-    }
-    if (mode === 'stealth') {
-      return (
-        <div
-          className={`rounded-full overflow-hidden ${moodClass}`}
-          style={{ ...sharedStyle, filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.5))', opacity: 0.65 }}
-        >
-          <img
-            src="/bleepx-icon.png"
-            alt="Bleepx"
-            width={ballSize}
-            height={ballSize}
-            className="object-cover w-full h-full"
-          />
-        </div>
-      );
-    }
     return (
       <div
-        className={`rounded-full ${moodClass} flex items-center justify-center border border-cyan-400/40`}
+        className={`relative rounded-full overflow-hidden ${motionClass}`}
         style={{
           ...sharedStyle,
-          background: 'radial-gradient(circle at 26% 24%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 10%, transparent 28%), radial-gradient(circle at 30% 30%, #3a4454 0%, #1f2937 20%, #111827 45%, #000000 100%)',
-          boxShadow: 'inset -6px -6px 14px rgba(0,0,0,0.9), inset 6px 6px 14px rgba(255,255,255,0.12), 0 0 14px rgba(34,211,238,0.5), inset 0 0 20px rgba(0,0,0,0.6)',
-          filter: spriteFilter,
+          filter: isStealth
+            ? 'grayscale(0.5) brightness(0.7) drop-shadow(0 0 6px rgba(34,211,238,0.25))'
+            : spriteFilter,
+          opacity: isStealth ? 0.75 : 1,
         }}
       >
-        <span className="font-mono text-cyan-400 font-bold select-none" style={{ fontSize: Math.max(10, ballSize * 0.45) }}>
-          {'{ }'}
-        </span>
+        <img
+          src={src}
+          alt="Bleepx"
+          width={ballSize}
+          height={ballSize}
+          className="object-cover w-full h-full"
+        />
+        <div
+          className="absolute inset-0 rounded-full pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle at 24% 20%, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.08) 10%, transparent 30%), radial-gradient(circle at 82% 82%, rgba(0,0,0,0.55) 0%, transparent 35%), radial-gradient(circle at 50% 50%, rgba(34,211,238,0.08) 0%, transparent 70%)',
+          }}
+        />
       </div>
     );
   };
 
   const PngSprite = ({ size = 44, rotate = 0, children }: { size?: number; rotate?: number; children?: React.ReactNode }) => {
-    const iconSrc = isDark ? '/bleepx-logo.png' : '/bleepx-icon.png';
+    const iconSrc = activeMode === 'dark' || activeMode === 'stealth' ? '/bleepx-logo.png' : '/bleepx-icon.png';
     return (
       <div
         className="relative flex items-center justify-center"
@@ -596,12 +613,12 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               <div className="flex-1">
                 <div className="font-extrabold text-bleepx-text flex items-center gap-2">
                   Bleepx
-                  {mood === 'stealth' ? (
+                  {activeMode === 'stealth' ? (
                     <span className="px-1.5 py-0.5 rounded text-[9px] bg-gray-800 text-gray-300 border border-gray-600">STEALTH MODE</span>
-                  ) : isDark ? (
+                  ) : activeMode === 'dark' ? (
                     <span className="px-1.5 py-0.5 rounded text-[9px] bg-cyan-950 text-cyan-300 border border-cyan-600">DARK MODE</span>
                   ) : (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] bg-sky-100 text-sky-700 border border-sky-300">LIVE</span>
+                    <span className="px-1.5 py-0.5 rounded text-[9px] bg-sky-100 text-sky-700 border border-sky-300">LIGHT MODE</span>
                   )}
                 </div>
                 <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{completedCount} steps done · {points} pts</div>
