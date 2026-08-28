@@ -6,10 +6,11 @@ import { usePathname } from 'next/navigation';
 import { useProgress } from '@/lib/useProgress';
 import { playBleep } from '@/lib/audio';
 import { lintInput, BleepxHint } from '@/lib/bleepxLinter';
+import { BleepxGhost, BleepxWave, BleepxThink, BleepxCode, BleepxLock, BleepxTrophy, BleepxHead, BleepxSignal, BleepxSpark } from '@/components/BleepxIcons';
 
 type AssistantContext = 'home' | 'sql' | 'lab' | 'cloud' | 'journey' | 'general';
 
-type Mood = 'idle' | 'wave' | 'think' | 'code';
+type Mood = 'idle' | 'wave' | 'think' | 'code' | 'chat' | 'error' | 'success' | 'signal';
 
 const DEFAULT_HINTS: Record<string, { text: string; cta: string; href: string }> = {
   '/': { text: 'Start with SQL basics, then Python, then pick a cloud or ML goal.', cta: 'Start My Journey', href: '/journey' },
@@ -139,7 +140,33 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     });
   };
 
-  const moodClass = mood === 'think' ? 'animate-pulse' : mood === 'wave' ? 'animate-bounce' : 'animate-float';
+  const moodClass = mood === 'think' ? 'animate-pulse' : mood === 'wave' ? 'animate-bounce' : mood === 'success' ? 'animate-bounce' : mood === 'error' ? 'animate-pulse' : 'animate-float';
+
+  const Sprite = () => {
+    switch (mood) {
+      case 'wave':
+        return <BleepxWave size={44} className="drop-shadow-lg" />;
+      case 'think':
+        return <BleepxThink size={44} className="drop-shadow-lg" />;
+      case 'code':
+        return <BleepxCode size={44} className="drop-shadow-lg" />;
+      case 'chat':
+        return <BleepxHead size={44} className="drop-shadow-lg" />;
+      case 'error':
+        return <BleepxLock size={44} className="drop-shadow-lg" />;
+      case 'success':
+        return <BleepxTrophy size={44} className="drop-shadow-lg" />;
+      case 'signal':
+        return (
+          <div className="relative">
+            <BleepxGhost size={44} className="drop-shadow-lg" />
+            <BleepxSignal size={20} className="absolute -top-1 -right-1 text-teal-400 animate-ping" />
+          </div>
+        );
+      default:
+        return <BleepxGhost size={44} className="drop-shadow-lg" />;
+    }
+  };
 
   const isEditable = (el: EventTarget | null): el is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement => {
     if (!(el instanceof HTMLElement)) return false;
@@ -158,7 +185,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       lastHintText.current = text;
     }
     setDockedHint(hint);
-    setMood('think');
+    setMood(hint.severity === 'error' ? 'error' : hint.severity === 'warning' ? 'think' : 'signal');
     if (hint.severity === 'error' || hint.severity === 'warning') {
       setOpen(true);
     }
@@ -229,8 +256,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-sky-300 dark:border-t-sky-700" />
           <div className="p-4 border-b border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/10">
             <div className="flex items-center gap-3">
-              <div className="shrink-0 w-8 h-8 relative">
-                <img src="/bleepx-icon.svg" alt="Bleepx" className="w-full h-full object-contain" />
+              <div className="shrink-0 w-10 h-10 relative">
+                {mood === 'error' ? <BleepxLock size={40} className="drop-shadow-md" /> : mood === 'success' ? <BleepxTrophy size={40} className="drop-shadow-md" /> : <BleepxHead size={40} className="drop-shadow-md" />}
               </div>
               <div className="flex-1">
                 <div className="font-extrabold text-bleepx-text">Bleepx</div>
@@ -251,7 +278,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               {mood === 'think' && (
                 <div className="flex justify-start">
                   <div className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 rounded-bl-none">
-                    <img src="/bleepx-icon.svg" alt="Bleepx" className="w-5 h-5 object-contain animate-pulse" />
+                    <BleepxThink size={24} className="animate-pulse" />
                   </div>
                 </div>
               )}
@@ -282,16 +309,14 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       )}
       <button
         onClick={toggle}
-        onMouseEnter={() => setMood('think')}
-        onMouseLeave={() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle')}
-        className="group relative w-16 h-16 rounded-full bg-gradient-to-br from-sky-500 to-teal-500 text-white shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 animate-float"
+        onMouseEnter={() => setMood('wave')}
+        onMouseLeave={() => setMood(dockedHint ? (dockedHint.severity === 'error' ? 'error' : dockedHint.severity === 'warning' ? 'think' : 'signal') : (pathname?.startsWith('/lab/') ? 'code' : 'idle'))}
+        className="group relative w-16 h-16 rounded-full bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 animate-float border border-white/20 dark:border-gray-700/30"
         aria-label="Open Bleepx assistant"
       >
-        <img
-          src="/bleepx-icon.svg"
-          alt="Bleepx"
-          className={`w-10 h-10 object-contain drop-shadow-md transition-transform duration-300 group-hover:rotate-6 ${moodClass}`}
-        />
+        <div className={`transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 ${moodClass}`}>
+          <Sprite />
+        </div>
         {!open && (
           <span className="absolute -top-1 -right-1 flex h-4 w-4">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
