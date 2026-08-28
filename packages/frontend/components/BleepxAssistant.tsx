@@ -32,11 +32,54 @@ const findJourneyGoal = (): string | null => {
   return null;
 };
 
+type ChatRole = 'user' | 'assistant';
+interface ChatMessage { role: ChatRole; text: string; }
+
+const QUICK_REPLIES = ['What is S3?', 'SQL JOIN help', 'EC2 vs Lambda', 'Cost-optimized storage'];
+
+const TOPIC_HINTS: Record<string, string> = {
+  'what is s3?': 'S3 is object storage. Use it for static files, data lakes, backups, and content distribution via CloudFront.',
+  'sql join help': 'SQL joins combine rows. INNER JOIN keeps matches, LEFT keeps all from the left, FULL keeps all rows, and CROSS gives the Cartesian product.',
+  'ec2 vs lambda': 'EC2 gives full control and long-running compute; Lambda is serverless, event-driven, and billed per request.',
+  'cost-optimized storage': 'For archives use S3 Glacier or Glacier Deep Archive. For logs, transition to Infrequent Access after a few days.',
+};
+
+function generateBleepxResponse(input: string, context: AssistantContext = 'general'): string {
+  const lower = input.toLowerCase();
+  if (lower.includes('s3') && lower.includes('glacier')) return 'S3 Glacier and Glacier Deep Archive are for rarely accessed long-term data. Restores take minutes to hours.';
+  if (lower.includes('s3')) return 'S3 stores objects in buckets. Choose storage classes based on access patterns: STANDARD for hot data, IA for infrequent, Glacier for archives.';
+  if (lower.includes('ec2') && (lower.includes('ebs') || lower.includes('disk'))) return 'EC2 instances use EBS for block storage or instance store for temporary storage. EBS is persistent and AZ-bound.';
+  if (lower.includes('ec2')) return 'EC2 provides virtual servers. Pick instance families by workload: compute (C), memory (R), general (M), or burstable (T).';
+  if (lower.includes('lambda')) return 'AWS Lambda runs code in response to events. It scales automatically and you only pay for invocation time.';
+  if (lower.includes('rds')) return 'RDS manages relational databases like MySQL, Postgres, and MariaDB. Use Multi-AZ for high availability and read replicas for scale.';
+  if (lower.includes('dynamodb') || lower.includes('dax')) return 'DynamoDB is a managed NoSQL key-value store. DAX is an in-memory cache for microsecond reads.';
+  if (lower.includes('vpc') || lower.includes('subnet')) return 'A VPC is your isolated network. Subnets are AZ-specific and route tables control traffic flow.';
+  if (lower.includes('iam') || lower.includes('role') || lower.includes('policy')) return 'IAM controls access. Prefer roles with temporary credentials, least privilege, and managed policies for common patterns.';
+  if (lower.includes('cloudfront')) return 'CloudFront is a CDN that caches content at edge locations to reduce latency and origin load.';
+  if (lower.includes('route 53') || lower.includes('route53')) return 'Route 53 is a DNS and domain registrar. Use it for routing policies, health checks, and failover.';
+  if (lower.includes('sns') || lower.includes('sqs')) return 'SNS is pub-sub messaging; SQS is a managed queue. Fan-out patterns use SNS to push to multiple SQS queues.';
+  if (lower.includes('join')) return 'A SQL JOIN merges tables. INNER returns matches, LEFT returns all left rows, RIGHT returns all right rows, FULL returns all rows from both.';
+  if (lower.includes('group by')) return 'GROUP BY aggregates rows. Use it with aggregate functions like COUNT, SUM, AVG, MAX, and MIN.';
+  if (lower.includes('window') || lower.includes('over')) return 'Window functions like ROW_NUMBER, RANK, and LEAD/LAG operate over a set of rows without collapsing them.';
+  if (lower.includes('cte') || lower.includes('with ')) return 'A CTE (WITH clause) defines a temporary result set for cleaner, reusable queries.';
+  if (lower.includes('python') || lower.includes('pandas')) return 'Pandas is the standard Python data manipulation library. Use DataFrames for tables, groupby for aggregation, and merge for joins.';
+  if (lower.includes('cost') || lower.includes('pricing')) return 'For cost savings, use Reserved Instances or Savings Plans for steady workloads, Spot for fault-tolerant batch, and right-size storage classes.';
+  if (lower.includes('secure') || lower.includes('security')) return 'Security pillars: least privilege IAM, encryption at rest and in transit, private subnets, CloudTrail logging, and regular security scans.';
+  if (lower.includes('resilien') || lower.includes('high availability')) return 'Build resilience with Multi-AZ, auto scaling, health checks, read replicas, and automated backups.';
+  if (lower.includes('machine learning') || lower.includes('ml')) return 'SageMaker builds, trains, and deploys ML models. Use S3 for data, ECR for containers, and Lambda for light inference endpoints.';
+  if (context === 'sql') return 'I can help with SELECT, JOINs, aggregates, window functions, and CTEs. What SQL topic are you working on?';
+  if (context === 'cloud') return 'Ask me about S3, EC2, Lambda, RDS, DynamoDB, VPC, IAM, CloudFront, or SAA scenarios.';
+  if (context === 'lab') return 'Lab work usually involves SQL, Python/pandas, and machine learning. Paste a code snippet or ask a concept.';
+  return "I'm Bleepx, your data and cloud assistant. Ask me about SQL, AWS, Python, or ML and I'll do my best to help.";
+}
+
 export default function BleepxAssistant({ context }: { context?: AssistantContext }) {
   const pathname = usePathname();
   const { completed, points } = useProgress();
   const [open, setOpen] = useState(false);
   const [mood, setMood] = useState<Mood>('idle');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState('');
 
   const hint = useMemo(() => {
     const exact = DEFAULT_HINTS[pathname];
@@ -55,10 +98,29 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const goal = findJourneyGoal();
   const completedCount = completed.size;
 
-  const message = useMemo(() => {
+  const greeting = useMemo(() => {
     const goalText = goal ? `Your current track: ${goal}. ` : '';
     return `${goalText}${hint.text}`;
   }, [goal, hint]);
+
+  const startChat = () => {
+    setMessages([{ role: 'assistant', text: greeting }]);
+  };
+
+  const send = (text: string) => {
+    if (!text.trim()) return;
+    setInput('');
+    setMessages((prev) => [...prev, { role: 'user', text: text.trim() }]);
+    setMood('think');
+    setTimeout(() => {
+      const reply = TOPIC_HINTS[text.toLowerCase().trim()] ?? generateBleepxResponse(text, context ?? 'general');
+      setMessages((prev) => [...prev, { role: 'assistant', text: reply }]);
+      setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle');
+      playBleep();
+    }, 700);
+  };
+
+  const handleQuick = (q: string) => send(q);
 
   const toggle = () => {
     setOpen((prev) => {
@@ -67,6 +129,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         playBleep();
         setMood('wave');
         setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 1200);
+        if (messages.length === 0) startChat();
       }
       return next;
     });
@@ -77,26 +140,55 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
       {open && (
-        <div className="relative w-80 sm:w-96 p-4 rounded-2xl bg-white dark:bg-gray-900 border-2 border-sky-300 dark:border-sky-700 shadow-2xl text-sm transform transition-all duration-300 origin-bottom-right">
+        <div className="relative w-80 sm:w-96 rounded-2xl bg-white dark:bg-gray-900 border-2 border-sky-300 dark:border-sky-700 shadow-2xl text-sm transform transition-all duration-300 origin-bottom-right overflow-hidden">
           {/* speech bubble tail */}
           <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-sky-300 dark:border-t-sky-700" />
-          <div className="flex items-start gap-3">
-            <div className="shrink-0 animate-bounce">
-              <BleepxWave size={36} />
+          <div className="p-4 border-b border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/10">
+            <div className="flex items-center gap-3">
+              <div className="shrink-0"><BleepxWave size={32} /></div>
+              <div className="flex-1">
+                <div className="font-extrabold text-bleepx-text flex items-center gap-2">Bleepx <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-600 font-bold">AI Assistant</span></div>
+                <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{completedCount} steps done · {points} pts</div>
+              </div>
+              <button onClick={() => setOpen(false)} className="text-xs text-bleepx-text-secondary hover:text-bleepx-text">Close</button>
             </div>
-            <div className="flex-1">
-              <div className="font-extrabold text-bleepx-text mb-1 flex items-center gap-2">Bleepx <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-600 font-bold">Assistant</span></div>
-              <p className="text-bleepx-text-secondary mb-3 leading-relaxed">{message}</p>
-              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mb-3">{completedCount} steps done · {points} pts</div>
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  href={hint.href}
-                  onClick={() => setOpen(false)}
-                  className="px-3 py-1.5 rounded-full bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 transition-colors"
-                >
-                  {hint.cta}
-                </Link>
-                <button onClick={() => setOpen(false)} className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Close</button>
+          </div>
+          <div className="h-72 flex flex-col">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {messages.map((m, i) => (
+                <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed ${m.role === 'user' ? 'bg-sky-600 text-white rounded-br-none' : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text rounded-bl-none'}`}>
+                    {m.text}
+                  </div>
+                </div>
+              ))}
+              {mood === 'think' && (
+                <div className="flex justify-start">
+                  <div className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 rounded-bl-none">
+                    <BleepxThink size={20} />
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex flex-wrap gap-2 mb-2">
+                {QUICK_REPLIES.map((q) => (
+                  <button key={q} onClick={() => handleQuick(q)} className="text-[10px] px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors">{q}</button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') send(input); }}
+                  placeholder="Ask Bleepx..."
+                  className="flex-1 px-3 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
+                <button onClick={() => send(input)} className="px-3 py-2 rounded-full bg-sky-600 text-white text-xs font-bold hover:bg-sky-700">Send</button>
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <Link href={hint.href} onClick={() => setOpen(false)} className="text-[10px] px-3 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">{hint.cta}</Link>
+                <button onClick={startChat} className="text-[10px] text-bleepx-text-secondary hover:text-bleepx-text underline">Clear chat</button>
               </div>
             </div>
           </div>
