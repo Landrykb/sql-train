@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BleepxGhost, BleepxWave, BleepxThink, BleepxCode } from '@/components/BleepxIcons';
 import { useProgress } from '@/lib/useProgress';
 import { playBleep } from '@/lib/audio';
 
@@ -135,7 +134,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     });
   };
 
-  const Sprite = mood === 'wave' ? BleepxWave : mood === 'think' ? BleepxThink : mood === 'code' ? BleepxCode : BleepxGhost;
+  const moodClass = mood === 'think' ? 'animate-pulse' : mood === 'wave' ? 'animate-bounce' : 'animate-float';
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
@@ -145,9 +144,11 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-sky-300 dark:border-t-sky-700" />
           <div className="p-4 border-b border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/10">
             <div className="flex items-center gap-3">
-              <div className="shrink-0"><BleepxWave size={32} /></div>
+              <div className="shrink-0 w-8 h-8 relative">
+                <img src="/bleepx-icon.svg" alt="Bleepx" className="w-full h-full object-contain" />
+              </div>
               <div className="flex-1">
-                <div className="font-extrabold text-bleepx-text flex items-center gap-2">Bleepx <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-600 font-bold">AI Assistant</span></div>
+                <div className="font-extrabold text-bleepx-text">Bleepx</div>
                 <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{completedCount} steps done · {points} pts</div>
               </div>
               <button onClick={() => setOpen(false)} className="text-xs text-bleepx-text-secondary hover:text-bleepx-text">Close</button>
@@ -165,7 +166,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               {mood === 'think' && (
                 <div className="flex justify-start">
                   <div className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 rounded-bl-none">
-                    <BleepxThink size={20} />
+                    <img src="/bleepx-icon.svg" alt="Bleepx" className="w-5 h-5 object-contain animate-pulse" />
                   </div>
                 </div>
               )}
@@ -201,7 +202,11 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         className="group relative w-16 h-16 rounded-full bg-gradient-to-br from-sky-500 to-teal-500 text-white shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 animate-float"
         aria-label="Open Bleepx assistant"
       >
-        <Sprite size={40} className="drop-shadow-md transition-transform duration-300 group-hover:rotate-6" />
+        <img
+          src="/bleepx-icon.svg"
+          alt="Bleepx"
+          className={`w-10 h-10 object-contain drop-shadow-md transition-transform duration-300 group-hover:rotate-6 ${moodClass}`}
+        />
         {!open && (
           <span className="absolute -top-1 -right-1 flex h-4 w-4">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
