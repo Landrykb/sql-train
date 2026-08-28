@@ -4,7 +4,7 @@ import { BLEEPX_BIO } from '@/lib/bleepxLore';
 
 const LLM_URL = process.env.LLM_API_URL ?? 'https://openrouter.ai/api/v1/chat/completions';
 const LLM_KEY = process.env.LLM_API_KEY ?? '';
-const LLM_MODEL = process.env.LLM_MODEL ?? 'qwen/qwen-2.5-3b-instruct';
+const LLM_MODEL = process.env.LLM_MODEL ?? 'meta-llama/llama-3.2-3b-instruct:free';
 const LLM_REFERER = process.env.LLM_REFERER ?? 'https://besa-sqlverse.com';
 const LLM_MAX_TOKENS = parseInt(process.env.LLM_MAX_TOKENS ?? '200', 10);
 const LLM_DISABLED = process.env.LLM_DISABLED === 'true';
