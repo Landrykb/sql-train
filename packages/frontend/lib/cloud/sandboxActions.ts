@@ -20,6 +20,8 @@ import type {
   InternetGateway,
   CloudEvent,
   CloudService,
+  RDSInstance,
+  RDSSnapshot,
 } from './sandbox';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -1080,4 +1082,167 @@ export function generateTerraformFromState(state: CloudSandboxState): string {
   }
 
   return lines.join('\n');
+}
+
+// ─── RDS actions ─────────────────────────────────────────────────────────────
+
+export function createRDSInstance(
+  state: CloudSandboxState,
+  dbInstanceIdentifier: string,
+  engine: 'mysql' | 'postgres' | 'mariadb' | 'sqlserver',
+  instanceClass: string,
+  allocatedStorage: number,
+  masterUsername: string,
+  masterPassword: string,
+  multiAZ: boolean = false,
+  storageEncrypted: boolean = false,
+  publiclyAccessible: boolean = false,
+  storageType: 'gp2' | 'gp3' | 'io1' = 'gp3',
+  backupRetentionPeriod: number = 7
+): CloudSandboxState {
+  if (state.rds.instances[dbInstanceIdentifier]) {
+    return event(state, 'rds', 'CreateDBInstance', dbInstanceIdentifier, 'failure', `DB instance already exists: ${dbInstanceIdentifier}`);
+  }
+  const azs = ['a', 'b', 'c'];
+  const primaryAz = `${state.activeRegion}${azs[Math.floor(Math.random() * azs.length)]}`;
+  const secondaryAz = multiAZ ? `${state.activeRegion}${azs[(azs.indexOf(primaryAz.slice(-1)) + 1) % azs.length]}` : undefined;
+
+  const instance = {
+    dbInstanceIdentifier,
+    engine,
+    instanceClass,
+    allocatedStorage,
+    masterUsername,
+    masterPassword,
+    multiAZ,
+    storageEncrypted,
+    publiclyAccessible,
+    status: 'available' as const,
+    endpoint: `${dbInstanceIdentifier}.abc123.${state.activeRegion}.rds.amazonaws.com:5432`,
+    backupRetentionPeriod,
+    storageType,
+    availabilityZone: primaryAz,
+    secondaryAvailabilityZone: secondaryAz,
+    snapshots: [],
+    createdAt: now(),
+  };
+
+  const concerns: string[] = [];
+  if (publiclyAccessible) concerns.push('publicly accessible');
+  if (!storageEncrypted) concerns.push('unencrypted storage');
+  if (!multiAZ && backupRetentionPeriod < 1) concerns.push('no backup/Multi-AZ');
+
+  const msg = concerns.length
+    ? `Created ${engine} instance ${dbInstanceIdentifier} (${instanceClass}). Warnings: ${concerns.join(', ')}.`
+    : `Created ${engine} instance ${dbInstanceIdentifier} (${instanceClass}) with ${multiAZ ? 'Multi-AZ' : 'Single-AZ'}, ${storageType}, ${backupRetentionPeriod} day backups.`;
+
+  return event(
+    { ...state, rds: { ...state.rds, instances: { ...state.rds.instances, [dbInstanceIdentifier]: instance } } },
+    'rds',
+    'CreateDBInstance',
+    dbInstanceIdentifier,
+    'success',
+    msg
+  );
+}
+
+export function createRDSSnapshot(
+  state: CloudSandboxState,
+  dbInstanceIdentifier: string,
+  snapshotIdentifier?: string
+): CloudSandboxState {
+  const instance = state.rds.instances[dbInstanceIdentifier];
+  if (!instance) {
+    return event(state, 'rds', 'CreateDBSnapshot', dbInstanceIdentifier, 'failure', `DB instance not found: ${dbInstanceIdentifier}`);
+  }
+  const snapId = snapshotIdentifier || `${dbInstanceIdentifier}-snapshot-${Math.random().toString(36).slice(2, 8)}`;
+  const snapshot: RDSSnapshot = {
+    dbSnapshotIdentifier: snapId,
+    dbInstanceIdentifier,
+    createdAt: now(),
+    status: 'available',
+    encrypted: instance.storageEncrypted,
+  };
+  const updated = {
+    ...instance,
+    snapshots: [...instance.snapshots, snapId],
+  };
+  return event(
+    { ...state, rds: { ...state.rds, instances: { ...state.rds.instances, [dbInstanceIdentifier]: updated }, snapshots: { ...state.rds.snapshots, [snapId]: snapshot } } },
+    'rds',
+    'CreateDBSnapshot',
+    snapId,
+    'success',
+    `Created manual snapshot ${snapId} for ${dbInstanceIdentifier}`
+  );
+}
+
+export function restoreRDSInstanceFromSnapshot(
+  state: CloudSandboxState,
+  snapshotIdentifier: string,
+  newInstanceIdentifier: string
+): CloudSandboxState {
+  const snapshot = state.rds.snapshots[snapshotIdentifier];
+  if (!snapshot) {
+    return event(state, 'rds', 'RestoreDBInstanceFromSnapshot', snapshotIdentifier, 'failure', `Snapshot not found: ${snapshotIdentifier}`);
+  }
+  if (state.rds.instances[newInstanceIdentifier]) {
+    return event(state, 'rds', 'RestoreDBInstanceFromSnapshot', newInstanceIdentifier, 'failure', `Instance already exists: ${newInstanceIdentifier}`);
+  }
+  const source = state.rds.instances[snapshot.dbInstanceIdentifier];
+  const instance: RDSInstance = {
+    ...source,
+    dbInstanceIdentifier: newInstanceIdentifier,
+    status: 'available',
+    snapshots: [],
+    createdAt: now(),
+  };
+  return event(
+    { ...state, rds: { ...state.rds, instances: { ...state.rds.instances, [newInstanceIdentifier]: instance } } },
+    'rds',
+    'RestoreDBInstanceFromSnapshot',
+    newInstanceIdentifier,
+    'success',
+    `Restored ${newInstanceIdentifier} from snapshot ${snapshotIdentifier}`
+  );
+}
+
+export function modifyRDSInstance(
+  state: CloudSandboxState,
+  dbInstanceIdentifier: string,
+  changes: Partial<Pick<RDSInstance, 'multiAZ' | 'storageEncrypted' | 'publiclyAccessible' | 'backupRetentionPeriod' | 'instanceClass' | 'allocatedStorage' | 'storageType'>>
+): CloudSandboxState {
+  const instance = state.rds.instances[dbInstanceIdentifier];
+  if (!instance) {
+    return event(state, 'rds', 'ModifyDBInstance', dbInstanceIdentifier, 'failure', `DB instance not found: ${dbInstanceIdentifier}`);
+  }
+  const updated: RDSInstance = { ...instance, ...changes };
+  const changed = Object.keys(changes).join(', ');
+  return event(
+    { ...state, rds: { ...state.rds, instances: { ...state.rds.instances, [dbInstanceIdentifier]: updated } } },
+    'rds',
+    'ModifyDBInstance',
+    dbInstanceIdentifier,
+    'success',
+    `Modified ${dbInstanceIdentifier}: ${changed}`
+  );
+}
+
+export function deleteRDSInstance(
+  state: CloudSandboxState,
+  dbInstanceIdentifier: string
+): CloudSandboxState {
+  const instances = { ...state.rds.instances };
+  if (!instances[dbInstanceIdentifier]) {
+    return event(state, 'rds', 'DeleteDBInstance', dbInstanceIdentifier, 'failure', `DB instance not found: ${dbInstanceIdentifier}`);
+  }
+  delete instances[dbInstanceIdentifier];
+  return event(
+    { ...state, rds: { ...state.rds, instances } },
+    'rds',
+    'DeleteDBInstance',
+    dbInstanceIdentifier,
+    'success',
+    `Deleted RDS instance ${dbInstanceIdentifier}`
+  );
 }

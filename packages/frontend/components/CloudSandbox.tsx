@@ -34,6 +34,11 @@ import {
   queryDynamoDB,
   createLambdaFunction,
   invokeLambda,
+  createRDSInstance,
+  createRDSSnapshot,
+  modifyRDSInstance,
+  deleteRDSInstance,
+  restoreRDSInstanceFromSnapshot,
   scanSecurityPosture,
   generateTerraformFromState,
   EC2_INSTANCE_SIZES,
@@ -52,7 +57,7 @@ interface CloudSandboxProps {
 
 export default function CloudSandbox({ mission, onComplete, freePlay, initialState, onStateChange }: CloudSandboxProps) {
   const [state, setState] = useState<CloudSandboxState>(initialState || createEmptySandboxState());
-  const [activeTab, setActiveTab] = useState<'s3' | 'iam' | 'ec2' | 'vpc' | 'dynamodb' | 'lambda' | 'terraform' | 'security' | 'events'>('s3');
+  const [activeTab, setActiveTab] = useState<'s3' | 'iam' | 'ec2' | 'vpc' | 'dynamodb' | 'rds' | 'lambda' | 'terraform' | 'security' | 'events'>('s3');
   const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState<{ text: string; type: 'info' | 'success' | 'error' } | null>(null);
 
@@ -111,7 +116,7 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
       )}
 
       <div className="flex gap-1 overflow-x-auto pb-1">
-        {(['s3', 'iam', 'ec2', 'vpc', 'dynamodb', 'lambda', 'terraform', 'security', 'events'] as const).map((tab) => (
+        {(['s3', 'iam', 'ec2', 'vpc', 'dynamodb', 'rds', 'lambda', 'terraform', 'security', 'events'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -129,6 +134,7 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
       {activeTab === 'ec2' && <EC2Panel state={state} onAction={applyAction} />}
       {activeTab === 'vpc' && <VPCPanel state={state} onAction={applyAction} />}
       {activeTab === 'dynamodb' && <DynamoDBPanel state={state} onAction={applyAction} />}
+      {activeTab === 'rds' && <RDSPanel state={state} onAction={applyAction} />}
       {activeTab === 'lambda' && <LambdaPanel state={state} onAction={applyAction} onInvoke={invokeLambdaHandler} />}
       {activeTab === 'terraform' && <TerraformPanel state={state} onAction={applyAction} />}
       {activeTab === 'security' && <SecurityPanel state={state} />}
@@ -751,6 +757,102 @@ function SecurityPanel({ state }: { state: CloudSandboxState }) {
           <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-bold">No findings — your sandbox is looking secure.</div>
         )}
       </div>
+    </div>
+  );
+}
+
+function RDSPanel({ state, onAction }: { state: CloudSandboxState; onAction: (s: CloudSandboxState) => void }) {
+  const [id, setId] = useState('');
+  const [engine, setEngine] = useState<'mysql' | 'postgres' | 'mariadb' | 'sqlserver'>('postgres');
+  const [instanceClass, setInstanceClass] = useState('db.t3.micro');
+  const [storage, setStorage] = useState(20);
+  const [user, setUser] = useState('admin');
+  const [password, setPassword] = useState('BleepxRDS2026!');
+  const [multiAZ, setMultiAZ] = useState(false);
+  const [encrypted, setEncrypted] = useState(false);
+  const [publicly, setPublicly] = useState(false);
+
+  const engines: Array<'mysql' | 'postgres' | 'mariadb' | 'sqlserver'> = ['mysql', 'postgres', 'mariadb', 'sqlserver'];
+  const classes = ['db.t3.micro', 'db.t3.small', 'db.t3.medium', 'db.t3.large', 'db.r5.large'];
+
+  const handleCreate = () => {
+    if (!id) return;
+    onAction(createRDSInstance(state, id, engine, instanceClass, storage, user, password, multiAZ, encrypted, publicly));
+    setId('');
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
+        <h3 className="text-sm font-bold text-bleepx-text mb-3">Launch a DB Instance</h3>
+        <div className="grid sm:grid-cols-2 gap-3 mb-3">
+          <input value={id} onChange={(e) => setId(e.target.value)} placeholder="DB instance identifier" className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
+          <select value={engine} onChange={(e) => setEngine(e.target.value as any)} className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm">
+            {engines.map((en) => <option key={en} value={en}>{en}</option>)}
+          </select>
+          <select value={instanceClass} onChange={(e) => setInstanceClass(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm">
+            {classes.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <input type="number" min={5} value={storage} onChange={(e) => setStorage(parseInt(e.target.value || '0'))} className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" placeholder="Storage GB" />
+          <input value={user} onChange={(e) => setUser(e.target.value)} placeholder="Master username" className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
+          <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Master password" className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
+        </div>
+        <div className="flex flex-wrap gap-4 mb-3 text-sm">
+          <label className="flex items-center gap-2"><input type="checkbox" checked={multiAZ} onChange={(e) => setMultiAZ(e.target.checked)} className="w-4 h-4 text-sky-600" /> Multi-AZ</label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={encrypted} onChange={(e) => setEncrypted(e.target.checked)} className="w-4 h-4 text-sky-600" /> Storage encrypted</label>
+          <label className="flex items-center gap-2 text-rose-700 dark:text-rose-300"><input type="checkbox" checked={publicly} onChange={(e) => setPublicly(e.target.checked)} className="w-4 h-4 text-rose-600" /> Publicly accessible</label>
+        </div>
+        <button onClick={handleCreate} disabled={!id} className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-bold hover:bg-sky-700 disabled:opacity-50">Create DB Instance</button>
+      </div>
+
+      {Object.keys(state.rds.instances).length > 0 && (
+        <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm space-y-3">
+          <h3 className="text-sm font-bold text-bleepx-text">DB Instances</h3>
+          {Object.values(state.rds.instances).map((db) => (
+            <div key={db.dbInstanceIdentifier} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-sm space-y-1">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="font-bold text-bleepx-text">{db.dbInstanceIdentifier}</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${db.status === 'available' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{db.status}</span>
+              </div>
+              <div className="text-xs text-bleepx-text-secondary grid sm:grid-cols-2 gap-1">
+                <span>Engine: {db.engine} {db.instanceClass}</span>
+                <span>Storage: {db.allocatedStorage} GB {db.storageType}</span>
+                <span>AZ: {db.availabilityZone} {db.multiAZ && db.secondaryAvailabilityZone ? `↔ ${db.secondaryAvailabilityZone}` : ''}</span>
+                <span>Endpoint: <span className="font-mono text-[10px]">{db.endpoint}</span></span>
+                <span>Multi-AZ: {db.multiAZ ? 'Yes' : 'No'} | Encrypted: {db.storageEncrypted ? 'Yes' : 'No'} | Public: {db.publiclyAccessible ? 'Yes' : 'No'}</span>
+                <span>Backups: {db.backupRetentionPeriod} days</span>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <button onClick={() => onAction(createRDSSnapshot(state, db.dbInstanceIdentifier))} className="text-[10px] px-2.5 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">Create Snapshot</button>
+                <button onClick={() => onAction(modifyRDSInstance(state, db.dbInstanceIdentifier, { multiAZ: !db.multiAZ }))} className="text-[10px] px-2.5 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">Toggle Multi-AZ</button>
+                <button onClick={() => onAction(modifyRDSInstance(state, db.dbInstanceIdentifier, { storageEncrypted: !db.storageEncrypted }))} className="text-[10px] px-2.5 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">Toggle Encryption</button>
+                <button onClick={() => onAction(deleteRDSInstance(state, db.dbInstanceIdentifier))} className="text-[10px] px-2.5 py-1.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 font-bold hover:bg-rose-200 transition-colors">Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {Object.keys(state.rds.snapshots).length > 0 && (
+        <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
+          <h3 className="text-sm font-bold text-bleepx-text mb-3">Manual Snapshots</h3>
+          <div className="grid sm:grid-cols-2 gap-2">
+            {Object.values(state.rds.snapshots).map((snap) => (
+              <div key={snap.dbSnapshotIdentifier} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-xs">
+                <strong className="text-bleepx-text">{snap.dbSnapshotIdentifier}</strong>
+                <p className="text-bleepx-text-secondary">Source: {snap.dbInstanceIdentifier}</p>
+                <p className="text-bleepx-text-secondary">Encrypted: {snap.encrypted ? 'Yes' : 'No'} | {new Date(snap.createdAt).toLocaleString()}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {Object.keys(state.rds.instances).length === 0 && (
+        <div className="p-4 rounded-xl bg-sky-50 dark:bg-sky-900/10 border border-sky-200 dark:border-sky-800 text-sm text-sky-700 dark:text-sky-300">
+          <strong>RDS on the exam:</strong> Multi-AZ is for availability, read replicas are for scale, snapshots are for point-in-time recovery, and encryption is for security. Try creating an instance with each combination.
+        </div>
+      )}
     </div>
   );
 }

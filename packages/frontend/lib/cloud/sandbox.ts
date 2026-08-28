@@ -7,7 +7,7 @@
 //
 // Supported services: S3, IAM, EC2, VPC, Lambda (simplified), DynamoDB (basic)
 
-export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'terraform' | 'security';
+export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'terraform' | 'security';
 
 // ─── S3 ──────────────────────────────────────────────────────────────────────
 
@@ -195,6 +195,36 @@ export interface DynamoDBTable {
   encrypted: boolean;
 }
 
+// ─── RDS ─────────────────────────────────────────────────────────────────────
+
+export interface RDSInstance {
+  dbInstanceIdentifier: string;
+  engine: 'mysql' | 'postgres' | 'mariadb' | 'sqlserver';
+  instanceClass: string;
+  allocatedStorage: number;
+  masterUsername: string;
+  masterPassword: string;
+  multiAZ: boolean;
+  storageEncrypted: boolean;
+  publiclyAccessible: boolean;
+  status: 'creating' | 'available' | 'deleting' | 'failed';
+  endpoint: string;
+  backupRetentionPeriod: number;
+  storageType: 'gp2' | 'gp3' | 'io1';
+  availabilityZone: string;
+  secondaryAvailabilityZone?: string;
+  snapshots: string[];
+  createdAt: string;
+}
+
+export interface RDSSnapshot {
+  dbSnapshotIdentifier: string;
+  dbInstanceIdentifier: string;
+  createdAt: string;
+  status: 'creating' | 'available' | 'copying';
+  encrypted: boolean;
+}
+
 // ─── Lambda ──────────────────────────────────────────────────────────────────
 
 export interface LambdaFunction {
@@ -241,6 +271,10 @@ export interface CloudSandboxState {
   dynamodb: {
     tables: Record<string, DynamoDBTable>;
   };
+  rds: {
+    instances: Record<string, RDSInstance>;
+    snapshots: Record<string, RDSSnapshot>;
+  };
   events: CloudEvent[];
 }
 
@@ -281,6 +315,7 @@ export function createEmptySandboxState(): CloudSandboxState {
     vpc: { vpcs: {}, subnets: {}, securityGroups: {}, routeTables: {}, internetGateways: {} },
     lambda: { functions: {} },
     dynamodb: { tables: {} },
+    rds: { instances: {}, snapshots: {} },
     events: [],
   };
 }
