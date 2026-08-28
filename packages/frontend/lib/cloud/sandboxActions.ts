@@ -30,6 +30,9 @@ import type {
   CloudWatchAlarm,
   Route53HostedZone,
   Route53Record,
+  CloudFrontDistribution,
+  CloudFrontCacheBehavior,
+  CloudFrontOrigin,
 } from './sandbox';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -1545,5 +1548,111 @@ export function deleteRoute53Record(
     recordName,
     'success',
     `Deleted record ${recordName} from ${zone.name}`
+  );
+}
+
+// ─── CloudFront actions ───────────────────────────────────────────────────────
+
+function makeCloudFrontDomain(id: string): string {
+  return `${id.slice(0, 13).toLowerCase()}.cloudfront.net`;
+}
+
+export function createCloudFrontDistribution(
+  state: CloudSandboxState,
+  origin: CloudFrontOrigin,
+  aliases: string[] = [],
+  defaultRootObject: string = 'index.html',
+  priceClass: 'PriceClass_All' | 'PriceClass_100' | 'PriceClass_200' = 'PriceClass_All'
+): CloudSandboxState {
+  const id = `E${Math.random().toString(36).slice(2, 15)}`;
+  const defaultCache: CloudFrontCacheBehavior = {
+    pathPattern: '*',
+    viewerProtocolPolicy: 'redirect-to-https',
+    allowedMethods: ['GET', 'HEAD', 'OPTIONS'],
+    cachedMethods: ['GET', 'HEAD'],
+    minTTL: 0,
+    defaultTTL: 86400,
+    maxTTL: 31536000,
+    forwardedValues: { queryString: false, cookies: 'none', headers: [] },
+  };
+  const dist: CloudFrontDistribution = {
+    id,
+    domainName: makeCloudFrontDomain(id),
+    origins: [origin],
+    defaultCacheBehavior: defaultCache,
+    cacheBehaviors: {},
+    enabled: true,
+    priceClass,
+    aliases,
+    defaultRootObject,
+    comment: 'Managed by BleepxCloud',
+    status: 'Deployed',
+    invalidations: [],
+  };
+  return event(
+    { ...state, cloudfront: { ...state.cloudfront, distributions: { ...state.cloudfront.distributions, [id]: dist } } },
+    'cloudfront',
+    'CreateDistribution',
+    id,
+    'success',
+    `Created CloudFront distribution ${id} -> ${origin.domainName} (${dist.domainName})`
+  );
+}
+
+export function createCloudFrontCacheBehavior(
+  state: CloudSandboxState,
+  distributionId: string,
+  pathPattern: string,
+  behavior: Partial<CloudFrontCacheBehavior>
+): CloudSandboxState {
+  const dist = state.cloudfront.distributions[distributionId];
+  if (!dist) return event(state, 'cloudfront', 'UpdateDistribution', distributionId, 'failure', `Distribution not found: ${distributionId}`);
+  const updated: CloudFrontDistribution = {
+    ...dist,
+    cacheBehaviors: { ...dist.cacheBehaviors, [pathPattern]: { ...dist.defaultCacheBehavior, ...behavior, pathPattern } },
+  };
+  return event(
+    { ...state, cloudfront: { ...state.cloudfront, distributions: { ...state.cloudfront.distributions, [distributionId]: updated } } },
+    'cloudfront',
+    'UpdateDistribution',
+    `${distributionId}:${pathPattern}`,
+    'success',
+    `Created cache behavior ${pathPattern} for distribution ${distributionId}`
+  );
+}
+
+export function createCloudFrontInvalidation(
+  state: CloudSandboxState,
+  distributionId: string,
+  paths: string[]
+): CloudSandboxState {
+  const dist = state.cloudfront.distributions[distributionId];
+  if (!dist) return event(state, 'cloudfront', 'CreateInvalidation', distributionId, 'failure', `Distribution not found: ${distributionId}`);
+  const updated: CloudFrontDistribution = { ...dist, invalidations: [...dist.invalidations, ...paths] };
+  return event(
+    { ...state, cloudfront: { ...state.cloudfront, distributions: { ...state.cloudfront.distributions, [distributionId]: updated } } },
+    'cloudfront',
+    'CreateInvalidation',
+    distributionId,
+    'success',
+    `Invalidated ${paths.length} paths on ${distributionId}`
+  );
+}
+
+export function updateCloudFrontDistribution(
+  state: CloudSandboxState,
+  distributionId: string,
+  updates: Partial<Pick<CloudFrontDistribution, 'enabled' | 'priceClass' | 'defaultRootObject'>>
+): CloudSandboxState {
+  const dist = state.cloudfront.distributions[distributionId];
+  if (!dist) return event(state, 'cloudfront', 'UpdateDistribution', distributionId, 'failure', `Distribution not found: ${distributionId}`);
+  const updated: CloudFrontDistribution = { ...dist, ...updates };
+  return event(
+    { ...state, cloudfront: { ...state.cloudfront, distributions: { ...state.cloudfront.distributions, [distributionId]: updated } } },
+    'cloudfront',
+    'UpdateDistribution',
+    distributionId,
+    'success',
+    `Updated distribution ${distributionId}`
   );
 }

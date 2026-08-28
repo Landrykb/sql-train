@@ -7,7 +7,7 @@
 //
 // Supported services: S3, IAM, EC2, VPC, Lambda (simplified), DynamoDB (basic)
 
-export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'terraform' | 'security';
+export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'terraform' | 'security';
 
 // ─── S3 ──────────────────────────────────────────────────────────────────────
 
@@ -307,6 +307,42 @@ export interface Route53HostedZone {
   vpcId?: string;
 }
 
+// ─── CloudFront ───────────────────────────────────────────────────────────────
+
+export interface CloudFrontOrigin {
+  id: string;
+  domainName: string;
+  type: 's3' | 'custom' | 'elb';
+  originAccessIdentity?: boolean;
+}
+
+export interface CloudFrontCacheBehavior {
+  pathPattern: string;
+  viewerProtocolPolicy: 'allow-all' | 'https-only' | 'redirect-to-https';
+  allowedMethods: string[];
+  cachedMethods: string[];
+  minTTL: number;
+  defaultTTL: number;
+  maxTTL: number;
+  forwardedValues: { queryString: boolean; cookies: 'all' | 'none' | 'whitelist'; headers?: string[] };
+}
+
+export interface CloudFrontDistribution {
+  id: string;
+  domainName: string; // xxxx.cloudfront.net
+  origins: CloudFrontOrigin[];
+  defaultCacheBehavior: CloudFrontCacheBehavior;
+  cacheBehaviors: Record<string, CloudFrontCacheBehavior>;
+  enabled: boolean;
+  priceClass: 'PriceClass_All' | 'PriceClass_100' | 'PriceClass_200';
+  aliases: string[];
+  defaultRootObject: string;
+  comment: string;
+  status: 'InProgress' | 'Deployed';
+  invalidations: string[];
+  httpsCertificate?: string;
+}
+
 // ─── CloudWatch ───────────────────────────────────────────────────────────────
 
 export interface CloudWatchAlarm {
@@ -387,6 +423,9 @@ export interface CloudSandboxState {
   route53: {
     hostedZones: Record<string, Route53HostedZone>;
   };
+  cloudfront: {
+    distributions: Record<string, CloudFrontDistribution>;
+  };
   events: CloudEvent[];
 }
 
@@ -433,6 +472,7 @@ export function createEmptySandboxState(): CloudSandboxState {
     kms: { keys: {} },
     cloudwatch: { alarms: {} },
     route53: { hostedZones: {} },
+    cloudfront: { distributions: {} },
     events: [],
   };
 }
