@@ -229,16 +229,20 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     const ballSize = Math.max(24, size - 8);
     return (
       <div
-        className={`rounded-full ${moodClass}`}
+        className={`rounded-full ${moodClass} flex items-center justify-center border border-cyan-400/40`}
         style={{
           width: ballSize,
           height: ballSize,
-          background: 'radial-gradient(circle at 30% 30%, #57ECF4 0%, #0EA5E9 45%, #1C2129 95%)',
-          boxShadow: 'inset -4px -4px 8px rgba(0,0,0,0.4), inset 4px 4px 8px rgba(255,255,255,0.2), 0 0 12px rgba(87,236,244,0.5)',
+          background: 'radial-gradient(circle at 30% 30%, #2a2f3a 0%, #0f1115 50%, #000000 100%)',
+          boxShadow: 'inset -4px -4px 8px rgba(0,0,0,0.8), inset 4px 4px 8px rgba(255,255,255,0.05), 0 0 12px rgba(34,211,238,0.45)',
           filter: spriteFilter,
           transformStyle: 'preserve-3d',
         }}
-      />
+      >
+        <span className="font-mono text-cyan-400 font-bold select-none" style={{ fontSize: Math.max(10, ballSize * 0.45) }}>
+          {'{ }'}
+        </span>
+      </div>
     );
   };
 
