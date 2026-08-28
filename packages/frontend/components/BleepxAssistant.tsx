@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useProgress } from '@/lib/useProgress';
 import { playBleep } from '@/lib/audio';
 import { lintInput, BleepxHint } from '@/lib/bleepxLinter';
-import { BleepxGhost, BleepxWave, BleepxThink, BleepxCode, BleepxLock, BleepxTrophy, BleepxHead, BleepxSignal, BleepxSpark } from '@/components/BleepxIcons';
+
 
 type AssistantContext = 'home' | 'sql' | 'lab' | 'cloud' | 'journey' | 'general';
 
@@ -142,31 +142,34 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
   const moodClass = mood === 'think' ? 'animate-pulse' : mood === 'wave' ? 'animate-bounce' : mood === 'success' ? 'animate-bounce' : mood === 'error' ? 'animate-pulse' : 'animate-float';
 
-  const Sprite = () => {
+  const spriteFilter = (() => {
     switch (mood) {
-      case 'wave':
-        return <BleepxWave size={44} className="drop-shadow-lg" />;
-      case 'think':
-        return <BleepxThink size={44} className="drop-shadow-lg" />;
-      case 'code':
-        return <BleepxCode size={44} className="drop-shadow-lg" />;
-      case 'chat':
-        return <BleepxHead size={44} className="drop-shadow-lg" />;
       case 'error':
-        return <BleepxLock size={44} className="drop-shadow-lg" />;
+        return 'drop-shadow(0 0 8px rgba(244,63,94,0.7)) grayscale(0.3)';
       case 'success':
-        return <BleepxTrophy size={44} className="drop-shadow-lg" />;
+        return 'drop-shadow(0 0 8px rgba(34,197,94,0.7)) contrast(1.2)';
+      case 'code':
+        return 'drop-shadow(0 0 8px rgba(14,165,233,0.7))';
       case 'signal':
-        return (
-          <div className="relative">
-            <BleepxGhost size={44} className="drop-shadow-lg" />
-            <BleepxSignal size={20} className="absolute -top-1 -right-1 text-teal-400 animate-ping" />
-          </div>
-        );
+        return 'drop-shadow(0 0 8px rgba(45,212,191,0.7))';
+      case 'wave':
+      case 'chat':
+        return 'drop-shadow(0 0 6px rgba(87,236,244,0.7))';
       default:
-        return <BleepxGhost size={44} className="drop-shadow-lg" />;
+        return 'drop-shadow(0 0 6px rgba(87,236,244,0.4))';
     }
-  };
+  })();
+
+  const Sprite = ({ size = 44 }: { size?: number }) => (
+    <img
+      src="/bleepx-icon.png"
+      alt="Bleepx"
+      width={size}
+      height={size}
+      className="object-contain"
+      style={{ filter: spriteFilter }}
+    />
+  );
 
   const isEditable = (el: EventTarget | null): el is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement => {
     if (!(el instanceof HTMLElement)) return false;
@@ -181,6 +184,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     }
     const text = hint.message + (hint.fix ? `\n\nFix: ${hint.fix}` : '') + (hint.snippet ? `\n\nExample:\n\`${hint.snippet}\`` : '');
     if (lastHintText.current !== text) {
+      playBleep();
       setMessages((prev) => [...prev, { role: 'assistant', text }]);
       lastHintText.current = text;
     }
@@ -257,7 +261,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           <div className="p-4 border-b border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/10">
             <div className="flex items-center gap-3">
               <div className="shrink-0 w-10 h-10 relative">
-                {mood === 'error' ? <BleepxLock size={40} className="drop-shadow-md" /> : mood === 'success' ? <BleepxTrophy size={40} className="drop-shadow-md" /> : <BleepxHead size={40} className="drop-shadow-md" />}
+                <Sprite size={40} />
               </div>
               <div className="flex-1">
                 <div className="font-extrabold text-bleepx-text">Bleepx</div>
@@ -266,7 +270,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               <button onClick={() => setOpen(false)} className="text-xs text-bleepx-text-secondary hover:text-bleepx-text">Close</button>
             </div>
           </div>
-          <div className="h-72 flex flex-col">
+          <div className="h-72 flex flex-col relative">
+            <img src="/bleepx-logo.png" alt="" className="absolute right-4 top-20 w-20 h-20 opacity-5 pointer-events-none" />
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -278,7 +283,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               {mood === 'think' && (
                 <div className="flex justify-start">
                   <div className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 rounded-bl-none">
-                    <BleepxThink size={24} className="animate-pulse" />
+                    <img src="/bleepx-icon.png" alt="Bleepx" width={28} height={28} className="object-contain animate-pulse" style={{ filter: 'drop-shadow(0 0 6px rgba(87,236,244,0.5))' }} />
                   </div>
                 </div>
               )}
