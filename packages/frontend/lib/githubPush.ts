@@ -19,11 +19,17 @@ interface PushResult {
 
 const GITHUB_API = 'https://api.github.com';
 
+function toBase64(content: string) {
+  const bytes = new TextEncoder().encode(content);
+  const binary = Array.from(bytes, (b) => String.fromCharCode(b)).join('');
+  return btoa(binary);
+}
+
 async function ghFetch(path: string, token: string, options: RequestInit = {}) {
   const res = await fetch(`${GITHUB_API}${path}`, {
     ...options,
     headers: {
-      Authorization: `token ${token}`,
+      Authorization: `Bearer ${token}`,
       Accept: 'application/vnd.github.v3+json',
       'Content-Type': 'application/json',
       ...(options.headers || {}),
@@ -48,7 +54,8 @@ async function ensureRepo(token: string, repoName: string): Promise<string> {
       name: repoName,
       description: 'SQL Analytics Portfolio — BleepxQuery SwiftLink Training Program',
       private: false,
-      auto_init: false,
+      auto_init: true,
+      default_branch: 'main',
     }),
   });
   if (!create.ok) {
@@ -60,8 +67,8 @@ async function ensureRepo(token: string, repoName: string): Promise<string> {
 
 /** Push a single file to a repo (create or update) */
 async function pushFile(token: string, repo: string, filePath: string, content: string, message: string): Promise<void> {
-  // Check if file exists to get its SHA (needed for updates)
-  const existing = await ghFetch(`/repos/${repo}/contents/${filePath}`, token);
+  // Check if file exists on main to get its SHA (needed for updates)
+  const existing = await ghFetch(`/repos/${repo}/contents/${filePath}?ref=main`, token);
   let sha: string | undefined;
   if (existing.ok) {
     const data = await existing.json();
@@ -70,7 +77,8 @@ async function pushFile(token: string, repo: string, filePath: string, content: 
 
   const body: any = {
     message,
-    content: btoa(unescape(encodeURIComponent(content))),
+    content: toBase64(content),
+    branch: 'main',
   };
   if (sha) body.sha = sha;
 
