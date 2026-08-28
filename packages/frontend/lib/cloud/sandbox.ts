@@ -7,7 +7,7 @@
 //
 // Supported services: S3, IAM, EC2, VPC, Lambda (simplified), DynamoDB (basic)
 
-export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'secretsmanager' | 'terraform' | 'security';
+export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'secretsmanager' | 'elasticache' | 'terraform' | 'security';
 
 // ─── S3 ──────────────────────────────────────────────────────────────────────
 
@@ -360,6 +360,23 @@ export interface SecretsManagerSecret {
   lastRotated?: string;
 }
 
+// ─── ElastiCache ───────────────────────────────────────────────────────────────
+
+export type CacheEngine = 'redis' | 'memcached';
+
+export interface ElastiCacheCluster {
+  cacheClusterId: string;
+  engine: CacheEngine;
+  engineVersion: string;
+  cacheNodeType: string;
+  numCacheNodes: number;
+  preferredAvailabilityZone: string;
+  securityGroupIds: string[];
+  cacheSubnetGroupName: string;
+  endpoint: string;
+  status: 'creating' | 'available' | 'modifying' | 'deleting';
+}
+
 // ─── CloudWatch ───────────────────────────────────────────────────────────────
 
 export interface CloudWatchAlarm {
@@ -446,6 +463,9 @@ export interface CloudSandboxState {
   secretsmanager: {
     secrets: Record<string, SecretsManagerSecret>;
   };
+  elasticache: {
+    clusters: Record<string, ElastiCacheCluster>;
+  };
   events: CloudEvent[];
 }
 
@@ -494,6 +514,7 @@ export function createEmptySandboxState(): CloudSandboxState {
     route53: { hostedZones: {} },
     cloudfront: { distributions: {} },
     secretsmanager: { secrets: {} },
+    elasticache: { clusters: {} },
     events: [],
   };
 }

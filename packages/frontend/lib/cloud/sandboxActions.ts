@@ -34,6 +34,8 @@ import type {
   CloudFrontCacheBehavior,
   CloudFrontOrigin,
   SecretsManagerSecret,
+  ElastiCacheCluster,
+  CacheEngine,
 } from './sandbox';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -1730,5 +1732,58 @@ export function deleteSecret(
     name,
     'success',
     `Deleted secret ${name}`
+  );
+}
+
+// ─── ElastiCache actions ─────────────────────────────────────────────────────
+
+export function createElastiCacheCluster(
+  state: CloudSandboxState,
+  cacheClusterId: string,
+  engine: CacheEngine = 'redis',
+  cacheNodeType: string = 'cache.t3.micro',
+  numCacheNodes: number = 1,
+  securityGroupIds: string[] = [],
+  cacheSubnetGroupName: string = 'default',
+  availabilityZone: string = 'us-east-1a'
+): CloudSandboxState {
+  if (state.elasticache.clusters[cacheClusterId]) {
+    return event(state, 'elasticache', 'CreateCacheCluster', cacheClusterId, 'failure', `Cache cluster already exists: ${cacheClusterId}`);
+  }
+  const cluster: ElastiCacheCluster = {
+    cacheClusterId,
+    engine,
+    engineVersion: engine === 'redis' ? '7.0' : '1.6',
+    cacheNodeType,
+    numCacheNodes,
+    securityGroupIds,
+    cacheSubnetGroupName,
+    preferredAvailabilityZone: availabilityZone,
+    endpoint: `${cacheClusterId}.abc123.0001.use1.cache.amazonaws.com:6379`,
+    status: 'creating',
+  };
+  const withCluster = {
+    ...state,
+    elasticache: { ...state.elasticache, clusters: { ...state.elasticache.clusters, [cacheClusterId]: cluster } },
+  };
+  const available = { ...withCluster, elasticache: { ...withCluster.elasticache, clusters: { ...withCluster.elasticache.clusters, [cacheClusterId]: { ...cluster, status: 'available' as const } } } };
+  return event(available, 'elasticache', 'CreateCacheCluster', cacheClusterId, 'success', `Created ${engine} cluster ${cacheClusterId} (${cacheNodeType} x ${numCacheNodes})`);
+}
+
+export function deleteElastiCacheCluster(
+  state: CloudSandboxState,
+  cacheClusterId: string
+): CloudSandboxState {
+  const cluster = state.elasticache.clusters[cacheClusterId];
+  if (!cluster) return event(state, 'elasticache', 'DeleteCacheCluster', cacheClusterId, 'failure', `Cache cluster not found: ${cacheClusterId}`);
+  const updated = { ...cluster, status: 'deleting' as const };
+  const { [cacheClusterId]: _, ...rest } = state.elasticache.clusters;
+  return event(
+    { ...state, elasticache: { ...state.elasticache, clusters: { ...rest } } },
+    'elasticache',
+    'DeleteCacheCluster',
+    cacheClusterId,
+    'success',
+    `Deleted cache cluster ${cacheClusterId}`
   );
 }
