@@ -295,21 +295,59 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       }
     }
     setMood('think');
-    setMessages((prev) => [...prev, { role: 'assistant', text: voice.thinking(displayName) }]);
-    setTimeout(() => {
-      const known = TOPIC_HINTS[lower] ?? voice.known(text, context ?? 'general');
-      const isKnown = known !== null;
-      let nextMood: Mood = 'chat';
-      if (isKnown) nextMood = 'success';
-      else if (lower.includes('github')) nextMood = 'github';
-      else if (lower.includes('git')) nextMood = 'git';
-      else if (lower.includes('hello') || lower.includes('hi ')) nextMood = 'face';
-      const final = known ? voice.signOff(known, displayName) : voice.fallback(text, context ?? 'general', displayName);
-      setMessages((prev) => [...prev, { role: 'assistant', text: final }]);
-      setMood(nextMood);
-      playBleep();
-      setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 1400);
-    }, 700);
+    const thinkingText = voice.thinking(displayName);
+    setMessages((prev) => [...prev, { role: 'assistant', text: thinkingText }]);
+
+    (async () => {
+      try {
+        const known = TOPIC_HINTS[lower] ?? voice.known(text, context ?? 'general');
+        let final: string;
+        let nextMood: Mood = 'chat';
+
+        if (known) {
+          final = voice.signOff(known, displayName);
+          nextMood = 'success';
+        } else if (lower.includes('github')) {
+          final = voice.signOff('GitHub is where your code and progress live. Sign in with it to save your work across the app.', displayName);
+          nextMood = 'github';
+        } else if (lower.includes('git')) {
+          final = voice.signOff('Git is version control. You track changes in code and collaborate with branches and commits.', displayName);
+          nextMood = 'git';
+        } else if (lower.includes('hello') || lower.includes('hi ')) {
+          final = voice.welcomeBack(displayName) + ' Ask me anything about SQL, cloud, Python, or ML.';
+          nextMood = 'face';
+        } else {
+          const res = await fetch('/api/bleepx', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: text, topic: context ?? 'general' }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            final = data.answer || voice.fallback(text, context ?? 'general', displayName);
+          } else {
+            final = voice.fallback(text, context ?? 'general', displayName);
+          }
+        }
+
+        setMessages((prev) => {
+          const next = [...prev];
+          next[next.length - 1] = { role: 'assistant', text: final };
+          return next;
+        });
+        setMood(nextMood);
+        playBleep();
+        setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 1400);
+      } catch (err) {
+        setMessages((prev) => {
+          const next = [...prev];
+          next[next.length - 1] = { role: 'assistant', text: voice.fallback(text, context ?? 'general', displayName) };
+          return next;
+        });
+        setMood('chat');
+        playBleep();
+      }
+    })();
   };
 
   const handleQuick = (q: string) => send(q);
