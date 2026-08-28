@@ -109,6 +109,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const dragStartPos = useRef({ x: 0, y: 0 });
   const targetDock = useRef({ right: 16, bottom: 16 });
   const rafId = useRef<number | null>(null);
+  const downAt = useRef(0);
   const [isDark, setIsDark] = useState(false);
 
   const hint = useMemo(() => {
@@ -529,15 +530,16 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       )}
       <button
         onClick={() => {
-          if (didDrag.current) {
-            didDrag.current = false;
-            return;
-          }
+          const isClick = !didDrag.current && (downAt.current === 0 || Date.now() - downAt.current < 300);
+          didDrag.current = false;
+          downAt.current = 0;
+          if (!isClick) return;
           toggle();
         }}
         onMouseDown={(e) => {
           isDragging.current = true;
           didDrag.current = false;
+          downAt.current = Date.now();
           dragStartPos.current = { x: e.clientX, y: e.clientY };
           setDragging(true);
           setMood('flying');
