@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { BleepxFace } from '@/components/BleepxIcons';
 import { getKaggleInfo } from '@/lib/kaggleDatasets';
 import { getDataWorldInfo } from '@/lib/dataWorldDatasets';
+import { PIPELINE_PRESETS } from '@/lib/cloud/pipelinePresets';
 import {
   createEmptySandboxState,
   loadSandboxState,
@@ -65,6 +66,24 @@ export default function CloudPipelineCanvas() {
 
   const [sandbox, setSandbox] = useState<CloudSandboxState>(createEmptySandboxState());
   const [message, setMessage] = useState<string | null>(null);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
+
+  const loadPreset = useCallback((id: string) => {
+    const preset = PIPELINE_PRESETS.find((p) => p.id === id);
+    if (!preset) return;
+    setPipeline((p) => ({
+      ...p,
+      sourceUrl: preset.sourceUrl,
+      rawCsv: preset.rawCsv,
+      sqlQuery: preset.sqlQuery,
+      pythonCode: preset.pythonCode,
+      s3Key: preset.s3Key,
+      s3Bucket: 'bleepx-pipeline-output',
+      activeStep: 'sql',
+    }));
+    setSelectedPresetId(id);
+    setMessage(`✓ Loaded "${preset.name}". Source: ${preset.sourceUrl}. Run SQL preview next.`);
+  }, []);
 
   useEffect(() => {
     const saved = loadSandboxState();
@@ -153,6 +172,50 @@ export default function CloudPipelineCanvas() {
           <BleepxFace /> {message}
         </div>
       )}
+
+      {/* Project picker */}
+      <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
+        <h2 className="text-base font-bold text-bleepx-text mb-2">🚀 Load a Project</h2>
+        <p className="text-xs text-bleepx-text-secondary mb-3">
+          Pick a SQLverse lab, a data.world dataset, or a carbon-credit / regenerative agriculture ML project. It pre-fills the source URL, SQL, Python, and S3 destination.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+          <select
+            value={selectedPresetId}
+            onChange={(e) => { if (e.target.value) loadPreset(e.target.value); }}
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+          >
+            <option value="">Choose a project preset...</option>
+            {PIPELINE_PRESETS.map((p) => (
+              <option key={p.id} value={p.id}>{p.icon} {p.name} — {p.tags.join(', ')}</option>
+            ))}
+          </select>
+          <select
+            onChange={(e) => {
+              const tag = e.target.value;
+              if (!tag) { setSelectedPresetId(''); return; }
+              const first = PIPELINE_PRESETS.find((p) => p.tags.includes(tag));
+              if (first) loadPreset(first.id);
+            }}
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+          >
+            <option value="">Filter by tag...</option>
+            <option value="SQLverse">SQLverse</option>
+            <option value="data.world">data.world</option>
+            <option value="carbon-credits">Carbon credits</option>
+            <option value="ML">Machine Learning</option>
+          </select>
+        </div>
+        {selectedPresetId && (() => {
+          const p = PIPELINE_PRESETS.find((x) => x.id === selectedPresetId)!;
+          return (
+            <div className="p-3 rounded-lg bg-sky-50 dark:bg-sky-900/10 border border-sky-200 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-200">
+              <strong>{p.icon} {p.name}</strong> — {p.description}<br/>
+              <span className="text-[10px]">Source: {p.sourceUrl}</span>
+            </div>
+          );
+        })()}
+      </div>
 
       {/* Extract */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">

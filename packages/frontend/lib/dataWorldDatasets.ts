@@ -59,6 +59,27 @@ const DATAWORLD_DATASETS: Record<string, DataWorldDatasetInfo> = {
     table: 'exchange_rates',
     note: 'USDA agricultural exchange rates by country and year.',
   },
+  'usda/national-agricultural-statistics-service-crops': {
+    filename: 'nass_crops.csv',
+    table: 'nass_crops',
+    note: 'USDA NASS crop area, yield, and production estimates.',
+  },
+  // carbon / climate ────────────────────────────────────────────────────────────
+  'worldbank/agricultural-land-area': {
+    filename: 'ag_land.csv',
+    table: 'ag_land',
+    note: 'Agricultural land (% and sq. km) by country and year from the World Bank.',
+  },
+  'carbonplan/carbon-offsets': {
+    filename: 'offset_projects.csv',
+    table: 'offset_projects',
+    note: 'Carbon offset project metadata, methodologies, and issuances.',
+  },
+  'california-chromium/soil-carbon-ratios-for-agricultural-lands': {
+    filename: 'soil_carbon.csv',
+    table: 'soil_carbon',
+    note: 'Soil organic carbon ratios for U.S. agricultural lands — useful for regenerative agriculture baselines.',
+  },
 };
 
 /** Extract the data.world dataset ID (`owner/dataset-name`) from a full data.world URL. */
