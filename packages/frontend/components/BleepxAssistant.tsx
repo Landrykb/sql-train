@@ -3,10 +3,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BleepxFace } from '@/components/BleepxIcons';
+import { BleepxGhost, BleepxWave, BleepxThink, BleepxCode } from '@/components/BleepxIcons';
 import { useProgress } from '@/lib/useProgress';
+import { playBleep } from '@/lib/audio';
 
 type AssistantContext = 'home' | 'sql' | 'lab' | 'cloud' | 'journey' | 'general';
+
+type Mood = 'idle' | 'wave' | 'think' | 'code';
 
 const DEFAULT_HINTS: Record<string, { text: string; cta: string; href: string }> = {
   '/': { text: 'Start with SQL basics, then Python, then pick a cloud or ML goal.', cta: 'Start My Journey', href: '/journey' },
@@ -33,6 +36,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const pathname = usePathname();
   const { completed, points } = useProgress();
   const [open, setOpen] = useState(false);
+  const [mood, setMood] = useState<Mood>('idle');
 
   const hint = useMemo(() => {
     const exact = DEFAULT_HINTS[pathname];
@@ -43,6 +47,11 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     return { text: 'Bleepx is here to guide you from SQL to Cloud. Pick your path in the Journey page.', cta: 'My Journey', href: '/journey' };
   }, [pathname]);
 
+  useEffect(() => {
+    if (pathname?.startsWith('/lab/')) setMood('code');
+    else setMood('idle');
+  }, [pathname]);
+
   const goal = findJourneyGoal();
   const completedCount = completed.size;
 
@@ -51,15 +60,33 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     return `${goalText}${hint.text}`;
   }, [goal, hint]);
 
+  const toggle = () => {
+    setOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        playBleep();
+        setMood('wave');
+        setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 1200);
+      }
+      return next;
+    });
+  };
+
+  const Sprite = mood === 'wave' ? BleepxWave : mood === 'think' ? BleepxThink : mood === 'code' ? BleepxCode : BleepxGhost;
+
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
       {open && (
-        <div className="w-72 sm:w-80 p-4 rounded-2xl bg-bleepx-white dark:bg-gray-900 border border-bleepx-border shadow-2xl text-sm animate-in slide-in-from-bottom-3 fade-in duration-200">
+        <div className="relative w-80 sm:w-96 p-4 rounded-2xl bg-white dark:bg-gray-900 border-2 border-sky-300 dark:border-sky-700 shadow-2xl text-sm transform transition-all duration-300 origin-bottom-right">
+          {/* speech bubble tail */}
+          <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-sky-300 dark:border-t-sky-700" />
           <div className="flex items-start gap-3">
-            <div className="shrink-0"><BleepxFace size={28} /></div>
+            <div className="shrink-0 animate-bounce">
+              <BleepxWave size={36} />
+            </div>
             <div className="flex-1">
-              <div className="font-bold text-bleepx-text mb-1">Bleepx says</div>
-              <p className="text-bleepx-text-secondary mb-3">{message}</p>
+              <div className="font-extrabold text-bleepx-text mb-1 flex items-center gap-2">Bleepx <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-600 font-bold">Assistant</span></div>
+              <p className="text-bleepx-text-secondary mb-3 leading-relaxed">{message}</p>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mb-3">{completedCount} steps done · {points} pts</div>
               <div className="flex flex-wrap gap-2">
                 <Link
@@ -76,11 +103,19 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         </div>
       )}
       <button
-        onClick={() => setOpen((o) => !o)}
-        className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-500 to-teal-500 text-white shadow-lg hover:scale-105 transition-transform flex items-center justify-center"
+        onClick={toggle}
+        onMouseEnter={() => setMood('think')}
+        onMouseLeave={() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle')}
+        className="group relative w-16 h-16 rounded-full bg-gradient-to-br from-sky-500 to-teal-500 text-white shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 animate-float"
         aria-label="Open Bleepx assistant"
       >
-        <BleepxFace size={24} />
+        <Sprite size={40} className="drop-shadow-md transition-transform duration-300 group-hover:rotate-6" />
+        {!open && (
+          <span className="absolute -top-1 -right-1 flex h-4 w-4">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-sky-500" />
+          </span>
+        )}
       </button>
     </div>
   );
