@@ -98,7 +98,6 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const [input, setInput] = useState('');
   const [dock, setDock] = useState<{ right: number; bottom: number }>({ right: 16, bottom: 16 });
   const [dockedHint, setDockedHint] = useState<BleepxHint | null>(null);
-  const [rotation, setRotation] = useState(0);
   const [dragging, setDragging] = useState(false);
   const lintTimer = useRef<NodeJS.Timeout | null>(null);
   const lastHintText = useRef<string | null>(null);
@@ -110,6 +109,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const targetDock = useRef({ right: 16, bottom: 16 });
   const rafId = useRef<number | null>(null);
   const downAt = useRef(0);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [isDark, setIsDark] = useState(false);
 
   const hint = useMemo(() => {
@@ -225,6 +225,23 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     }
   })();
 
+  const BallSprite = ({ size = 44 }: { size?: number }) => {
+    const ballSize = Math.max(24, size - 8);
+    return (
+      <div
+        className={`rounded-full ${moodClass}`}
+        style={{
+          width: ballSize,
+          height: ballSize,
+          background: 'radial-gradient(circle at 30% 30%, #57ECF4 0%, #0EA5E9 45%, #1C2129 95%)',
+          boxShadow: 'inset -4px -4px 8px rgba(0,0,0,0.4), inset 4px 4px 8px rgba(255,255,255,0.2), 0 0 12px rgba(87,236,244,0.5)',
+          filter: spriteFilter,
+          transformStyle: 'preserve-3d',
+        }}
+      />
+    );
+  };
+
   const PngSprite = ({ size = 44, rotate = 0, children }: { size?: number; rotate?: number; children?: React.ReactNode }) => {
     const iconSrc = isDark ? '/bleepx-icon.svg' : '/bleepx-icon.png';
     return (
@@ -254,7 +271,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     const shared = `drop-shadow-lg ${moodClass}`;
     switch (mood) {
       case 'flying':
-        return <PngSprite size={size} rotate={rotation} />;
+        return <BallSprite size={size} />;
       case 'idle':
       case 'wave':
       case 'chat':
@@ -360,26 +377,24 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     }
     const el = target as HTMLElement;
     const value = (el as HTMLInputElement).value ?? (el as HTMLTextAreaElement).value ?? el.textContent ?? '';
+
+    if (flyingTimer.current) clearTimeout(flyingTimer.current);
+
+    const hint = lintInput(value, el, pathname ?? undefined);
+    if (window.innerWidth < 640) {
+      applyHint(hint, value);
+      return;
+    }
+
     const rect = el.getBoundingClientRect();
     const top = Math.max(8, Math.min(window.innerHeight - 80, rect.top + rect.height / 2 - 32));
     const left = Math.max(8, Math.min(window.innerWidth - 80, rect.right + 16));
     const nextDock = { right: window.innerWidth - left - 64, bottom: window.innerHeight - top - 64 };
 
-    const oldLeft = window.innerWidth - prevDock.current.right - 64;
-    const oldTop = window.innerHeight - prevDock.current.bottom - 64;
-    const dx = left - oldLeft;
-    const dy = top - oldTop;
-    const distance = Math.hypot(dx, dy);
-    const rawLean = distance > 4 ? Math.atan2(dx, -dy) * (180 / Math.PI) : 0;
-    const lean = Math.max(-30, Math.min(30, rawLean));
-
-    if (flyingTimer.current) clearTimeout(flyingTimer.current);
     setMood('flying');
-    setRotation(lean);
     setDock(nextDock);
     prevDock.current = nextDock;
 
-    const hint = lintInput(value, el, pathname ?? undefined);
     flyingTimer.current = setTimeout(() => {
       applyHint(hint, value);
       flyingTimer.current = null;
@@ -416,7 +431,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
   useEffect(() => {
     if (!dragging) return;
-    const onMove = (e: MouseEvent) => {
+    const onMove = (e: PointerEvent) => {
       if (!isDragging.current) return;
       const dx = e.clientX - dragStartPos.current.x;
       const dy = e.clientY - dragStartPos.current.y;
@@ -432,22 +447,29 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         });
       }
     };
-    const onUp = () => {
+    const onUp = (e: PointerEvent) => {
       isDragging.current = false;
       if (rafId.current) {
         cancelAnimationFrame(rafId.current);
         rafId.current = null;
       }
+      const wasClick = !didDrag.current && downAt.current > 0 && Date.now() - downAt.current < 300;
+      const hitButton = buttonRef.current?.contains(e.target as Node) ?? false;
+      const wasDrag = didDrag.current;
+      didDrag.current = false;
+      downAt.current = 0;
       setDragging(false);
-      if (didDrag.current) {
+      if (wasClick && hitButton) {
+        toggle();
+      } else if (wasDrag) {
         setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle');
       }
     };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp, { once: true });
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp, { once: true });
     return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
     };
   }, [dragging, pathname]);
 
@@ -457,7 +479,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       style={{ right: dock.right, bottom: dock.bottom, transition: dragging ? 'none' : undefined }}
     >
       {!open && dockedHint && (
-        <div className="relative mb-2 p-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-rose-300 dark:border-rose-700 shadow-2xl text-sm w-72">
+        <div className="relative mb-2 p-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-rose-300 dark:border-rose-700 shadow-2xl text-sm w-64 sm:w-72">
           <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-rose-300 dark:border-t-rose-700" />
           <div className="flex items-center gap-2 mb-2">
             <BleepxFace size={20} />
@@ -471,7 +493,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         </div>
       )}
       {open && (
-        <div className="relative w-80 sm:w-96 rounded-2xl bg-white dark:bg-gray-900 border-2 border-sky-300 dark:border-sky-700 shadow-2xl text-sm transform transition-all duration-300 origin-bottom-right overflow-hidden">
+        <div className="relative w-72 sm:w-96 rounded-2xl bg-white dark:bg-gray-900 border-2 border-sky-300 dark:border-sky-700 shadow-2xl text-sm transform transition-all duration-300 origin-bottom-right overflow-hidden">
           {/* speech bubble tail */}
           <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-sky-300 dark:border-t-sky-700" />
           <div className="p-4 border-b border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/10">
@@ -529,14 +551,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         </div>
       )}
       <button
-        onClick={() => {
-          const isClick = !didDrag.current && (downAt.current === 0 || Date.now() - downAt.current < 300);
-          didDrag.current = false;
-          downAt.current = 0;
-          if (!isClick) return;
-          toggle();
-        }}
-        onMouseDown={(e) => {
+        ref={buttonRef}
+        onPointerDown={(e) => {
           isDragging.current = true;
           didDrag.current = false;
           downAt.current = Date.now();
@@ -544,9 +560,15 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           setDragging(true);
           setMood('flying');
         }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggle();
+          }
+        }}
         onMouseEnter={() => setMood('wave')}
         onMouseLeave={() => setMood(dockedHint ? (dockedHint.severity === 'error' ? 'error' : dockedHint.severity === 'warning' ? 'think' : 'signal') : (pathname?.startsWith('/lab/') ? 'code' : 'idle'))}
-        className={`group relative w-16 h-16 rounded-full overflow-hidden bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 border border-white/20 dark:border-gray-700/30 ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        className={`group relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 border border-white/20 dark:border-gray-700/30 ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         aria-label="Open Bleepx assistant"
       >
         <div className="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
