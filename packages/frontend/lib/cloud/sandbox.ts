@@ -12,6 +12,7 @@ export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' 
 // ─── S3 ──────────────────────────────────────────────────────────────────────
 
 export type S3Permission = 'private' | 'public-read' | 'public-read-write' | 'authenticated-read';
+export type S3StorageClass = 'STANDARD' | 'INTELLIGENT_TIERING' | 'STANDARD_IA' | 'ONEZONE_IA' | 'GLACIER' | 'GLACIER_DEEP_ARCHIVE' | 'REDUCED_REDUNDANCY';
 
 export interface S3Object {
   key: string;
@@ -20,6 +21,8 @@ export interface S3Object {
   lastModified: string;
   body: string; // base64 or CSV text
   owner: string;
+  storageClass: S3StorageClass;
+  restoreUntil?: string;
 }
 
 export interface S3Bucket {
@@ -654,6 +657,7 @@ export function createBleepxBankScenario(): CloudSandboxState {
         contentType: 'text/csv',
         lastModified: new Date().toISOString(),
         body: transactionsCsv,
+        storageClass: 'STANDARD',
         owner: `arn:aws:iam::${accountId}:role/etl-service-role`,
       },
       {
@@ -662,6 +666,7 @@ export function createBleepxBankScenario(): CloudSandboxState {
         contentType: 'text/csv',
         lastModified: new Date().toISOString(),
         body: customersCsv,
+        storageClass: 'STANDARD',
         owner: `arn:aws:iam::${accountId}:role/etl-service-role`,
       },
     ],
@@ -754,7 +759,7 @@ def handler(event, context):
     restrictPublicBuckets: false,
     acl: 'public-read',
     bucketPolicy: '',
-    objects: [{ key: 'index.html', size: 348, contentType: 'text/html', lastModified: new Date().toISOString(), body: '<h1>BleepxBank</h1>', owner: `arn:aws:iam::${accountId}:user/web-admin` }],
+    objects: [{ key: 'index.html', size: 348, contentType: 'text/html', lastModified: new Date().toISOString(), body: '<h1>BleepxBank</h1>', storageClass: 'STANDARD', owner: `arn:aws:iam::${accountId}:user/web-admin` }],
   };
 
   // Intentionally insecure starter user so learners can fix it
@@ -838,8 +843,8 @@ export function createBleepxRetailScenario(): CloudSandboxState {
     acl: 'private',
     bucketPolicy: '',
     objects: [
-      { key: 'raw/orders/2026-01-15.csv', size: ordersCsv.length, contentType: 'text/csv', lastModified: new Date().toISOString(), body: ordersCsv, owner: `arn:aws:iam::${accountId}:role/etl-service-role` },
-      { key: 'raw/inventory/2026-01-15.csv', size: inventoryCsv.length, contentType: 'text/csv', lastModified: new Date().toISOString(), body: inventoryCsv, owner: `arn:aws:iam::${accountId}:role/etl-service-role` },
+      { key: 'raw/orders/2026-01-15.csv', size: ordersCsv.length, contentType: 'text/csv', lastModified: new Date().toISOString(), body: ordersCsv, storageClass: 'STANDARD', owner: `arn:aws:iam::${accountId}:role/etl-service-role` },
+      { key: 'raw/inventory/2026-01-15.csv', size: inventoryCsv.length, contentType: 'text/csv', lastModified: new Date().toISOString(), body: inventoryCsv, storageClass: 'STANDARD', owner: `arn:aws:iam::${accountId}:role/etl-service-role` },
     ],
   };
 
@@ -899,7 +904,7 @@ export function createBleepxRetailScenario(): CloudSandboxState {
     restrictPublicBuckets: false,
     acl: 'public-read',
     bucketPolicy: '',
-    objects: [{ key: 'index.html', size: 420, contentType: 'text/html', lastModified: new Date().toISOString(), body: '<h1>BleepxRetail</h1>', owner: `arn:aws:iam::${accountId}:user/web-admin` }],
+    objects: [{ key: 'index.html', size: 420, contentType: 'text/html', lastModified: new Date().toISOString(), body: '<h1>BleepxRetail</h1>', storageClass: 'STANDARD', owner: `arn:aws:iam::${accountId}:user/web-admin` }],
   };
 
   const webAdmin: IAMUser = {
@@ -976,8 +981,8 @@ export function createBleepxHealthScenario(): CloudSandboxState {
     acl: 'private',
     bucketPolicy: '',
     objects: [
-      { key: 'raw/vitals/2026-01-15.csv', size: vitalsCsv.length, contentType: 'text/csv', lastModified: new Date().toISOString(), body: vitalsCsv, owner: `arn:aws:iam::${accountId}:role/etl-service-role` },
-      { key: 'raw/patients/2026-01-15.csv', size: patientsCsv.length, contentType: 'text/csv', lastModified: new Date().toISOString(), body: patientsCsv, owner: `arn:aws:iam::${accountId}:role/etl-service-role` },
+      { key: 'raw/vitals/2026-01-15.csv', size: vitalsCsv.length, contentType: 'text/csv', lastModified: new Date().toISOString(), body: vitalsCsv, storageClass: 'STANDARD', owner: `arn:aws:iam::${accountId}:role/etl-service-role` },
+      { key: 'raw/patients/2026-01-15.csv', size: patientsCsv.length, contentType: 'text/csv', lastModified: new Date().toISOString(), body: patientsCsv, storageClass: 'STANDARD', owner: `arn:aws:iam::${accountId}:role/etl-service-role` },
     ],
   };
 
@@ -994,7 +999,7 @@ export function createBleepxHealthScenario(): CloudSandboxState {
     restrictPublicBuckets: false,
     acl: 'public-read',
     bucketPolicy: '',
-    objects: [{ key: 'report.html', size: 520, contentType: 'text/html', lastModified: new Date().toISOString(), body: '<h1>Patient Report</h1>', owner: `arn:aws:iam::${accountId}:user/dev-admin` }],
+    objects: [{ key: 'report.html', size: 520, contentType: 'text/html', lastModified: new Date().toISOString(), body: '<h1>Patient Report</h1>', storageClass: 'STANDARD', owner: `arn:aws:iam::${accountId}:user/dev-admin` }],
   };
 
   const patientsTable: DynamoDBTable = {

@@ -16,6 +16,8 @@ import {
   setS3BucketPolicy,
   setS3PublicAccess,
   setS3Encryption,
+  setS3ObjectStorageClass,
+  restoreS3Object,
   createIAMUser,
   createIAMPolicy,
   attachIAMPolicy,
@@ -308,6 +310,7 @@ function S3Panel({ state, onAction }: { state: CloudSandboxState; onAction: (s: 
   const [objectKey, setObjectKey] = useState('');
   const [objectBody, setObjectBody] = useState('');
   const [selectedBucket, setSelectedBucket] = useState<string | null>(null);
+  const [editClass, setEditClass] = useState<Record<string, import('@/lib/cloud/sandbox').S3StorageClass>>({});
 
   const buckets = Object.values(state.s3.buckets);
 
@@ -393,13 +396,50 @@ function S3Panel({ state, onAction }: { state: CloudSandboxState; onAction: (s: 
               </button>
             </div>
             {b.objects.length > 0 && (
-              <ul className="mt-2 space-y-1">
-                {b.objects.map((o) => (
-                  <li key={o.key} className="text-[11px] font-mono text-gray-600 dark:text-gray-400 flex justify-between">
-                    <span>{o.key}</span>
-                    <span>{o.size} bytes</span>
-                  </li>
-                ))}
+              <ul className="mt-2 space-y-2">
+                {b.objects.map((o) => {
+                  const current = editClass[`${b.name}:${o.key}`] ?? o.storageClass;
+                  return (
+                    <li key={o.key} className="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-bleepx-text">{o.key}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300">{o.storageClass}</span>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        <select
+                          value={current}
+                          onChange={(e) => setEditClass((prev) => ({ ...prev, [`${b.name}:${o.key}`]: e.target.value as import('@/lib/cloud/sandbox').S3StorageClass }))}
+                          className="px-2 py-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-xs"
+                        >
+                          <option value="STANDARD">STANDARD</option>
+                          <option value="INTELLIGENT_TIERING">INTELLIGENT_TIERING</option>
+                          <option value="STANDARD_IA">STANDARD_IA</option>
+                          <option value="ONEZONE_IA">ONEZONE_IA</option>
+                          <option value="GLACIER">GLACIER</option>
+                          <option value="GLACIER_DEEP_ARCHIVE">GLACIER_DEEP_ARCHIVE</option>
+                          <option value="REDUCED_REDUNDANCY">REDUCED_REDUNDANCY</option>
+                        </select>
+                        <button
+                          onClick={() => onAction(setS3ObjectStorageClass(state, b.name, o.key, current))}
+                          className="text-[10px] px-2 py-1 rounded bg-sky-100 text-sky-700 hover:bg-sky-200 font-bold"
+                        >
+                          Set Class
+                        </button>
+                        {['GLACIER', 'GLACIER_DEEP_ARCHIVE'].includes(o.storageClass) && (
+                          <button
+                            onClick={() => onAction(restoreS3Object(state, b.name, o.key))}
+                            className="text-[10px] px-2 py-1 rounded bg-amber-100 text-amber-700 hover:bg-amber-200 font-bold"
+                          >
+                            Restore
+                          </button>
+                        )}
+                      </div>
+                      {o.restoreUntil && (
+                        <div className="text-[10px] text-amber-700 dark:text-amber-400 mt-1">Restored until {o.restoreUntil.slice(0, 10)}</div>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

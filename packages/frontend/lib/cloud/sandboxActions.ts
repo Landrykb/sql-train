@@ -39,6 +39,7 @@ import type {
   SNSTopic,
   SQSQueue,
   SQSMessage,
+  S3StorageClass,
 } from './sandbox';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -138,6 +139,7 @@ export function putS3Object(
     lastModified: now(),
     body,
     owner,
+    storageClass: existing?.storageClass ?? 'STANDARD',
   };
   const objects = existing
     ? bucket.objects.map((o) => (o.key === key ? obj : o))
@@ -243,6 +245,70 @@ export function setS3Encryption(
     bucketName,
     'success',
     `Default encryption set to ${encryption} for ${bucketName}`
+  );
+}
+
+export function setS3ObjectStorageClass(
+  state: CloudSandboxState,
+  bucketName: string,
+  key: string,
+  storageClass: S3StorageClass
+): CloudSandboxState {
+  const bucket = state.s3.buckets[bucketName];
+  if (!bucket) return event(state, 's3', 'PutObjectStorageClass', `${bucketName}/${key}`, 'failure', `Bucket not found`);
+  const object = bucket.objects.find((o) => o.key === key);
+  if (!object) return event(state, 's3', 'PutObjectStorageClass', `${bucketName}/${key}`, 'failure', `Object not found: ${key}`);
+  const updated: S3Object = { ...object, storageClass, restoreUntil: storageClass.startsWith('GLACIER') ? undefined : object.restoreUntil };
+  return event(
+    {
+      ...state,
+      s3: {
+        ...state.s3,
+        buckets: {
+          ...state.s3.buckets,
+          [bucketName]: { ...bucket, objects: bucket.objects.map((o) => (o.key === key ? updated : o)) },
+        },
+      },
+    },
+    's3',
+    'PutObjectStorageClass',
+    `${bucketName}/${key}`,
+    'success',
+    `Set storage class of ${key} to ${storageClass}`
+  );
+}
+
+export function restoreS3Object(
+  state: CloudSandboxState,
+  bucketName: string,
+  key: string,
+  days = 7
+): CloudSandboxState {
+  const bucket = state.s3.buckets[bucketName];
+  if (!bucket) return event(state, 's3', 'RestoreObject', `${bucketName}/${key}`, 'failure', `Bucket not found`);
+  const object = bucket.objects.find((o) => o.key === key);
+  if (!object) return event(state, 's3', 'RestoreObject', `${bucketName}/${key}`, 'failure', `Object not found: ${key}`);
+  if (!['GLACIER', 'GLACIER_DEEP_ARCHIVE'].includes(object.storageClass)) {
+    return event(state, 's3', 'RestoreObject', `${bucketName}/${key}`, 'failure', `${key} is not in Glacier`);
+  }
+  const until = new Date(Date.now() + days * 86400000).toISOString();
+  const updated: S3Object = { ...object, restoreUntil: until };
+  return event(
+    {
+      ...state,
+      s3: {
+        ...state.s3,
+        buckets: {
+          ...state.s3.buckets,
+          [bucketName]: { ...bucket, objects: bucket.objects.map((o) => (o.key === key ? updated : o)) },
+        },
+      },
+    },
+    's3',
+    'RestoreObject',
+    `${bucketName}/${key}`,
+    'success',
+    `Initiated restore of ${key} for ${days} days (available until ${until.slice(0, 10)})`
   );
 }
 
