@@ -124,12 +124,12 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
         </div>
       )}
 
-      <div className="flex gap-1 overflow-x-auto pb-1">
+      <div className="flex gap-1 overflow-x-auto pb-2 -mx-2 px-2 scroll-smooth snap-x">
         {(['s3', 'iam', 'ec2', 'vpc', 'dynamodb', 'rds', 'elb', 'asg', 'kms', 'cloudwatch', 'route53', 'cloudfront', 'secretsmanager', 'elasticache', 'messaging', 'lambda', 'terraform', 'security', 'events'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide transition-colors ${
+            className={`px-2 py-1 rounded-full text-[10px] sm:px-3 sm:py-1.5 sm:text-xs font-bold uppercase tracking-wide transition-colors snap-start whitespace-nowrap min-w-fit ${
               activeTab === tab ? 'bg-sky-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
           >
