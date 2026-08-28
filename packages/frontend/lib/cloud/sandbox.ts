@@ -7,7 +7,7 @@
 //
 // Supported services: S3, IAM, EC2, VPC, Lambda (simplified), DynamoDB (basic)
 
-export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'secretsmanager' | 'elasticache' | 'messaging' | 'terraform' | 'security';
+export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'secretsmanager' | 'elasticache' | 'messaging' | 'stepfunctions' | 'terraform' | 'security';
 
 // ─── S3 ──────────────────────────────────────────────────────────────────────
 
@@ -420,6 +420,16 @@ export interface CloudMessagingState {
   queues: Record<string, SQSQueue>;
 }
 
+// ─── Step Functions ───────────────────────────────────────────────────────────
+
+export interface StepFunctionState {
+  name: string;
+  arn: string;
+  type: 'STANDARD' | 'EXPRESS';
+  definition: string; // simplified ASL
+  executions: { executionArn: string; status: 'RUNNING' | 'SUCCEEDED' | 'FAILED'; input: string; output?: string }[];
+}
+
 // ─── CloudWatch ───────────────────────────────────────────────────────────────
 
 export interface CloudWatchAlarm {
@@ -511,6 +521,9 @@ export interface CloudSandboxState {
     clusters: Record<string, ElastiCacheCluster>;
   };
   messaging: CloudMessagingState;
+  stepfunctions: {
+    stateMachines: Record<string, StepFunctionState>;
+  };
   events: CloudEvent[];
 }
 
@@ -561,6 +574,7 @@ export function createEmptySandboxState(): CloudSandboxState {
     secretsmanager: { secrets: {} },
     elasticache: { clusters: {} },
     messaging: { topics: {}, queues: {} },
+    stepfunctions: { stateMachines: {} },
     events: [],
   };
 }

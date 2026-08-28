@@ -41,6 +41,7 @@ import type {
   SQSMessage,
   S3StorageClass,
   DAXCluster,
+  StepFunctionState,
 } from './sandbox';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -2027,5 +2028,71 @@ export function receiveSQSMessage(
     queueName,
     'success',
     `Received message from queue ${queueName}`
+  );
+}
+
+// ─── Step Functions actions ────────────────────────────────────────────────────
+
+export function createStepFunction(
+  state: CloudSandboxState,
+  name: string,
+  definition: string,
+  machineType: 'STANDARD' | 'EXPRESS' = 'STANDARD'
+): CloudSandboxState {
+  if (state.stepfunctions.stateMachines[name]) {
+    return event(state, 'stepfunctions', 'CreateStateMachine', name, 'failure', `State machine already exists: ${name}`);
+  }
+  const machine: StepFunctionState = {
+    name,
+    arn: `arn:aws:states:us-east-1:${state.accountId}:stateMachine:${name}`,
+    type: machineType,
+    definition,
+    executions: [],
+  };
+  return event(
+    { ...state, stepfunctions: { ...state.stepfunctions, stateMachines: { ...state.stepfunctions.stateMachines, [name]: machine } } },
+    'stepfunctions',
+    'CreateStateMachine',
+    name,
+    'success',
+    `Created ${machineType} Step Functions state machine ${name}`
+  );
+}
+
+export function startStepFunctionExecution(
+  state: CloudSandboxState,
+  name: string,
+  input: string
+): CloudSandboxState {
+  const machine = state.stepfunctions.stateMachines[name];
+  if (!machine) return event(state, 'stepfunctions', 'StartExecution', name, 'failure', `State machine not found: ${name}`);
+  const executionArn = `${machine.arn}:${Date.now()}`;
+  const output = `Simplified Step Functions execution completed for ${name}`;
+  const execution = { executionArn, status: 'SUCCEEDED' as const, input, output };
+  const updated: StepFunctionState = { ...machine, executions: [...machine.executions, execution] };
+  return event(
+    { ...state, stepfunctions: { ...state.stepfunctions, stateMachines: { ...state.stepfunctions.stateMachines, [name]: updated } } },
+    'stepfunctions',
+    'StartExecution',
+    `${name}:${executionArn}`,
+    'success',
+    `Started execution of ${name}`
+  );
+}
+
+export function deleteStepFunction(
+  state: CloudSandboxState,
+  name: string
+): CloudSandboxState {
+  const machine = state.stepfunctions.stateMachines[name];
+  if (!machine) return event(state, 'stepfunctions', 'DeleteStateMachine', name, 'failure', `State machine not found: ${name}`);
+  const { [name]: _, ...rest } = state.stepfunctions.stateMachines;
+  return event(
+    { ...state, stepfunctions: { ...state.stepfunctions, stateMachines: rest } },
+    'stepfunctions',
+    'DeleteStateMachine',
+    name,
+    'success',
+    `Deleted state machine ${name}`
   );
 }
