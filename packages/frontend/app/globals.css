@@ -70,3 +70,84 @@
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
+
+/* ─── Bleepx mascot mood animations (all play inside its circular button) ─── */
+@keyframes bleepx-orbit {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(6px, -6px); }
+  50% { transform: translate(0, -10px); }
+  75% { transform: translate(-6px, -6px); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes bleepx-fly {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0.7; }
+}
+@keyframes bleepx-wave {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(4px) rotate(6deg); }
+  75% { transform: translateX(-4px) rotate(-6deg); }
+}
+@keyframes bleepx-think {
+  0%, 100% { transform: scale(1); }
+  33% { transform: scale(0.92); }
+  66% { transform: scale(1.08); }
+}
+@keyframes bleepx-code {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-2px); }
+  75% { transform: translateY(2px); }
+}
+@keyframes bleepx-chat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes bleepx-error {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px) rotate(-4deg); }
+  40% { transform: translateX(4px) rotate(4deg); }
+  60% { transform: translateX(-4px) rotate(-4deg); }
+  80% { transform: translateX(4px) rotate(4deg); }
+}
+@keyframes bleepx-success {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes bleepx-signal {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.7; }
+}
+@keyframes bleepx-watch {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(3px); }
+  75% { transform: translateX(-3px); }
+}
+@keyframes bleepx-spark {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  50% { transform: scale(1.25) rotate(180deg); opacity: 0.6; }
+}
+@keyframes bleepx-git {
+  0%, 100% { transform: translateY(0); }
+  33% { transform: translateY(-5px); }
+  66% { transform: translateY(2px); }
+}
+@keyframes bleepx-face {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+.bleepx-orbit { animation: bleepx-orbit 3s ease-in-out infinite; }
+.bleepx-fly { animation: bleepx-fly 0.5s ease-in-out infinite; }
+.bleepx-wave { animation: bleepx-wave 0.8s ease-in-out infinite; }
+.bleepx-think { animation: bleepx-think 1.4s ease-in-out infinite; }
+.bleepx-code { animation: bleepx-code 0.4s ease-in-out infinite; }
+.bleepx-chat { animation: bleepx-chat 0.9s ease-in-out infinite; }
+.bleepx-error { animation: bleepx-error 0.5s ease-in-out infinite; }
+.bleepx-success { animation: bleepx-success 0.8s ease-in-out; }
+.bleepx-signal { animation: bleepx-signal 1s ease-in-out infinite; }
+.bleepx-watch { animation: bleepx-watch 1.2s ease-in-out infinite; }
+.bleepx-spark { animation: bleepx-spark 0.7s ease-in-out infinite; }
+.bleepx-git { animation: bleepx-git 1s ease-in-out infinite; }
+.bleepx-face { animation: bleepx-face 0.9s ease-in-out infinite; }

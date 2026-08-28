@@ -167,7 +167,21 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     });
   };
 
-  const moodClass = mood === 'flying' ? '' : mood === 'think' ? 'animate-pulse' : mood === 'wave' ? 'animate-bounce' : mood === 'success' ? 'animate-bounce' : mood === 'error' ? 'animate-pulse' : 'animate-float';
+  const moodClass =
+    mood === 'flying' ? 'bleepx-fly' :
+    mood === 'idle' ? 'bleepx-orbit' :
+    mood === 'wave' ? 'bleepx-wave' :
+    mood === 'think' ? 'bleepx-think' :
+    mood === 'code' ? 'bleepx-code' :
+    mood === 'chat' ? 'bleepx-chat' :
+    mood === 'error' ? 'bleepx-error' :
+    mood === 'success' ? 'bleepx-success' :
+    mood === 'signal' ? 'bleepx-signal' :
+    mood === 'watch' ? 'bleepx-watch' :
+    mood === 'spark' ? 'bleepx-spark' :
+    mood === 'git' || mood === 'github' ? 'bleepx-git' :
+    mood === 'face' ? 'bleepx-face' :
+    'bleepx-orbit';
 
   const spriteFilter = (() => {
     switch (mood) {
@@ -198,14 +212,19 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     switch (mood) {
       case 'flying':
         return (
-          <img
-            src="/bleepx-icon.png"
-            alt="Bleepx"
-            width={size}
-            height={size}
-            className="object-contain"
-            style={{ filter: spriteFilter, transform: `rotate(${rotation}deg)` }}
-          />
+          <div
+            className={`flex items-center justify-center ${moodClass}`}
+            style={{ width: size, height: size }}
+          >
+            <img
+              src="/bleepx-icon.png"
+              alt="Bleepx"
+              width={size}
+              height={size}
+              className="object-contain"
+              style={{ filter: spriteFilter, transform: `rotate(${rotation}deg)` }}
+            />
+          </div>
         );
       case 'wave':
         return <BleepxWave size={size} className={shared} />;
@@ -420,7 +439,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         className="group relative w-16 h-16 rounded-full bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 animate-float border border-white/20 dark:border-gray-700/30"
         aria-label="Open Bleepx assistant"
       >
-        <div className={`transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 ${moodClass}`}>
+        <div className="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
           <Sprite />
         </div>
         {!open && (
