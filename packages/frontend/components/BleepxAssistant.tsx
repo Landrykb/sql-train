@@ -8,6 +8,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase';
 import { playBleep } from '@/lib/audio';
 import { lintInput, BleepxHint } from '@/lib/bleepxLinter';
 import * as voice from '@/lib/bleepxVoice';
+import type { Chunk } from '@/lib/rag';
 import {
   BleepxFace,
   BleepxHead,
@@ -26,6 +27,28 @@ import {
 
 
 type AssistantContext = 'home' | 'sql' | 'lab' | 'cloud' | 'journey' | 'general';
+
+function contextFromPathname(path: string | null): AssistantContext {
+  if (!path) return 'general';
+  if (path.startsWith('/cases')) return 'sql';
+  if (path.startsWith('/cloud')) return 'cloud';
+  if (path.startsWith('/lab')) return 'lab';
+  if (path.startsWith('/journey')) return 'journey';
+  if (path === '/') return 'home';
+  return 'general';
+}
+
+function topicForContext(context: AssistantContext): Chunk['topic'] {
+  const map: Record<AssistantContext, Chunk['topic']> = {
+    home: 'general',
+    sql: 'sql',
+    cloud: 'aws',
+    lab: 'python',
+    journey: 'general',
+    general: 'general',
+  };
+  return map[context];
+}
 
 type Mood = 'idle' | 'wave' | 'think' | 'code' | 'chat' | 'error' | 'success' | 'signal' | 'flying' | 'watch' | 'spark' | 'git' | 'github' | 'face' | 'stealth';
 type Mode = 'light' | 'dark' | 'stealth' | 'mix' | 'neon' | 'ghost' | 'solar' | 'green' | 'red';
@@ -305,9 +328,12 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     const thinkingText = voice.thinking(displayName);
     setMessages((prev) => [...prev, { role: 'assistant', text: thinkingText }]);
 
+    const activeContext = context || contextFromPathname(pathname);
+    const ragTopic = topicForContext(activeContext);
+
     (async () => {
       try {
-        const known = TOPIC_HINTS[clean] ?? voice.known(text, context ?? 'general');
+        const known = TOPIC_HINTS[clean] ?? voice.known(text, activeContext);
         let final: string;
         let nextMood: Mood = 'chat';
 
@@ -329,7 +355,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               question: text,
-              topic: context ?? 'general',
+              topic: ragTopic,
               name: displayName,
               code: editorValue.current ? editorValue.current.slice(0, 1200) : undefined,
               hint: dockedHint
@@ -339,10 +365,10 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           });
           if (res.ok) {
             const data = await res.json();
-            final = data.answer || voice.fallback(text, context ?? 'general', displayName);
+            final = data.answer || voice.fallback(text, activeContext, displayName);
           } else {
             console.warn('Bleepx API error:', res.status, await res.text());
-            final = voice.fallback(text, context ?? 'general', displayName);
+            final = voice.fallback(text, activeContext, displayName);
           }
         }
 
@@ -358,7 +384,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         console.error('Bleepx LLM call failed:', err);
         setMessages((prev) => {
           const next = [...prev];
-          next[next.length - 1] = { role: 'assistant', text: voice.fallback(text, context ?? 'general', displayName) };
+          next[next.length - 1] = { role: 'assistant', text: voice.fallback(text, activeContext, displayName) };
           return next;
         });
         setMood('chat');

@@ -92,6 +92,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
   const [editorTheme, setEditorTheme] = useState<EditorTheme>('auto');
   const [showStylePicker, setShowStylePicker] = useState(false);
   const [errorHelp, setErrorHelp] = useState<ReturnType<typeof getPyErrorHelp> | null>(null);
+  const [execCount, setExecCount] = useState(0);
   const outputRef = useRef<HTMLDivElement>(null);
   const { dark: systemDark } = useTheme();
   const { requireAuth, GateComponent } = useAuthGate();
@@ -139,38 +140,41 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
     track(Events.LAB_RUN_PYTHON);
     setErrorHelp(null);
     setRunning(true);
+    const nextCell = execCount + 1;
+    setExecCount(nextCell);
 
     try {
       const pyodide = await ensurePyodide();
       if (!pyodide) { setRunning(false); return; }
 
-      setOutput((prev) => [...prev, { type: 'system', text: '>>> Running…' }]);
+      const prompt = `In [${nextCell}]: ${code.replace(/\s+/g, ' ').slice(0, 80)}${code.length > 80 ? '…' : ''}`;
+      setOutput((prev) => [...prev, { type: 'prompt', text: prompt, cell: nextCell }]);
 
       const { stdout, stderr, result, resultHtml, images } = await runPythonCode(pyodide, {
         code,
         timeoutMs: 30000,
         onProgress: (msg) => {
-          setOutput((prev) => [...prev, { type: 'system', text: `*bleep* ${msg}` }]);
+          setOutput((prev) => [...prev, { type: 'system', text: `*bleep* ${msg}`, cell: nextCell }]);
         },
       });
 
       const newOutput: OutputLine[] = [];
-      if (stdout) newOutput.push({ type: 'stdout', text: stdout });
-      if (stderr) newOutput.push({ type: 'stderr', text: stderr });
+      if (stdout) newOutput.push({ type: 'stdout', text: stdout, cell: nextCell });
+      if (stderr) newOutput.push({ type: 'stderr', text: stderr, cell: nextCell });
       // Prefer rich HTML (pandas DataFrame/Series/Styler) over the plain repr.
       if (resultHtml) {
         // DOMPurify strips scripts / event handlers — pandas HTML contains only
         // <table>/<thead>/<tr>/<td> so this is safe to render.
         const safe = DOMPurify.sanitize(resultHtml, { USE_PROFILES: { html: true } });
-        newOutput.push({ type: 'html', html: safe });
+        newOutput.push({ type: 'html', html: safe, cell: nextCell });
       } else if (result !== undefined && result !== null && String(result) !== 'None') {
-        newOutput.push({ type: 'result', text: String(result) });
+        newOutput.push({ type: 'result', text: String(result), cell: nextCell });
       }
       for (const img of images) {
-        newOutput.push({ type: 'image', mime: img.mime, data: img.data });
+        newOutput.push({ type: 'image', mime: img.mime, data: img.data, cell: nextCell });
       }
       if (newOutput.length === 0) {
-        newOutput.push({ type: 'system', text: '(no output)' });
+        newOutput.push({ type: 'system', text: '(no output)', cell: nextCell });
       }
       setOutput((prev) => [...prev, ...newOutput]);
 
@@ -183,7 +187,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
         );
         if (isMatch && !solved) {
           setSolved(true);
-          setOutput((prev) => [...prev, { type: 'system', text: '*bleep* Correct! Output matches. Points earned, human.' }]);
+          setOutput((prev) => [...prev, { type: 'system', text: '*bleep* Correct! Output matches. Points earned, human.', cell: nextCell }]);
           onSolved?.();
         }
       }
@@ -194,15 +198,15 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
       const partialStdout: string = typeof err?.stdout === 'string' ? err.stdout : '';
       setOutput((prev) => [
         ...prev,
-        ...(partialStdout ? [{ type: 'stdout', text: partialStdout } as OutputLine] : []),
-        { type: 'stderr', text: rawError },
-        ...partialImages.map((img) => ({ type: 'image', mime: img.mime, data: img.data } as OutputLine)),
+        ...(partialStdout ? [{ type: 'stdout', text: partialStdout, cell: nextCell } as OutputLine] : []),
+        { type: 'stderr', text: rawError, cell: nextCell },
+        ...partialImages.map((img) => ({ type: 'image', mime: img.mime, data: img.data, cell: nextCell } as OutputLine)),
       ]);
       setErrorHelp(getPyErrorHelp(rawError, code));
     } finally {
       setRunning(false);
     }
-  }, [code, running, ensurePyodide, expectedOutput, solved, onSolved, requireAuth]);
+  }, [code, running, ensurePyodide, expectedOutput, solved, onSolved, requireAuth, execCount]);
 
   const clearOutput = () => { setOutput([]); setErrorHelp(null); };
 
@@ -392,52 +396,77 @@ import numpy as np"
           are interleaved in the order they were produced. */}
       <div
         ref={outputRef}
-        className={`border-t p-3 font-mono text-xs overflow-auto max-h-[28rem] min-h-[80px] ${
+        className={`border-t p-0 font-mono text-xs overflow-auto max-h-[28rem] min-h-[80px] ${
           isDark ? 'bg-gray-950 border-gray-700' : 'bg-gray-900 border-gray-300'
         }`}
       >
         {output.length === 0 ? (
-          <div className="text-gray-500 italic">*bleep* Output will appear here after running your code. Figures from matplotlib/seaborn render inline.</div>
+          <div className="p-3 text-gray-500 italic">*bleep* Output will appear here after running your code. Figures from matplotlib/seaborn render inline.</div>
         ) : (
           output.map((line, i) => {
+            const cell = line.cell;
+            const label = cell !== undefined
+              ? (line.type === 'prompt' ? `In [${cell}]:` : `Out[${cell}]:`)
+              : '';
+            const border =
+              line.type === 'stderr' ? 'border-red-500' :
+              line.type === 'html' || line.type === 'image' ? 'border-blue-400' :
+              line.type === 'result' ? 'border-yellow-400' :
+              line.type === 'prompt' ? 'border-emerald-400' :
+              'border-gray-600';
+            const textColor =
+              line.type === 'stderr' ? 'text-red-400' :
+              line.type === 'system' ? 'text-teal-400 italic' :
+              line.type === 'result' ? 'text-yellow-300' :
+              line.type === 'prompt' ? 'text-emerald-300' :
+              'text-gray-200';
+
             if (line.type === 'image') {
               return (
-                <div key={i} className="my-2 rounded-md overflow-hidden bg-white p-2 inline-block max-w-full">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`data:${line.mime};base64,${line.data}`}
-                    alt="Figure output"
-                    className="block max-w-full h-auto"
-                  />
+                <div key={i} className="p-3 border-l-4 border-blue-400">
+                  {label && <div className="text-[10px] text-blue-300 mb-1">{label}</div>}
+                  <div className="rounded-md overflow-hidden bg-white p-2 inline-block max-w-full">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`data:${line.mime};base64,${line.data}`}
+                      alt="Figure output"
+                      className="block max-w-full h-auto"
+                    />
+                  </div>
                 </div>
               );
             }
             if (line.type === 'html') {
               return (
-                <div
-                  key={i}
-                  className="bleepx-df my-2 rounded-md overflow-auto bg-white text-gray-900 p-2 max-w-full"
-                  dangerouslySetInnerHTML={{ __html: line.html }}
-                />
+                <div key={i} className={`p-3 border-l-4 ${border}`}>
+                  {label && <div className="text-[10px] text-blue-300 mb-1">{label}</div>}
+                  <div
+                    className="bleepx-df rounded-md overflow-auto bg-white text-gray-900 p-2 max-w-full"
+                    dangerouslySetInnerHTML={{ __html: line.html }}
+                  />
+                </div>
+              );
+            }
+            if (line.type === 'prompt') {
+              return (
+                <div key={i} className="p-2 border-l-4 border-emerald-400 bg-emerald-900/10">
+                  <div className="text-[10px] text-emerald-300 font-bold">{label}</div>
+                  <div className="text-emerald-300 text-xs font-mono whitespace-pre-wrap">{line.text.slice(`In [${cell}]: `.length)}</div>
+                </div>
               );
             }
             return (
-              <div
-                key={i}
-                className={`whitespace-pre-wrap mb-1 ${
-                  line.type === 'stderr' ? 'text-red-400' :
-                  line.type === 'system' ? 'text-teal-400 italic' :
-                  line.type === 'result' ? 'text-yellow-300' :
-                  'text-gray-200'
-                }`}
-              >
-                {line.text}
+              <div key={i} className={`p-2 border-l-4 ${border}`}>
+                {label && <div className={`text-[10px] mb-0.5 ${line.type === 'stderr' ? 'text-red-300' : 'text-gray-400'}`}>{label}</div>}
+                <div className={`whitespace-pre-wrap ${textColor}`}>
+                  {line.text}
+                </div>
               </div>
             );
           })
         )}
         {running && (
-          <div className="text-teal-400 animate-pulse">*bleep* Executing…</div>
+          <div className="p-3 text-teal-400 animate-pulse">*bleep* Executing…</div>
         )}
       </div>
 

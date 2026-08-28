@@ -13,13 +13,14 @@
  */
 
 export type OutputLine =
-  | { type: 'stdout'; text: string }
-  | { type: 'stderr'; text: string }
-  | { type: 'result'; text: string }
-  | { type: 'system'; text: string }
-  | { type: 'image'; mime: string; data: string }
-  | { type: 'html'; html: string }
-  | { type: 'error-help'; text: string };
+  | { type: 'stdout'; text: string; cell?: number }
+  | { type: 'stderr'; text: string; cell?: number }
+  | { type: 'result'; text: string; cell?: number }
+  | { type: 'system'; text: string; cell?: number }
+  | { type: 'prompt'; text: string; cell: number }
+  | { type: 'image'; mime: string; data: string; cell?: number }
+  | { type: 'html'; html: string; cell?: number }
+  | { type: 'error-help'; text: string; cell?: number };
 
 export interface RunResult {
   stdout: string;
