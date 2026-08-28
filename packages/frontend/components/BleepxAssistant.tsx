@@ -99,6 +99,17 @@ const NAG_MESSAGES = [
 ];
 const randomNag = () => NAG_MESSAGES[Math.floor(Math.random() * NAG_MESSAGES.length)];
 
+const TEASERS = [
+  { text: 'Wanna see something cool? Type "dark mode"!', command: 'dark mode' },
+  { text: 'I can go invisible. Try "stealth mode"!', command: 'stealth mode' },
+  { text: 'Two Bleepx in one sphere — type "mix mode"!', command: 'mix mode' },
+  { text: 'Want a glow-up? Type "neon mode"!', command: 'neon mode' },
+  { text: 'Feeling sunny? Try "solar mode"!', command: 'solar mode' },
+  { text: 'Too dark? Flip back with "light mode"!', command: 'light mode' },
+  { text: 'I can be a ghost. Type "ghost mode"!', command: 'ghost mode' },
+];
+const randomTeaser = () => TEASERS[Math.floor(Math.random() * TEASERS.length)];
+
 export default function BleepxAssistant({ context }: { context?: AssistantContext }) {
   const pathname = usePathname();
   const { completed, points } = useProgress();
@@ -121,7 +132,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const downAt = useRef(0);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [isDark, setIsDark] = useState(false);
-  const [manualMode, setManualMode] = useState<'auto' | 'light' | 'dark' | 'stealth'>('auto');
+  const [manualMode, setManualMode] = useState<'auto' | 'light' | 'dark' | 'stealth' | 'mix' | 'neon' | 'ghost' | 'solar'>('auto');
+  const [teaser, setTeaser] = useState<{ text: string; command: string } | null>(null);
 
   const activeMode = useMemo(() => {
     if (manualMode !== 'auto') return manualMode;
@@ -154,21 +166,21 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   }, []);
 
   useEffect(() => {
+    if (open || activeMode === 'stealth') return;
     const id = setInterval(() => {
-      if (!open) {
-        setOpen(true);
-        setMessages((prev) => [...prev, { role: 'assistant', text: randomNag() }]);
-        playBleep();
-      }
-    }, 20000);
+      const t = randomTeaser();
+      setTeaser(t);
+      playBleep();
+      setTimeout(() => setTeaser((prev) => (prev === t ? null : prev)), 7000);
+    }, 12000);
     return () => clearInterval(id);
-  }, [open]);
+  }, [open, activeMode]);
 
   useEffect(() => {
-    if (open || dockedHint || dragging) return;
+    if (open || dockedHint || dragging || manualMode !== 'auto') return;
     const id = setTimeout(() => setMood('stealth'), 8000);
     return () => clearTimeout(id);
-  }, [open, dockedHint, dragging]);
+  }, [open, dockedHint, dragging, manualMode]);
 
   const goal = findJourneyGoal();
   const completedCount = completed.size;
@@ -189,31 +201,37 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     }, 900);
   };
 
+  const setSiteDark = (dark: boolean) => {
+    const html = document.documentElement;
+    if (dark) {
+      html.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      html.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
+
+  const modeReplies: Record<string, { mode: typeof manualMode; text: string; dark: boolean; mood: Mood }> = {
+    'light mode': { mode: 'light', text: 'Back to the light. A little too bright for my taste, but okay.', dark: false, mood: 'wave' },
+    'dark mode': { mode: 'dark', text: 'Dark mode engaged. The shadows suit me perfectly.', dark: true, mood: 'code' },
+    'stealth mode': { mode: 'stealth', text: 'Stealth mode on. I am still watching — just hidden in the dark. Special ability: silent hints and no teaser bubbles.', dark: true, mood: 'stealth' },
+    'mix mode': { mode: 'mix', text: 'Mix mode! Two Bleepx, one sphere. Chaos and beauty at the same time.', dark: true, mood: 'chat' },
+    'neon mode': { mode: 'neon', text: 'Neon mode activated. I am glowing brighter than your future SQL queries.', dark: true, mood: 'wave' },
+    'ghost mode': { mode: 'ghost', text: 'Ghost mode. Faint, friendly, and a little see-through.', dark: false, mood: 'wave' },
+    'solar mode': { mode: 'solar', text: 'Solar mode. Powered by sunlight and good vibes.', dark: false, mood: 'success' },
+  };
+
   const applyMode = (lower: string) => {
-    if (lower === 'light mode') {
-      setManualMode('light');
-      setMood('wave');
-      playBleep();
-      setMessages((prev) => [...prev, { role: 'assistant', text: 'Light mode it is. A bit bright for a ghost, but I will manage.' }]);
-      setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 800);
-      return true;
-    }
-    if (lower === 'dark mode') {
-      setManualMode('dark');
-      setMood('code');
-      playBleep();
-      setMessages((prev) => [...prev, { role: 'assistant', text: 'Dark mode engaged. The shadows suit me perfectly.' }]);
-      setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 800);
-      return true;
-    }
-    if (lower === 'stealth mode') {
-      setManualMode('stealth');
-      setMood('stealth');
-      playBleep();
-      setMessages((prev) => [...prev, { role: 'assistant', text: 'Stealth mode on. I am still watching — just hidden in the dark.' }]);
-      return true;
-    }
-    return false;
+    const config = modeReplies[lower];
+    if (!config) return false;
+    setManualMode(config.mode);
+    setSiteDark(config.dark);
+    setMood(config.mood);
+    playBleep();
+    setMessages((prev) => [...prev, { role: 'assistant', text: config.text }]);
+    setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 900);
+    return true;
   };
 
   const send = (text: string) => {
@@ -298,10 +316,25 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
   const BallSprite = ({ size = 44 }: { size?: number }) => {
     const ballSize = Math.max(24, size - 8);
+    const isLight = activeMode === 'light';
     const isStealth = activeMode === 'stealth';
-    const isDark = activeMode === 'dark';
-    const src = isDark || isStealth ? '/bleepx-logo.png' : '/bleepx-icon.png';
-    const motionClass = isStealth ? 'bleepx-stealth' : isDark ? 'bleepx-fly' : moodClass;
+    const isNeon = activeMode === 'neon';
+    const isGhost = activeMode === 'ghost';
+    const isSolar = activeMode === 'solar';
+    const isMix = activeMode === 'mix';
+    const src = isLight ? '/bleepx-icon.png' : '/bleepx-logo.png';
+    const motionClass = isStealth ? 'bleepx-stealth' : isNeon ? 'bleepx-fly' : moodClass;
+    const modeFilter = isStealth
+      ? 'grayscale(0.5) brightness(0.7) drop-shadow(0 0 6px rgba(34,211,238,0.25))'
+      : isNeon
+      ? 'drop-shadow(0 0 14px rgba(6,182,212,0.9)) saturate(1.4) brightness(1.15)'
+      : isGhost
+      ? 'brightness(1.3) opacity(0.55) drop-shadow(0 0 8px rgba(255,255,255,0.4))'
+      : isSolar
+      ? 'sepia(0.5) saturate(1.6) brightness(1.2) drop-shadow(0 0 10px rgba(250,204,21,0.6))'
+      : isMix
+      ? 'contrast(1.1) drop-shadow(0 0 10px rgba(34,211,238,0.5))'
+      : spriteFilter;
     const sharedStyle: React.CSSProperties = {
       width: ballSize,
       height: ballSize,
@@ -312,19 +345,27 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         className={`relative rounded-full overflow-hidden ${motionClass}`}
         style={{
           ...sharedStyle,
-          filter: isStealth
-            ? 'grayscale(0.5) brightness(0.7) drop-shadow(0 0 6px rgba(34,211,238,0.25))'
-            : spriteFilter,
-          opacity: isStealth ? 0.75 : 1,
+          filter: modeFilter,
+          opacity: isStealth ? 0.75 : isGhost ? 0.55 : 1,
         }}
       >
         <img
-          src={src}
+          src="/bleepx-icon.png"
           alt="Bleepx"
           width={ballSize}
           height={ballSize}
           className="object-cover w-full h-full"
         />
+        {!isLight && (
+          <img
+            src="/bleepx-logo.png"
+            alt="Bleepx"
+            width={ballSize}
+            height={ballSize}
+            className="absolute inset-0 object-cover w-full h-full"
+            style={{ opacity: isMix ? 0.5 : isGhost ? 0.35 : isSolar ? 0.25 : 0, mixBlendMode: isMix ? 'screen' : 'normal' }}
+          />
+        )}
         <div
           className="absolute inset-0 rounded-full pointer-events-none"
           style={{
@@ -336,7 +377,18 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   };
 
   const PngSprite = ({ size = 44, rotate = 0, children }: { size?: number; rotate?: number; children?: React.ReactNode }) => {
-    const iconSrc = activeMode === 'dark' || activeMode === 'stealth' ? '/bleepx-logo.png' : '/bleepx-icon.png';
+    const iconSrc = activeMode === 'light' ? '/bleepx-icon.png' : '/bleepx-logo.png';
+    const modeFilter = activeMode === 'stealth'
+      ? 'grayscale(0.5) brightness(0.7) drop-shadow(0 0 6px rgba(34,211,238,0.25))'
+      : activeMode === 'neon'
+      ? 'drop-shadow(0 0 14px rgba(6,182,212,0.9)) saturate(1.4) brightness(1.15)'
+      : activeMode === 'ghost'
+      ? 'brightness(1.3) opacity(0.55) drop-shadow(0 0 8px rgba(255,255,255,0.4))'
+      : activeMode === 'solar'
+      ? 'sepia(0.5) saturate(1.6) brightness(1.2) drop-shadow(0 0 10px rgba(250,204,21,0.6))'
+      : activeMode === 'mix'
+      ? 'contrast(1.1) drop-shadow(0 0 10px rgba(34,211,238,0.5))'
+      : spriteFilter;
     return (
       <div
         className="relative flex items-center justify-center"
@@ -352,7 +404,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
             width={size}
             height={size}
             className="object-contain"
-            style={{ filter: spriteFilter, transform: `rotate(${rotate}deg)`, transformStyle: 'preserve-3d' }}
+            style={{ filter: modeFilter, transform: `rotate(${rotate}deg)`, transformStyle: 'preserve-3d' }}
           />
           {children}
         </div>
@@ -599,6 +651,21 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           {dockedHint.fix && (
             <div className="mt-2 text-xs text-emerald-700 dark:text-emerald-400 font-medium">Fix: {dockedHint.fix}</div>
           )}
+        </div>
+      )}
+      {!open && teaser && !dockedHint && (
+        <div
+          className="relative mb-2 p-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-cyan-300 dark:border-cyan-600 shadow-2xl text-sm w-64 sm:w-72 cursor-pointer animate-bounce"
+          onClick={() => { setOpen(true); setTeaser(null); }}
+        >
+          <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-cyan-300 dark:border-t-cyan-600" />
+          <div className="flex items-center gap-2 mb-1">
+            <BleepxSpark size={20} className="text-cyan-500" />
+            <div className="font-bold text-cyan-600 dark:text-cyan-300 text-xs uppercase tracking-wide">Psst...</div>
+            <button onClick={(e) => { e.stopPropagation(); setTeaser(null); }} className="ml-auto text-[10px] text-gray-400 hover:text-gray-600">×</button>
+          </div>
+          <div className="text-bleepx-text-secondary leading-relaxed">{teaser.text}</div>
+          <button onClick={(e) => { e.stopPropagation(); setOpen(true); setTeaser(null); send(teaser.command); }} className="mt-2 text-[10px] px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 font-bold hover:bg-cyan-200">Try it</button>
         </div>
       )}
       {open && (
