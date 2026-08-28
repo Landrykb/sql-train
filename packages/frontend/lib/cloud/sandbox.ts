@@ -198,6 +198,14 @@ export interface DynamoDBTable {
   encrypted: boolean;
 }
 
+export interface DAXCluster {
+  clusterName: string;
+  nodeType: string;
+  nodes: number;
+  status: 'creating' | 'available' | 'deleting';
+  subnetGroup: string;
+}
+
 // ─── RDS ─────────────────────────────────────────────────────────────────────
 
 export interface RDSInstance {
@@ -471,6 +479,7 @@ export interface CloudSandboxState {
   };
   dynamodb: {
     tables: Record<string, DynamoDBTable>;
+    dax: Record<string, DAXCluster>;
   };
   rds: {
     instances: Record<string, RDSInstance>;
@@ -541,7 +550,7 @@ export function createEmptySandboxState(): CloudSandboxState {
     ec2: { instances: {}, keyPairs: {}, amis: defaultAMIs() },
     vpc: { vpcs: {}, subnets: {}, securityGroups: {}, routeTables: {}, internetGateways: {} },
     lambda: { functions: {} },
-    dynamodb: { tables: {} },
+    dynamodb: { tables: {}, dax: {} },
     rds: { instances: {}, snapshots: {} },
     elb: { loadBalancers: {}, targetGroups: {} },
     asg: { autoScalingGroups: {} },
@@ -796,7 +805,7 @@ def handler(event, context):
   return {
     ...state,
     s3: { buckets: { 'bleepx-bank-data-lake': bucket, 'bleepx-bank-website': publicWebsiteBucket } },
-    dynamodb: { tables: { 'BleepxBankCustomers': customerTable } },
+    dynamodb: { tables: { 'BleepxBankCustomers': customerTable }, dax: {} },
     iam: {
       ...state.iam,
       users: { 'web-admin': webAdmin },
@@ -940,7 +949,7 @@ export function createBleepxRetailScenario(): CloudSandboxState {
   return {
     ...state,
     s3: { buckets: { 'bleepx-retail-data-lake': dataLake, 'bleepx-retail-website': publicWebsite } },
-    dynamodb: { tables: { 'BleepxRetailProducts': productsTable } },
+    dynamodb: { tables: { 'BleepxRetailProducts': productsTable }, dax: {} },
     iam: { ...state.iam, users: { 'web-admin': webAdmin }, roles: { 'etl-service-role': restockRole }, policies: { 'RetailETLAccess': etlPolicy, 'PowerUserAccess': powerUserPolicy } },
     vpc: { ...state.vpc, securityGroups: { 'sg-web-01': webSg } },
     lambda: { functions: { 'restock-alerts': restockLambda } },
@@ -1077,7 +1086,7 @@ export function createBleepxHealthScenario(): CloudSandboxState {
   return {
     ...state,
     s3: { buckets: { 'bleepx-health-records': recordsBucket, 'bleepx-health-reports': reportsBucket } },
-    dynamodb: { tables: { 'BleepxHealthPatients': patientsTable } },
+    dynamodb: { tables: { 'BleepxHealthPatients': patientsTable }, dax: {} },
     iam: { ...state.iam, users: { 'dev-admin': devAdmin }, roles: { 'etl-service-role': healthRole }, policies: { 'HealthETLAccess': etlPolicy, 'PowerUserAccess': powerUser } },
     vpc: { ...state.vpc, securityGroups: { 'sg-app-01': appSg } },
     lambda: { functions: { 'check-vitals': vitalsLambda } },

@@ -40,6 +40,7 @@ import type {
   SQSQueue,
   SQSMessage,
   S3StorageClass,
+  DAXCluster,
 } from './sandbox';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -1165,6 +1166,50 @@ export function generateTerraformFromState(state: CloudSandboxState): string {
   }
 
   return lines.join('\n');
+}
+
+export function createDAXCluster(
+  state: CloudSandboxState,
+  clusterName: string,
+  nodeType: string,
+  nodes: number,
+  subnetGroup = 'default'
+): CloudSandboxState {
+  if (state.dynamodb.dax[clusterName]) {
+    return event(state, 'dynamodb', 'CreateDAXCluster', clusterName, 'failure', `DAX cluster already exists: ${clusterName}`);
+  }
+  const cluster: DAXCluster = {
+    clusterName,
+    nodeType,
+    nodes,
+    status: 'available',
+    subnetGroup,
+  };
+  return event(
+    { ...state, dynamodb: { ...state.dynamodb, dax: { ...state.dynamodb.dax, [clusterName]: cluster } } },
+    'dynamodb',
+    'CreateDAXCluster',
+    clusterName,
+    'success',
+    `Created DAX cluster ${clusterName} (${nodeType} x ${nodes})`
+  );
+}
+
+export function deleteDAXCluster(
+  state: CloudSandboxState,
+  clusterName: string
+): CloudSandboxState {
+  const cluster = state.dynamodb.dax[clusterName];
+  if (!cluster) return event(state, 'dynamodb', 'DeleteDAXCluster', clusterName, 'failure', `DAX cluster not found: ${clusterName}`);
+  const { [clusterName]: _, ...rest } = state.dynamodb.dax;
+  return event(
+    { ...state, dynamodb: { ...state.dynamodb, dax: rest } },
+    'dynamodb',
+    'DeleteDAXCluster',
+    clusterName,
+    'success',
+    `Deleted DAX cluster ${clusterName}`
+  );
 }
 
 // ─── RDS actions ─────────────────────────────────────────────────────────────

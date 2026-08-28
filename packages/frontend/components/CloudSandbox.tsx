@@ -34,6 +34,8 @@ import {
   createDynamoDBTable,
   putDynamoDBItem,
   queryDynamoDB,
+  createDAXCluster,
+  deleteDAXCluster,
   createLambdaFunction,
   invokeLambda,
   createRDSInstance,
@@ -674,6 +676,9 @@ function DynamoDBPanel({ state, onAction }: { state: CloudSandboxState; onAction
   const [queryPk, setQueryPk] = useState('');
   const [queryResult, setQueryResult] = useState('');
   const [newItem, setNewItem] = useState('');
+  const [daxName, setDaxName] = useState('');
+  const [daxNodes, setDaxNodes] = useState(1);
+  const [daxNodeType, setDaxNodeType] = useState('dax.r5.large');
 
   return (
     <div className="space-y-4">
@@ -713,6 +718,30 @@ function DynamoDBPanel({ state, onAction }: { state: CloudSandboxState; onAction
           }
         }} className="w-full px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 disabled:opacity-50" disabled={!tableName}>Query</button>
         {queryResult && <pre className="mt-2 p-2 rounded-lg bg-gray-900 text-green-400 text-[11px] font-mono overflow-x-auto">{queryResult}</pre>}
+      </div>
+
+      <div className="p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <h5 className="text-xs font-bold text-gray-500 uppercase mb-2">DAX Cluster</h5>
+        <input value={daxName} onChange={(e) => setDaxName(e.target.value)} placeholder="cluster name" className="w-full mb-2 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
+        <input value={daxNodeType} onChange={(e) => setDaxNodeType(e.target.value)} className="w-full mb-2 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
+        <input type="number" value={daxNodes} onChange={(e) => setDaxNodes(parseInt(e.target.value || '1'))} className="w-full mb-2 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" placeholder="nodes" />
+        <button onClick={() => { onAction(createDAXCluster(state, daxName, daxNodeType, daxNodes)); setDaxName(''); }} className="w-full px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold hover:bg-sky-700">Create DAX Cluster</button>
+      </div>
+
+      {Object.keys(state.dynamodb.dax).length > 0 && (
+        <div className="space-y-2">
+          {Object.values(state.dynamodb.dax).map((c) => (
+            <div key={c.clusterName} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
+              <div className="font-mono font-bold">{c.clusterName}</div>
+              <div className="text-[10px] text-gray-500">{c.nodeType} × {c.nodes} nodes · {c.status}</div>
+              <button onClick={() => onAction(deleteDAXCluster(state, c.clusterName))} className="mt-2 text-[10px] px-2 py-1 rounded bg-rose-100 text-rose-700 hover:bg-rose-200 font-bold">Delete</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="p-4 rounded-xl bg-sky-50 dark:bg-sky-900/10 border border-sky-200 dark:border-sky-800 text-sm text-sky-700 dark:text-sky-300">
+        <strong>DynamoDB DAX on the exam:</strong> DAX is an in-memory cache for DynamoDB that gives microsecond read latency. It is not a standalone database; applications connect to DAX endpoints instead of DynamoDB for reads. Use it for read-heavy, eventually consistent workloads.
       </div>
 
       <div className="space-y-2">
