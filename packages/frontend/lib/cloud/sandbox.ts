@@ -7,7 +7,7 @@
 //
 // Supported services: S3, IAM, EC2, VPC, Lambda (simplified), DynamoDB (basic)
 
-export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'secretsmanager' | 'elasticache' | 'messaging' | 'stepfunctions' | 'terraform' | 'security';
+export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'secretsmanager' | 'elasticache' | 'messaging' | 'stepfunctions' | 'storage' | 'terraform' | 'security';
 
 // ─── S3 ──────────────────────────────────────────────────────────────────────
 
@@ -430,6 +430,31 @@ export interface StepFunctionState {
   executions: { executionArn: string; status: 'RUNNING' | 'SUCCEEDED' | 'FAILED'; input: string; output?: string }[];
 }
 
+// ─── Storage (EBS / EFS) ──────────────────────────────────────────────────────
+
+export interface EBSVolume {
+  volumeId: string;
+  size: number;
+  volumeType: 'gp2' | 'gp3' | 'io1' | 'io2' | 'st1' | 'sc1';
+  availabilityZone: string;
+  iops?: number;
+  attachedTo?: string; // EC2 instance id
+}
+
+export interface EFSFileSystem {
+  fileSystemId: string;
+  creationToken: string;
+  performanceMode: 'generalPurpose' | 'maxIO';
+  throughputMode: 'bursting' | 'provisioned';
+  provisionedThroughput?: number;
+  lifeCyclePolicies: string[];
+}
+
+export interface CloudStorageState {
+  volumes: Record<string, EBSVolume>;
+  filesystems: Record<string, EFSFileSystem>;
+}
+
 // ─── CloudWatch ───────────────────────────────────────────────────────────────
 
 export interface CloudWatchAlarm {
@@ -524,6 +549,7 @@ export interface CloudSandboxState {
   stepfunctions: {
     stateMachines: Record<string, StepFunctionState>;
   };
+  storage: CloudStorageState;
   events: CloudEvent[];
 }
 
@@ -575,6 +601,7 @@ export function createEmptySandboxState(): CloudSandboxState {
     elasticache: { clusters: {} },
     messaging: { topics: {}, queues: {} },
     stepfunctions: { stateMachines: {} },
+    storage: { volumes: {}, filesystems: {} },
     events: [],
   };
 }

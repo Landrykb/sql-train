@@ -42,6 +42,8 @@ import type {
   S3StorageClass,
   DAXCluster,
   StepFunctionState,
+  EBSVolume,
+  EFSFileSystem,
 } from './sandbox';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -2094,5 +2096,134 @@ export function deleteStepFunction(
     name,
     'success',
     `Deleted state machine ${name}`
+  );
+}
+
+// ─── Storage (EBS / EFS) actions ───────────────────────────────────────────────
+
+export function createEBSVolume(
+  state: CloudSandboxState,
+  volumeId: string,
+  size: number,
+  volumeType: 'gp2' | 'gp3' | 'io1' | 'io2' | 'st1' | 'sc1' = 'gp3',
+  az = 'us-east-1a',
+  iops?: number
+): CloudSandboxState {
+  if (state.storage.volumes[volumeId]) {
+    return event(state, 'storage', 'CreateVolume', volumeId, 'failure', `EBS volume already exists: ${volumeId}`);
+  }
+  const volume: EBSVolume = {
+    volumeId,
+    size,
+    volumeType,
+    availabilityZone: az,
+    iops: volumeType.startsWith('io') ? (iops || 3000) : undefined,
+  };
+  return event(
+    { ...state, storage: { ...state.storage, volumes: { ...state.storage.volumes, [volumeId]: volume } } },
+    'storage',
+    'CreateVolume',
+    volumeId,
+    'success',
+    `Created EBS ${volumeType} volume ${volumeId} (${size} GB)`
+  );
+}
+
+export function attachEBSVolume(
+  state: CloudSandboxState,
+  volumeId: string,
+  instanceId: string
+): CloudSandboxState {
+  const volume = state.storage.volumes[volumeId];
+  if (!volume) return event(state, 'storage', 'AttachVolume', volumeId, 'failure', `EBS volume not found: ${volumeId}`);
+  if (!state.ec2.instances[instanceId]) return event(state, 'storage', 'AttachVolume', instanceId, 'failure', `EC2 instance not found: ${instanceId}`);
+  return event(
+    { ...state, storage: { ...state.storage, volumes: { ...state.storage.volumes, [volumeId]: { ...volume, attachedTo: instanceId } } } },
+    'storage',
+    'AttachVolume',
+    `${volumeId}:${instanceId}`,
+    'success',
+    `Attached volume ${volumeId} to instance ${instanceId}`
+  );
+}
+
+export function deleteEBSVolume(
+  state: CloudSandboxState,
+  volumeId: string
+): CloudSandboxState {
+  const volume = state.storage.volumes[volumeId];
+  if (!volume) return event(state, 'storage', 'DeleteVolume', volumeId, 'failure', `EBS volume not found: ${volumeId}`);
+  if (volume.attachedTo) return event(state, 'storage', 'DeleteVolume', volumeId, 'failure', `Cannot delete attached volume ${volumeId}`);
+  const { [volumeId]: _, ...rest } = state.storage.volumes;
+  return event(
+    { ...state, storage: { ...state.storage, volumes: rest } },
+    'storage',
+    'DeleteVolume',
+    volumeId,
+    'success',
+    `Deleted EBS volume ${volumeId}`
+  );
+}
+
+export function createEFSFileSystem(
+  state: CloudSandboxState,
+  creationToken: string,
+  performanceMode: 'generalPurpose' | 'maxIO' = 'generalPurpose',
+  throughputMode: 'bursting' | 'provisioned' = 'bursting',
+  provisionedThroughput?: number
+): CloudSandboxState {
+  if (state.storage.filesystems[creationToken]) {
+    return event(state, 'storage', 'CreateFileSystem', creationToken, 'failure', `EFS file system already exists: ${creationToken}`);
+  }
+  const fs: EFSFileSystem = {
+    fileSystemId: `fs-${creationToken.replace(/\W/g, '').toLowerCase().slice(0, 8)}`,
+    creationToken,
+    performanceMode,
+    throughputMode,
+    provisionedThroughput,
+    lifeCyclePolicies: [],
+  };
+  return event(
+    { ...state, storage: { ...state.storage, filesystems: { ...state.storage.filesystems, [creationToken]: fs } } },
+    'storage',
+    'CreateFileSystem',
+    creationToken,
+    'success',
+    `Created EFS file system ${creationToken}`
+  );
+}
+
+export function addEFSLifecyclePolicy(
+  state: CloudSandboxState,
+  creationToken: string,
+  policy: string
+): CloudSandboxState {
+  const fs = state.storage.filesystems[creationToken];
+  if (!fs) return event(state, 'storage', 'PutLifecycleConfiguration', creationToken, 'failure', `EFS file system not found: ${creationToken}`);
+  const updated = { ...fs, lifeCyclePolicies: [...fs.lifeCyclePolicies, policy] };
+  return event(
+    { ...state, storage: { ...state.storage, filesystems: { ...state.storage.filesystems, [creationToken]: updated } } },
+    'storage',
+    'PutLifecycleConfiguration',
+    creationToken,
+    'success',
+    `Added lifecycle policy ${policy} to EFS ${creationToken}`
+  );
+}
+
+export function deleteEFSFileSystem(
+  state: CloudSandboxState,
+  creationToken: string
+): CloudSandboxState {
+  const fs = state.storage.filesystems[creationToken];
+  if (!fs) return event(state, 'storage', 'DeleteFileSystem', creationToken, 'failure', `EFS file system not found: ${creationToken}`);
+  const { [creationToken]: _, ...rest } = state.storage.filesystems;
+  return event(
+    { ...state, storage: { ...state.storage, filesystems: rest } },
+    'storage',
+    'DeleteFileSystem',
+    creationToken,
+    'success',
+    `Deleted EFS file system ${creationToken}`
   );
 }
