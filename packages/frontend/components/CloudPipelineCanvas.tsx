@@ -29,6 +29,8 @@ interface PipelineState {
   s3Bucket: string;
   s3Key: string;
   activeStep: PipelineStep;
+  sqlCell?: number;
+  pythonCell?: number;
 }
 
 const DEFAULT_QUERY = `SELECT *
@@ -49,6 +51,51 @@ if 'quantity' in df.columns and 'price' in df.columns:
 # Export back to CSV
 print(df.to_csv(index=False))`;
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function CsvOutput({ csv, cell, title }: { csv: string; cell?: number; title: string }) {
+  const parsed = React.useMemo(() => {
+    const lines = csv.trim().split('\n').filter(Boolean);
+    if (!lines.length) return null;
+    const headers = lines[0].split(',');
+    const rows = lines.slice(1, 21).map((line) => line.split(','));
+    return { headers, rows };
+  }, [csv]);
+
+  return (
+    <div className="mt-3 rounded-lg border border-gray-700 overflow-hidden bg-gray-950">
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-900 border-b border-gray-700 text-[10px] font-mono">
+        <span className="text-emerald-400 font-bold">Out[{cell ?? ' '}]</span>
+        <span className="text-gray-400">{title}</span>
+      </div>
+      {parsed ? (
+        <div className="overflow-x-auto max-h-80">
+          <table className="w-full text-[10px] font-mono">
+            <thead className="bg-gray-900 text-gray-300 sticky top-0">
+              <tr>
+                {parsed.headers.map((h, i) => (
+                  <th key={i} className="px-2 py-1 text-left border-b border-gray-700 font-semibold">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="text-gray-200">
+              {parsed.rows.map((row, i) => (
+                <tr key={i} className="border-b border-gray-800/50 last:border-0 even:bg-gray-900/30">
+                  {row.map((c, j) => (
+                    <td key={j} className="px-2 py-1 whitespace-nowrap">{c}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <pre className="p-3 text-xs text-gray-300 font-mono overflow-x-auto">{csv}</pre>
+      )}
+    </div>
+  );
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function CloudPipelineCanvas() {
@@ -63,6 +110,7 @@ export default function CloudPipelineCanvas() {
     s3Key: 'output.csv',
     activeStep: 'extract',
   });
+  const [execCount, setExecCount] = useState(0);
 
   const [sandbox, setSandbox] = useState<CloudSandboxState>(createEmptySandboxState());
   const [message, setMessage] = useState<string | null>(null);
@@ -104,18 +152,22 @@ export default function CloudPipelineCanvas() {
   }, []);
 
   const runSql = useCallback(() => {
+    const nextCell = execCount + 1;
+    setExecCount(nextCell);
     // Simplified SQL preview: just return the first 20 lines of rawCsv
     const lines = pipeline.rawCsv.trim().split('\n');
     const preview = lines.slice(0, 20).join('\n');
-    setPipeline((p) => ({ ...p, sqlResult: preview, activeStep: 'csv' }));
+    setPipeline((p) => ({ ...p, sqlResult: preview, sqlCell: nextCell, activeStep: 'csv' }));
     setMessage('✓ SQL step preview complete. (Full sql.js integration coming in the next release.)');
-  }, [pipeline.rawCsv]);
+  }, [pipeline.rawCsv, execCount]);
 
   const runPython = useCallback(() => {
+    const nextCell = execCount + 1;
+    setExecCount(nextCell);
     // Simplified Python preview: echo the CSV back as a demo
-    setPipeline((p) => ({ ...p, transformedCsv: p.rawCsv, activeStep: 'csv' }));
+    setPipeline((p) => ({ ...p, transformedCsv: p.rawCsv, pythonCell: nextCell, activeStep: 'csv' }));
     setMessage('✓ Python transformation step complete. (Pyodide integration coming in the next release.)');
-  }, []);
+  }, [pipeline.rawCsv, execCount]);
 
   const uploadToS3 = useCallback(() => {
     let next = createS3Bucket(sandbox, pipeline.s3Bucket, sandbox.activeRegion);
@@ -260,6 +312,7 @@ export default function CloudPipelineCanvas() {
       {/* SQL */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
         <h2 className="text-base font-bold text-bleepx-text mb-2">2. SQL Analysis</h2>
+        <div className="mb-2 text-[10px] font-mono text-emerald-500">In[{pipeline.sqlCell ?? ' '}]</div>
         <textarea
           value={pipeline.sqlQuery}
           onChange={(e) => setPipeline((p) => ({ ...p, sqlQuery: e.target.value }))}
@@ -270,13 +323,14 @@ export default function CloudPipelineCanvas() {
           Run SQL preview
         </button>
         {pipeline.sqlResult && (
-          <pre className="mt-3 p-3 rounded-lg bg-gray-900 text-green-400 text-xs font-mono overflow-x-auto">{pipeline.sqlResult}</pre>
+          <CsvOutput csv={pipeline.sqlResult} cell={pipeline.sqlCell} title="SQL preview" />
         )}
       </div>
 
       {/* Python */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
         <h2 className="text-base font-bold text-bleepx-text mb-2">3. Python ETL</h2>
+        <div className="mb-2 text-[10px] font-mono text-emerald-500">In[{pipeline.pythonCell ?? ' '}]</div>
         <textarea
           value={pipeline.pythonCode}
           onChange={(e) => setPipeline((p) => ({ ...p, pythonCode: e.target.value }))}
@@ -287,7 +341,7 @@ export default function CloudPipelineCanvas() {
           Run Python transform
         </button>
         {pipeline.transformedCsv && (
-          <pre className="mt-3 p-3 rounded-lg bg-gray-900 text-green-400 text-xs font-mono overflow-x-auto">{pipeline.transformedCsv}</pre>
+          <CsvOutput csv={pipeline.transformedCsv} cell={pipeline.pythonCell} title="Python transform" />
         )}
       </div>
 
