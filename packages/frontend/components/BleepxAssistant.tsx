@@ -276,7 +276,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           style={{ ...sharedStyle, filter: spriteFilter }}
         >
           <img
-            src="/bleepx-icon.png"
+            src="/bleepx-logo.png"
             alt="Bleepx"
             width={ballSize}
             height={ballSize}
@@ -292,7 +292,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           style={{ ...sharedStyle, filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.5))', opacity: 0.65 }}
         >
           <img
-            src="/bleepx-icon.svg"
+            src="/bleepx-icon.png"
             alt="Bleepx"
             width={ballSize}
             height={ballSize}
@@ -319,7 +319,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   };
 
   const PngSprite = ({ size = 44, rotate = 0, children }: { size?: number; rotate?: number; children?: React.ReactNode }) => {
-    const iconSrc = isDark ? '/bleepx-icon.png' : '/bleepx-icon.svg';
+    const iconSrc = isDark ? '/bleepx-logo.png' : '/bleepx-icon.png';
     return (
       <div
         className="relative flex items-center justify-center"
