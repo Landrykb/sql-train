@@ -573,6 +573,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
   const lintFocused = useCallback((target: EventTarget | null) => {
     if (isDragging.current) return;
+    if (target instanceof HTMLElement && target.closest('#bleepx-assistant')) return;
     if (!isEditable(target)) {
       setDockedHint(null);
       setDock({ right: 16, bottom: 16 });
@@ -616,6 +617,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     const onInput = (e: Event) => scheduleLint(e.target);
     const onScrollResize = () => {
       const active = document.activeElement;
+      if (active instanceof HTMLElement && active.closest('#bleepx-assistant')) return;
       if (isEditable(active)) lintFocused(active);
     };
 
@@ -679,6 +681,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
   return (
     <div
+      id="bleepx-assistant"
       className="fixed z-50 flex flex-col items-end gap-2 transition-all duration-500"
       style={{ right: dock.right, bottom: dock.bottom, transition: dragging ? 'none' : undefined }}
     >
