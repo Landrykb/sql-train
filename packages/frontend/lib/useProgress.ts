@@ -271,7 +271,9 @@ export function useProgress() {
         console.log('Marking Complete:', caseId, 'New Completed:', Array.from(next), 'Points:', newPoints, 'Achievements:', newAchievements);
 
         // Track lifetime points (never decreases)
-        updateTotalPointsEarned(newPoints);
+        const store = getStoreState();
+        const newTotalEarned = (store.totalPointsEarned || 0) + pointsToAdd;
+        updateTotalPointsEarned(newTotalEarned);
         track(Events.CASE_SOLVED, { case_id: caseId, points_earned: pointsToAdd, total_points: newPoints });
 
         // Push full state to Supabase (incl. store state + quiz scores)
