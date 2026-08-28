@@ -6,11 +6,26 @@ import { usePathname } from 'next/navigation';
 import { useProgress } from '@/lib/useProgress';
 import { playBleep } from '@/lib/audio';
 import { lintInput, BleepxHint } from '@/lib/bleepxLinter';
+import {
+  BleepxFace,
+  BleepxHead,
+  BleepxGhost,
+  BleepxWave,
+  BleepxThink,
+  BleepxCode,
+  BleepxLock,
+  BleepxTrophy,
+  BleepxSpark,
+  BleepxSignal,
+  BleepxEye,
+  BleepxGit,
+  BleepxGitHub,
+} from '@/components/BleepxIcons';
 
 
 type AssistantContext = 'home' | 'sql' | 'lab' | 'cloud' | 'journey' | 'general';
 
-type Mood = 'idle' | 'wave' | 'think' | 'code' | 'chat' | 'error' | 'success' | 'signal';
+type Mood = 'idle' | 'wave' | 'think' | 'code' | 'chat' | 'error' | 'success' | 'signal' | 'flying' | 'watch' | 'spark' | 'git' | 'github' | 'face';
 
 const DEFAULT_HINTS: Record<string, { text: string; cta: string; href: string }> = {
   '/': { text: 'Start with SQL basics, then Python, then pick a cloud or ML goal.', cta: 'Start My Journey', href: '/journey' },
@@ -83,8 +98,11 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const [input, setInput] = useState('');
   const [dock, setDock] = useState<{ right: number; bottom: number }>({ right: 16, bottom: 16 });
   const [dockedHint, setDockedHint] = useState<BleepxHint | null>(null);
+  const [rotation, setRotation] = useState(0);
   const lintTimer = useRef<NodeJS.Timeout | null>(null);
   const lastHintText = useRef<string | null>(null);
+  const flyingTimer = useRef<NodeJS.Timeout | null>(null);
+  const prevDock = useRef({ right: 16, bottom: 16 });
 
   const hint = useMemo(() => {
     const exact = DEFAULT_HINTS[pathname];
@@ -118,10 +136,18 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     setMessages((prev) => [...prev, { role: 'user', text: text.trim() }]);
     setMood('think');
     setTimeout(() => {
-      const reply = TOPIC_HINTS[text.toLowerCase().trim()] ?? generateBleepxResponse(text, context ?? 'general');
+      const lower = text.toLowerCase();
+      const reply = TOPIC_HINTS[lower.trim()] ?? generateBleepxResponse(text, context ?? 'general');
+      const isKnown = TOPIC_HINTS[lower.trim()] !== undefined;
+      let nextMood: Mood = 'chat';
+      if (isKnown) nextMood = 'success';
+      else if (lower.includes('github')) nextMood = 'github';
+      else if (lower.includes('git')) nextMood = 'git';
+      else if (lower.includes('hello') || lower.includes('hi ')) nextMood = 'face';
       setMessages((prev) => [...prev, { role: 'assistant', text: reply }]);
-      setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle');
+      setMood(nextMood);
       playBleep();
+      setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 1400);
     }, 700);
   };
 
@@ -133,14 +159,15 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       if (next) {
         playBleep();
         setMood('wave');
-        setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 1200);
+        setTimeout(() => setMood('chat'), 400);
+        setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 1600);
         if (messages.length === 0) startChat();
       }
       return next;
     });
   };
 
-  const moodClass = mood === 'think' ? 'animate-pulse' : mood === 'wave' ? 'animate-bounce' : mood === 'success' ? 'animate-bounce' : mood === 'error' ? 'animate-pulse' : 'animate-float';
+  const moodClass = mood === 'flying' ? '' : mood === 'think' ? 'animate-pulse' : mood === 'wave' ? 'animate-bounce' : mood === 'success' ? 'animate-bounce' : mood === 'error' ? 'animate-pulse' : 'animate-float';
 
   const spriteFilter = (() => {
     switch (mood) {
@@ -151,7 +178,13 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       case 'code':
         return 'drop-shadow(0 0 8px rgba(14,165,233,0.7))';
       case 'signal':
+      case 'watch':
         return 'drop-shadow(0 0 8px rgba(45,212,191,0.7))';
+      case 'spark':
+        return 'drop-shadow(0 0 8px rgba(250,204,21,0.7))';
+      case 'git':
+      case 'github':
+        return 'drop-shadow(0 0 8px rgba(250,112,0,0.7))';
       case 'wave':
       case 'chat':
         return 'drop-shadow(0 0 6px rgba(87,236,244,0.7))';
@@ -160,16 +193,63 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     }
   })();
 
-  const Sprite = ({ size = 44 }: { size?: number }) => (
-    <img
-      src="/bleepx-icon.png"
-      alt="Bleepx"
-      width={size}
-      height={size}
-      className="object-contain"
-      style={{ filter: spriteFilter }}
-    />
-  );
+  const Sprite = ({ size = 44 }: { size?: number }) => {
+    const shared = `drop-shadow-lg ${moodClass}`;
+    switch (mood) {
+      case 'flying':
+        return (
+          <img
+            src="/bleepx-icon.png"
+            alt="Bleepx"
+            width={size}
+            height={size}
+            className="object-contain"
+            style={{ filter: spriteFilter, transform: `rotate(${rotation}deg)` }}
+          />
+        );
+      case 'wave':
+        return <BleepxWave size={size} className={shared} />;
+      case 'think':
+        return <BleepxThink size={size} className={shared} />;
+      case 'code':
+        return <BleepxCode size={size} className={shared} />;
+      case 'chat':
+        return <BleepxHead size={size} className={shared} />;
+      case 'face':
+        return <BleepxFace size={size} className={shared} />;
+      case 'error':
+        return <BleepxLock size={size} className={shared} />;
+      case 'success':
+        return <BleepxTrophy size={size} className={shared} />;
+      case 'signal':
+        return (
+          <div className="relative">
+            <BleepxGhost size={size} className={shared} />
+            <BleepxSignal size={20} className="absolute -top-1 -right-1 animate-ping" />
+          </div>
+        );
+      case 'watch':
+        return (
+          <div className="relative">
+            <BleepxGhost size={size} className={shared} />
+            <BleepxEye size={16} className="absolute -top-1 -right-1" />
+          </div>
+        );
+      case 'spark':
+        return (
+          <div className="relative">
+            <BleepxGhost size={size} className={shared} />
+            <BleepxSpark size={20} className="absolute -top-1 -right-1 animate-spin" />
+          </div>
+        );
+      case 'git':
+        return <BleepxGit size={size} className={shared} />;
+      case 'github':
+        return <BleepxGitHub size={size} className={shared} />;
+      default:
+        return <BleepxGhost size={size} className={shared} />;
+    }
+  };
 
   const isEditable = (el: EventTarget | null): el is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement => {
     if (!(el instanceof HTMLElement)) return false;
@@ -206,15 +286,32 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     const rect = el.getBoundingClientRect();
     const top = Math.max(8, Math.min(window.innerHeight - 80, rect.top + rect.height / 2 - 32));
     const left = Math.max(8, Math.min(window.innerWidth - 80, rect.right + 16));
-    setDock({ right: window.innerWidth - left - 64, bottom: window.innerHeight - top - 64 });
+    const nextDock = { right: window.innerWidth - left - 64, bottom: window.innerHeight - top - 64 };
+
+    const oldLeft = window.innerWidth - prevDock.current.right - 64;
+    const oldTop = window.innerHeight - prevDock.current.bottom - 64;
+    const dx = left - oldLeft;
+    const dy = top - oldTop;
+    const distance = Math.hypot(dx, dy);
+    const angle = distance > 4 ? Math.atan2(dy, dx) * (180 / Math.PI) : rotation;
+
+    if (flyingTimer.current) clearTimeout(flyingTimer.current);
+    setMood('flying');
+    setRotation(angle);
+    setDock(nextDock);
+    prevDock.current = nextDock;
 
     const hint = lintInput(el.value, el, pathname ?? undefined);
-    applyHint(hint);
-  }, [applyHint, pathname]);
+    flyingTimer.current = setTimeout(() => {
+      applyHint(hint);
+      flyingTimer.current = null;
+    }, 150);
+  }, [applyHint, pathname, rotation]);
 
   const scheduleLint = useCallback((target: EventTarget | null) => {
     if (lintTimer.current) clearTimeout(lintTimer.current);
-    lintTimer.current = setTimeout(() => lintFocused(target), 600);
+    if (flyingTimer.current) clearTimeout(flyingTimer.current);
+    lintTimer.current = setTimeout(() => lintFocused(target), 400);
   }, [lintFocused]);
 
   useEffect(() => {
@@ -247,7 +344,11 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       {!open && dockedHint && (
         <div className="relative mb-2 p-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-rose-300 dark:border-rose-700 shadow-2xl text-sm w-72">
           <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-rose-300 dark:border-t-rose-700" />
-          <div className="font-bold text-bleepx-text mb-1 text-xs uppercase tracking-wide">Bleepx spotted an issue</div>
+          <div className="flex items-center gap-2 mb-2">
+            <BleepxFace size={20} />
+            <div className="font-bold text-bleepx-text text-xs uppercase tracking-wide">Bleepx spotted an issue</div>
+            {dockedHint.severity === 'tip' ? <BleepxEye size={18} className="ml-auto" /> : dockedHint.severity === 'warning' ? <BleepxThink size={18} className="ml-auto" /> : <BleepxLock size={18} className="ml-auto" />}
+          </div>
           <div className="text-bleepx-text-secondary leading-relaxed">{dockedHint.message}</div>
           {dockedHint.fix && (
             <div className="mt-2 text-xs text-emerald-700 dark:text-emerald-400 font-medium">Fix: {dockedHint.fix}</div>
@@ -283,7 +384,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               {mood === 'think' && (
                 <div className="flex justify-start">
                   <div className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 rounded-bl-none">
-                    <img src="/bleepx-icon.png" alt="Bleepx" width={28} height={28} className="object-contain animate-pulse" style={{ filter: 'drop-shadow(0 0 6px rgba(87,236,244,0.5))' }} />
+                    <BleepxThink size={24} className="animate-pulse" />
                   </div>
                 </div>
               )}
@@ -323,9 +424,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           <Sprite />
         </div>
         {!open && (
-          <span className="absolute -top-1 -right-1 flex h-4 w-4">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-sky-500" />
+          <span className="absolute -top-1 -right-1">
+            <BleepxSpark size={20} className="animate-ping text-cyan-400" />
           </span>
         )}
       </button>
