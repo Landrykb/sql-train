@@ -148,7 +148,10 @@ export default function CertificationsPage() {
           Bleepx is building a fully integrated learning journey: SQL → Python → Data Science → ML → ETL → Cloud → SAA. Use this page as your master plan. It maps every SAA-C03 domain to hands-on labs, sandbox exercises, and missions.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/cloud/sandbox" className="px-5 py-2.5 rounded-full bg-white text-indigo-700 font-semibold text-sm hover:bg-gray-100 transition-colors shadow-lg">
+          <Link href="/cloud/certifications/practice" className="px-5 py-2.5 rounded-full bg-white text-indigo-700 font-semibold text-sm hover:bg-gray-100 transition-colors shadow-lg">
+            📝 Take Practice Exam
+          </Link>
+          <Link href="/cloud/sandbox" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-semibold text-sm hover:bg-white/10 transition-colors">
             Open Cloud Sandbox
           </Link>
           <Link href="/cloud/pipelines" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
