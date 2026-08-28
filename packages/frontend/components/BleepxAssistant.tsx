@@ -147,6 +147,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const [isDark, setIsDark] = useState(false);
   const [manualMode, setManualMode] = useState<'auto' | Mode>('auto');
   const [teaser, setTeaser] = useState<{ text: string; command: string } | null>(null);
+  const [teaserHover, setTeaserHover] = useState(false);
 
   const activeMode = useMemo(() => {
     if (manualMode !== 'auto') return manualMode;
@@ -678,8 +679,10 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       )}
       {!open && teaser && !dockedHint && (
         <div
-          className="relative mb-2 p-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-cyan-300 dark:border-cyan-600 shadow-2xl text-sm w-64 sm:w-72 cursor-pointer animate-bounce"
+          className={`relative mb-2 p-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-cyan-300 dark:border-cyan-600 shadow-2xl text-sm w-64 sm:w-72 cursor-pointer ${teaserHover ? '' : 'animate-bounce'}`}
           onClick={() => { setOpen(true); setTeaser(null); }}
+          onMouseEnter={() => setTeaserHover(true)}
+          onMouseLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setTeaserHover(false); }}
         >
           <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-cyan-300 dark:border-t-cyan-600" />
           <div className="flex items-center gap-2 mb-1">
