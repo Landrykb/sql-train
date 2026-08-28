@@ -27,16 +27,16 @@ type AssistantContext = 'home' | 'sql' | 'lab' | 'cloud' | 'journey' | 'general'
 
 type Mood = 'idle' | 'wave' | 'think' | 'code' | 'chat' | 'error' | 'success' | 'signal' | 'flying' | 'watch' | 'spark' | 'git' | 'github' | 'face' | 'stealth';
 type Mode = 'light' | 'dark' | 'stealth' | 'mix' | 'neon' | 'ghost' | 'solar' | 'green' | 'red';
-const MODES: Record<Mode, { label: string; dark: boolean; mood: Mood; filter: string; badge: string }> = {
-  light: { label: 'LIGHT MODE', dark: false, mood: 'wave', filter: '', badge: 'bg-sky-100 text-sky-700 border-sky-300' },
-  dark: { label: 'DARK MODE', dark: true, mood: 'code', filter: 'drop-shadow(0 0 10px rgba(34,211,238,0.5))', badge: 'bg-cyan-950 text-cyan-300 border-cyan-600' },
-  stealth: { label: 'STEALTH MODE', dark: true, mood: 'stealth', filter: 'grayscale(0.5) brightness(0.7) drop-shadow(0 0 6px rgba(34,211,238,0.25))', badge: 'bg-gray-800 text-gray-300 border-gray-600' },
-  mix: { label: 'MIX MODE', dark: true, mood: 'chat', filter: 'contrast(1.1) drop-shadow(0 0 10px rgba(34,211,238,0.5))', badge: 'bg-fuchsia-950 text-fuchsia-300 border-fuchsia-600' },
-  neon: { label: 'NEON MODE', dark: true, mood: 'wave', filter: 'drop-shadow(0 0 16px rgba(6,182,212,0.9)) saturate(1.6) brightness(1.2) contrast(1.1)', badge: 'bg-cyan-950 text-cyan-300 border-cyan-500' },
-  ghost: { label: 'GHOST MODE', dark: false, mood: 'wave', filter: 'brightness(1.3) opacity(0.55) drop-shadow(0 0 8px rgba(255,255,255,0.4))', badge: 'bg-slate-100 text-slate-500 border-slate-300' },
-  solar: { label: 'SOLAR MODE', dark: false, mood: 'success', filter: 'drop-shadow(0 0 14px rgba(250,204,21,0.8)) hue-rotate(-120deg) saturate(1.5) brightness(1.2) contrast(1.1)', badge: 'bg-yellow-100 text-yellow-700 border-yellow-400' },
-  green: { label: 'GREEN MODE', dark: false, mood: 'success', filter: 'drop-shadow(0 0 14px rgba(74,222,128,0.8)) hue-rotate(-60deg) saturate(1.5) contrast(1.1)', badge: 'bg-green-100 text-green-700 border-green-400' },
-  red: { label: 'RED MODE', dark: true, mood: 'error', filter: 'drop-shadow(0 0 14px rgba(248,113,113,0.8)) hue-rotate(180deg) saturate(1.4) contrast(1.1)', badge: 'bg-red-950 text-red-300 border-red-600' },
+const MODES: Record<Mode, { label: string; dark: boolean; mood: Mood; filter: string; badge: string; sphere: { brace: string; glow: string } }> = {
+  light: { label: 'LIGHT MODE', dark: false, mood: 'wave', filter: '', badge: 'bg-sky-100 text-sky-700 border-sky-300', sphere: { brace: '#22d3ee', glow: 'rgba(34,211,238,0.8)' } },
+  dark: { label: 'DARK MODE', dark: true, mood: 'code', filter: 'drop-shadow(0 0 10px rgba(34,211,238,0.5))', badge: 'bg-cyan-950 text-cyan-300 border-cyan-600', sphere: { brace: '#22d3ee', glow: 'rgba(34,211,238,0.8)' } },
+  stealth: { label: 'STEALTH MODE', dark: true, mood: 'stealth', filter: 'grayscale(0.5) brightness(0.7) drop-shadow(0 0 6px rgba(34,211,238,0.25))', badge: 'bg-gray-800 text-gray-300 border-gray-600', sphere: { brace: '#9ca3af', glow: 'rgba(156,163,175,0.5)' } },
+  mix: { label: 'MIX MODE', dark: true, mood: 'chat', filter: 'contrast(1.1) drop-shadow(0 0 10px rgba(34,211,238,0.5))', badge: 'bg-fuchsia-950 text-fuchsia-300 border-fuchsia-600', sphere: { brace: '#e879f9', glow: 'rgba(232,121,249,0.8)' } },
+  neon: { label: 'NEON MODE', dark: true, mood: 'wave', filter: 'drop-shadow(0 0 16px rgba(6,182,212,0.9)) saturate(1.6) brightness(1.2) contrast(1.1)', badge: 'bg-cyan-950 text-cyan-300 border-cyan-500', sphere: { brace: '#22d3ee', glow: 'rgba(6,182,212,0.9)' } },
+  ghost: { label: 'GHOST MODE', dark: false, mood: 'wave', filter: 'brightness(1.3) opacity(0.55) drop-shadow(0 0 8px rgba(255,255,255,0.4))', badge: 'bg-slate-100 text-slate-500 border-slate-300', sphere: { brace: '#f8fafc', glow: 'rgba(255,255,255,0.5)' } },
+  solar: { label: 'SOLAR MODE', dark: false, mood: 'success', filter: 'drop-shadow(0 0 14px rgba(250,204,21,0.8)) hue-rotate(-120deg) saturate(1.5) brightness(1.2) contrast(1.1)', badge: 'bg-yellow-100 text-yellow-700 border-yellow-400', sphere: { brace: '#facc15', glow: 'rgba(250,204,21,0.8)' } },
+  green: { label: 'GREEN MODE', dark: false, mood: 'success', filter: 'drop-shadow(0 0 14px rgba(74,222,128,0.8)) hue-rotate(-60deg) saturate(1.5) contrast(1.1)', badge: 'bg-green-100 text-green-700 border-green-400', sphere: { brace: '#4ade80', glow: 'rgba(74,222,128,0.8)' } },
+  red: { label: 'RED MODE', dark: true, mood: 'error', filter: 'drop-shadow(0 0 14px rgba(248,113,113,0.8)) hue-rotate(180deg) saturate(1.4) contrast(1.1)', badge: 'bg-red-950 text-red-300 border-red-600', sphere: { brace: '#f87171', glow: 'rgba(248,113,113,0.8)' } },
 };
 
 const DEFAULT_HINTS: Record<string, { text: string; cta: string; href: string }> = {
@@ -143,6 +143,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const rafId = useRef<number | null>(null);
   const downAt = useRef(0);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [isDark, setIsDark] = useState(false);
   const [manualMode, setManualMode] = useState<'auto' | Mode>('auto');
   const [teaser, setTeaser] = useState<{ text: string; command: string } | null>(null);
@@ -207,6 +208,10 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     return () => clearTimeout(id);
   }, [open, dockedHint, dragging, manualMode]);
 
+  useEffect(() => {
+    if (open) messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+  }, [messages, open]);
+
   const goal = findJourneyGoal();
   const completedCount = completed.size;
 
@@ -237,17 +242,21 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     }
   };
 
-  const modeReplies: Record<string, { mode: Mode; text: string }> = {
-    'light mode': { mode: 'light', text: 'Back to the light. A little too bright for my taste, but okay.' },
-    'dark mode': { mode: 'dark', text: 'Dark mode engaged. The shadows suit me perfectly.' },
-    'stealth mode': { mode: 'stealth', text: 'Stealth mode on. I am still watching — just hidden in the dark. Special ability: silent hints and no teaser bubbles.' },
-    'mix mode': { mode: 'mix', text: 'Mix mode! Two Bleepx, one sphere. Chaos and beauty at the same time.' },
-    'neon mode': { mode: 'neon', text: 'Neon mode activated. I am glowing brighter than your future SQL queries.' },
-    'ghost mode': { mode: 'ghost', text: 'Ghost mode. Faint, friendly, and a little see-through.' },
-    'solar mode': { mode: 'solar', text: 'Solar mode. Powered by sunlight and good vibes.' },
-    'green mode': { mode: 'green', text: 'Green mode on. Eco-friendly code tips activated.' },
-    'red mode': { mode: 'red', text: 'RED MODE ENGAGED. I am taking no prisoners with these hints.' },
+  const modeReplies: Record<string, { mode: Mode; text: string }> = {};
+  const addMode = (cmd: string, mode: Mode, text: string) => {
+    modeReplies[cmd] = { mode, text };
+    if (!cmd.includes(' ')) modeReplies[`${cmd} mode`] = { mode, text };
+    else modeReplies[cmd.split(' ')[0]] = { mode, text };
   };
+  addMode('light', 'light', 'Back to the light. A little too bright for my taste, but okay.');
+  addMode('dark', 'dark', 'Dark mode engaged. The shadows suit me perfectly.');
+  addMode('stealth', 'stealth', 'Stealth mode on. I am still watching — just hidden in the dark. Special ability: silent hints and no teaser bubbles.');
+  addMode('mix', 'mix', 'Mix mode! Two Bleepx, one sphere. Chaos and beauty at the same time.');
+  addMode('neon', 'neon', 'Neon mode activated. I am glowing brighter than your future SQL queries.');
+  addMode('ghost', 'ghost', 'Ghost mode. Faint, friendly, and a little see-through.');
+  addMode('solar', 'solar', 'Solar mode. Powered by sunlight and good vibes.');
+  addMode('green', 'green', 'Green mode on. Eco-friendly code tips activated.');
+  addMode('red', 'red', 'RED MODE ENGAGED. I am taking no prisoners with these hints.');
 
   const applyMode = (lower: string) => {
     const config = modeReplies[lower];
@@ -344,10 +353,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
   const BallSprite = ({ size = 44 }: { size?: number }) => {
     const ballSize = Math.max(24, size - 8);
-    const isLight = activeMode === 'light';
-    const src = isLight ? '/bleepx-icon.png' : '/bleepx-logo.png';
     const motionClass = activeMode === 'stealth' ? 'bleepx-stealth' : activeMode === 'neon' || activeMode === 'green' || activeMode === 'red' ? 'bleepx-fly' : moodClass;
-    const modeFilter = isLight ? spriteFilter : MODES[activeMode].filter;
+    const { brace, glow } = MODES[activeMode].sphere;
     const sharedStyle: React.CSSProperties = {
       width: ballSize,
       height: ballSize,
@@ -355,30 +362,21 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     };
     return (
       <div
-        className={`relative rounded-full overflow-hidden ${motionClass}`}
+        className={`relative rounded-full overflow-hidden flex items-center justify-center ${motionClass}`}
         style={{
           ...sharedStyle,
-          filter: modeFilter,
+          background: 'radial-gradient(circle at 26% 24%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 10%, transparent 28%), radial-gradient(circle at 30% 30%, #3a4454 0%, #1f2937 20%, #111827 45%, #000000 100%)',
+          boxShadow: `inset -6px -6px 14px rgba(0,0,0,0.9), inset 6px 6px 14px rgba(255,255,255,0.12), 0 0 14px ${glow}, inset 0 0 20px rgba(0,0,0,0.6)`,
+          filter: `drop-shadow(0 0 6px ${glow})`,
           opacity: activeMode === 'stealth' ? 0.75 : activeMode === 'ghost' ? 0.55 : 1,
         }}
       >
-        <img
-          src="/bleepx-icon.png"
-          alt="Bleepx"
-          width={ballSize}
-          height={ballSize}
-          className="object-cover w-full h-full"
-        />
-        {!isLight && (
-          <img
-            src="/bleepx-logo.png"
-            alt="Bleepx"
-            width={ballSize}
-            height={ballSize}
-            className="absolute inset-0 object-cover w-full h-full"
-            style={{ opacity: activeMode === 'mix' ? 0.5 : activeMode === 'ghost' ? 0.35 : activeMode === 'solar' ? 0.25 : 0, mixBlendMode: activeMode === 'mix' ? 'screen' : 'normal' }}
-          />
-        )}
+        <span
+          className="font-mono font-bold select-none"
+          style={{ color: brace, fontSize: Math.max(10, ballSize * 0.45), textShadow: `0 0 10px ${glow}` }}
+        >
+          {'{ }'}
+        </span>
         <div
           className="absolute inset-0 rounded-full pointer-events-none"
           style={{
@@ -729,6 +727,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
                   </div>
                 </div>
               )}
+              <div ref={messagesEndRef} />
             </div>
             <div className="p-3 border-t border-gray-200 dark:border-gray-700">
               <div className="flex flex-wrap gap-2 mb-2">
