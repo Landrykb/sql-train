@@ -486,6 +486,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
   const isEditable = (el: EventTarget | null): el is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement => {
     if (!(el instanceof HTMLElement)) return false;
+    if (el.closest('#bleepx-assistant') || el.dataset.bleepxIgnore) return false;
     return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable;
   };
 
@@ -765,6 +766,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               </div>
               <div className="flex gap-2">
                 <input
+                  data-bleepx-ignore
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') send(input); }}
