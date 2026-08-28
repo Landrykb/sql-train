@@ -306,8 +306,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         className={`rounded-full ${moodClass} flex items-center justify-center border border-cyan-400/40`}
         style={{
           ...sharedStyle,
-          background: 'radial-gradient(circle at 30% 30%, #2a2f3a 0%, #0f1115 50%, #000000 100%)',
-          boxShadow: 'inset -4px -4px 8px rgba(0,0,0,0.8), inset 4px 4px 8px rgba(255,255,255,0.05), 0 0 12px rgba(34,211,238,0.45)',
+          background: 'radial-gradient(circle at 26% 24%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 10%, transparent 28%), radial-gradient(circle at 30% 30%, #3a4454 0%, #1f2937 20%, #111827 45%, #000000 100%)',
+          boxShadow: 'inset -6px -6px 14px rgba(0,0,0,0.9), inset 6px 6px 14px rgba(255,255,255,0.12), 0 0 14px rgba(34,211,238,0.5), inset 0 0 20px rgba(0,0,0,0.6)',
           filter: spriteFilter,
         }}
       >
@@ -594,7 +594,16 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
                 <Sprite size={40} />
               </div>
               <div className="flex-1">
-                <div className="font-extrabold text-bleepx-text">Bleepx</div>
+                <div className="font-extrabold text-bleepx-text flex items-center gap-2">
+                  Bleepx
+                  {mood === 'stealth' ? (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] bg-gray-800 text-gray-300 border border-gray-600">STEALTH MODE</span>
+                  ) : isDark ? (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] bg-cyan-950 text-cyan-300 border border-cyan-600">DARK MODE</span>
+                  ) : (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] bg-sky-100 text-sky-700 border border-sky-300">LIVE</span>
+                  )}
+                </div>
                 <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{completedCount} steps done · {points} pts</div>
               </div>
               <button onClick={() => setOpen(false)} className="text-xs text-bleepx-text-secondary hover:text-bleepx-text">Close</button>
