@@ -109,19 +109,9 @@ const NAG_MESSAGES = [
   'I have SO many SQL tips and no one to share them with.',
   'Tap me. You know you want to.',
   'I am not going anywhere.',
+  'Want to change my look? Open the chat and type a mode.',
 ];
 const randomNag = () => NAG_MESSAGES[Math.floor(Math.random() * NAG_MESSAGES.length)];
-
-const TEASERS = [
-  { text: 'Wanna see something cool? Type "dark mode"!', command: 'dark mode' },
-  { text: 'I can go invisible. Try "stealth mode"!', command: 'stealth mode' },
-  { text: 'Two Bleepx in one sphere — type "mix mode"!', command: 'mix mode' },
-  { text: 'Want a glow-up? Type "neon mode"!', command: 'neon mode' },
-  { text: 'Feeling sunny? Try "solar mode"!', command: 'solar mode' },
-  { text: 'Too dark? Flip back with "light mode"!', command: 'light mode' },
-  { text: 'I can be a ghost. Type "ghost mode"!', command: 'ghost mode' },
-];
-const randomTeaser = () => TEASERS[Math.floor(Math.random() * TEASERS.length)];
 
 export default function BleepxAssistant({ context }: { context?: AssistantContext }) {
   const pathname = usePathname();
@@ -141,6 +131,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const didDrag = useRef(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const targetDock = useRef({ right: 16, bottom: 16 });
+  const lastAutoSwitch = useRef(0);
   const rafId = useRef<number | null>(null);
   const downAt = useRef(0);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -153,6 +144,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const [userName, setUserName] = useState<string | null>(null);
   const [nickName, setNickName] = useState<string | null>(() => { try { return localStorage.getItem('bleepx_nickname'); } catch { return null; } });
   const [awaitingNickname, setAwaitingNickname] = useState(false);
+  const [showModeChips, setShowModeChips] = useState(false);
   const displayName = nickName ?? userName ?? (signedIn ? 'friend' : 'human');
 
   useEffect(() => {
@@ -201,22 +193,22 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   useEffect(() => {
     if (open || activeModeRef.current === 'stealth') return;
     const initial = setTimeout(() => {
-      const t = TEASERS[0];
+      const t = { text: randomNag(), command: '' };
       setTeaser(t);
       playBleep();
-      setTimeout(() => setTeaser((prev) => (prev === t ? null : prev)), 6000);
-    }, 1500);
+      setTimeout(() => setTeaser((prev) => (prev === t ? null : prev)), 8000);
+    }, 8000);
     return () => clearTimeout(initial);
   }, [open]);
 
   useEffect(() => {
     if (open || activeModeRef.current === 'stealth') return;
     const id = setInterval(() => {
-      const t = randomTeaser();
+      const t = { text: randomNag(), command: '' };
       setTeaser(t);
       playBleep();
-      setTimeout(() => setTeaser((prev) => (prev === t ? null : prev)), 6000);
-    }, 8000);
+      setTimeout(() => setTeaser((prev) => (prev === t ? null : prev)), 8000);
+    }, 45000);
     return () => clearInterval(id);
   }, [open]);
 
@@ -242,11 +234,18 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     const intro = signedIn
       ? (nickName ? `Welcome back, ${nickName}!` : `How should I call you?`)
       : `Welcome, human.`;
-    setMessages([
+    const onboarded = (() => { try { return !!localStorage.getItem('bleepx_modes_onboarded'); } catch { return false; } })();
+    const msgs: ChatMessage[] = [
       { role: 'assistant', text: `${intro} ${greeting}` },
       { role: 'assistant', text: 'I am here, watching, waiting, ready to chatter about SQL, cloud, Python — anything.' },
-    ]);
+    ];
+    if (!onboarded) {
+      try { localStorage.setItem('bleepx_modes_onboarded', '1'); } catch {}
+      msgs.push({ role: 'assistant', text: 'I can switch my look to match the vibe. Pick a mode from the chips below, or type it any time.' });
+    }
+    setMessages(msgs);
     if (signedIn && !nickName) setAwaitingNickname(true);
+    setShowModeChips(!onboarded);
     setTimeout(() => {
       setMessages((prev) => [...prev, { role: 'assistant', text: nickName ? `Go ahead, ${nickName}. I dare you.` : 'Go ahead, type something. I dare you.' }]);
       playBleep();
@@ -564,6 +563,21 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       return;
     }
     const text = hint.message + (hint.fix ? `\n\nFix: ${hint.fix}` : '') + (hint.snippet ? `\n\nExample:\n\`${hint.snippet}\`` : '');
+    let autoSwitched = false;
+    let autoMode: Mode | null = null;
+    if (manualMode === 'auto' && Date.now() - lastAutoSwitch.current > 120000 && Math.random() < 0.06) {
+      autoMode = hint.severity === 'error' ? 'red' : hint.severity === 'warning' ? 'solar' : 'green';
+      autoSwitched = true;
+      lastAutoSwitch.current = Date.now();
+      const m = MODES[autoMode];
+      setManualMode(autoMode);
+      setSiteDark(m.dark);
+      playBleep();
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', text: `I am feeling ${autoMode} for this one. What do you think, ${displayName}?` },
+      ]);
+    }
     if (lastHintText.current !== text) {
       playBleep();
       const reaction = reactionFor(hint, value);
@@ -578,7 +592,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     }
     setDockedHint(hint);
     let nextMood: Mood = hint.severity === 'error' ? 'error' : hint.severity === 'warning' ? 'think' : 'signal';
-    if (activeMode === 'red') nextMood = 'error';
+    if (autoSwitched && autoMode) nextMood = MODES[autoMode].mood;
+    else if (activeMode === 'red') nextMood = 'error';
     else if (activeMode === 'green') nextMood = 'success';
     else if (activeMode === 'neon') nextMood = 'signal';
     else if (activeMode === 'solar') nextMood = 'success';
@@ -587,7 +602,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     else if (activeMode === 'stealth') nextMood = 'stealth';
     setMood(nextMood);
     setOpen(true);
-  }, [pathname, activeMode, displayName]);
+  }, [pathname, activeMode, displayName, manualMode]);
 
   const lintFocused = useCallback((target: EventTarget | null) => {
     if (isDragging.current) return;
@@ -731,7 +746,9 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
             <button onClick={(e) => { e.stopPropagation(); setTeaser(null); }} className="ml-auto text-[10px] text-gray-400 hover:text-gray-600">×</button>
           </div>
           <div className="text-bleepx-text-secondary leading-relaxed">{teaser.text}</div>
-          <button onClick={(e) => { e.stopPropagation(); setOpen(true); setTeaser(null); send(teaser.command); }} className="mt-2 text-[10px] px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 font-bold hover:bg-cyan-200">Try it</button>
+          {teaser.command && (
+            <button onClick={(e) => { e.stopPropagation(); setOpen(true); setTeaser(null); send(teaser.command); }} className="mt-2 text-[10px] px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 font-bold hover:bg-cyan-200">Try it</button>
+          )}
         </div>
       )}
       {open && (
@@ -763,6 +780,20 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
                   </div>
                 </div>
               ))}
+              {showModeChips && (
+                <div className="flex justify-start">
+                  <div className="max-w-[90%] p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-bleepx-text rounded-bl-none">
+                    <div className="text-xs font-bold mb-2">Pick a mode:</div>
+                    <div className="flex flex-wrap gap-2">
+                      {(['light','dark','stealth','mix','neon','ghost','solar','green','red'] as Mode[]).map((m) => (
+                        <button key={m} onClick={() => { setShowModeChips(false); applyMode(m); }} className="text-[10px] px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 font-bold hover:bg-cyan-200">
+                          {MODES[m].label.replace(' MODE','')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
               {mood === 'think' && (
                 <div className="flex justify-start">
                   <div className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 rounded-bl-none">
