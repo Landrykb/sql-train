@@ -102,11 +102,13 @@ export function prompt(name?: string | null): string {
 export function thinking(name?: string | null): string {
   return fromPool([
     'Bleepx is thinking out loud...',
-    'Hmm, let me chew on that...',
-    'One second, I am processing...',
+    'Hmm, let me chew on that, {name}.',
+    'One second, {name}. I am processing...',
     'Bleepx brain activating...',
     'Cranking the gears...',
-    'Let me look into that...',
+    'Let me look into that, {name}.',
+    'Thinking about that one, {name}.',
+    'I need a second to compute this, {name}.',
   ], name);
 }
 
@@ -267,7 +269,35 @@ export function nag(hint: BleepxHint, mode: string, name?: string | null): strin
   return text;
 }
 
-export function general(input: string, context: string): string {
+const FALLBACKS = [
+  'Hmm, {name}, that one is outside my training set. I can help with SQL, AWS, Python, or ML — what do you want to explore?',
+  'I do not have a hot take on that, {name}. Try me with SQL, cloud, Python, or machine learning.',
+  'You stumped me, {name}. I am mostly useful for SQL, AWS, Python, and ML. What should we focus on?',
+  'That did not trigger any of my circuits, {name}. Want to talk SQL, cloud, Python, or ML instead?',
+  'I am drawing a blank on that, {name}. I can get nerdy about SQL, AWS, Python, or ML — pick one.',
+  'Not in my wheelhouse, {name}. I know SQL, AWS, Python, and ML. What is on your mind?',
+  'Whoa, {name}, that is a new one. My specialties are SQL, AWS, Python, and ML. Where do you want to start?',
+];
+
+const SQL_FALLBACKS = [
+  'That is not a SQL thing I know, {name}. Try asking about JOINs, CTEs, GROUP BY, window functions, or indexes.',
+  'I am mostly about SQL here, {name}. Ask me about SELECT, JOINs, aggregations, or CTEs.',
+  'My SQL brain did not catch that, {name}. Want help with JOINs, CTEs, or window functions?',
+];
+
+const CLOUD_FALLBACKS = [
+  'That did not sound like an AWS question, {name}. I can explain S3, EC2, Lambda, RDS, VPC, IAM, and more.',
+  'I am in cloud mode, {name}. Ask about S3, EC2, Lambda, RDS, DynamoDB, or IAM.',
+  'My head is in the clouds, {name}. Try me on S3, EC2, Lambda, IAM, or DynamoDB.',
+];
+
+const LAB_FALLBACKS = [
+  'That does not look like a lab question, {name}. Paste some SQL or Python and I will jump in.',
+  'I am ready for lab work, {name}. Show me SQL, pandas, or a machine learning problem.',
+  'I did not get that, {name}. Try sharing a code snippet or a data question.',
+];
+
+export function known(input: string, context: string): string | null {
   const lower = input.toLowerCase();
   if (lower.includes('s3') && lower.includes('glacier')) return 'S3 Glacier and Glacier Deep Archive are for rarely accessed long-term data. Restores take minutes to hours.';
   if (lower.includes('s3')) return 'S3 stores objects in buckets. Choose storage classes based on access patterns: STANDARD for hot data, IA for infrequent, Glacier for archives.';
@@ -290,8 +320,15 @@ export function general(input: string, context: string): string {
   if (lower.includes('secure') || lower.includes('security')) return 'Security pillars: least privilege IAM, encryption at rest and in transit, private subnets, CloudTrail logging, and regular security scans.';
   if (lower.includes('resilien') || lower.includes('high availability')) return 'Build resilience with Multi-AZ, auto scaling, health checks, read replicas, and automated backups.';
   if (lower.includes('machine learning') || lower.includes('ml')) return 'SageMaker builds, trains, and deploys ML models. Use S3 for data, ECR for containers, and Lambda for light inference endpoints.';
-  if (context === 'sql') return 'I can help with SELECT, JOINs, aggregates, window functions, and CTEs. What SQL topic are you working on?';
-  if (context === 'cloud') return 'Ask me about S3, EC2, Lambda, RDS, DynamoDB, VPC, IAM, CloudFront, or SAA scenarios.';
-  if (context === 'lab') return 'Lab work usually involves SQL, Python/pandas, and machine learning. Paste a code snippet or ask a concept.';
-  return "I'm Bleepx, your data and cloud assistant. Ask me about SQL, AWS, Python, or ML and I'll do my best to help.";
+  return null;
+}
+
+export function fallback(input: string, context: string, name?: string | null): string {
+  const lower = input.toLowerCase();
+  const relevant = lower.includes('sql') || lower.includes('join') || lower.includes('query') ? 'sql'
+    : lower.includes('aws') || lower.includes('cloud') || lower.includes('s3') || lower.includes('ec2') ? 'cloud'
+    : lower.includes('python') || lower.includes('pandas') || lower.includes('jupyter') ? 'lab'
+    : context;
+  const pool = relevant === 'sql' ? SQL_FALLBACKS : relevant === 'cloud' ? CLOUD_FALLBACKS : relevant === 'lab' ? LAB_FALLBACKS : FALLBACKS;
+  return withName(pick(pool), name);
 }

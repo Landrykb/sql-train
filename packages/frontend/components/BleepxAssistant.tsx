@@ -297,14 +297,14 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     setMood('think');
     setMessages((prev) => [...prev, { role: 'assistant', text: voice.thinking(displayName) }]);
     setTimeout(() => {
-      const isKnown = TOPIC_HINTS[lower] !== undefined;
-      const reply = TOPIC_HINTS[lower] ?? voice.general(text, context ?? 'general');
+      const known = TOPIC_HINTS[lower] ?? voice.known(text, context ?? 'general');
+      const isKnown = known !== null;
       let nextMood: Mood = 'chat';
       if (isKnown) nextMood = 'success';
       else if (lower.includes('github')) nextMood = 'github';
       else if (lower.includes('git')) nextMood = 'git';
       else if (lower.includes('hello') || lower.includes('hi ')) nextMood = 'face';
-      const final = isKnown ? reply : voice.signOff(reply, displayName);
+      const final = known ? voice.signOff(known, displayName) : voice.fallback(text, context ?? 'general', displayName);
       setMessages((prev) => [...prev, { role: 'assistant', text: final }]);
       setMood(nextMood);
       playBleep();
