@@ -22,6 +22,12 @@ import type {
   CloudService,
   RDSInstance,
   RDSSnapshot,
+  ELBLoadBalancer,
+  ELBTargetGroup,
+  ELBListener,
+  AutoScalingGroup,
+  KMSKey,
+  CloudWatchAlarm,
 } from './sandbox';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -1244,5 +1250,228 @@ export function deleteRDSInstance(
     dbInstanceIdentifier,
     'success',
     `Deleted RDS instance ${dbInstanceIdentifier}`
+  );
+}
+
+// ─── ELB actions ─────────────────────────────────────────────────────────────
+
+export function createELBTargetGroup(
+  state: CloudSandboxState,
+  targetGroupName: string,
+  protocol: 'HTTP' | 'HTTPS' | 'TCP' = 'HTTP',
+  port: number = 80,
+  healthCheckPath: string = '/'
+): CloudSandboxState {
+  if (state.elb.targetGroups[targetGroupName]) {
+    return event(state, 'elb', 'CreateTargetGroup', targetGroupName, 'failure', `Target group already exists: ${targetGroupName}`);
+  }
+  const tg: ELBTargetGroup = { targetGroupName, protocol, port, healthCheckPath, targets: [] };
+  return event(
+    { ...state, elb: { ...state.elb, targetGroups: { ...state.elb.targetGroups, [targetGroupName]: tg } } },
+    'elb',
+    'CreateTargetGroup',
+    targetGroupName,
+    'success',
+    `Created ${protocol} target group ${targetGroupName} on port ${port}`
+  );
+}
+
+export function registerELBTargets(
+  state: CloudSandboxState,
+  targetGroupName: string,
+  instanceIds: string[]
+): CloudSandboxState {
+  const tg = state.elb.targetGroups[targetGroupName];
+  if (!tg) return event(state, 'elb', 'RegisterTargets', targetGroupName, 'failure', `Target group not found: ${targetGroupName}`);
+  const updated: ELBTargetGroup = { ...tg, targets: [...new Set([...tg.targets, ...instanceIds])] };
+  return event(
+    { ...state, elb: { ...state.elb, targetGroups: { ...state.elb.targetGroups, [targetGroupName]: updated } } },
+    'elb',
+    'RegisterTargets',
+    targetGroupName,
+    'success',
+    `Registered ${instanceIds.length} targets in ${targetGroupName}`
+  );
+}
+
+export function createELBLoadBalancer(
+  state: CloudSandboxState,
+  name: string,
+  type: 'application' | 'network',
+  scheme: 'internet-facing' | 'internal',
+  subnetIds: string[],
+  securityGroupIds: string[]
+): CloudSandboxState {
+  if (state.elb.loadBalancers[name]) {
+    return event(state, 'elb', 'CreateLoadBalancer', name, 'failure', `Load balancer already exists: ${name}`);
+  }
+  if (type === 'application' && scheme === 'internet-facing' && securityGroupIds.length === 0) {
+    return event(state, 'elb', 'CreateLoadBalancer', name, 'failure', 'Application load balancers require at least one security group');
+  }
+  const lb: ELBLoadBalancer = { name, type, scheme, subnets: subnetIds, securityGroups: securityGroupIds, listeners: [] };
+  return event(
+    { ...state, elb: { ...state.elb, loadBalancers: { ...state.elb.loadBalancers, [name]: lb } } },
+    'elb',
+    'CreateLoadBalancer',
+    name,
+    'success',
+    `Created ${scheme} ${type} load balancer ${name} in ${subnetIds.length} subnets`
+  );
+}
+
+export function addELBListener(
+  state: CloudSandboxState,
+  loadBalancerName: string,
+  protocol: 'HTTP' | 'HTTPS' | 'TCP',
+  port: number,
+  targetGroupName: string
+): CloudSandboxState {
+  const lb = state.elb.loadBalancers[loadBalancerName];
+  if (!lb) return event(state, 'elb', 'CreateListener', loadBalancerName, 'failure', `Load balancer not found: ${loadBalancerName}`);
+  const tg = state.elb.targetGroups[targetGroupName];
+  if (!tg) return event(state, 'elb', 'CreateListener', targetGroupName, 'failure', `Target group not found: ${targetGroupName}`);
+  const updated: ELBLoadBalancer = { ...lb, listeners: [...lb.listeners, { protocol, port, targetGroupName }] };
+  return event(
+    { ...state, elb: { ...state.elb, loadBalancers: { ...state.elb.loadBalancers, [loadBalancerName]: updated } } },
+    'elb',
+    'CreateListener',
+    `${loadBalancerName}:${port}`,
+    'success',
+    `Added ${protocol} listener on port ${port} -> ${targetGroupName}`
+  );
+}
+
+// ─── Auto Scaling actions ────────────────────────────────────────────────────
+
+export function createAutoScalingGroup(
+  state: CloudSandboxState,
+  name: string,
+  launchTemplate: string,
+  minSize: number,
+  maxSize: number,
+  desiredCapacity: number,
+  subnetIds: string[],
+  targetGroupNames: string[]
+): CloudSandboxState {
+  if (state.asg.autoScalingGroups[name]) {
+    return event(state, 'asg', 'CreateAutoScalingGroup', name, 'failure', `Auto Scaling group already exists: ${name}`);
+  }
+  if (desiredCapacity < minSize || desiredCapacity > maxSize) {
+    return event(state, 'asg', 'CreateAutoScalingGroup', name, 'failure', `Desired capacity must be between min (${minSize}) and max (${maxSize})`);
+  }
+  const asg: AutoScalingGroup = {
+    name,
+    launchTemplate,
+    minSize,
+    maxSize,
+    desiredCapacity,
+    vpcZoneIdentifier: subnetIds,
+    targetGroupARNs: targetGroupNames,
+    scalingPolicies: [],
+  };
+  return event(
+    { ...state, asg: { ...state.asg, autoScalingGroups: { ...state.asg.autoScalingGroups, [name]: asg } } },
+    'asg',
+    'CreateAutoScalingGroup',
+    name,
+    'success',
+    `Created ASG ${name} with desired=${desiredCapacity}, min=${minSize}, max=${maxSize}`
+  );
+}
+
+export function putScalingPolicy(
+  state: CloudSandboxState,
+  asgName: string,
+  policyName: string,
+  metricType: 'CPUUtilization' | 'RequestCount',
+  targetValue: number
+): CloudSandboxState {
+  const asg = state.asg.autoScalingGroups[asgName];
+  if (!asg) return event(state, 'asg', 'PutScalingPolicy', asgName, 'failure', `Auto Scaling group not found: ${asgName}`);
+  const policy = { name: policyName, metricType, targetValue, scaleOutCooldown: 60, scaleInCooldown: 300 };
+  const updated: AutoScalingGroup = { ...asg, scalingPolicies: [...asg.scalingPolicies, policy] };
+  return event(
+    { ...state, asg: { ...state.asg, autoScalingGroups: { ...state.asg.autoScalingGroups, [asgName]: updated } } },
+    'asg',
+    'PutScalingPolicy',
+    policyName,
+    'success',
+    `Added ${metricType} target-tracking policy to ${asgName} (target ${targetValue})`
+  );
+}
+
+// ─── KMS actions ─────────────────────────────────────────────────────────────
+
+export function createKMSKey(
+  state: CloudSandboxState,
+  keyId: string,
+  alias: string,
+  description: string,
+  keySpec: 'SYMMETRIC_DEFAULT' | 'RSA_2048' | 'RSA_4096' = 'SYMMETRIC_DEFAULT',
+  keyUsage: 'ENCRYPT_DECRYPT' | 'SIGN_VERIFY' = 'ENCRYPT_DECRYPT'
+): CloudSandboxState {
+  if (state.kms.keys[keyId]) {
+    return event(state, 'kms', 'CreateKey', keyId, 'failure', `KMS key already exists: ${keyId}`);
+  }
+  const key: KMSKey = {
+    keyId,
+    alias,
+    description,
+    keySpec,
+    keyUsage,
+    enabled: true,
+    keyPolicy: JSON.stringify({ Version: '2012-10-17', Statement: [{ Sid: 'Default', Effect: 'Allow', Principal: { AWS: `arn:aws:iam::${state.accountId}:root` }, Action: 'kms:*', Resource: '*' }] }, null, 2),
+  };
+  return event(
+    { ...state, kms: { ...state.kms, keys: { ...state.kms.keys, [keyId]: key } } },
+    'kms',
+    'CreateKey',
+    keyId,
+    'success',
+    `Created KMS key ${keyId}${alias ? ` alias/${alias}` : ''} (${keySpec})`
+  );
+}
+
+export function setKMSKeyEnabled(
+  state: CloudSandboxState,
+  keyId: string,
+  enabled: boolean
+): CloudSandboxState {
+  const key = state.kms.keys[keyId];
+  if (!key) return event(state, 'kms', 'EnableKey' + (enabled ? '' : 'Disable'), keyId, 'failure', `KMS key not found: ${keyId}`);
+  const updated: KMSKey = { ...key, enabled };
+  return event(
+    { ...state, kms: { ...state.kms, keys: { ...state.kms.keys, [keyId]: updated } } },
+    'kms',
+    enabled ? 'EnableKey' : 'DisableKey',
+    keyId,
+    'success',
+    `${enabled ? 'Enabled' : 'Disabled'} KMS key ${keyId}`
+  );
+}
+
+// ─── CloudWatch actions ──────────────────────────────────────────────────────
+
+export function putCloudWatchAlarm(
+  state: CloudSandboxState,
+  alarmName: string,
+  namespace: string,
+  metricName: string,
+  statistic: 'Average' | 'Sum' | 'Minimum' | 'Maximum',
+  comparisonOperator: 'GreaterThanThreshold' | 'LessThanThreshold',
+  threshold: number,
+  evaluationPeriods: number = 2
+): CloudSandboxState {
+  if (state.cloudwatch.alarms[alarmName]) {
+    return event(state, 'cloudwatch', 'PutMetricAlarm', alarmName, 'failure', `Alarm already exists: ${alarmName}`);
+  }
+  const alarm: CloudWatchAlarm = { alarmName, namespace, metricName, statistic, comparisonOperator, threshold, evaluationPeriods, period: 60 };
+  return event(
+    { ...state, cloudwatch: { ...state.cloudwatch, alarms: { ...state.cloudwatch.alarms, [alarmName]: alarm } } },
+    'cloudwatch',
+    'PutMetricAlarm',
+    alarmName,
+    'success',
+    `Created CloudWatch alarm ${alarmName}: ${metricName} ${comparisonOperator} ${threshold}`
   );
 }

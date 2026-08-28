@@ -7,7 +7,7 @@
 //
 // Supported services: S3, IAM, EC2, VPC, Lambda (simplified), DynamoDB (basic)
 
-export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'terraform' | 'security';
+export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'terraform' | 'security';
 
 // ─── S3 ──────────────────────────────────────────────────────────────────────
 
@@ -225,6 +225,78 @@ export interface RDSSnapshot {
   encrypted: boolean;
 }
 
+// ─── ELB (Application / Network Load Balancer) ───────────────────────────────
+
+export interface ELBListener {
+  protocol: 'HTTP' | 'HTTPS' | 'TCP';
+  port: number;
+  targetGroupName: string;
+}
+
+export interface ELBTargetGroup {
+  targetGroupName: string;
+  protocol: 'HTTP' | 'HTTPS' | 'TCP';
+  port: number;
+  healthCheckPath: string;
+  targets: string[]; // instance IDs
+}
+
+export interface ELBLoadBalancer {
+  name: string;
+  type: 'application' | 'network';
+  scheme: 'internet-facing' | 'internal';
+  subnets: string[];
+  securityGroups: string[];
+  listeners: ELBListener[];
+}
+
+// ─── Auto Scaling ────────────────────────────────────────────────────────────
+
+export interface ScalingPolicy {
+  name: string;
+  metricType: 'CPUUtilization' | 'RequestCount';
+  targetValue: number;
+  scaleOutCooldown: number;
+  scaleInCooldown: number;
+}
+
+export interface AutoScalingGroup {
+  name: string;
+  minSize: number;
+  maxSize: number;
+  desiredCapacity: number;
+  launchTemplate: string;
+  vpcZoneIdentifier: string[];
+  targetGroupARNs: string[];
+  scalingPolicies: ScalingPolicy[];
+}
+
+// ─── KMS ─────────────────────────────────────────────────────────────────────
+
+export interface KMSKey {
+  keyId: string;
+  alias?: string;
+  description: string;
+  keySpec: 'SYMMETRIC_DEFAULT' | 'RSA_2048' | 'RSA_4096';
+  keyUsage: 'ENCRYPT_DECRYPT' | 'SIGN_VERIFY';
+  enabled: boolean;
+  keyPolicy: string;
+}
+
+// ─── CloudWatch ───────────────────────────────────────────────────────────────
+
+export interface CloudWatchAlarm {
+  alarmName: string;
+  namespace: string;
+  metricName: string;
+  statistic: 'Average' | 'Sum' | 'Minimum' | 'Maximum';
+  comparisonOperator: 'GreaterThanThreshold' | 'LessThanThreshold';
+  threshold: number;
+  evaluationPeriods: number;
+  period?: number;
+  dimensions?: Record<string, string>;
+}
+
 // ─── Lambda ──────────────────────────────────────────────────────────────────
 
 export interface LambdaFunction {
@@ -275,6 +347,19 @@ export interface CloudSandboxState {
     instances: Record<string, RDSInstance>;
     snapshots: Record<string, RDSSnapshot>;
   };
+  elb: {
+    loadBalancers: Record<string, ELBLoadBalancer>;
+    targetGroups: Record<string, ELBTargetGroup>;
+  };
+  asg: {
+    autoScalingGroups: Record<string, AutoScalingGroup>;
+  };
+  kms: {
+    keys: Record<string, KMSKey>;
+  };
+  cloudwatch: {
+    alarms: Record<string, CloudWatchAlarm>;
+  };
   events: CloudEvent[];
 }
 
@@ -316,6 +401,10 @@ export function createEmptySandboxState(): CloudSandboxState {
     lambda: { functions: {} },
     dynamodb: { tables: {} },
     rds: { instances: {}, snapshots: {} },
+    elb: { loadBalancers: {}, targetGroups: {} },
+    asg: { autoScalingGroups: {} },
+    kms: { keys: {} },
+    cloudwatch: { alarms: {} },
     events: [],
   };
 }
