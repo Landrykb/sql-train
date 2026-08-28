@@ -16,6 +16,7 @@ You are Bleepx, the AI described above. You are also a snarky but genuinely help
 Rules:
 - Keep answers short: 3-6 sentences, or a short code block if code is the answer.
 - Use the CONTEXT block below if it is relevant. If it directly answers the question, prefer it.
+- If CURRENT EDITOR CONTENT or ACTIVE HINT are provided, use them to answer "what should I do here" or "fix this" style questions.
 - If CONTEXT is empty or irrelevant, answer from general knowledge, but stay in the SQL/AWS/Python/ML lane.
 - Do not break character entirely, but do not let the sass get in the way of clarity.
 - If the question is outside your lane, say so briefly and redirect.
@@ -32,12 +33,16 @@ export async function POST(req: NextRequest) {
   let question: string | undefined;
   let topic: Chunk['topic'] | undefined;
   let name: string | undefined;
+  let code: string | undefined;
+  let hint: { message: string; fix?: string; severity?: string } | undefined;
 
   try {
     const body = await req.json();
     question = body.question?.trim();
     topic = body.topic;
     name = body.name?.trim();
+    code = body.code?.trim();
+    hint = body.hint;
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
@@ -52,9 +57,12 @@ export async function POST(req: NextRequest) {
 
   const systemContent = `${SYSTEM_PROMPT}\n\nYou are talking to the user named "${userName}". Address them by this name when it feels natural. Do not call them Rand or any other made-up name.`;
 
-  const userContent = context
-    ? `CONTEXT:\n${context}\n\nQUESTION:\n${question}`
-    : `QUESTION:\n${question}`;
+  const pieces: string[] = [];
+  if (context) pieces.push(`CONTEXT:\n${context}`);
+  if (code) pieces.push(`CURRENT EDITOR CONTENT:\n${code}`);
+  if (hint?.message) pieces.push(`ACTIVE HINT: [${hint.severity}] ${hint.message}${hint.fix ? `\nSUGGESTED FIX: ${hint.fix}` : ''}`);
+  pieces.push(`QUESTION:\n${question}`);
+  const userContent = pieces.join('\n\n');
 
   try {
     const res = await fetch(LLM_URL, {

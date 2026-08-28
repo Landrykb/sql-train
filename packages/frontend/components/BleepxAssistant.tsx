@@ -103,6 +103,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const lastHintText = useRef<string | null>(null);
   const flyingTimer = useRef<NodeJS.Timeout | null>(null);
   const prevDock = useRef({ right: 16, bottom: 16 });
+  const editorValue = useRef<string | null>(null);
   const isDragging = useRef(false);
   const didDrag = useRef(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
@@ -326,7 +327,15 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           const res = await fetch('/api/bleepx', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question: text, topic: context ?? 'general', name: displayName }),
+            body: JSON.stringify({
+              question: text,
+              topic: context ?? 'general',
+              name: displayName,
+              code: editorValue.current ? editorValue.current.slice(0, 1200) : undefined,
+              hint: dockedHint
+                ? { message: dockedHint.message, fix: dockedHint.fix, severity: dockedHint.severity }
+                : undefined,
+            }),
           });
           if (res.ok) {
             const data = await res.json();
@@ -584,6 +593,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     }
     const el = target as HTMLElement;
     const value = (el as HTMLInputElement).value ?? (el as HTMLTextAreaElement).value ?? el.textContent ?? '';
+    editorValue.current = value;
 
     if (flyingTimer.current) clearTimeout(flyingTimer.current);
 
