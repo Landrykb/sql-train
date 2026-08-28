@@ -131,6 +131,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const dragStartPos = useRef({ x: 0, y: 0 });
   const targetDock = useRef({ right: 16, bottom: 16 });
   const lastAutoSwitch = useRef(0);
+  const didAutoAsk = useRef(false);
   const rafId = useRef<number | null>(null);
   const downAt = useRef(0);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -164,6 +165,16 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     const { data } = sb.auth.onAuthStateChange((_event: any, session: any) => update(session));
     return () => data?.subscription?.unsubscribe?.();
   }, []);
+
+  useEffect(() => {
+    if (signedIn && !nickName && !open && !didAutoAsk.current) {
+      didAutoAsk.current = true;
+      setOpen(true);
+      setMood('wave');
+      playBleep();
+      startChat();
+    }
+  }, [signedIn, nickName, open]);
 
   const activeMode = useMemo(() => {
     if (manualMode !== 'auto') return manualMode;
