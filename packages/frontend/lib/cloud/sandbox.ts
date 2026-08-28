@@ -7,7 +7,7 @@
 //
 // Supported services: S3, IAM, EC2, VPC, Lambda (simplified), DynamoDB (basic)
 
-export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'terraform' | 'security';
+export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'secretsmanager' | 'terraform' | 'security';
 
 // ─── S3 ──────────────────────────────────────────────────────────────────────
 
@@ -343,6 +343,23 @@ export interface CloudFrontDistribution {
   httpsCertificate?: string;
 }
 
+// ─── Secrets Manager ───────────────────────────────────────────────────────────
+
+export interface RotationRule {
+  automaticallyAfterDays: number;
+}
+
+export interface SecretsManagerSecret {
+  name: string;
+  description: string;
+  value: string;
+  kmsKeyId?: string;
+  rotationEnabled: boolean;
+  rotationRule?: RotationRule;
+  versionStages: string[];
+  lastRotated?: string;
+}
+
 // ─── CloudWatch ───────────────────────────────────────────────────────────────
 
 export interface CloudWatchAlarm {
@@ -426,6 +443,9 @@ export interface CloudSandboxState {
   cloudfront: {
     distributions: Record<string, CloudFrontDistribution>;
   };
+  secretsmanager: {
+    secrets: Record<string, SecretsManagerSecret>;
+  };
   events: CloudEvent[];
 }
 
@@ -473,6 +493,7 @@ export function createEmptySandboxState(): CloudSandboxState {
     cloudwatch: { alarms: {} },
     route53: { hostedZones: {} },
     cloudfront: { distributions: {} },
+    secretsmanager: { secrets: {} },
     events: [],
   };
 }

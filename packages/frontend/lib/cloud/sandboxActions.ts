@@ -33,6 +33,7 @@ import type {
   CloudFrontDistribution,
   CloudFrontCacheBehavior,
   CloudFrontOrigin,
+  SecretsManagerSecret,
 } from './sandbox';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -1654,5 +1655,80 @@ export function updateCloudFrontDistribution(
     distributionId,
     'success',
     `Updated distribution ${distributionId}`
+  );
+}
+
+// ─── Secrets Manager actions ───────────────────────────────────────────────────
+
+export function createSecret(
+  state: CloudSandboxState,
+  name: string,
+  value: string,
+  description: string,
+  kmsKeyId?: string,
+  rotationDays?: number
+): CloudSandboxState {
+  if (state.secretsmanager.secrets[name]) {
+    return event(state, 'secretsmanager', 'CreateSecret', name, 'failure', `Secret already exists: ${name}`);
+  }
+  const secret: SecretsManagerSecret = {
+    name,
+    description,
+    value,
+    kmsKeyId: kmsKeyId || undefined,
+    rotationEnabled: !!rotationDays,
+    rotationRule: rotationDays ? { automaticallyAfterDays: rotationDays } : undefined,
+    versionStages: ['AWSCURRENT'],
+  };
+  return event(
+    { ...state, secretsmanager: { ...state.secretsmanager, secrets: { ...state.secretsmanager.secrets, [name]: secret } } },
+    'secretsmanager',
+    'CreateSecret',
+    name,
+    'success',
+    `Created secret ${name}${rotationDays ? ` with rotation every ${rotationDays} days` : ''}`
+  );
+}
+
+export function rotateSecret(
+  state: CloudSandboxState,
+  name: string
+): CloudSandboxState {
+  const secret = state.secretsmanager.secrets[name];
+  if (!secret) return event(state, 'secretsmanager', 'RotateSecret', name, 'failure', `Secret not found: ${name}`);
+  const rotated: SecretsManagerSecret = {
+    ...secret,
+    lastRotated: new Date().toISOString(),
+    versionStages: ['AWSCURRENT', 'AWSPENDING'],
+    value: secret.value + '-rotated',
+  };
+  return event(
+    { ...state, secretsmanager: { ...state.secretsmanager, secrets: { ...state.secretsmanager.secrets, [name]: rotated } } },
+    'secretsmanager',
+    'RotateSecret',
+    name,
+    'success',
+    `Rotated secret ${name}; AWSPENDING version created`
+  );
+}
+
+export function deleteSecret(
+  state: CloudSandboxState,
+  name: string,
+  forceDelete?: boolean
+): CloudSandboxState {
+  const secret = state.secretsmanager.secrets[name];
+  if (!secret) return event(state, 'secretsmanager', 'DeleteSecret', name, 'failure', `Secret not found: ${name}`);
+  if (!forceDelete && secret.rotationEnabled) {
+    return event(state, 'secretsmanager', 'DeleteSecret', name, 'failure', 'Cannot delete a secret with rotation enabled without force delete');
+  }
+  const { [name]: _, ...rest } = state.secretsmanager.secrets;
+  return event(
+    { ...state, secretsmanager: { ...state.secretsmanager, secrets: rest } },
+    'secretsmanager',
+    'DeleteSecret',
+    name,
+    'success',
+    `Deleted secret ${name}`
   );
 }
