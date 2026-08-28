@@ -54,6 +54,7 @@ import Route53Panel from '@/components/Route53Panel';
 import CloudFrontPanel from '@/components/CloudFrontPanel';
 import SecretsManagerPanel from '@/components/SecretsManagerPanel';
 import ElastiCachePanel from '@/components/ElastiCachePanel';
+import MessagingPanel from '@/components/MessagingPanel';
 
 interface CloudSandboxProps {
   mission?: CloudMission;
@@ -65,7 +66,7 @@ interface CloudSandboxProps {
 
 export default function CloudSandbox({ mission, onComplete, freePlay, initialState, onStateChange }: CloudSandboxProps) {
   const [state, setState] = useState<CloudSandboxState>(initialState || createEmptySandboxState());
-  const [activeTab, setActiveTab] = useState<'s3' | 'iam' | 'ec2' | 'vpc' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'secretsmanager' | 'elasticache' | 'lambda' | 'terraform' | 'security' | 'events'>('s3');
+  const [activeTab, setActiveTab] = useState<'s3' | 'iam' | 'ec2' | 'vpc' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'secretsmanager' | 'elasticache' | 'messaging' | 'lambda' | 'terraform' | 'security' | 'events'>('s3');
   const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState<{ text: string; type: 'info' | 'success' | 'error' } | null>(null);
 
@@ -124,7 +125,7 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
       )}
 
       <div className="flex gap-1 overflow-x-auto pb-1">
-        {(['s3', 'iam', 'ec2', 'vpc', 'dynamodb', 'rds', 'elb', 'asg', 'kms', 'cloudwatch', 'route53', 'cloudfront', 'secretsmanager', 'elasticache', 'lambda', 'terraform', 'security', 'events'] as const).map((tab) => (
+        {(['s3', 'iam', 'ec2', 'vpc', 'dynamodb', 'rds', 'elb', 'asg', 'kms', 'cloudwatch', 'route53', 'cloudfront', 'secretsmanager', 'elasticache', 'messaging', 'lambda', 'terraform', 'security', 'events'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -151,6 +152,7 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
       {activeTab === 'cloudfront' && <CloudFrontPanel state={state} onAction={applyAction} />}
       {activeTab === 'secretsmanager' && <SecretsManagerPanel state={state} onAction={applyAction} />}
       {activeTab === 'elasticache' && <ElastiCachePanel state={state} onAction={applyAction} />}
+      {activeTab === 'messaging' && <MessagingPanel state={state} onAction={applyAction} />}
       {activeTab === 'lambda' && <LambdaPanel state={state} onAction={applyAction} onInvoke={invokeLambdaHandler} />}
       {activeTab === 'terraform' && <TerraformPanel state={state} onAction={applyAction} />}
       {activeTab === 'security' && <SecurityPanel state={state} />}

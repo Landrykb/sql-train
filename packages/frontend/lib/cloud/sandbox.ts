@@ -7,7 +7,7 @@
 //
 // Supported services: S3, IAM, EC2, VPC, Lambda (simplified), DynamoDB (basic)
 
-export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'secretsmanager' | 'elasticache' | 'terraform' | 'security';
+export type CloudService = 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'secretsmanager' | 'elasticache' | 'messaging' | 'terraform' | 'security';
 
 // ─── S3 ──────────────────────────────────────────────────────────────────────
 
@@ -377,6 +377,38 @@ export interface ElastiCacheCluster {
   status: 'creating' | 'available' | 'modifying' | 'deleting';
 }
 
+// ─── Messaging (SNS / SQS) ────────────────────────────────────────────────────
+
+export interface SQSMessage {
+  id: string;
+  body: string;
+  received: boolean;
+}
+
+export interface SQSQueue {
+  name: string;
+  url: string;
+  messages: SQSMessage[];
+  arn: string;
+}
+
+export interface SNSSubscription {
+  protocol: 'sqs' | 'lambda' | 'email' | 'http';
+  endpoint: string;
+}
+
+export interface SNSTopic {
+  name: string;
+  arn: string;
+  subscriptions: SNSSubscription[];
+  messages: string[];
+}
+
+export interface CloudMessagingState {
+  topics: Record<string, SNSTopic>;
+  queues: Record<string, SQSQueue>;
+}
+
 // ─── CloudWatch ───────────────────────────────────────────────────────────────
 
 export interface CloudWatchAlarm {
@@ -466,6 +498,7 @@ export interface CloudSandboxState {
   elasticache: {
     clusters: Record<string, ElastiCacheCluster>;
   };
+  messaging: CloudMessagingState;
   events: CloudEvent[];
 }
 
@@ -515,6 +548,7 @@ export function createEmptySandboxState(): CloudSandboxState {
     cloudfront: { distributions: {} },
     secretsmanager: { secrets: {} },
     elasticache: { clusters: {} },
+    messaging: { topics: {}, queues: {} },
     events: [],
   };
 }

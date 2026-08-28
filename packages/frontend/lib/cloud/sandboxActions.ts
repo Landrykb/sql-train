@@ -36,6 +36,9 @@ import type {
   SecretsManagerSecret,
   ElastiCacheCluster,
   CacheEngine,
+  SNSTopic,
+  SQSQueue,
+  SQSMessage,
 } from './sandbox';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -1785,5 +1788,133 @@ export function deleteElastiCacheCluster(
     cacheClusterId,
     'success',
     `Deleted cache cluster ${cacheClusterId}`
+  );
+}
+
+// ─── Messaging (SNS / SQS) actions ─────────────────────────────────────────────
+
+function makeARN(service: 'sns' | 'sqs', name: string, region = 'us-east-1'): string {
+  return `arn:aws:${service}:us-east-1:123456789012:${service === 'sns' ? name : `queue/${name}`}`;
+}
+
+export function createSNSTopic(
+  state: CloudSandboxState,
+  name: string
+): CloudSandboxState {
+  if (state.messaging.topics[name]) {
+    return event(state, 'messaging', 'CreateTopic', name, 'failure', `SNS topic already exists: ${name}`);
+  }
+  const topic: SNSTopic = { name, arn: makeARN('sns', name), subscriptions: [], messages: [] };
+  return event(
+    { ...state, messaging: { ...state.messaging, topics: { ...state.messaging.topics, [name]: topic } } },
+    'messaging',
+    'CreateTopic',
+    name,
+    'success',
+    `Created SNS topic ${name}`
+  );
+}
+
+export function createSQSQueue(
+  state: CloudSandboxState,
+  name: string
+): CloudSandboxState {
+  if (state.messaging.queues[name]) {
+    return event(state, 'messaging', 'CreateQueue', name, 'failure', `SQS queue already exists: ${name}`);
+  }
+  const queue: SQSQueue = { name, arn: makeARN('sqs', name), url: `https://sqs.us-east-1.amazonaws.com/123456789012/${name}`, messages: [] };
+  return event(
+    { ...state, messaging: { ...state.messaging, queues: { ...state.messaging.queues, [name]: queue } } },
+    'messaging',
+    'CreateQueue',
+    name,
+    'success',
+    `Created SQS queue ${name}`
+  );
+}
+
+export function subscribeQueueToTopic(
+  state: CloudSandboxState,
+  topicName: string,
+  queueName: string
+): CloudSandboxState {
+  const topic = state.messaging.topics[topicName];
+  if (!topic) return event(state, 'messaging', 'Subscribe', topicName, 'failure', `SNS topic not found: ${topicName}`);
+  const queue = state.messaging.queues[queueName];
+  if (!queue) return event(state, 'messaging', 'Subscribe', queueName, 'failure', `SQS queue not found: ${queueName}`);
+  const updated: SNSTopic = { ...topic, subscriptions: [...topic.subscriptions, { protocol: 'sqs', endpoint: queue.arn }] };
+  return event(
+    { ...state, messaging: { ...state.messaging, topics: { ...state.messaging.topics, [topicName]: updated } } },
+    'messaging',
+    'Subscribe',
+    `${topicName}:${queueName}`,
+    'success',
+    `Subscribed queue ${queueName} to topic ${topicName}`
+  );
+}
+
+export function publishToSNS(
+  state: CloudSandboxState,
+  topicName: string,
+  message: string
+): CloudSandboxState {
+  const topic = state.messaging.topics[topicName];
+  if (!topic) return event(state, 'messaging', 'Publish', topicName, 'failure', `SNS topic not found: ${topicName}`);
+  const updatedTopic: SNSTopic = { ...topic, messages: [...topic.messages, message] };
+  let updatedQueues = { ...state.messaging.queues };
+  for (const sub of updatedTopic.subscriptions) {
+    if (sub.protocol === 'sqs') {
+      const qName = Object.values(updatedQueues).find((q) => q.arn === sub.endpoint)?.name;
+      if (qName) {
+        const q = updatedQueues[qName];
+        const newMessage: SQSMessage = { id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, body: message, received: false };
+        updatedQueues = { ...updatedQueues, [qName]: { ...q, messages: [...q.messages, newMessage] } };
+      }
+    }
+  }
+  return event(
+    { ...state, messaging: { ...state.messaging, topics: { ...state.messaging.topics, [topicName]: updatedTopic }, queues: updatedQueues } },
+    'messaging',
+    'Publish',
+    topicName,
+    'success',
+    `Published message to topic ${topicName}; delivered to ${updatedTopic.subscriptions.length} subscribers`
+  );
+}
+
+export function sendSQSMessage(
+  state: CloudSandboxState,
+  queueName: string,
+  body: string
+): CloudSandboxState {
+  const queue = state.messaging.queues[queueName];
+  if (!queue) return event(state, 'messaging', 'SendMessage', queueName, 'failure', `SQS queue not found: ${queueName}`);
+  const newMessage: SQSMessage = { id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, body, received: false };
+  return event(
+    { ...state, messaging: { ...state.messaging, queues: { ...state.messaging.queues, [queueName]: { ...queue, messages: [...queue.messages, newMessage] } } } },
+    'messaging',
+    'SendMessage',
+    queueName,
+    'success',
+    `Sent message to queue ${queueName}`
+  );
+}
+
+export function receiveSQSMessage(
+  state: CloudSandboxState,
+  queueName: string
+): CloudSandboxState {
+  const queue = state.messaging.queues[queueName];
+  if (!queue) return event(state, 'messaging', 'ReceiveMessage', queueName, 'failure', `SQS queue not found: ${queueName}`);
+  const idx = queue.messages.findIndex((m) => !m.received);
+  if (idx === -1) return event(state, 'messaging', 'ReceiveMessage', queueName, 'info', `No messages in queue ${queueName}`);
+  const messages = queue.messages.map((m, i) => (i === idx ? { ...m, received: true } : m));
+  return event(
+    { ...state, messaging: { ...state.messaging, queues: { ...state.messaging.queues, [queueName]: { ...queue, messages } } } },
+    'messaging',
+    'ReceiveMessage',
+    queueName,
+    'success',
+    `Received message from queue ${queueName}`
   );
 }
