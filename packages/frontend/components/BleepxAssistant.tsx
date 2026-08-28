@@ -207,66 +207,65 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     }
   })();
 
+  const PngSprite = ({ size = 44, rotate = 0, children }: { size?: number; rotate?: number; children?: React.ReactNode }) => (
+    <div
+      className={`relative flex items-center justify-center ${moodClass}`}
+      style={{ width: size, height: size }}
+    >
+      <img
+        src="/bleepx-icon.png"
+        alt="Bleepx"
+        width={size}
+        height={size}
+        className="object-contain"
+        style={{ filter: spriteFilter, transform: `rotate(${rotate}deg)` }}
+      />
+      {children}
+    </div>
+  );
+
   const Sprite = ({ size = 44 }: { size?: number }) => {
     const shared = `drop-shadow-lg ${moodClass}`;
     switch (mood) {
       case 'flying':
-        return (
-          <div
-            className={`flex items-center justify-center ${moodClass}`}
-            style={{ width: size, height: size }}
-          >
-            <img
-              src="/bleepx-icon.png"
-              alt="Bleepx"
-              width={size}
-              height={size}
-              className="object-contain"
-              style={{ filter: spriteFilter, transform: `rotate(${rotation}deg)` }}
-            />
-          </div>
-        );
+        return <PngSprite size={size} rotate={rotation} />;
+      case 'idle':
       case 'wave':
-        return <BleepxWave size={size} className={shared} />;
+      case 'chat':
+      case 'face':
+        return <PngSprite size={size} />;
       case 'think':
         return <BleepxThink size={size} className={shared} />;
       case 'code':
         return <BleepxCode size={size} className={shared} />;
-      case 'chat':
-        return <BleepxHead size={size} className={shared} />;
-      case 'face':
-        return <BleepxFace size={size} className={shared} />;
       case 'error':
         return <BleepxLock size={size} className={shared} />;
       case 'success':
         return <BleepxTrophy size={size} className={shared} />;
       case 'signal':
         return (
-          <div className="relative">
-            <BleepxGhost size={size} className={shared} />
-            <BleepxSignal size={20} className="absolute -top-1 -right-1 animate-ping" />
-          </div>
+          <PngSprite size={size}>
+            <BleepxSignal size={20} className="absolute -top-1 -right-1" />
+          </PngSprite>
         );
       case 'watch':
         return (
-          <div className="relative">
-            <BleepxGhost size={size} className={shared} />
+          <PngSprite size={size}>
             <BleepxEye size={16} className="absolute -top-1 -right-1" />
-          </div>
+          </PngSprite>
         );
       case 'spark':
         return (
-          <div className="relative">
-            <BleepxGhost size={size} className={shared} />
+          <PngSprite size={size}>
             <BleepxSpark size={20} className="absolute -top-1 -right-1 animate-spin" />
-          </div>
+          </PngSprite>
         );
       case 'git':
         return <BleepxGit size={size} className={shared} />;
       case 'github':
         return <BleepxGitHub size={size} className={shared} />;
       default:
-        return <BleepxGhost size={size} className={shared} />;
+        return <PngSprite size={size} />;
     }
   };
 
@@ -312,11 +311,12 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     const dx = left - oldLeft;
     const dy = top - oldTop;
     const distance = Math.hypot(dx, dy);
-    const angle = distance > 4 ? Math.atan2(dy, dx) * (180 / Math.PI) : rotation;
+    const rawLean = distance > 4 ? Math.atan2(dx, -dy) * (180 / Math.PI) : 0;
+    const lean = Math.max(-30, Math.min(30, rawLean));
 
     if (flyingTimer.current) clearTimeout(flyingTimer.current);
     setMood('flying');
-    setRotation(angle);
+    setRotation(lean);
     setDock(nextDock);
     prevDock.current = nextDock;
 
@@ -325,7 +325,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       applyHint(hint);
       flyingTimer.current = null;
     }, 150);
-  }, [applyHint, pathname, rotation]);
+  }, [applyHint, pathname]);
 
   const scheduleLint = useCallback((target: EventTarget | null) => {
     if (lintTimer.current) clearTimeout(lintTimer.current);
