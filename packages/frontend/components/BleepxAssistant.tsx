@@ -357,7 +357,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle');
       return;
     }
-    const el = target as HTMLInputElement | HTMLTextAreaElement;
+    const el = target as HTMLElement;
+    const value = (el as HTMLInputElement).value ?? (el as HTMLTextAreaElement).value ?? el.textContent ?? '';
     const rect = el.getBoundingClientRect();
     const top = Math.max(8, Math.min(window.innerHeight - 80, rect.top + rect.height / 2 - 32));
     const left = Math.max(8, Math.min(window.innerWidth - 80, rect.right + 16));
@@ -377,9 +378,9 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     setDock(nextDock);
     prevDock.current = nextDock;
 
-    const hint = lintInput(el.value, el, pathname ?? undefined);
+    const hint = lintInput(value, el, pathname ?? undefined);
     flyingTimer.current = setTimeout(() => {
-      applyHint(hint, el.value);
+      applyHint(hint, value);
       flyingTimer.current = null;
     }, 150);
   }, [applyHint, pathname]);
@@ -418,7 +419,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       if (!isDragging.current) return;
       const dx = e.clientX - dragStartPos.current.x;
       const dy = e.clientY - dragStartPos.current.y;
-      if (Math.hypot(dx, dy) > 4) didDrag.current = true;
+      if (Math.hypot(dx, dy) > 10) didDrag.current = true;
       const right = Math.max(0, Math.min(window.innerWidth - 64, window.innerWidth - e.clientX - 32));
       const bottom = Math.max(0, Math.min(window.innerHeight - 64, window.innerHeight - e.clientY - 32));
       targetDock.current = { right, bottom };
@@ -437,7 +438,9 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         rafId.current = null;
       }
       setDragging(false);
-      setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle');
+      if (didDrag.current) {
+        setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle');
+      }
     };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp, { once: true });
