@@ -25,7 +25,7 @@ import {
 
 type AssistantContext = 'home' | 'sql' | 'lab' | 'cloud' | 'journey' | 'general';
 
-type Mood = 'idle' | 'wave' | 'think' | 'code' | 'chat' | 'error' | 'success' | 'signal' | 'flying' | 'watch' | 'spark' | 'git' | 'github' | 'face';
+type Mood = 'idle' | 'wave' | 'think' | 'code' | 'chat' | 'error' | 'success' | 'signal' | 'flying' | 'watch' | 'spark' | 'git' | 'github' | 'face' | 'stealth';
 
 const DEFAULT_HINTS: Record<string, { text: string; cta: string; href: string }> = {
   '/': { text: 'Start with SQL basics, then Python, then pick a cloud or ML goal.', cta: 'Start My Journey', href: '/journey' },
@@ -89,6 +89,16 @@ function generateBleepxResponse(input: string, context: AssistantContext = 'gene
   return "I'm Bleepx, your data and cloud assistant. Ask me about SQL, AWS, Python, or ML and I'll do my best to help.";
 }
 
+const NAG_MESSAGES = [
+  'Still here. Still watching.',
+  'I noticed you stopped typing. Everything okay?',
+  'Bored? Ask me something fun.',
+  'I have SO many SQL tips and no one to share them with.',
+  'Tap me. You know you want to.',
+  'I am not going anywhere.',
+];
+const randomNag = () => NAG_MESSAGES[Math.floor(Math.random() * NAG_MESSAGES.length)];
+
 export default function BleepxAssistant({ context }: { context?: AssistantContext }) {
   const pathname = usePathname();
   const { completed, points } = useProgress();
@@ -136,6 +146,23 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (!open) {
+        setOpen(true);
+        setMessages((prev) => [...prev, { role: 'assistant', text: randomNag() }]);
+        playBleep();
+      }
+    }, 20000);
+    return () => clearInterval(id);
+  }, [open]);
+
+  useEffect(() => {
+    if (open || dockedHint || dragging) return;
+    const id = setTimeout(() => setMood('stealth'), 8000);
+    return () => clearTimeout(id);
+  }, [open, dockedHint, dragging]);
+
   const goal = findJourneyGoal();
   const completedCount = completed.size;
 
@@ -145,7 +172,14 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   }, [goal, hint]);
 
   const startChat = () => {
-    setMessages([{ role: 'assistant', text: greeting }]);
+    setMessages([
+      { role: 'assistant', text: greeting },
+      { role: 'assistant', text: 'I am here, watching, waiting, ready to chatter about SQL, cloud, Python — anything.' },
+    ]);
+    setTimeout(() => {
+      setMessages((prev) => [...prev, { role: 'assistant', text: 'Go ahead, type something. I dare you.' }]);
+      playBleep();
+    }, 900);
   };
 
   const send = (text: string) => {
@@ -153,6 +187,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     setInput('');
     setMessages((prev) => [...prev, { role: 'user', text: text.trim() }]);
     setMood('think');
+    setMessages((prev) => [...prev, { role: 'assistant', text: 'Bleepx is thinking out loud...' }]);
     setTimeout(() => {
       const lower = text.toLowerCase();
       const reply = TOPIC_HINTS[lower.trim()] ?? generateBleepxResponse(text, context ?? 'general');
@@ -199,6 +234,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     mood === 'spark' ? 'bleepx-spark' :
     mood === 'git' || mood === 'github' ? 'bleepx-git' :
     mood === 'face' ? 'bleepx-face' :
+    mood === 'stealth' ? 'bleepx-stealth' :
     'bleepx-orbit';
 
   const spriteFilter = (() => {
@@ -227,16 +263,52 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
   const BallSprite = ({ size = 44 }: { size?: number }) => {
     const ballSize = Math.max(24, size - 8);
+    const mode = mood === 'stealth' ? 'stealth' : isDark ? 'dark' : 'normal';
+    const sharedStyle: React.CSSProperties = {
+      width: ballSize,
+      height: ballSize,
+      transformStyle: 'preserve-3d',
+    };
+    if (mode === 'dark') {
+      return (
+        <div
+          className={`rounded-full overflow-hidden ${moodClass}`}
+          style={{ ...sharedStyle, filter: spriteFilter }}
+        >
+          <img
+            src="/bleepx-icon.png"
+            alt="Bleepx"
+            width={ballSize}
+            height={ballSize}
+            className="object-cover w-full h-full"
+          />
+        </div>
+      );
+    }
+    if (mode === 'stealth') {
+      return (
+        <div
+          className={`rounded-full overflow-hidden ${moodClass}`}
+          style={{ ...sharedStyle, filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.5))', opacity: 0.65 }}
+        >
+          <img
+            src="/bleepx-icon.svg"
+            alt="Bleepx"
+            width={ballSize}
+            height={ballSize}
+            className="object-cover w-full h-full"
+          />
+        </div>
+      );
+    }
     return (
       <div
         className={`rounded-full ${moodClass} flex items-center justify-center border border-cyan-400/40`}
         style={{
-          width: ballSize,
-          height: ballSize,
+          ...sharedStyle,
           background: 'radial-gradient(circle at 30% 30%, #2a2f3a 0%, #0f1115 50%, #000000 100%)',
           boxShadow: 'inset -4px -4px 8px rgba(0,0,0,0.8), inset 4px 4px 8px rgba(255,255,255,0.05), 0 0 12px rgba(34,211,238,0.45)',
           filter: spriteFilter,
-          transformStyle: 'preserve-3d',
         }}
       >
         <span className="font-mono text-cyan-400 font-bold select-none" style={{ fontSize: Math.max(10, ballSize * 0.45) }}>
@@ -247,7 +319,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   };
 
   const PngSprite = ({ size = 44, rotate = 0, children }: { size?: number; rotate?: number; children?: React.ReactNode }) => {
-    const iconSrc = isDark ? '/bleepx-icon.svg' : '/bleepx-icon.png';
+    const iconSrc = isDark ? '/bleepx-icon.png' : '/bleepx-icon.svg';
     return (
       <div
         className="relative flex items-center justify-center"
@@ -311,6 +383,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         return <BleepxGit size={size} className={shared} />;
       case 'github':
         return <BleepxGitHub size={size} className={shared} />;
+      case 'stealth':
+        return <BallSprite size={size} />;
       default:
         return <PngSprite size={size} />;
     }
@@ -351,6 +425,16 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     return pool[Math.floor(Math.random() * pool.length)];
   };
 
+  const nagFor = (hint: BleepxHint) => {
+    if (hint.severity === 'error') {
+      return ['Fix this now before it snowballs!', 'I cannot unsee that one.', 'Hello? You are still typing the wrong thing.'].sort(() => Math.random() - 0.5)[0];
+    }
+    if (hint.severity === 'warning') {
+      return ['Better safe than sorry, right?', 'I would double-check that.', 'Are you sure about that part?'].sort(() => Math.random() - 0.5)[0];
+    }
+    return ['Keep this in mind!', 'Pro tip — you are welcome.', 'I am full of these today.'].sort(() => Math.random() - 0.5)[0];
+  };
+
   const applyHint = useCallback((hint: BleepxHint | null, value?: string) => {
     if (!hint) {
       setDockedHint(null);
@@ -361,14 +445,18 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     if (lastHintText.current !== text) {
       playBleep();
       const reaction = reactionFor(hint, value);
-      setMessages((prev) => [...prev, { role: 'assistant', text: reaction }, { role: 'assistant', text }]);
+      const nag = nagFor(hint);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', text: reaction },
+        { role: 'assistant', text },
+        { role: 'assistant', text: nag },
+      ]);
       lastHintText.current = text;
     }
     setDockedHint(hint);
     setMood(hint.severity === 'error' ? 'error' : hint.severity === 'warning' ? 'think' : 'signal');
-    if (hint.severity === 'error' || hint.severity === 'warning') {
-      setOpen(true);
-    }
+    setOpen(true);
   }, [pathname]);
 
   const lintFocused = useCallback((target: EventTarget | null) => {
@@ -402,13 +490,13 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     flyingTimer.current = setTimeout(() => {
       applyHint(hint, value);
       flyingTimer.current = null;
-    }, 150);
+    }, 80);
   }, [applyHint, pathname]);
 
   const scheduleLint = useCallback((target: EventTarget | null) => {
     if (lintTimer.current) clearTimeout(lintTimer.current);
     if (flyingTimer.current) clearTimeout(flyingTimer.current);
-    lintTimer.current = setTimeout(() => lintFocused(target), 400);
+    lintTimer.current = setTimeout(() => lintFocused(target), 80);
   }, [lintFocused]);
 
   useEffect(() => {
