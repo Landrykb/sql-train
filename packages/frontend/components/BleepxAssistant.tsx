@@ -106,6 +106,10 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const prevDock = useRef({ right: 16, bottom: 16 });
   const isDragging = useRef(false);
   const didDrag = useRef(false);
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  const targetDock = useRef({ right: 16, bottom: 16 });
+  const rafId = useRef<number | null>(null);
+  const [isDark, setIsDark] = useState(false);
 
   const hint = useMemo(() => {
     const exact = DEFAULT_HINTS[pathname];
@@ -120,6 +124,16 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     if (pathname?.startsWith('/lab/')) setMood('code');
     else setMood('idle');
   }, [pathname]);
+
+  useEffect(() => {
+    const updateDark = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    updateDark();
+    const observer = new MutationObserver(updateDark);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   const goal = findJourneyGoal();
   const completedCount = completed.size;
@@ -210,27 +224,30 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     }
   })();
 
-  const PngSprite = ({ size = 44, rotate = 0, children }: { size?: number; rotate?: number; children?: React.ReactNode }) => (
-    <div
-      className="relative flex items-center justify-center"
-      style={{ width: size, height: size, perspective: '800px', transformStyle: 'preserve-3d' }}
-    >
+  const PngSprite = ({ size = 44, rotate = 0, children }: { size?: number; rotate?: number; children?: React.ReactNode }) => {
+    const iconSrc = isDark ? '/bleepx-icon.svg' : '/bleepx-icon.png';
+    return (
       <div
-        className={`relative flex items-center justify-center ${moodClass}`}
-        style={{ width: size, height: size }}
+        className="relative flex items-center justify-center"
+        style={{ width: size, height: size, perspective: '800px', transformStyle: 'preserve-3d' }}
       >
-        <img
-          src="/bleepx-icon.png"
-          alt="Bleepx"
-          width={size}
-          height={size}
-          className="object-contain"
-          style={{ filter: spriteFilter, transform: `rotate(${rotate}deg)`, transformStyle: 'preserve-3d' }}
-        />
-        {children}
+        <div
+          className={`relative flex items-center justify-center ${moodClass}`}
+          style={{ width: size, height: size }}
+        >
+          <img
+            src={iconSrc}
+            alt="Bleepx"
+            width={size}
+            height={size}
+            className="object-contain"
+            style={{ filter: spriteFilter, transform: `rotate(${rotate}deg)`, transformStyle: 'preserve-3d' }}
+          />
+          {children}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const Sprite = ({ size = 44 }: { size?: number }) => {
     const shared = `drop-shadow-lg ${moodClass}`;
@@ -282,7 +299,37 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable;
   };
 
-  const applyHint = useCallback((hint: BleepxHint | null) => {
+  const reactionFor = (hint: BleepxHint, value?: string) => {
+    const line = value?.trim().split('\n').pop()?.trim() ?? '';
+    const isSql = /\b(select|from|where|join|insert|update|delete)\b/i.test(line);
+    const isPython = /\b(def |import |print\(|for |if )\b/i.test(line);
+    const isLambda = /\bexports\.handler\b/.test(line) || /\b(event, context)\b/.test(line);
+    const errorPool = isSql
+      ? ['Uh oh, that SELECT almost looked good — almost.', 'I spotted a tripwire in that query.', 'That SQL is trying to escape me.']
+      : isPython
+      ? ['That Python line has a little hiccup.', 'I see a syntax snake.', 'That function is not ready for takeoff.']
+      : isLambda
+      ? ['That Lambda handler has a wrinkle.', 'Your cloud function needs a tiny fix.']
+      : ['Oops, I see something off here.', 'That line has a bump.', 'Not quite, but we can fix it.'];
+    const warningPool = isSql
+      ? ['Smirking... I see what you\'re doing, but let\'s double-check it.', 'Oh, let\'s see what you\'re doing here.', 'Sneaky SQL, but it could be sharper.']
+      : isPython
+      ? ['I\'m watching that logic...', 'Your Python is getting spicy.', 'That code has potential, but watch out.']
+      : isLambda
+      ? ['Cloud code is tricky — let me peek.', 'Lambda logic incoming...']
+      : ['I\'m keeping an eye on that.', 'Smirking... I see what you\'re doing.', 'That\'s a brave move.'];
+    const tipPool = isSql
+      ? ['Oh, I love this SQL energy! Let me show you a trick.', 'Nice query flow — here\'s a tip.', 'You\'re cooking with SQL.']
+      : isPython
+      ? ['Python vibes. Let me nudge you toward cleaner code.', 'I see where this is going — here\'s a hint.']
+      : isLambda
+      ? ['Lambda life. Let me drop a tiny hint.', 'AWS energy detected.']
+      : ['Oh, let me jump in with a tip.', 'I\'ve got a neat idea for that.'];
+    const pool = hint.severity === 'error' ? errorPool : hint.severity === 'warning' ? warningPool : tipPool;
+    return pool[Math.floor(Math.random() * pool.length)];
+  };
+
+  const applyHint = useCallback((hint: BleepxHint | null, value?: string) => {
     if (!hint) {
       setDockedHint(null);
       setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle');
@@ -291,7 +338,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     const text = hint.message + (hint.fix ? `\n\nFix: ${hint.fix}` : '') + (hint.snippet ? `\n\nExample:\n\`${hint.snippet}\`` : '');
     if (lastHintText.current !== text) {
       playBleep();
-      setMessages((prev) => [...prev, { role: 'assistant', text }]);
+      const reaction = reactionFor(hint, value);
+      setMessages((prev) => [...prev, { role: 'assistant', text: reaction }, { role: 'assistant', text }]);
       lastHintText.current = text;
     }
     setDockedHint(hint);
@@ -331,7 +379,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
     const hint = lintInput(el.value, el, pathname ?? undefined);
     flyingTimer.current = setTimeout(() => {
-      applyHint(hint);
+      applyHint(hint, el.value);
       flyingTimer.current = null;
     }, 150);
   }, [applyHint, pathname]);
@@ -367,15 +415,27 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   useEffect(() => {
     if (!dragging) return;
     const onMove = (e: MouseEvent) => {
-      didDrag.current = true;
+      if (!isDragging.current) return;
+      const dx = e.clientX - dragStartPos.current.x;
+      const dy = e.clientY - dragStartPos.current.y;
+      if (Math.hypot(dx, dy) > 4) didDrag.current = true;
       const right = Math.max(0, Math.min(window.innerWidth - 64, window.innerWidth - e.clientX - 32));
       const bottom = Math.max(0, Math.min(window.innerHeight - 64, window.innerHeight - e.clientY - 32));
-      const nextDock = { right, bottom };
-      setDock(nextDock);
-      prevDock.current = nextDock;
+      targetDock.current = { right, bottom };
+      if (!rafId.current) {
+        rafId.current = requestAnimationFrame(() => {
+          setDock(targetDock.current);
+          prevDock.current = targetDock.current;
+          rafId.current = null;
+        });
+      }
     };
     const onUp = () => {
       isDragging.current = false;
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = null;
+      }
       setDragging(false);
       setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle');
     };
@@ -472,23 +532,24 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           }
           toggle();
         }}
-        onMouseDown={() => {
+        onMouseDown={(e) => {
           isDragging.current = true;
           didDrag.current = false;
+          dragStartPos.current = { x: e.clientX, y: e.clientY };
           setDragging(true);
           setMood('flying');
         }}
         onMouseEnter={() => setMood('wave')}
         onMouseLeave={() => setMood(dockedHint ? (dockedHint.severity === 'error' ? 'error' : dockedHint.severity === 'warning' ? 'think' : 'signal') : (pathname?.startsWith('/lab/') ? 'code' : 'idle'))}
-        className={`group relative w-16 h-16 rounded-full bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 border border-white/20 dark:border-gray-700/30 ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        className={`group relative w-16 h-16 rounded-full overflow-hidden bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 border border-white/20 dark:border-gray-700/30 ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         aria-label="Open Bleepx assistant"
       >
         <div className="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
           <Sprite />
         </div>
-        {!open && (
+        {!open && dockedHint && (
           <span className="absolute -top-1 -right-1">
-            <BleepxSpark size={20} className="animate-ping text-cyan-400" />
+            <BleepxSpark size={16} />
           </span>
         )}
       </button>
