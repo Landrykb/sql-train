@@ -212,18 +212,23 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
   const PngSprite = ({ size = 44, rotate = 0, children }: { size?: number; rotate?: number; children?: React.ReactNode }) => (
     <div
-      className={`relative flex items-center justify-center ${moodClass}`}
-      style={{ width: size, height: size }}
+      className="relative flex items-center justify-center"
+      style={{ width: size, height: size, perspective: '800px', transformStyle: 'preserve-3d' }}
     >
-      <img
-        src="/bleepx-icon.png"
-        alt="Bleepx"
-        width={size}
-        height={size}
-        className="object-contain"
-        style={{ filter: spriteFilter, transform: `rotate(${rotate}deg)` }}
-      />
-      {children}
+      <div
+        className={`relative flex items-center justify-center ${moodClass}`}
+        style={{ width: size, height: size }}
+      >
+        <img
+          src="/bleepx-icon.png"
+          alt="Bleepx"
+          width={size}
+          height={size}
+          className="object-contain"
+          style={{ filter: spriteFilter, transform: `rotate(${rotate}deg)`, transformStyle: 'preserve-3d' }}
+        />
+        {children}
+      </div>
     </div>
   );
 
@@ -260,7 +265,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       case 'spark':
         return (
           <PngSprite size={size}>
-            <BleepxSpark size={20} className="absolute -top-1 -right-1 animate-spin" />
+            <BleepxSpark size={20} className="absolute -top-1 -right-1" />
           </PngSprite>
         );
       case 'git':
