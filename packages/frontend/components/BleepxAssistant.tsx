@@ -72,6 +72,11 @@ const TOPIC_HINTS: Record<string, string> = {
   'sql join help': 'SQL joins combine rows. INNER JOIN keeps matches, LEFT keeps all from the left, FULL keeps all rows, and CROSS gives the Cartesian product.',
   'ec2 vs lambda': 'EC2 gives full control and long-running compute; Lambda is serverless, event-driven, and billed per request.',
   'cost-optimized storage': 'For archives use S3 Glacier or Glacier Deep Archive. For logs, transition to Infrequent Access after a few days.',
+  'who are you': 'I am Bleepx, your snarky SQL, AWS, Python, and ML companion. I was built by my user and I am here to help you learn.',
+  'what is bleepx': 'Bleepx is a personal AI companion. Witty, loyal, and packed with SQL, AWS, Python, and ML knowledge.',
+  'what is sql': 'SQL (Structured Query Language) is the language used to query and manage relational databases.',
+  'what is aws': 'AWS is Amazon Web Services, a cloud platform with compute, storage, databases, networking, and machine learning services.',
+  'how do i sign in': 'Click the GitHub sign-in button. Your progress syncs across devices through Supabase.',
 };
 
 const NAG_MESSAGES = [

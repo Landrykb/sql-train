@@ -6,6 +6,8 @@ const LLM_URL = process.env.LLM_API_URL ?? 'https://openrouter.ai/api/v1/chat/co
 const LLM_KEY = process.env.LLM_API_KEY ?? '';
 const LLM_MODEL = process.env.LLM_MODEL ?? 'qwen/qwen-2.5-3b-instruct';
 const LLM_REFERER = process.env.LLM_REFERER ?? 'https://besa-sqlverse.com';
+const LLM_MAX_TOKENS = parseInt(process.env.LLM_MAX_TOKENS ?? '200', 10);
+const LLM_DISABLED = process.env.LLM_DISABLED === 'true';
 
 const SYSTEM_PROMPT = `${BLEEPX_BIO}
 
@@ -20,6 +22,9 @@ Rules:
 - Always sign your final line with a tiny Bleepx-style comment when natural.`;
 
 export async function POST(req: NextRequest) {
+  if (LLM_DISABLED) {
+    return NextResponse.json({ answer: '' });
+  }
   if (!LLM_KEY) {
     return NextResponse.json({ error: 'Server misconfigured: missing LLM_API_KEY' }, { status: 500 });
   }
@@ -68,7 +73,7 @@ export async function POST(req: NextRequest) {
           { role: 'user', content: userContent },
         ],
         temperature: 0.4,
-        max_tokens: 400,
+        max_tokens: LLM_MAX_TOKENS,
       }),
     });
 
