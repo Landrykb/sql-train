@@ -99,10 +99,13 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const [dock, setDock] = useState<{ right: number; bottom: number }>({ right: 16, bottom: 16 });
   const [dockedHint, setDockedHint] = useState<BleepxHint | null>(null);
   const [rotation, setRotation] = useState(0);
+  const [dragging, setDragging] = useState(false);
   const lintTimer = useRef<NodeJS.Timeout | null>(null);
   const lastHintText = useRef<string | null>(null);
   const flyingTimer = useRef<NodeJS.Timeout | null>(null);
   const prevDock = useRef({ right: 16, bottom: 16 });
+  const isDragging = useRef(false);
+  const didDrag = useRef(false);
 
   const hint = useMemo(() => {
     const exact = DEFAULT_HINTS[pathname];
@@ -294,6 +297,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   }, [pathname]);
 
   const lintFocused = useCallback((target: EventTarget | null) => {
+    if (isDragging.current) return;
     if (!isEditable(target)) {
       setDockedHint(null);
       setDock({ right: 16, bottom: 16 });
@@ -355,10 +359,33 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     };
   }, [lintFocused, scheduleLint]);
 
+  useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e: MouseEvent) => {
+      didDrag.current = true;
+      const right = Math.max(0, Math.min(window.innerWidth - 64, window.innerWidth - e.clientX - 32));
+      const bottom = Math.max(0, Math.min(window.innerHeight - 64, window.innerHeight - e.clientY - 32));
+      const nextDock = { right, bottom };
+      setDock(nextDock);
+      prevDock.current = nextDock;
+    };
+    const onUp = () => {
+      isDragging.current = false;
+      setDragging(false);
+      setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle');
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp, { once: true });
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, [dragging, pathname]);
+
   return (
     <div
       className="fixed z-50 flex flex-col items-end gap-2 transition-all duration-500"
-      style={{ right: dock.right, bottom: dock.bottom }}
+      style={{ right: dock.right, bottom: dock.bottom, transition: dragging ? 'none' : undefined }}
     >
       {!open && dockedHint && (
         <div className="relative mb-2 p-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-rose-300 dark:border-rose-700 shadow-2xl text-sm w-72">
@@ -433,10 +460,22 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         </div>
       )}
       <button
-        onClick={toggle}
+        onClick={() => {
+          if (didDrag.current) {
+            didDrag.current = false;
+            return;
+          }
+          toggle();
+        }}
+        onMouseDown={() => {
+          isDragging.current = true;
+          didDrag.current = false;
+          setDragging(true);
+          setMood('flying');
+        }}
         onMouseEnter={() => setMood('wave')}
         onMouseLeave={() => setMood(dockedHint ? (dockedHint.severity === 'error' ? 'error' : dockedHint.severity === 'warning' ? 'think' : 'signal') : (pathname?.startsWith('/lab/') ? 'code' : 'idle'))}
-        className="group relative w-16 h-16 rounded-full bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 animate-float border border-white/20 dark:border-gray-700/30"
+        className={`group relative w-16 h-16 rounded-full bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 border border-white/20 dark:border-gray-700/30 ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         aria-label="Open Bleepx assistant"
       >
         <div className="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
