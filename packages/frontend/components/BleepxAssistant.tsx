@@ -114,6 +114,15 @@ const randomNag = () => NAG_MESSAGES[Math.floor(Math.random() * NAG_MESSAGES.len
 
 export default function BleepxAssistant({ context }: { context?: AssistantContext }) {
   const pathname = usePathname();
+  const activeContext = context || contextFromPathname(pathname);
+  const codeLabel = useMemo(() => {
+    switch (activeContext) {
+      case 'sql': return 'SQL';
+      case 'cloud': return 'AWS';
+      case 'lab': return 'PY';
+      default: return 'SQL';
+    }
+  }, [activeContext]);
   const { completed, points } = useProgress();
   const [open, setOpen] = useState(false);
   const [mood, setMood] = useState<Mood>('idle');
@@ -525,7 +534,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       case 'think':
         return <BleepxThink size={size} className={shared} />;
       case 'code':
-        return <BleepxCode size={size} className={shared} />;
+        return <BleepxCode size={size} className={shared} label={codeLabel} />;
       case 'error':
         return <BleepxLock size={size} className={shared} />;
       case 'success':

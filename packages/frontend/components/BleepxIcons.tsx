@@ -135,8 +135,9 @@ export function BleepxThink({ size = 48, className = '' }: IconProps) {
 }
 
 // ─── Bleepx Code: with SQL/code symbol on chest ───
-export function BleepxCode({ size = 40, className = '' }: IconProps) {
+export function BleepxCode({ size = 40, className = '', label = 'SQL' }: IconProps & { label?: string }) {
   const { DARK, DARK2 } = useBleepxColors();
+  const x = label.length <= 2 ? 18 : 15;
   return (
     <svg width={size} height={size} viewBox="0 0 48 56" fill="none" className={className} aria-hidden="true">
       {/* Antenna */}
@@ -150,8 +151,8 @@ export function BleepxCode({ size = 40, className = '' }: IconProps) {
       <path d="M26 22 L30 20.5 L29 25 L25 24 Z" fill={CYAN} />
       {/* Smirk */}
       <path d="M19 28 Q24 31 29 28" stroke={CYAN} strokeWidth="1.2" fill="none" strokeLinecap="round" />
-      {/* SQL text on chest */}
-      <text x="15" y="45" fill={TEAL} fontSize="9" fontFamily="monospace" fontWeight="bold">SQL</text>
+      {/* Code text on chest */}
+      <text x={x} y="45" fill={TEAL} fontSize="9" fontFamily="monospace" fontWeight="bold">{label.slice(0, 3)}</text>
     </svg>
   );
 }
