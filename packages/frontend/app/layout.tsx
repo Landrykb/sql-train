@@ -4,6 +4,7 @@ import Link from 'next/link';
 import NavHeader from '@/components/NavHeader';
 import AnalyticsProvider from '@/components/AnalyticsProvider';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import BleepxAssistant from '@/components/BleepxAssistant';
 import type { Viewport } from 'next';
 
 export const viewport: Viewport = {
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </p>
               </div>
             </footer>
+            <BleepxAssistant />
           </AnalyticsProvider>
         </ErrorBoundary>
       </body>
