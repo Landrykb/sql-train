@@ -286,7 +286,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     setInput('');
     setMessages((prev) => [...prev, { role: 'user', text: text.trim() }]);
     const lower = text.toLowerCase().trim();
-    if (applyMode(lower)) return;
+    const clean = lower.replace(/[^a-z0-9\s-]/g, '').trim();
+    if (applyMode(clean)) return;
     if (awaitingNickname) {
       const name = text.trim().split(/[\s,!?]+/)[0].replace(/[^a-zA-Z0-9_\-']/g, '');
       if (name) {
@@ -305,20 +306,20 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
     (async () => {
       try {
-        const known = TOPIC_HINTS[lower] ?? voice.known(text, context ?? 'general');
+        const known = TOPIC_HINTS[clean] ?? voice.known(text, context ?? 'general');
         let final: string;
         let nextMood: Mood = 'chat';
 
         if (known) {
           final = voice.signOff(known, displayName);
           nextMood = 'success';
-        } else if (lower.includes('github')) {
+        } else if (clean.includes('github')) {
           final = voice.signOff('GitHub is where your code and progress live. Sign in with it to save your work across the app.', displayName);
           nextMood = 'github';
-        } else if (lower.includes('git')) {
+        } else if (clean.includes('git')) {
           final = voice.signOff('Git is version control. You track changes in code and collaborate with branches and commits.', displayName);
           nextMood = 'git';
-        } else if (lower.includes('hello') || lower.includes('hi ')) {
+        } else if (clean.includes('hello') || clean.includes('hi ')) {
           final = voice.welcomeBack(displayName) + ' Ask me anything about SQL, cloud, Python, or ML.';
           nextMood = 'face';
         } else {
@@ -331,6 +332,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
             const data = await res.json();
             final = data.answer || voice.fallback(text, context ?? 'general', displayName);
           } else {
+            console.warn('Bleepx API error:', res.status, await res.text());
             final = voice.fallback(text, context ?? 'general', displayName);
           }
         }
@@ -344,6 +346,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         playBleep();
         setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 1400);
       } catch (err) {
+        console.error('Bleepx LLM call failed:', err);
         setMessages((prev) => {
           const next = [...prev];
           next[next.length - 1] = { role: 'assistant', text: voice.fallback(text, context ?? 'general', displayName) };
