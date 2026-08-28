@@ -26,6 +26,18 @@ import {
 type AssistantContext = 'home' | 'sql' | 'lab' | 'cloud' | 'journey' | 'general';
 
 type Mood = 'idle' | 'wave' | 'think' | 'code' | 'chat' | 'error' | 'success' | 'signal' | 'flying' | 'watch' | 'spark' | 'git' | 'github' | 'face' | 'stealth';
+type Mode = 'light' | 'dark' | 'stealth' | 'mix' | 'neon' | 'ghost' | 'solar' | 'green' | 'red';
+const MODES: Record<Mode, { label: string; dark: boolean; mood: Mood; filter: string; badge: string }> = {
+  light: { label: 'LIGHT MODE', dark: false, mood: 'wave', filter: '', badge: 'bg-sky-100 text-sky-700 border-sky-300' },
+  dark: { label: 'DARK MODE', dark: true, mood: 'code', filter: 'drop-shadow(0 0 10px rgba(34,211,238,0.5))', badge: 'bg-cyan-950 text-cyan-300 border-cyan-600' },
+  stealth: { label: 'STEALTH MODE', dark: true, mood: 'stealth', filter: 'grayscale(0.5) brightness(0.7) drop-shadow(0 0 6px rgba(34,211,238,0.25))', badge: 'bg-gray-800 text-gray-300 border-gray-600' },
+  mix: { label: 'MIX MODE', dark: true, mood: 'chat', filter: 'contrast(1.1) drop-shadow(0 0 10px rgba(34,211,238,0.5))', badge: 'bg-fuchsia-950 text-fuchsia-300 border-fuchsia-600' },
+  neon: { label: 'NEON MODE', dark: true, mood: 'wave', filter: 'drop-shadow(0 0 16px rgba(6,182,212,0.9)) saturate(1.6) brightness(1.2) contrast(1.1)', badge: 'bg-cyan-950 text-cyan-300 border-cyan-500' },
+  ghost: { label: 'GHOST MODE', dark: false, mood: 'wave', filter: 'brightness(1.3) opacity(0.55) drop-shadow(0 0 8px rgba(255,255,255,0.4))', badge: 'bg-slate-100 text-slate-500 border-slate-300' },
+  solar: { label: 'SOLAR MODE', dark: false, mood: 'success', filter: 'drop-shadow(0 0 14px rgba(250,204,21,0.8)) hue-rotate(-120deg) saturate(1.5) brightness(1.2) contrast(1.1)', badge: 'bg-yellow-100 text-yellow-700 border-yellow-400' },
+  green: { label: 'GREEN MODE', dark: false, mood: 'success', filter: 'drop-shadow(0 0 14px rgba(74,222,128,0.8)) hue-rotate(-60deg) saturate(1.5) contrast(1.1)', badge: 'bg-green-100 text-green-700 border-green-400' },
+  red: { label: 'RED MODE', dark: true, mood: 'error', filter: 'drop-shadow(0 0 14px rgba(248,113,113,0.8)) hue-rotate(180deg) saturate(1.4) contrast(1.1)', badge: 'bg-red-950 text-red-300 border-red-600' },
+};
 
 const DEFAULT_HINTS: Record<string, { text: string; cta: string; href: string }> = {
   '/': { text: 'Start with SQL basics, then Python, then pick a cloud or ML goal.', cta: 'Start My Journey', href: '/journey' },
@@ -132,7 +144,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const downAt = useRef(0);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [isDark, setIsDark] = useState(false);
-  const [manualMode, setManualMode] = useState<'auto' | 'light' | 'dark' | 'stealth' | 'mix' | 'neon' | 'ghost' | 'solar' | 'green' | 'red'>('auto');
+  const [manualMode, setManualMode] = useState<'auto' | Mode>('auto');
   const [teaser, setTeaser] = useState<{ text: string; command: string } | null>(null);
 
   const activeMode = useMemo(() => {
@@ -225,24 +237,25 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     }
   };
 
-  const modeReplies: Record<string, { mode: typeof manualMode; text: string; dark: boolean; mood: Mood }> = {
-    'light mode': { mode: 'light', text: 'Back to the light. A little too bright for my taste, but okay.', dark: false, mood: 'wave' },
-    'dark mode': { mode: 'dark', text: 'Dark mode engaged. The shadows suit me perfectly.', dark: true, mood: 'code' },
-    'stealth mode': { mode: 'stealth', text: 'Stealth mode on. I am still watching — just hidden in the dark. Special ability: silent hints and no teaser bubbles.', dark: true, mood: 'stealth' },
-    'mix mode': { mode: 'mix', text: 'Mix mode! Two Bleepx, one sphere. Chaos and beauty at the same time.', dark: true, mood: 'chat' },
-    'neon mode': { mode: 'neon', text: 'Neon mode activated. I am glowing brighter than your future SQL queries.', dark: true, mood: 'wave' },
-    'ghost mode': { mode: 'ghost', text: 'Ghost mode. Faint, friendly, and a little see-through.', dark: false, mood: 'wave' },
-    'solar mode': { mode: 'solar', text: 'Solar mode. Powered by sunlight and good vibes.', dark: false, mood: 'success' },
-    'green mode': { mode: 'green', text: 'Green mode on. Eco-friendly code tips activated.', dark: false, mood: 'success' },
-    'red mode': { mode: 'red', text: 'RED MODE ENGAGED. I am taking no prisoners with these hints.', dark: true, mood: 'error' },
+  const modeReplies: Record<string, { mode: Mode; text: string }> = {
+    'light mode': { mode: 'light', text: 'Back to the light. A little too bright for my taste, but okay.' },
+    'dark mode': { mode: 'dark', text: 'Dark mode engaged. The shadows suit me perfectly.' },
+    'stealth mode': { mode: 'stealth', text: 'Stealth mode on. I am still watching — just hidden in the dark. Special ability: silent hints and no teaser bubbles.' },
+    'mix mode': { mode: 'mix', text: 'Mix mode! Two Bleepx, one sphere. Chaos and beauty at the same time.' },
+    'neon mode': { mode: 'neon', text: 'Neon mode activated. I am glowing brighter than your future SQL queries.' },
+    'ghost mode': { mode: 'ghost', text: 'Ghost mode. Faint, friendly, and a little see-through.' },
+    'solar mode': { mode: 'solar', text: 'Solar mode. Powered by sunlight and good vibes.' },
+    'green mode': { mode: 'green', text: 'Green mode on. Eco-friendly code tips activated.' },
+    'red mode': { mode: 'red', text: 'RED MODE ENGAGED. I am taking no prisoners with these hints.' },
   };
 
   const applyMode = (lower: string) => {
     const config = modeReplies[lower];
     if (!config) return false;
+    const m = MODES[config.mode];
     setManualMode(config.mode);
-    setSiteDark(config.dark);
-    setMood(config.mood);
+    setSiteDark(m.dark);
+    setMood(m.mood);
     playBleep();
     setMessages((prev) => [...prev, { role: 'assistant', text: config.text }]);
     setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 900);
@@ -332,30 +345,9 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const BallSprite = ({ size = 44 }: { size?: number }) => {
     const ballSize = Math.max(24, size - 8);
     const isLight = activeMode === 'light';
-    const isStealth = activeMode === 'stealth';
-    const isNeon = activeMode === 'neon';
-    const isGhost = activeMode === 'ghost';
-    const isSolar = activeMode === 'solar';
-    const isMix = activeMode === 'mix';
-    const isGreen = activeMode === 'green';
-    const isRed = activeMode === 'red';
     const src = isLight ? '/bleepx-icon.png' : '/bleepx-logo.png';
-    const motionClass = isStealth ? 'bleepx-stealth' : isNeon || isRed || isGreen ? 'bleepx-fly' : moodClass;
-    const modeFilter = isStealth
-      ? 'grayscale(0.5) brightness(0.7) drop-shadow(0 0 6px rgba(34,211,238,0.25))'
-      : isNeon
-      ? 'drop-shadow(0 0 14px rgba(6,182,212,0.9)) saturate(1.4) brightness(1.15)'
-      : isGhost
-      ? 'brightness(1.3) opacity(0.55) drop-shadow(0 0 8px rgba(255,255,255,0.4))'
-      : isSolar
-      ? 'sepia(0.5) saturate(1.6) brightness(1.2) drop-shadow(0 0 10px rgba(250,204,21,0.6))'
-      : isMix
-      ? 'contrast(1.1) drop-shadow(0 0 10px rgba(34,211,238,0.5))'
-      : isGreen
-      ? 'drop-shadow(0 0 14px rgba(74,222,128,0.8)) hue-rotate(80deg) saturate(1.3)'
-      : isRed
-      ? 'drop-shadow(0 0 14px rgba(248,113,113,0.8)) hue-rotate(150deg) saturate(1.4)'
-      : spriteFilter;
+    const motionClass = activeMode === 'stealth' ? 'bleepx-stealth' : activeMode === 'neon' || activeMode === 'green' || activeMode === 'red' ? 'bleepx-fly' : moodClass;
+    const modeFilter = isLight ? spriteFilter : MODES[activeMode].filter;
     const sharedStyle: React.CSSProperties = {
       width: ballSize,
       height: ballSize,
@@ -367,7 +359,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         style={{
           ...sharedStyle,
           filter: modeFilter,
-          opacity: isStealth ? 0.75 : isGhost ? 0.55 : 1,
+          opacity: activeMode === 'stealth' ? 0.75 : activeMode === 'ghost' ? 0.55 : 1,
         }}
       >
         <img
@@ -384,7 +376,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
             width={ballSize}
             height={ballSize}
             className="absolute inset-0 object-cover w-full h-full"
-            style={{ opacity: isMix ? 0.5 : isGhost ? 0.35 : isSolar ? 0.25 : 0, mixBlendMode: isMix ? 'screen' : 'normal' }}
+            style={{ opacity: activeMode === 'mix' ? 0.5 : activeMode === 'ghost' ? 0.35 : activeMode === 'solar' ? 0.25 : 0, mixBlendMode: activeMode === 'mix' ? 'screen' : 'normal' }}
           />
         )}
         <div
@@ -399,21 +391,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
   const PngSprite = ({ size = 44, rotate = 0, children }: { size?: number; rotate?: number; children?: React.ReactNode }) => {
     const iconSrc = activeMode === 'light' ? '/bleepx-icon.png' : '/bleepx-logo.png';
-    const modeFilter = activeMode === 'stealth'
-      ? 'grayscale(0.5) brightness(0.7) drop-shadow(0 0 6px rgba(34,211,238,0.25))'
-      : activeMode === 'neon'
-      ? 'drop-shadow(0 0 14px rgba(6,182,212,0.9)) saturate(1.4) brightness(1.15)'
-      : activeMode === 'ghost'
-      ? 'brightness(1.3) opacity(0.55) drop-shadow(0 0 8px rgba(255,255,255,0.4))'
-      : activeMode === 'solar'
-      ? 'sepia(0.5) saturate(1.6) brightness(1.2) drop-shadow(0 0 10px rgba(250,204,21,0.6))'
-      : activeMode === 'mix'
-      ? 'contrast(1.1) drop-shadow(0 0 10px rgba(34,211,238,0.5))'
-      : activeMode === 'green'
-      ? 'drop-shadow(0 0 14px rgba(74,222,128,0.8)) hue-rotate(80deg) saturate(1.3)'
-      : activeMode === 'red'
-      ? 'drop-shadow(0 0 14px rgba(248,113,113,0.8)) hue-rotate(150deg) saturate(1.4)'
-      : spriteFilter;
+    const modeFilter = activeMode === 'light' ? spriteFilter : MODES[activeMode].filter;
     return (
       <div
         className="relative flex items-center justify-center"
@@ -727,13 +705,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               <div className="flex-1">
                 <div className="font-extrabold text-bleepx-text flex items-center gap-2">
                   Bleepx
-                  {activeMode === 'stealth' ? (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] bg-gray-800 text-gray-300 border border-gray-600">STEALTH MODE</span>
-                  ) : activeMode === 'dark' ? (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] bg-cyan-950 text-cyan-300 border border-cyan-600">DARK MODE</span>
-                  ) : (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] bg-sky-100 text-sky-700 border border-sky-300">LIGHT MODE</span>
-                  )}
+                  <span className={`px-1.5 py-0.5 rounded text-[9px] border ${MODES[activeMode].badge}`}>{MODES[activeMode].label}</span>
                 </div>
                 <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{completedCount} steps done · {points} pts</div>
               </div>
