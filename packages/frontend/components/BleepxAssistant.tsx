@@ -320,7 +320,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           const res = await fetch('/api/bleepx', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question: text, topic: context ?? 'general' }),
+            body: JSON.stringify({ question: text, topic: context ?? 'general', name: displayName }),
           });
           if (res.ok) {
             const data = await res.json();

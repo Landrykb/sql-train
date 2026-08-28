@@ -26,11 +26,13 @@ export async function POST(req: NextRequest) {
 
   let question: string | undefined;
   let topic: Chunk['topic'] | undefined;
+  let name: string | undefined;
 
   try {
     const body = await req.json();
     question = body.question?.trim();
     topic = body.topic;
+    name = body.name?.trim();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
@@ -39,8 +41,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing 'question'" }, { status: 400 });
   }
 
+  const userName = name || 'human';
   const chunks = retrieveChunks(question, { topic, limit: 3 });
   const context = formatContext(chunks);
+
+  const systemContent = `${SYSTEM_PROMPT}\n\nYou are talking to the user named "${userName}". Address them by this name when it feels natural. Do not call them Rand or any other made-up name.`;
 
   const userContent = context
     ? `CONTEXT:\n${context}\n\nQUESTION:\n${question}`
@@ -59,7 +64,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: LLM_MODEL,
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'system', content: systemContent },
           { role: 'user', content: userContent },
         ],
         temperature: 0.4,

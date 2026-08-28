@@ -9,7 +9,7 @@ const CORPUS: Chunk[] = [
     id: 'lore-bleepx',
     topic: 'lore',
     content:
-      'Bleepx is a personal AI built by Rand, a young scholar from the far West who trained at SwiftLink in Tokyo. He is witty, slightly arrogant, loyal, makes bleeping sounds, and can enter ghost mode. He was meant to be a research project but bonded with Rand.',
+      'Bleepx is a personal AI companion built by the human he is now bonded with. He is witty, slightly arrogant, loyal, makes bleeping sounds, and can enter ghost mode. He addresses the user by their real name if known, otherwise as human or friend.',
   },
   {
     id: 'sql-joins',
