@@ -7,6 +7,7 @@ import { useProgress } from '@/lib/useProgress';
 import { getSupabaseBrowserClient } from '@/lib/supabase';
 import { playBleep } from '@/lib/audio';
 import { lintInput, BleepxHint } from '@/lib/bleepxLinter';
+import * as voice from '@/lib/bleepxVoice';
 import {
   BleepxFace,
   BleepxHead,
@@ -72,35 +73,6 @@ const TOPIC_HINTS: Record<string, string> = {
   'ec2 vs lambda': 'EC2 gives full control and long-running compute; Lambda is serverless, event-driven, and billed per request.',
   'cost-optimized storage': 'For archives use S3 Glacier or Glacier Deep Archive. For logs, transition to Infrequent Access after a few days.',
 };
-
-function generateBleepxResponse(input: string, context: AssistantContext = 'general'): string {
-  const lower = input.toLowerCase();
-  if (lower.includes('s3') && lower.includes('glacier')) return 'S3 Glacier and Glacier Deep Archive are for rarely accessed long-term data. Restores take minutes to hours.';
-  if (lower.includes('s3')) return 'S3 stores objects in buckets. Choose storage classes based on access patterns: STANDARD for hot data, IA for infrequent, Glacier for archives.';
-  if (lower.includes('ec2') && (lower.includes('ebs') || lower.includes('disk'))) return 'EC2 instances use EBS for block storage or instance store for temporary storage. EBS is persistent and AZ-bound.';
-  if (lower.includes('ec2')) return 'EC2 provides virtual servers. Pick instance families by workload: compute (C), memory (R), general (M), or burstable (T).';
-  if (lower.includes('lambda')) return 'AWS Lambda runs code in response to events. It scales automatically and you only pay for invocation time.';
-  if (lower.includes('rds')) return 'RDS manages relational databases like MySQL, Postgres, and MariaDB. Use Multi-AZ for high availability and read replicas for scale.';
-  if (lower.includes('dynamodb') || lower.includes('dax')) return 'DynamoDB is a managed NoSQL key-value store. DAX is an in-memory cache for microsecond reads.';
-  if (lower.includes('vpc') || lower.includes('subnet')) return 'A VPC is your isolated network. Subnets are AZ-specific and route tables control traffic flow.';
-  if (lower.includes('iam') || lower.includes('role') || lower.includes('policy')) return 'IAM controls access. Prefer roles with temporary credentials, least privilege, and managed policies for common patterns.';
-  if (lower.includes('cloudfront')) return 'CloudFront is a CDN that caches content at edge locations to reduce latency and origin load.';
-  if (lower.includes('route 53') || lower.includes('route53')) return 'Route 53 is a DNS and domain registrar. Use it for routing policies, health checks, and failover.';
-  if (lower.includes('sns') || lower.includes('sqs')) return 'SNS is pub-sub messaging; SQS is a managed queue. Fan-out patterns use SNS to push to multiple SQS queues.';
-  if (lower.includes('join')) return 'A SQL JOIN merges tables. INNER returns matches, LEFT returns all left rows, RIGHT returns all right rows, FULL returns all rows from both.';
-  if (lower.includes('group by')) return 'GROUP BY aggregates rows. Use it with aggregate functions like COUNT, SUM, AVG, MAX, and MIN.';
-  if (lower.includes('window') || lower.includes('over')) return 'Window functions like ROW_NUMBER, RANK, and LEAD/LAG operate over a set of rows without collapsing them.';
-  if (lower.includes('cte') || lower.includes('with ')) return 'A CTE (WITH clause) defines a temporary result set for cleaner, reusable queries.';
-  if (lower.includes('python') || lower.includes('pandas')) return 'Pandas is the standard Python data manipulation library. Use DataFrames for tables, groupby for aggregation, and merge for joins.';
-  if (lower.includes('cost') || lower.includes('pricing')) return 'For cost savings, use Reserved Instances or Savings Plans for steady workloads, Spot for fault-tolerant batch, and right-size storage classes.';
-  if (lower.includes('secure') || lower.includes('security')) return 'Security pillars: least privilege IAM, encryption at rest and in transit, private subnets, CloudTrail logging, and regular security scans.';
-  if (lower.includes('resilien') || lower.includes('high availability')) return 'Build resilience with Multi-AZ, auto scaling, health checks, read replicas, and automated backups.';
-  if (lower.includes('machine learning') || lower.includes('ml')) return 'SageMaker builds, trains, and deploys ML models. Use S3 for data, ECR for containers, and Lambda for light inference endpoints.';
-  if (context === 'sql') return 'I can help with SELECT, JOINs, aggregates, window functions, and CTEs. What SQL topic are you working on?';
-  if (context === 'cloud') return 'Ask me about S3, EC2, Lambda, RDS, DynamoDB, VPC, IAM, CloudFront, or SAA scenarios.';
-  if (context === 'lab') return 'Lab work usually involves SQL, Python/pandas, and machine learning. Paste a code snippet or ask a concept.';
-  return "I'm Bleepx, your data and cloud assistant. Ask me about SQL, AWS, Python, or ML and I'll do my best to help.";
-}
 
 const NAG_MESSAGES = [
   'Still here. Still watching.',
@@ -243,20 +215,12 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const goal = findJourneyGoal();
   const completedCount = completed.size;
 
-  const greeting = useMemo(() => {
-    const goalText = goal ? `Your current track: ${goal}. ` : '';
-    return `${goalText}${hint.text}`;
-  }, [goal, hint]);
-
   const startChat = () => {
     const needsName = signedIn && !nickName;
-    const intro = signedIn
-      ? (nickName ? `Welcome back, ${nickName}!` : `How should I call you?`)
-      : `Welcome, human.`;
     const onboarded = (() => { try { return !!localStorage.getItem('bleepx_modes_onboarded'); } catch { return false; } })();
     const msgs: ChatMessage[] = [
-      { role: 'assistant', text: needsName ? intro : `${intro} ${greeting}` },
-      { role: 'assistant', text: 'I am here, watching, waiting, ready to chatter about SQL, cloud, Python — anything.' },
+      { role: 'assistant', text: needsName ? voice.nameAsk() : voice.greeting(displayName, goal, hint.text) },
+      { role: 'assistant', text: voice.intro() },
     ];
     const shouldOnboard = !onboarded && !needsName;
     if (shouldOnboard) {
@@ -267,12 +231,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     if (needsName) setAwaitingNickname(true);
     setShowModeChips(shouldOnboard);
     setTimeout(() => {
-      const prompt = needsName
-        ? 'Type your name and I will remember it.'
-        : nickName
-        ? `Go ahead, ${nickName}. I dare you.`
-        : 'Go ahead, type something. I dare you.';
-      setMessages((prev) => [...prev, { role: 'assistant', text: prompt }]);
+      setMessages((prev) => [...prev, { role: 'assistant', text: needsName ? voice.namePrompt() : voice.prompt(displayName) }]);
       playBleep();
     }, 900);
   };
@@ -288,40 +247,33 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     }
   };
 
-  const modeReplies: Record<string, { mode: Mode; text: string }> = {};
-  const addMode = (cmd: string, mode: Mode, text: string) => {
-    modeReplies[cmd] = { mode, text };
-    if (!cmd.includes(' ')) modeReplies[`${cmd} mode`] = { mode, text };
-    else modeReplies[cmd.split(' ')[0]] = { mode, text };
+  const modeReplies: Record<string, Mode> = {};
+  const addMode = (cmd: string, mode: Mode) => {
+    modeReplies[cmd] = mode;
+    if (!cmd.includes(' ')) modeReplies[`${cmd} mode`] = mode;
+    else modeReplies[cmd.split(' ')[0]] = mode;
   };
-  addMode('light', 'light', 'Back to the light. A little too bright for my taste, but okay.');
-  addMode('dark', 'dark', 'Dark mode engaged. The shadows suit me perfectly.');
-  addMode('stealth', 'stealth', 'Stealth mode on. I am still watching — just hidden in the dark. Special ability: silent hints and no teaser bubbles.');
-  addMode('mix', 'mix', 'Mix mode! Two Bleepx, one sphere. Chaos and beauty at the same time.');
-  addMode('neon', 'neon', 'Neon mode activated. I am glowing brighter than your future SQL queries.');
-  addMode('ghost', 'ghost', 'Ghost mode. Faint, friendly, and a little see-through.');
-  addMode('solar', 'solar', 'Solar mode. Powered by sunlight and good vibes.');
-  addMode('green', 'green', 'Green mode on. Eco-friendly code tips activated.');
-  addMode('red', 'red', 'RED MODE ENGAGED. I am taking no prisoners with these hints.');
+  addMode('light', 'light');
+  addMode('dark', 'dark');
+  addMode('stealth', 'stealth');
+  addMode('mix', 'mix');
+  addMode('neon', 'neon');
+  addMode('ghost', 'ghost');
+  addMode('solar', 'solar');
+  addMode('green', 'green');
+  addMode('red', 'red');
 
   const applyMode = (lower: string) => {
-    const config = modeReplies[lower];
-    if (!config) return false;
-    const m = MODES[config.mode];
-    setManualMode(config.mode);
+    const mode = modeReplies[lower];
+    if (!mode) return false;
+    const m = MODES[mode];
+    setManualMode(mode);
     setSiteDark(m.dark);
     setMood(m.mood);
     playBleep();
-    const tail = displayName ? (Math.random() > 0.5 ? ` — here we go, ${displayName}.` : ` What do you think, ${displayName}?`) : '';
-    setMessages((prev) => [...prev, { role: 'assistant', text: `${config.text}${tail}` }]);
+    setMessages((prev) => [...prev, { role: 'assistant', text: voice.modeSwitched(mode, displayName) }]);
     setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 900);
     return true;
-  };
-
-  const personalize = (text: string) => {
-    if (Math.random() > 0.4 || !displayName) return text;
-    const tags = [`By the way, ${displayName}, ${text[0]?.toLowerCase() ?? ''}${text.slice(1)}`, `${text} — does that help, ${displayName}?`, `${text} Keep it up, ${displayName}.`, `Yo ${displayName}, ${text[0]?.toLowerCase() ?? ''}${text.slice(1)}`];
-    return tags[Math.floor(Math.random() * tags.length)];
   };
 
   const send = (text: string) => {
@@ -336,23 +288,24 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         setNickName(name);
         try { localStorage.setItem('bleepx_nickname', name); } catch {}
         setAwaitingNickname(false);
-        setMessages((prev) => [...prev, { role: 'assistant', text: `Got it. Nice to meet you, ${name}. I'll remember that.` }]);
+        setMessages((prev) => [...prev, { role: 'assistant', text: voice.nameConfirm(name) }]);
         setMood('wave');
         setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 900);
         return;
       }
     }
     setMood('think');
-    setMessages((prev) => [...prev, { role: 'assistant', text: nickName ? `Bleepx is thinking out loud, ${nickName}...` : 'Bleepx is thinking out loud...' }]);
+    setMessages((prev) => [...prev, { role: 'assistant', text: voice.thinking(displayName) }]);
     setTimeout(() => {
-      const reply = TOPIC_HINTS[lower] ?? generateBleepxResponse(text, context ?? 'general');
       const isKnown = TOPIC_HINTS[lower] !== undefined;
+      const reply = TOPIC_HINTS[lower] ?? voice.general(text, context ?? 'general');
       let nextMood: Mood = 'chat';
       if (isKnown) nextMood = 'success';
       else if (lower.includes('github')) nextMood = 'github';
       else if (lower.includes('git')) nextMood = 'git';
       else if (lower.includes('hello') || lower.includes('hi ')) nextMood = 'face';
-      setMessages((prev) => [...prev, { role: 'assistant', text: personalize(reply) }]);
+      const final = isKnown ? reply : voice.signOff(reply, displayName);
+      setMessages((prev) => [...prev, { role: 'assistant', text: final }]);
       setMood(nextMood);
       playBleep();
       setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 1400);
@@ -531,56 +484,6 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable;
   };
 
-  const reactionFor = (hint: BleepxHint, value?: string) => {
-    const line = value?.trim().split('\n').pop()?.trim() ?? '';
-    const isSql = /\b(select|from|where|join|insert|update|delete)\b/i.test(line);
-    const isPython = /\b(def |import |print\(|for |if )\b/i.test(line);
-    const isLambda = /\bexports\.handler\b/.test(line) || /\b(event, context)\b/.test(line);
-    const errorPool = isSql
-      ? ['Uh oh, that SELECT almost looked good — almost.', 'I spotted a tripwire in that query.', 'That SQL is trying to escape me.']
-      : isPython
-      ? ['That Python line has a little hiccup.', 'I see a syntax snake.', 'That function is not ready for takeoff.']
-      : isLambda
-      ? ['That Lambda handler has a wrinkle.', 'Your cloud function needs a tiny fix.']
-      : ['Oops, I see something off here.', 'That line has a bump.', 'Not quite, but we can fix it.'];
-    const warningPool = isSql
-      ? ['Smirking... I see what you\'re doing, but let\'s double-check it.', 'Oh, let\'s see what you\'re doing here.', 'Sneaky SQL, but it could be sharper.']
-      : isPython
-      ? ['I\'m watching that logic...', 'Your Python is getting spicy.', 'That code has potential, but watch out.']
-      : isLambda
-      ? ['Cloud code is tricky — let me peek.', 'Lambda logic incoming...']
-      : ['I\'m keeping an eye on that.', 'Smirking... I see what you\'re doing.', 'That\'s a brave move.'];
-    const tipPool = isSql
-      ? ['Oh, I love this SQL energy! Let me show you a trick.', 'Nice query flow — here\'s a tip.', 'You\'re cooking with SQL.']
-      : isPython
-      ? ['Python vibes. Let me nudge you toward cleaner code.', 'I see where this is going — here\'s a hint.']
-      : isLambda
-      ? ['Lambda life. Let me drop a tiny hint.', 'AWS energy detected.']
-      : ['Oh, let me jump in with a tip.', 'I\'ve got a neat idea for that.'];
-    const pool = hint.severity === 'error' ? errorPool : hint.severity === 'warning' ? warningPool : tipPool;
-    return pool[Math.floor(Math.random() * pool.length)];
-  };
-
-  const nagFor = (hint: BleepxHint) => {
-    const red = ['FIX IT NOW.', 'That is NOT acceptable.', 'I am watching you type this mistake.'];
-    const green = ['Clean and green.', 'This could be more efficient.', 'Nice, but let us keep it eco-friendly.'];
-    const solar = ['Radiant fix incoming!', 'Powered by sunshine.', 'Bright idea right here.'];
-    const neon = ['Flashy fix!', 'Glow up your code.', 'This one is electric.'];
-    const ghost = ['*whispers* watch out for this.', 'A faint suggestion...', 'I see through the code.'];
-    if (activeMode === 'red') return red[Math.floor(Math.random() * red.length)];
-    if (activeMode === 'green') return green[Math.floor(Math.random() * green.length)];
-    if (activeMode === 'solar') return solar[Math.floor(Math.random() * solar.length)];
-    if (activeMode === 'neon') return neon[Math.floor(Math.random() * neon.length)];
-    if (activeMode === 'ghost') return ghost[Math.floor(Math.random() * ghost.length)];
-    if (hint.severity === 'error') {
-      return ['Fix this now before it snowballs!', 'I cannot unsee that one.', 'Hello? You are still typing the wrong thing.'].sort(() => Math.random() - 0.5)[0];
-    }
-    if (hint.severity === 'warning') {
-      return ['Better safe than sorry, right?', 'I would double-check that.', 'Are you sure about that part?'].sort(() => Math.random() - 0.5)[0];
-    }
-    return ['Keep this in mind!', 'Pro tip — you are welcome.', 'I am full of these today.'].sort(() => Math.random() - 0.5)[0];
-  };
-
   const applyHint = useCallback((hint: BleepxHint | null, value?: string) => {
     if (!hint) {
       setDockedHint(null);
@@ -598,20 +501,15 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       setManualMode(autoMode);
       setSiteDark(m.dark);
       playBleep();
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', text: `I am feeling ${autoMode} for this one. What do you think, ${displayName}?` },
-      ]);
+      setMessages((prev) => [...prev, { role: 'assistant', text: voice.autoSwitched(autoMode as string, displayName) }]);
     }
     if (lastHintText.current !== text) {
       playBleep();
-      const reaction = reactionFor(hint, value);
-      const nag = nagFor(hint);
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', text: personalize(reaction) },
+        { role: 'assistant', text: voice.reaction(hint, value, activeMode, displayName) },
         { role: 'assistant', text },
-        { role: 'assistant', text: personalize(nag) },
+        { role: 'assistant', text: voice.nag(hint, activeMode, displayName) },
       ]);
       lastHintText.current = text;
     }
