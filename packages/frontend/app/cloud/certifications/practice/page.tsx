@@ -20,11 +20,22 @@ const DOMAIN_LINKS: Record<SAAExamDomain, string> = {
 };
 
 const STORAGE_KEY = 'bleepx-saa-exam-progress';
+const TIME_LIMIT_MINUTES = 30;
+const TIME_LIMIT_MS = TIME_LIMIT_MINUTES * 60 * 1000;
+
+function formatTime(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
 
 export default function SaaPracticeExamPage() {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(false);
   const [current, setCurrent] = useState(0);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [now, setNow] = useState<Date | null>(null);
   const { points } = useProgress();
 
   useEffect(() => {
@@ -35,6 +46,8 @@ export default function SaaPracticeExamPage() {
         if (saved.answers) setAnswers(saved.answers);
       }
     } catch { /* ignore */ }
+    setStartTime(new Date());
+    setNow(new Date());
   }, []);
 
   useEffect(() => {
@@ -42,6 +55,20 @@ export default function SaaPracticeExamPage() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers }));
     } catch { /* ignore */ }
   }, [answers]);
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    if (startTime && now && !submitted) {
+      const elapsed = now.getTime() - startTime.getTime();
+      if (elapsed >= TIME_LIMIT_MS) {
+        setSubmitted(true);
+      }
+    }
+  }, [now, startTime, submitted]);
 
   const question = SAA_QUESTIONS[current];
   const score = useMemo(() => scoreByDomain(answers), [answers]);
@@ -54,7 +81,10 @@ export default function SaaPracticeExamPage() {
   };
 
   const finish = () => setSubmitted(true);
-  const reset = () => { setAnswers({}); setSubmitted(false); setCurrent(0); };
+  const reset = () => { setAnswers({}); setSubmitted(false); setCurrent(0); const t = new Date(); setStartTime(t); setNow(t); };
+
+  const elapsed = startTime && now ? now.getTime() - startTime.getTime() : 0;
+  const remaining = TIME_LIMIT_MS - elapsed;
 
   return (
     <main className="max-w-4xl mx-auto px-2 md:px-4 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-12">
@@ -77,8 +107,9 @@ export default function SaaPracticeExamPage() {
 
       {!submitted ? (
         <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <span className="text-xs font-bold uppercase text-bleepx-text-secondary">Question {current + 1} of {total}</span>
+            <span className={`text-xs font-bold uppercase ${remaining < 300000 ? 'text-rose-600' : 'text-bleepx-text-secondary'}`}>Time: {formatTime(remaining)}</span>
             <span className="text-xs font-bold uppercase text-bleepx-text-secondary">{DOMAIN_LABELS[question.domain]}</span>
           </div>
           <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -136,6 +167,7 @@ export default function SaaPracticeExamPage() {
         <div className="space-y-6">
           <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm text-center">
             <h2 className="text-2xl font-bold text-bleepx-text mb-1">{correct}/{total} correct</h2>
+            <p className="text-bleepx-text-secondary text-sm">Time used: {formatTime(elapsed)} of {TIME_LIMIT_MINUTES} minutes</p>
             <p className="text-bleepx-text-secondary text-sm">
               {correct >= Math.ceil(total * 0.72) ? 'Passing score! Keep going to make it solid.' : 'Below a typical passing score. Drill the weak domains below.'}
             </p>
