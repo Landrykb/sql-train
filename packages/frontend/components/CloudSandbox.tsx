@@ -268,6 +268,32 @@ function evaluateStep(step: CloudScenarioStep, state: CloudSandboxState): boolea
       return state.events.some((e) => e.service === 'lambda' && e.action === 'Invoke' && e.resource === cfg.functionName);
     case 'export-terraform':
       return state.events.some((e) => e.service === 'terraform' && e.action === 'Export' && e.status === 'success');
+    case 'create-rds':
+      return !!state.rds.instances[cfg.dbInstanceIdentifier];
+    case 'create-elb':
+      return !!state.elb.loadBalancers[cfg.loadBalancerName];
+    case 'create-asg':
+      return !!state.asg.autoScalingGroups[cfg.asgName];
+    case 'create-kms':
+      return !!state.kms.keys[cfg.keyId];
+    case 'create-cloudwatch-alarm':
+      return !!state.cloudwatch.alarms[cfg.alarmName];
+    case 'create-route53-zone':
+      return Object.values(state.route53.hostedZones).some((z) => z.name === cfg.zoneName);
+    case 'create-route53-record':
+      return Object.values(state.route53.hostedZones).some((z) =>
+        z.records.some((r) => r.name === cfg.recordName && r.type === cfg.recordType)
+      );
+    case 'create-cloudfront':
+      return Object.values(state.cloudfront.distributions).some((d) =>
+        d.origins.some((o) => o.domainName === cfg.originDomainName)
+      );
+    case 'create-secret':
+      return !!state.secretsmanager.secrets[cfg.secretName];
+    case 'create-elasticache':
+      return !!state.elasticache.clusters[cfg.cacheClusterId];
+    case 'manual':
+      return false;
     default:
       return false;
   }

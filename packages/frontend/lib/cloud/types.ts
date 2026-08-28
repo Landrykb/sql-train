@@ -18,7 +18,7 @@ export interface CloudScenarioStep {
   id: string;
   title: string;
   instruction: string;
-  service: 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'terraform' | 'security' | 'console';
+  service: 's3' | 'iam' | 'ec2' | 'vpc' | 'lambda' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'secretsmanager' | 'elasticache' | 'terraform' | 'security' | 'console';
   action:
     | 'create-bucket'
     | 'delete-bucket'
@@ -45,7 +45,17 @@ export interface CloudScenarioStep {
     | 'invoke-lambda'
     | 'export-terraform'
     | 'observe'
-    | 'manual';
+    | 'manual'
+    | 'create-rds'
+    | 'create-elb'
+    | 'create-asg'
+    | 'create-kms'
+    | 'create-cloudwatch-alarm'
+    | 'create-route53-zone'
+    | 'create-route53-record'
+    | 'create-cloudfront'
+    | 'create-secret'
+    | 'create-elasticache';
   /** Additional fields needed to configure the step or validate it. */
   config?: Record<string, any>;
   /** Extra educational note shown after step succeeds. */
