@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useProgress } from '@/lib/useProgress';
+import { getGitHubUser, AUTH_CHANGE_EVENT } from '@/lib/authClient';
 import { playBleep } from '@/lib/audio';
 import { lintInput, BleepxHint } from '@/lib/bleepxLinter';
 import {
@@ -148,6 +149,22 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const [manualMode, setManualMode] = useState<'auto' | Mode>('auto');
   const [teaser, setTeaser] = useState<{ text: string; command: string } | null>(null);
   const [teaserHover, setTeaserHover] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [nickName, setNickName] = useState<string | null>(() => { try { return localStorage.getItem('bleepx_nickname'); } catch { return null; } });
+  const [awaitingNickname, setAwaitingNickname] = useState(false);
+  const displayName = nickName ?? userName ?? (signedIn ? 'friend' : 'human');
+
+  useEffect(() => {
+    const check = () => {
+      const u = getGitHubUser();
+      setSignedIn(!!u);
+      setUserName(u?.name ?? null);
+    };
+    check();
+    window.addEventListener(AUTH_CHANGE_EVENT, check);
+    return () => window.removeEventListener(AUTH_CHANGE_EVENT, check);
+  }, []);
 
   const activeMode = useMemo(() => {
     if (manualMode !== 'auto') return manualMode;
@@ -222,12 +239,16 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   }, [goal, hint]);
 
   const startChat = () => {
+    const intro = signedIn
+      ? (nickName ? `Welcome back, ${nickName}!` : `How should I call you?`)
+      : `Welcome, human.`;
     setMessages([
-      { role: 'assistant', text: greeting },
+      { role: 'assistant', text: `${intro} ${greeting}` },
       { role: 'assistant', text: 'I am here, watching, waiting, ready to chatter about SQL, cloud, Python — anything.' },
     ]);
+    if (signedIn && !nickName) setAwaitingNickname(true);
     setTimeout(() => {
-      setMessages((prev) => [...prev, { role: 'assistant', text: 'Go ahead, type something. I dare you.' }]);
+      setMessages((prev) => [...prev, { role: 'assistant', text: nickName ? `Go ahead, ${nickName}. I dare you.` : 'Go ahead, type something. I dare you.' }]);
       playBleep();
     }, 900);
   };
@@ -267,9 +288,16 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     setSiteDark(m.dark);
     setMood(m.mood);
     playBleep();
-    setMessages((prev) => [...prev, { role: 'assistant', text: config.text }]);
+    const tail = displayName ? (Math.random() > 0.5 ? ` — here we go, ${displayName}.` : ` What do you think, ${displayName}?`) : '';
+    setMessages((prev) => [...prev, { role: 'assistant', text: `${config.text}${tail}` }]);
     setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 900);
     return true;
+  };
+
+  const personalize = (text: string) => {
+    if (Math.random() > 0.4 || !displayName) return text;
+    const tags = [`By the way, ${displayName}, ${text[0]?.toLowerCase() ?? ''}${text.slice(1)}`, `${text} — does that help, ${displayName}?`, `${text} Keep it up, ${displayName}.`, `Yo ${displayName}, ${text[0]?.toLowerCase() ?? ''}${text.slice(1)}`];
+    return tags[Math.floor(Math.random() * tags.length)];
   };
 
   const send = (text: string) => {
@@ -278,8 +306,20 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     setMessages((prev) => [...prev, { role: 'user', text: text.trim() }]);
     const lower = text.toLowerCase().trim();
     if (applyMode(lower)) return;
+    if (awaitingNickname) {
+      const name = text.trim().split(/\s+/)[0];
+      if (name) {
+        setNickName(name);
+        try { localStorage.setItem('bleepx_nickname', name); } catch {}
+        setAwaitingNickname(false);
+        setMessages((prev) => [...prev, { role: 'assistant', text: `Got it. Nice to meet you, ${name}. I'll remember that.` }]);
+        setMood('wave');
+        setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 900);
+        return;
+      }
+    }
     setMood('think');
-    setMessages((prev) => [...prev, { role: 'assistant', text: 'Bleepx is thinking out loud...' }]);
+    setMessages((prev) => [...prev, { role: 'assistant', text: nickName ? `Bleepx is thinking out loud, ${nickName}...` : 'Bleepx is thinking out loud...' }]);
     setTimeout(() => {
       const reply = TOPIC_HINTS[lower] ?? generateBleepxResponse(text, context ?? 'general');
       const isKnown = TOPIC_HINTS[lower] !== undefined;
@@ -288,7 +328,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       else if (lower.includes('github')) nextMood = 'github';
       else if (lower.includes('git')) nextMood = 'git';
       else if (lower.includes('hello') || lower.includes('hi ')) nextMood = 'face';
-      setMessages((prev) => [...prev, { role: 'assistant', text: reply }]);
+      setMessages((prev) => [...prev, { role: 'assistant', text: personalize(reply) }]);
       setMood(nextMood);
       playBleep();
       setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 1400);
@@ -530,9 +570,9 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       const nag = nagFor(hint);
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', text: reaction },
+        { role: 'assistant', text: personalize(reaction) },
         { role: 'assistant', text },
-        { role: 'assistant', text: nag },
+        { role: 'assistant', text: personalize(nag) },
       ]);
       lastHintText.current = text;
     }
@@ -547,7 +587,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     else if (activeMode === 'stealth') nextMood = 'stealth';
     setMood(nextMood);
     setOpen(true);
-  }, [pathname, activeMode]);
+  }, [pathname, activeMode, displayName]);
 
   const lintFocused = useCallback((target: EventTarget | null) => {
     if (isDragging.current) return;
