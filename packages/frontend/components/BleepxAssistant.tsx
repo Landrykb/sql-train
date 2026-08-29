@@ -129,6 +129,10 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [dock, setDock] = useState<{ right: number; bottom: number }>({ right: 16, bottom: 16 });
+  const chatMaxHeight = useMemo(() => {
+    if (typeof window === 'undefined') return 288;
+    return Math.max(200, window.innerHeight - dock.bottom - 96);
+  }, [dock.bottom]);
   const [dockedHint, setDockedHint] = useState<BleepxHint | null>(null);
   const [dragging, setDragging] = useState(false);
   const lintTimer = useRef<NodeJS.Timeout | null>(null);
@@ -766,7 +770,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         </div>
       )}
       {open && (
-        <div className="relative w-72 sm:w-96 rounded-2xl bg-white dark:bg-gray-900 border-2 border-sky-300 dark:border-sky-700 shadow-2xl text-sm transform transition-all duration-300 origin-bottom-right overflow-hidden">
+        <div className="relative w-72 sm:w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white dark:bg-gray-900 border-2 border-sky-300 dark:border-sky-700 shadow-2xl text-sm transform transition-all duration-300 origin-bottom-right overflow-hidden">
           {/* speech bubble tail */}
           <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-sky-300 dark:border-t-sky-700" />
           <div className="p-4 border-b border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/10">
@@ -784,7 +788,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               <button onClick={() => setOpen(false)} className="text-xs text-bleepx-text-secondary hover:text-bleepx-text">Close</button>
             </div>
           </div>
-          <div className="h-72 flex flex-col relative">
+          <div className="h-72 flex flex-col relative" style={{ maxHeight: chatMaxHeight }}>
             <img src="/bleepx-logo.png" alt="" className="absolute right-4 top-20 w-20 h-20 opacity-5 pointer-events-none" />
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.map((m, i) => (
@@ -860,7 +864,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         }}
         onMouseEnter={() => setMood('wave')}
         onMouseLeave={() => setMood(dockedHint ? (dockedHint.severity === 'error' ? 'error' : dockedHint.severity === 'warning' ? 'think' : 'signal') : (pathname?.startsWith('/lab/') ? 'code' : 'idle'))}
-        className={`group relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 border border-white/20 dark:border-gray-700/30 ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        className={`group relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 focus:scale-110 focus:-translate-y-1 focus:bg-white/95 dark:focus:bg-gray-900/95 active:scale-110 active:-translate-y-1 hover:bg-white/95 dark:hover:bg-gray-900/95 active:bg-white/95 dark:active:bg-gray-900/95 border border-white/20 dark:border-gray-700/30 focus:border-sky-300 dark:focus:border-sky-500 active:border-sky-300 hover:border-sky-300 ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         aria-label="Open Bleepx assistant"
       >
         <div className="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
