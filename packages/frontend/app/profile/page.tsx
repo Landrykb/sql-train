@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { getActiveVerse, VERSE_THEMES, type Verse } from '@/lib/verse';
 import { clearGitHubUser, startGitHubLogin, logoutUser, GitHubUser, getGitHubUser } from '@/lib/authClient';
 import { useSupabaseUser } from '@/lib/useSupabaseUser';
 import { useProgress } from '@/lib/useProgress';
@@ -18,24 +17,28 @@ import { BleepxHead, BleepxTrophy, BleepxLock, BleepxSpark, BleepxGitHub } from 
 import {
   OverviewIcon, ShopIcon, AchievementsIcon, ExportsIcon, SettingsIcon,
   VerseIcon, LabIcon, CloudIcon,
-  SunIcon, MoonIcon, LabFlaskIcon, PauseIcon, AlertIcon, TagIcon, CheckIcon,
-  ZapIcon, DumbbellIcon,
+  SunIcon, MoonIcon, LabFlaskIcon, PauseIcon, AlertIcon, TagIcon,
 } from '@/components/NavIcons';
-import { FileText, Pencil } from 'lucide-react';
+import {
+  ProfileIcon, DomainIcon, LabDomainIcon, CloudProviderIcon,
+  AchievementIcon, StarRating, CheckBadge, BadgeIcon, CoinIcon,
+  EditIcon, ErrorIcon,
+} from '@/components/AppIcons';
+import { FileText } from 'lucide-react';
 import { InterpretationEditor } from '@/components/InterpretationEditor';
 import { pushDomainPortfolioToGitHub, pushLabDomainPortfolioToGitHub, pushCloudProviderPortfolioToGitHub } from '@/lib/githubPush';
 
 const DOMAINS = ['business', 'crime', 'farming', 'finance', 'healthcare', 'social', 'space', 'sports'] as const;
 
-const domainMeta: Record<string, { icon: string; label: string }> = {
-  business: { icon: '🏬', label: 'Business Retail' },
-  crime: { icon: '🔍', label: 'Crime Chicago' },
-  farming: { icon: '🌾', label: 'Farming NDVI' },
-  finance: { icon: '📈', label: 'Finance Stocks' },
-  healthcare: { icon: '🏥', label: 'Healthcare' },
-  social: { icon: '💬', label: 'Social Twitter' },
-  space: { icon: '🚀', label: 'Space NEO' },
-  sports: { icon: '🏀', label: 'Sports NBA' },
+const domainMeta: Record<string, { label: string }> = {
+  business: { label: 'Business Retail' },
+  crime: { label: 'Crime Chicago' },
+  farming: { label: 'Farming NDVI' },
+  finance: { label: 'Finance Stocks' },
+  healthcare: { label: 'Healthcare' },
+  social: { label: 'Social Twitter' },
+  space: { label: 'Space NEO' },
+  sports: { label: 'Sports NBA' },
 };
 
 interface UserProfile {
@@ -56,14 +59,17 @@ const DEFAULT_PROFILE: UserProfile = {
   testModeEnabled: false,
 };
 
-export default function ProfilePage() {
-  const [verse, setVerse] = useState<Verse>('query');
-  const theme = VERSE_THEMES[verse];
-  const { completed, points, resetProgress } = useProgress();
+const PROFILE_THEME = {
+  label: 'Bleepx',
+  gradient: 'from-bleepx-blue via-violet-600 to-bleepx-pink',
+  accentBg: 'bg-bleepx-blue/10 dark:bg-bleepx-blue/20',
+  accentText: 'text-bleepx-blue dark:text-blue-400',
+  accentHover: 'hover:bg-bleepx-blue/20 dark:hover:bg-bleepx-blue/30',
+};
 
-  useEffect(() => {
-    setVerse(getActiveVerse());
-  }, []);
+export default function ProfilePage() {
+  const theme = PROFILE_THEME;
+  const { completed, points, resetProgress } = useProgress();
   const { dark, toggle: toggleDark } = useTheme();
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [tab, setTab] = useState<'overview' | 'shop' | 'achievements' | 'settings' | 'exports'>('overview');
@@ -342,7 +348,7 @@ export default function ProfilePage() {
           {/* Verse pill */}
           <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-xs font-semibold border border-white/30">
-              <VerseIcon verse={verse} size={14} /> {theme.label}
+              <ProfileIcon size={14} /> {theme.label}
             </span>
           </div>
         </div>
@@ -386,9 +392,7 @@ export default function ProfilePage() {
               </h1>
               {isSignedIn && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-sm flex-shrink-0">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
+                  <CheckBadge size={10} className="text-white" />
                   Verified
                 </span>
               )}
@@ -437,11 +441,11 @@ export default function ProfilePage() {
                   )}
                   {isSignedIn && badges.length > 0 && (
                     <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700">
-                      {badges.map(b => b && <span key={b.id} className="text-base" title={b.name}>{b.emoji}</span>)}
+                      {badges.map(b => b && <span key={b.id} className="text-bleepx-text" title={b.name}><BadgeIcon id={b.id} size={16} /></span>)}
                     </div>
                   )}
                   <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700">
-                    <span className="text-sm">💰</span> {points} pts
+                    <CoinIcon size={14} /> {points} pts
                   </span>
                 </div>
                 {/* Active perks row */}
@@ -526,7 +530,7 @@ export default function ProfilePage() {
               {stats.domainStats.map((d) => (
                 <Link key={d.domain} href={`/cases/${d.domain}`} className="block group">
                   <div className="flex items-center gap-3">
-                    <span className="text-xl flex-shrink-0">{domainMeta[d.domain]?.icon}</span>
+                    <span className="flex-shrink-0 text-bleepx-text"><DomainIcon domain={d.domain} size={20} /></span>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline">
                         <p className="text-sm font-medium truncate group-hover:text-bleepx-blue transition-colors text-bleepx-text">
@@ -562,7 +566,7 @@ export default function ProfilePage() {
                 return (
                   <Link key={domain} href={`/lab/${domain}`} className="block group">
                     <div className="flex items-center gap-3">
-                      <span className="text-xl flex-shrink-0">{meta?.icon || '📊'}</span>
+                      <span className="flex-shrink-0 text-bleepx-text"><LabDomainIcon domain={domain} size={20} /></span>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-baseline">
                           <p className="text-sm font-medium truncate group-hover:text-teal-500 transition-colors text-bleepx-text">
@@ -597,7 +601,7 @@ export default function ProfilePage() {
               {stats.cloudStats.map((c) => (
                 <Link key={c.provider} href={`/cloud/${c.provider}`} className="block group">
                   <div className="flex items-center gap-3">
-                    <span className="text-xl flex-shrink-0">{c.meta.icon}</span>
+                    <span className="flex-shrink-0 text-bleepx-text"><CloudProviderIcon provider={c.provider} size={20} /></span>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline">
                         <p className="text-sm font-medium truncate group-hover:text-sky-500 transition-colors text-bleepx-text">
@@ -647,27 +651,27 @@ export default function ProfilePage() {
             <h2 className="text-lg font-bold mb-4 text-bleepx-text flex items-center gap-2"><BleepxTrophy size={28} /> Achievements</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
-                { id: 'first_query', icon: '🎯', title: 'First Query', desc: 'Solve your first challenge', unlocked: stats.totalSolved >= 1 },
-                { id: 'five_down', icon: '✋', title: 'High Five', desc: 'Solve 5 challenges', unlocked: stats.totalSolved >= 5 },
-                { id: 'ten_solved', icon: '🔟', title: 'Double Digits', desc: 'Solve 10 challenges', unlocked: stats.totalSolved >= 10 },
-                { id: 'domain_master', icon: '👑', title: 'Domain Master', desc: 'Complete an entire domain', unlocked: stats.completedDomains >= 1 },
-                { id: 'multi_domain', icon: '🌐', title: 'Multi-Domain', desc: 'Solve challenges in 3+ domains', unlocked: stats.domainStats.filter(d => d.solved > 0).length >= 3 },
-                { id: 'speed_demon', icon: '⚡', title: 'Speed Demon', desc: 'Average solve time under 2 min', unlocked: solveTimeStats.avgTime > 0 && solveTimeStats.avgTime < 120 },
-                { id: 'persistent', icon: '💪', title: 'Persistent', desc: 'Make 50+ total attempts', unlocked: solveTimeStats.totalAttempts >= 50 },
-                { id: 'all_domains', icon: '🏅', title: 'SQL Grandmaster', desc: 'Complete ALL domains', unlocked: stats.completedDomains === DOMAINS.length },
+                { id: 'first_query', title: 'First Query', desc: 'Solve your first challenge', unlocked: stats.totalSolved >= 1 },
+                { id: 'five_down', title: 'High Five', desc: 'Solve 5 challenges', unlocked: stats.totalSolved >= 5 },
+                { id: 'ten_solved', title: 'Double Digits', desc: 'Solve 10 challenges', unlocked: stats.totalSolved >= 10 },
+                { id: 'domain_master', title: 'Domain Master', desc: 'Complete an entire domain', unlocked: stats.completedDomains >= 1 },
+                { id: 'multi_domain', title: 'Multi-Domain', desc: 'Solve challenges in 3+ domains', unlocked: stats.domainStats.filter(d => d.solved > 0).length >= 3 },
+                { id: 'speed_demon', title: 'Speed Demon', desc: 'Average solve time under 2 min', unlocked: solveTimeStats.avgTime > 0 && solveTimeStats.avgTime < 120 },
+                { id: 'persistent', title: 'Persistent', desc: 'Make 50+ total attempts', unlocked: solveTimeStats.totalAttempts >= 50 },
+                { id: 'all_domains', title: 'SQL Grandmaster', desc: 'Complete ALL domains', unlocked: stats.completedDomains === DOMAINS.length },
               // Lab achievements
-              { id: 'lab_pioneer', icon: '🔬', title: 'Lab Pioneer', desc: 'Complete your first Lab step', unlocked: stats.labSolved >= 1 },
-              { id: 'data_scientist', icon: '🧪', title: 'Data Scientist', desc: 'Complete 10 Lab steps', unlocked: stats.labSolved >= 10 },
-              { id: 'lab_legend', icon: '🧬', title: 'Lab Legend', desc: 'Complete 20 Lab steps', unlocked: stats.labSolved >= 20 },
-              { id: 'full_stack_ds', icon: '🎓', title: 'Full Stack Data Scientist', desc: 'Complete ALL Lab projects', unlocked: stats.labSolved === stats.labTotal && stats.labTotal > 0 },
+              { id: 'lab_pioneer', title: 'Lab Pioneer', desc: 'Complete your first Lab step', unlocked: stats.labSolved >= 1 },
+              { id: 'data_scientist', title: 'Data Scientist', desc: 'Complete 10 Lab steps', unlocked: stats.labSolved >= 10 },
+              { id: 'lab_legend', title: 'Lab Legend', desc: 'Complete 20 Lab steps', unlocked: stats.labSolved >= 20 },
+              { id: 'full_stack_ds', title: 'Full Stack Data Scientist', desc: 'Complete ALL Lab projects', unlocked: stats.labSolved === stats.labTotal && stats.labTotal > 0 },
               // Cloud achievements
-              { id: 'cloud_initiate', icon: '☁️', title: 'Cloud Initiate', desc: 'Complete your first Cloud mission', unlocked: stats.cloudSolved >= 1 },
-              { id: 'cloud_architect', icon: '🏗️', title: 'Cloud Architect', desc: 'Complete 10 Cloud missions', unlocked: stats.cloudSolved >= 10 },
-              { id: 'multi_cloud', icon: '🌩️', title: 'Multi-Cloud', desc: 'Progress in 3+ Cloud tracks', unlocked: stats.cloudStats.filter(c => c.solved > 0).length >= 3 },
-              { id: 'track_master', icon: '🛰️', title: 'Track Master', desc: 'Complete an entire Cloud track', unlocked: stats.completedTracks >= 1 },
-              { id: 'cloud_overlord', icon: '🌌', title: 'Cloud Overlord', desc: 'Complete ALL Cloud missions', unlocked: stats.cloudSolved === stats.cloudTotal && stats.cloudTotal > 0 },
+              { id: 'cloud_initiate', title: 'Cloud Initiate', desc: 'Complete your first Cloud mission', unlocked: stats.cloudSolved >= 1 },
+              { id: 'cloud_architect', title: 'Cloud Architect', desc: 'Complete 10 Cloud missions', unlocked: stats.cloudSolved >= 10 },
+              { id: 'multi_cloud', title: 'Multi-Cloud', desc: 'Progress in 3+ Cloud tracks', unlocked: stats.cloudStats.filter(c => c.solved > 0).length >= 3 },
+              { id: 'track_master', title: 'Track Master', desc: 'Complete an entire Cloud track', unlocked: stats.completedTracks >= 1 },
+              { id: 'cloud_overlord', title: 'Cloud Overlord', desc: 'Complete ALL Cloud missions', unlocked: stats.cloudSolved === stats.cloudTotal && stats.cloudTotal > 0 },
               // Cross-verse achievement
-              { id: 'tri_verse', icon: '🔺', title: 'Tri-Verse Operative', desc: 'Make progress in Query, Lab, and Cloud', unlocked: stats.totalSolved >= 1 && stats.labSolved >= 1 && stats.cloudSolved >= 1 },
+              { id: 'tri_verse', title: 'Tri-Verse Operative', desc: 'Make progress in Query, Lab, and Cloud', unlocked: stats.totalSolved >= 1 && stats.labSolved >= 1 && stats.cloudSolved >= 1 },
               ].map((a) => (
                 <div
                   key={a.id}
@@ -677,10 +681,10 @@ export default function ProfilePage() {
                       : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 opacity-50'
                   }`}
                 >
-                  <span className="text-2xl">{a.icon}</span>
+                  <AchievementIcon id={a.id} size={22} className={a.unlocked ? 'text-green-700 dark:text-green-300' : 'text-gray-400 dark:text-gray-500'} />
                   <div>
                     <p className={`text-sm font-bold ${a.unlocked ? 'text-green-800 dark:text-green-300' : 'text-gray-500 dark:text-gray-400'}`}>
-                      {a.title} {a.unlocked && '✓'}
+                      {a.title} {a.unlocked && <CheckBadge size={14} className="text-green-700 dark:text-green-300" />}
                     </p>
                     <p className="text-xs text-bleepx-text-secondary">{a.desc}</p>
                   </div>
@@ -735,7 +739,7 @@ export default function ProfilePage() {
                             {tier.perks.multipleFormats && ' • Export'}
                           </div>
                           {owned ? (
-                            <div className="mt-2 text-xs font-medium text-purple-600">✓ Owned</div>
+                            <div className="mt-2 text-xs font-medium text-purple-600 inline-flex items-center gap-1"><CheckBadge size={12} className="text-purple-600" /> Owned</div>
                           ) : (
                             <button
                               onClick={() => handlePurchaseReportTier(tier.id)}
@@ -769,7 +773,7 @@ export default function ProfilePage() {
                       return (
                         <div key={domain} className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-lg">{domainMeta[domain]?.icon}</span>
+                            <span className="text-bleepx-text"><DomainIcon domain={domain} size={18} /></span>
                             <span className="text-sm font-medium text-bleepx-text">{domainMeta[domain]?.label || domain}</span>
                             <span className="text-xs text-bleepx-text-secondary">({solved}/{all.length})</span>
                           </div>
@@ -793,16 +797,16 @@ export default function ProfilePage() {
                                 }}
                                 className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
                               >
-                                <Pencil size={14} /> Write
+                                <EditIcon size={14} /> Write
                               </button>
                             )}
                           </div>
                           {exportResult && exporting === null && (
                             <div className="col-span-2 mt-2 text-xs">
                               {exportResult.success ? (
-                                <span className="text-emerald-600">✅ Exported! <a href={exportResult.repoUrl} target="_blank" rel="noopener noreferrer" className="underline">{exportResult.repoUrl}</a></span>
+                                <span className="text-emerald-600 flex items-center gap-1"><CheckBadge size={14} className="text-emerald-600" /> Exported! <a href={exportResult.repoUrl} target="_blank" rel="noopener noreferrer" className="underline">{exportResult.repoUrl}</a></span>
                               ) : (
-                                <span className="text-red-600">❌ {exportResult.error}</span>
+                                <span className="text-red-600 flex items-center gap-1"><ErrorIcon size={14} className="text-red-600" /> {exportResult.error}</span>
                               )}
                             </div>
                           )}
@@ -837,7 +841,7 @@ export default function ProfilePage() {
                       return (
                         <div key={domain} className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-lg">{meta?.icon || '📊'}</span>
+                            <span className="text-bleepx-text"><LabDomainIcon domain={domain} size={18} /></span>
                             <span className="text-sm font-medium text-bleepx-text">{meta?.name || domain}</span>
                             <span className="text-xs text-bleepx-text-secondary">({solved}/{cases.length})</span>
                           </div>
@@ -861,7 +865,7 @@ export default function ProfilePage() {
                                 }}
                                 className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
                               >
-                                <Pencil size={14} /> Write
+                                <EditIcon size={14} /> Write
                               </button>
                             )}
                           </div>
@@ -886,7 +890,7 @@ export default function ProfilePage() {
                       return (
                         <div key={provider} className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-lg">{meta?.icon}</span>
+                            <span className="text-bleepx-text"><CloudProviderIcon provider={provider} size={18} /></span>
                             <span className="text-sm font-medium text-bleepx-text">{meta?.name}</span>
                             <span className="text-xs text-bleepx-text-secondary">({solved}/{missions.length})</span>
                           </div>
@@ -910,7 +914,7 @@ export default function ProfilePage() {
                                 }}
                                 className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
                               >
-                                <Pencil size={14} /> Write
+                                <EditIcon size={14} /> Write
                               </button>
                             )}
                           </div>

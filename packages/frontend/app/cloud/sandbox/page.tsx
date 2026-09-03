@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import CloudSandbox from '@/components/CloudSandbox';
+import { ScenarioIcon, CloudIcon, CheckBadge } from '@/components/AppIcons';
 import { createBleepxBankScenario, createBleepxRetailScenario, createBleepxHealthScenario, type CloudSandboxState } from '@/lib/cloud/sandbox';
 import { scanSecurityPosture } from '@/lib/cloud/sandboxActions';
 
@@ -11,7 +12,6 @@ type ScenarioKey = 'bank' | 'retail' | 'health';
 interface SandboxScenario {
   key: ScenarioKey;
   title: string;
-  icon: string;
   description: string;
   realWorld: string;
   dataNote: string;
@@ -28,7 +28,6 @@ const SCENARIOS: Record<ScenarioKey, SandboxScenario> = {
   health: {
     key: 'health',
     title: 'BleepxHealth',
-    icon: '🏥',
     description:
       'A healthcare platform with patient vitals and records in S3, DynamoDB patient consent data, and a Lambda that flags abnormal vitals. PHI must be protected — a public reports bucket and loose IAM are violations.',
     realWorld:
@@ -77,7 +76,6 @@ const SCENARIOS: Record<ScenarioKey, SandboxScenario> = {
   bank: {
     key: 'bank',
     title: 'BleepxBank',
-    icon: '🏦',
     description:
       'A fintech data lake with transaction CSVs in S3, customer records in DynamoDB, a fraud-detection Lambda, and a few deliberate security mistakes. Your job: explore the services, then audit and lock it down.',
     realWorld:
@@ -129,7 +127,6 @@ const SCENARIOS: Record<ScenarioKey, SandboxScenario> = {
   retail: {
     key: 'retail',
     title: 'BleepxRetail',
-    icon: '🛍️',
     description:
       'An e-commerce platform with orders, product inventory in DynamoDB, and a restock-alert Lambda. The storefront S3 bucket is public and IAM is too broad — lock it down while keeping the site running.',
     realWorld:
@@ -209,7 +206,7 @@ export default function CloudSandboxPage() {
       {/* Header */}
       <div className="bg-gradient-to-br from-sky-600 to-indigo-700 rounded-2xl p-5 sm:p-6 text-white">
         <div className="flex items-start gap-3">
-          <span className="text-3xl">☁️</span>
+          <CloudIcon size={40} className="text-white flex-shrink-0" />
           <div>
             <h1 className="text-2xl font-extrabold">BleepxCloud Sandbox</h1>
             <p className="text-white/80 text-sm mt-1">
@@ -227,11 +224,11 @@ export default function CloudSandboxPage() {
             <button
               key={s.key}
               onClick={() => setScenario(s.key)}
-              className={`px-4 py-2 rounded-full text-sm font-bold transition-colors ${
+              className={`inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-bold transition-colors ${
                 scenario === s.key ? 'bg-sky-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
-              {s.icon} {s.title}
+              <ScenarioIcon scenario={s.key} size={16} /> {s.title}
             </button>
           ))}
         </div>
@@ -241,7 +238,7 @@ export default function CloudSandboxPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2 rounded-xl border border-bleepx-border bg-bleepx-white p-5 shadow-sm">
           <h2 className="text-lg font-extrabold text-bleepx-text flex items-center gap-2">
-            {current.icon} {current.title} — Mission Brief
+            <ScenarioIcon scenario={current.key} size={22} /> {current.title} — Mission Brief
           </h2>
           <p className="text-sm text-bleepx-text-secondary mt-2 leading-relaxed">{current.description}</p>
           <div className="mt-3 p-3 rounded-lg bg-sky-50 dark:bg-sky-900/10 border border-sky-100 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-200">
@@ -297,7 +294,7 @@ export default function CloudSandboxPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className={`font-semibold ${isDone ? 'text-green-700' : 'text-bleepx-text'}`}>{obj.label}</span>
-                      {isDone && <span className="text-green-600 text-xs font-bold">✓ Done</span>}
+                      {isDone && <span className="text-green-600 text-xs font-bold inline-flex items-center gap-1"><CheckBadge size={12} className="text-green-600" /> Done</span>}
                     </div>
                     <p className="text-[10px] text-bleepx-text-secondary mt-0.5 leading-relaxed">{obj.theory}</p>
                   </div>

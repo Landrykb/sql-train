@@ -5,20 +5,21 @@ import { domainFolderMap, fullCaseOrder } from '@/lib/constants';
 import BleepxLogo from '@/components/BleepxLogo';
 import { BleepxFace } from '@/components/BleepxIcons';
 import AchievementNotification from '@/components/AchievementNotification';
+import { DomainIcon, StarRating, GuideIcon, SendIcon } from '@/components/AppIcons';
 
 export const metadata: Metadata = {
   title: 'BleepxQuery — SwiftLink Training Program',
 };
 
-const domainInfo: Record<string, { icon: string; desc: string; difficulty: string; stars: number; color: string }> = {
-  business: { icon: '🏬', desc: 'Retail analytics & customer insights', difficulty: 'Beginner', stars: 1, color: 'from-blue-500 to-blue-700' },
-  crime: { icon: '🔍', desc: 'Crime patterns & geospatial analysis', difficulty: 'Beginner', stars: 1, color: 'from-red-500 to-red-700' },
-  farming: { icon: '🌾', desc: 'Crop yield & vegetation indices', difficulty: 'Intermediate', stars: 2, color: 'from-green-500 to-green-700' },
-  finance: { icon: '📈', desc: 'Trading signals & portfolio risk', difficulty: 'Intermediate', stars: 2, color: 'from-purple-500 to-purple-700' },
-  healthcare: { icon: '🏥', desc: 'Patient records & diagnoses', difficulty: 'Intermediate', stars: 2, color: 'from-teal-500 to-teal-700' },
-  social: { icon: '💬', desc: 'User engagement & sentiment', difficulty: 'Intermediate', stars: 2, color: 'from-pink-500 to-pink-700' },
-  space: { icon: '🚀', desc: 'NEO tracking & orbital mechanics', difficulty: 'Advanced', stars: 3, color: 'from-indigo-500 to-indigo-700' },
-  sports: { icon: '🏀', desc: 'NBA stats & player analytics', difficulty: 'Advanced', stars: 3, color: 'from-orange-500 to-orange-700' },
+const domainInfo: Record<string, { desc: string; difficulty: string; stars: number; color: string }> = {
+  business: { desc: 'Retail analytics & customer insights', difficulty: 'Beginner', stars: 1, color: 'from-blue-500 to-blue-700' },
+  crime: { desc: 'Crime patterns & geospatial analysis', difficulty: 'Beginner', stars: 1, color: 'from-red-500 to-red-700' },
+  farming: { desc: 'Crop yield & vegetation indices', difficulty: 'Intermediate', stars: 2, color: 'from-green-500 to-green-700' },
+  finance: { desc: 'Trading signals & portfolio risk', difficulty: 'Intermediate', stars: 2, color: 'from-purple-500 to-purple-700' },
+  healthcare: { desc: 'Patient records & diagnoses', difficulty: 'Intermediate', stars: 2, color: 'from-teal-500 to-teal-700' },
+  social: { desc: 'User engagement & sentiment', difficulty: 'Intermediate', stars: 2, color: 'from-pink-500 to-pink-700' },
+  space: { desc: 'NEO tracking & orbital mechanics', difficulty: 'Advanced', stars: 3, color: 'from-indigo-500 to-indigo-700' },
+  sports: { desc: 'NBA stats & player analytics', difficulty: 'Advanced', stars: 3, color: 'from-orange-500 to-orange-700' },
 };
 
 export default function CasesPage() {
@@ -57,7 +58,7 @@ export default function CasesPage() {
               >
                 {info && <div className={`absolute inset-0 bg-gradient-to-br ${info.color} opacity-0 group-hover:opacity-5 transition-opacity`} />}
                 <div className="relative flex items-start gap-3">
-                  <div className="text-2xl sm:text-3xl flex-shrink-0">{info?.icon || '📁'}</div>
+                  <div className="text-bleepx-text flex-shrink-0"><DomainIcon domain={domain} size={28} /></div>
                   <div className="flex-1 min-w-0">
                     <h3 className="capitalize font-bold text-bleepx-text text-base sm:text-lg group-hover:text-bleepx-blue transition-colors">
                       {domain}
@@ -65,7 +66,7 @@ export default function CasesPage() {
                     {info && <p className="text-xs text-bleepx-text-secondary mt-0.5 line-clamp-1">{info.desc}</p>}
                     <div className="mt-2 flex items-center gap-3">
                       <span className="text-[10px] sm:text-xs text-bleepx-text-secondary">{info?.difficulty || 'Beginner'}</span>
-                      <span className="text-amber-400 text-[10px] sm:text-xs">{'⭐'.repeat(info?.stars || 1)}</span>
+                      <StarRating stars={info?.stars || 1} size={12} />
                       <span className="text-[10px] text-bleepx-text-secondary ml-auto">{total} missions</span>
                     </div>
                   </div>
@@ -81,11 +82,11 @@ export default function CasesPage() {
 
       <div className="text-center pt-2 space-y-2">
         <Link href="/cases/guide" className="inline-flex items-center gap-1.5 text-sm text-bleepx-blue hover:underline font-medium">
-          📖 SQL Reference Guide
+          <GuideIcon size={16} /> SQL Reference Guide
         </Link>
         <br />
         <Link href="/profile?tab=exports" className="inline-flex items-center gap-1.5 text-sm text-teal-600 hover:underline font-medium">
-          📤 Draft Your Report (Export to GitHub)
+          <SendIcon size={16} /> Draft Your Report (Export to GitHub)
         </Link>
       </div>
       <AchievementNotification />

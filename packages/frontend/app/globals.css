@@ -175,3 +175,21 @@ html, body {
 .bleepx-spark { animation: bleepx-spark 0.9s ease-in-out infinite; }
 .bleepx-git { animation: bleepx-git 1.1s ease-in-out infinite; }
 .bleepx-face { animation: bleepx-face 1s ease-in-out infinite; }
+
+/* ─── Global page layout ───────────────────────────────────────────────────
+   Pages should never leave blank scrollable space below the footer. */
+body > main {
+  flex: 1 1 auto;
+}
+main > main {
+  flex: 1 1 auto;
+}
+/* Many pages currently set min-h-screen/pb-12 on their inner <main>, which
+   forces extra vertical scroll and blank padding. Override those until the
+   individual pages are refactored. */
+main.min-h-screen {
+  min-height: auto !important;
+}
+main.pb-12 {
+  padding-bottom: 0 !important;
+}

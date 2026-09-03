@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import BleepxLogo from '@/components/BleepxLogo';
 import AchievementNotification from '@/components/AchievementNotification';
+import { TopicIcon, GuideIcon, CopyIcon, CheckBadge } from '@/components/AppIcons';
 
 // ─── Guide Data ─────────────────────────────────────────────────────────────
 
@@ -17,7 +18,6 @@ interface GuideSection {
 interface GuideTopic {
   id: string;
   name: string;
-  icon: string;
   description: string;
   sections: GuideSection[];
 }
@@ -26,7 +26,6 @@ const GUIDE_TOPICS: GuideTopic[] = [
   {
     id: 'python_basics',
     name: 'Python Essentials',
-    icon: '🐍',
     description: 'Core Python for data science — lists, dicts, comprehensions, functions',
     sections: [
       { title: 'Variables & Types', content: 'Python is dynamically typed. Common types: int, float, str, bool, list, dict, tuple, set.', code: 'x = 42          # int\npi = 3.14       # float\nname = "Bleepx" # str\nis_active = True # bool\nnums = [1, 2, 3] # list\ninfo = {"key": "value"} # dict' },
@@ -38,7 +37,6 @@ const GUIDE_TOPICS: GuideTopic[] = [
   {
     id: 'pandas',
     name: 'Pandas DataFrame',
-    icon: '🐼',
     description: 'Data manipulation — loading, selecting, filtering, grouping, merging',
     sections: [
       { title: 'Loading Data', content: 'Read data from CSV, Excel, JSON, SQL, and more.', code: 'import pandas as pd\n\ndf = pd.read_csv("data.csv")\ndf = pd.read_excel("data.xlsx")\ndf = pd.read_json("data.json")\n\n# Quick look\ndf.head()        # first 5 rows\ndf.shape         # (rows, cols)\ndf.info()        # types & null counts\ndf.describe()    # stats summary' },
@@ -51,7 +49,6 @@ const GUIDE_TOPICS: GuideTopic[] = [
   {
     id: 'numpy',
     name: 'NumPy Arrays',
-    icon: '🔢',
     description: 'Numerical computing — arrays, linear algebra, random, broadcasting',
     sections: [
       { title: 'Creating Arrays', content: 'NumPy arrays are faster and more memory-efficient than Python lists.', code: 'import numpy as np\n\na = np.array([1, 2, 3, 4])\nb = np.zeros((3, 4))        # 3x4 of zeros\nc = np.ones((2, 3))         # 2x3 of ones\nd = np.arange(0, 10, 2)     # [0, 2, 4, 6, 8]\ne = np.linspace(0, 1, 5)    # 5 evenly spaced in [0,1]\nf = np.random.randn(3, 3)  # 3x3 standard normal' },
@@ -62,7 +59,6 @@ const GUIDE_TOPICS: GuideTopic[] = [
   {
     id: 'visualization',
     name: 'Data Visualization',
-    icon: '📊',
     description: 'Matplotlib, Seaborn, Plotly — charts, distributions, correlations',
     sections: [
       { title: 'Matplotlib Basics', content: 'The foundation of Python plotting. Create figures and axes.', code: 'import matplotlib.pyplot as plt\n\nfig, ax = plt.subplots(figsize=(10, 6))\nax.plot(x, y, label="Revenue")\nax.set_xlabel("Month")\nax.set_ylabel("Revenue ($)")\nax.set_title("Monthly Revenue")\nax.legend()\nplt.tight_layout()\nplt.show()' },
@@ -73,7 +69,6 @@ const GUIDE_TOPICS: GuideTopic[] = [
   {
     id: 'statistics',
     name: 'Statistics & Probability',
-    icon: '📈',
     description: 'Descriptive stats, distributions, hypothesis testing, confidence intervals',
     sections: [
       { title: 'Descriptive Statistics', content: 'Summarize data with measures of center (mean, median, mode) and spread (std, variance, IQR).', code: 'import numpy as np\nfrom scipy import stats\n\ndata = [23, 45, 12, 67, 34, 89, 23, 45]\n\nmean = np.mean(data)       # 42.25\nmedian = np.median(data)   # 39.5\nmode = stats.mode(data)    # 23\nstd = np.std(data)         # 23.9\nq1, q3 = np.percentile(data, [25, 75])\niqr = q3 - q1' },
@@ -85,7 +80,6 @@ const GUIDE_TOPICS: GuideTopic[] = [
   {
     id: 'ml_supervised',
     name: 'Supervised Learning',
-    icon: '🤖',
     description: 'Regression, classification — train/test, cross-validation, tuning',
     sections: [
       { title: 'Train/Test Split', content: 'Always evaluate on unseen data. Never train and test on the same data.', code: 'from sklearn.model_selection import train_test_split\n\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.2, random_state=42\n)\n# 80% training, 20% testing\n# random_state ensures reproducibility' },
@@ -97,7 +91,6 @@ const GUIDE_TOPICS: GuideTopic[] = [
   {
     id: 'ml_unsupervised',
     name: 'Unsupervised Learning',
-    icon: '🔬',
     description: 'Clustering, PCA, anomaly detection — discover hidden patterns',
     sections: [
       { title: 'K-Means Clustering', content: 'Partition data into K groups by minimizing within-cluster variance.', code: 'from sklearn.cluster import KMeans\nfrom sklearn.preprocessing import StandardScaler\n\n# Always scale before clustering!\nscaler = StandardScaler()\nX_scaled = scaler.fit_transform(X)\n\nkmeans = KMeans(n_clusters=3, random_state=42, n_init=10)\nkmeans.fit(X_scaled)\nlabels = kmeans.labels_\n\n# Elbow method\ninertias = []\nfor k in range(1, 11):\n    km = KMeans(n_clusters=k, random_state=42, n_init=10)\n    km.fit(X_scaled)\n    inertias.append(km.inertia_)' },
@@ -108,7 +101,6 @@ const GUIDE_TOPICS: GuideTopic[] = [
   {
     id: 'feature_eng',
     name: 'Feature Engineering',
-    icon: '🔧',
     description: 'Encoding, scaling, selection — transform raw data into model-ready features',
     sections: [
       { title: 'Encoding Categorical Variables', content: 'Convert text categories to numbers for ML models.', code: '# One-hot encoding\ndf_encoded = pd.get_dummies(df, columns=["color", "size"])\n\n# Label encoding (ordinal)\nfrom sklearn.preprocessing import LabelEncoder\nle = LabelEncoder()\ndf["size_encoded"] = le.fit_transform(df["size"])\n\n# Target encoding (advanced)\ndf["city_encoded"] = df.groupby("city")["target"].transform("mean")' },
@@ -119,7 +111,6 @@ const GUIDE_TOPICS: GuideTopic[] = [
   {
     id: 'timeseries',
     name: 'Time Series',
-    icon: '⏱️',
     description: 'ARIMA, Prophet, stationarity, forecasting, seasonal decomposition',
     sections: [
       { title: 'Time Series Basics', content: 'Set datetime index, resample, and detect trends.', code: 'df["date"] = pd.to_datetime(df["date"])\ndf.set_index("date", inplace=True)\n\n# Resample to monthly\nmonthly = df.resample("M").mean()\n\n# Rolling average (smooth noise)\ndf["rolling_7d"] = df["value"].rolling(window=7).mean()\n\n# Seasonal decomposition\nfrom statsmodels.tsa.seasonal import seasonal_decompose\nresult = seasonal_decompose(df["value"], period=12)\nresult.plot()' },
@@ -130,7 +121,6 @@ const GUIDE_TOPICS: GuideTopic[] = [
   {
     id: 'r_basics',
     name: 'R Essentials',
-    icon: '📐',
     description: 'R for data science — tidyverse, ggplot2, dplyr, data wrangling',
     sections: [
       { title: 'R Basics', content: 'R is purpose-built for statistics. Vectors are the fundamental data type.', code: '# Variables\nx <- 42\nname <- "Bleepx"\nnums <- c(1, 2, 3, 4, 5)\n\n# Data types\nclass(x)      # "numeric"\nlength(nums)  # 5\nsummary(nums) # Min, Q1, Median, Mean, Q3, Max' },
@@ -167,7 +157,7 @@ export default function LabGuidePage() {
       <div className="flex items-center gap-3">
         <BleepxLogo />
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-bleepx-text">📖 Data Science Guide</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-bleepx-text flex items-center gap-2"><GuideIcon size={28} /> Data Science Guide</h1>
           <p className="text-xs sm:text-sm text-bleepx-text-secondary">
             Reference guide for Python, R, pandas, statistics, ML, and more.
           </p>
@@ -183,7 +173,7 @@ export default function LabGuidePage() {
               className="group bg-bleepx-white border border-bleepx-border rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 text-left p-5"
             >
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-2xl">{t.icon}</span>
+                <span className="text-bleepx-text"><TopicIcon topic={t.id} size={24} /></span>
                 <h3 className="font-bold text-bleepx-text group-hover:text-teal-600 transition-colors">{t.name}</h3>
               </div>
               <p className="text-xs text-bleepx-text-secondary">{t.description}</p>
@@ -202,7 +192,7 @@ export default function LabGuidePage() {
 
           <div className="bg-bleepx-white border-l-4 border-teal-500 p-5 rounded-lg shadow-sm">
             <div className="flex items-center gap-3 mb-1">
-              <span className="text-2xl">{topic.icon}</span>
+              <span className="text-bleepx-text"><TopicIcon topic={topic.id} size={24} /></span>
               <h2 className="text-xl font-bold text-bleepx-text">{topic.name}</h2>
             </div>
             <p className="text-sm text-bleepx-text-secondary">{topic.description}</p>
@@ -216,9 +206,9 @@ export default function LabGuidePage() {
                 <div className="relative">
                   <button
                     onClick={() => copyCode(section.code!)}
-                    className="absolute top-2 right-2 px-2 py-1 text-[10px] font-bold rounded bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors z-10"
+                    className="absolute top-2 right-2 px-2 py-1 text-[10px] font-bold rounded bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors z-10 inline-flex items-center gap-1"
                   >
-                    {copiedCode === section.code ? '✅ Copied' : '📋 Copy'}
+                    {copiedCode === section.code ? <><CheckBadge size={10} className="text-gray-300" /> Copied</> : <><CopyIcon size={10} /> Copy</>}
                   </button>
                   <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto leading-relaxed">
                     <code>{section.code}</code>
@@ -235,13 +225,13 @@ export default function LabGuidePage() {
                 <button
                   key={t.id}
                   onClick={() => setActiveTopic(t.id)}
-                  className={`text-left p-2 rounded-lg text-xs font-medium transition-colors ${
+                  className={`text-left p-2 rounded-lg text-xs font-medium transition-colors inline-flex items-center gap-1 ${
                     t.id === activeTopic
                       ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-bleepx-text-secondary'
                   }`}
                 >
-                  {t.icon} {t.name}
+                  <TopicIcon topic={t.id} size={14} /> {t.name}
                 </button>
               ))}
             </div>

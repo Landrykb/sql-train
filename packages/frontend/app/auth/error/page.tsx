@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { startGitHubLogin } from '@/lib/authClient';
 import { BleepxGitHub } from '@/components/BleepxIcons';
+import { ErrorIcon } from '@/components/AppIcons';
 
 /** Human-readable copy per `reason` code emitted by `/auth/callback/route.ts`. */
 const REASON_COPY: Record<string, string> = {
@@ -46,7 +47,7 @@ function AuthErrorInner() {
     <div className="flex items-center justify-center min-h-[60vh] px-4">
       <div className="text-center p-8 rounded-xl shadow-lg bg-bleepx-white max-w-md w-full">
         <div className="mb-4 flex justify-center opacity-60"><BleepxGitHub size={48} /></div>
-        <div className="text-4xl mb-2">❌</div>
+        <div className="flex justify-center mb-2"><ErrorIcon size={40} className="text-red-500" /></div>
         <h2 className="text-lg font-bold text-red-600 dark:text-red-400 mb-2">
           Authentication Failed
         </h2>

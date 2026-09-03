@@ -13,6 +13,7 @@ import {
   cloudMissionId,
   type CloudProvider,
 } from '@/lib/cloud';
+import { CloudProviderIcon, StarRating, BoltIcon, GuideIcon, CheckBadge, LockIcon, MissionTypeIcon, SchoolIcon } from '@/components/AppIcons';
 
 const levelColor: Record<string, string> = {
   Beginner: 'border-l-emerald-500',
@@ -20,12 +21,6 @@ const levelColor: Record<string, string> = {
   Advanced: 'border-l-red-500',
   Expert: 'border-l-purple-500',
   Master: 'border-l-sky-500',
-};
-
-const labTypeIcon: Record<string, string> = {
-  diagram: '🗺️',
-  iac: '⚙️',
-  quiz: '📝',
 };
 
 export default function CloudProviderPage() {
@@ -65,12 +60,12 @@ export default function CloudProviderPage() {
       <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${meta.color} p-5 sm:p-7 text-white`}>
         <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
         <div className="relative z-10 flex items-start gap-4">
-          <span className="text-4xl sm:text-5xl">{meta.icon}</span>
+          <span className="text-white"><CloudProviderIcon provider={provider} size={44} className="text-white" /></span>
           <div className="flex-1">
             <h1 className="text-2xl sm:text-3xl font-bold">{meta.name}</h1>
             <p className="text-sm text-white/85 mt-1">{meta.desc}</p>
             <div className="mt-3 flex items-center gap-3 flex-wrap">
-              {meta.cert && <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-medium">🎓 {meta.cert}</span>}
+              {meta.cert && <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1"><SchoolIcon size={12} /> {meta.cert}</span>}
               <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">{missions.length} missions</span>
               <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">{done} done · {pct}%</span>
             </div>
@@ -93,7 +88,7 @@ export default function CloudProviderPage() {
               const content = (
                 <div className={`p-4 sm:p-5 flex items-start gap-3 ${locked ? 'opacity-60' : ''}`}>
                   <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${isDone ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary'}`}>
-                    {isDone ? '✓' : locked ? '🔒' : labTypeIcon[m.labType]}
+                    {isDone ? <CheckBadge size={16} className="text-white" /> : locked ? <LockIcon size={16} /> : <MissionTypeIcon type={m.labType} size={16} />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -108,11 +103,11 @@ export default function CloudProviderPage() {
                     )}
                     <div className="mt-2 flex items-center gap-2 flex-wrap">
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary">{m.level}</span>
-                      <span className="text-amber-400 text-[10px]">{'⭐'.repeat(m.stars)}</span>
+                      <StarRating stars={m.stars} size={10} />
                       {!(m.isBonus && locked) && m.skills.slice(0, 3).map((s) => (
                         <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-full bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300">{s}</span>
                       ))}
-                      {locked && <span className="text-[10px] text-bleepx-text-secondary">🔒 Requires: {m.prerequisites.join(', ')}</span>}
+                      {locked && <span className="text-[10px] text-bleepx-text-secondary inline-flex items-center gap-1"><LockIcon size={10} /> Requires: {m.prerequisites.join(', ')}</span>}
                     </div>
                   </div>
                 </div>
@@ -138,8 +133,8 @@ export default function CloudProviderPage() {
       {/* Footer nav */}
       <div className="flex gap-4 pt-2">
         <Link href="/cloud" className="text-sm text-sky-600 hover:underline font-medium">← All Tracks</Link>
-        <Link href="/cloud/trials" className="text-sm text-bleepx-text-secondary hover:underline font-medium">⚡ Trials</Link>
-        <Link href="/cloud/guide" className="text-sm text-bleepx-text-secondary hover:underline font-medium">📖 Guide</Link>
+        <Link href="/cloud/trials" className="text-sm text-bleepx-text-secondary hover:underline font-medium inline-flex items-center gap-1"><BoltIcon size={14} /> Trials</Link>
+        <Link href="/cloud/guide" className="text-sm text-bleepx-text-secondary hover:underline font-medium inline-flex items-center gap-1"><GuideIcon size={14} /> Guide</Link>
       </div>
 
       <AchievementNotification />

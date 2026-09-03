@@ -14,6 +14,7 @@ import PathMap from '@/components/PathMap';
 import { CaseInterpretationButton } from '@/components/CaseInterpretationButton';
 import { domainFolderMap, caseOrder, fullCaseOrder, hiddenCaseOrder } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
+import { BrainIcon } from '@/components/AppIcons';
 
 export async function generateStaticParams() {
   return Object.keys(domainFolderMap)
@@ -168,8 +169,8 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
             />
           )}
           {domainKey === 'trials' && (
-            <Link href="/cases/trials/master-quiz" className="px-3 py-1.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">
-              🧠 Master Quiz
+            <Link href="/cases/trials/master-quiz" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">
+              <BrainIcon size={16} className="text-white" /> Master Quiz
             </Link>
           )}
           <Link href="/" className="px-3 py-1.5 text-sm text-bleepx-blue hover:text-bleepx-blue-hover rounded-lg hover:bg-bleepx-blue/5 transition-colors">

@@ -26,6 +26,7 @@ import { getConcept, hasConcept, CLOUD_CONCEPTS } from '@/lib/cloud/concepts';
 import CloudSandbox from '@/components/CloudSandbox';
 import { createBleepxBankScenario } from '@/lib/cloud/sandbox';
 import CrossVerseNav from '@/components/CrossVerseNav';
+import { CloudProviderIcon, StarRating, BrainIcon, FlaskIcon, CheckBadge, GuideIcon, MapIcon, ToolsIcon, FormsIcon, AlertIcon, TrophyIcon, BuildingIcon } from '@/components/AppIcons';
 
 const META_SKILLS = new Set(['everything', 'exam-prep']);
 
@@ -237,16 +238,16 @@ export default function CloudMissionPage() {
       {/* Header */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
         <div className="flex items-start gap-3">
-          <span className={`flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br ${meta.color} flex items-center justify-center text-xl shadow-md`}>{meta.icon}</span>
+          <span className={`flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br ${meta.color} flex items-center justify-center shadow-md`}><CloudProviderIcon provider={provider} size={24} className="text-white" /></span>
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] uppercase tracking-wide font-bold text-bleepx-text-secondary">{mission.section}</span>
-              {isDone && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">✓ COMPLETED</span>}
+              {isDone && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1"><CheckBadge size={10} className="text-emerald-700 dark:text-emerald-300" /> COMPLETED</span>}
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text mt-0.5">{mission.title}</h1>
             <div className="mt-2 flex items-center gap-2 flex-wrap">
               <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary">{mission.level}</span>
-              <span className="text-amber-400 text-xs">{'⭐'.repeat(mission.stars)}</span>
+              <StarRating stars={mission.stars} size={12} />
               <span className="text-xs text-bleepx-text-secondary">+{tier * 10} pts</span>
               {mission.crossDomain && (
                 <Link href={`/cloud/${mission.crossDomain}`} className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:underline">↔ {mission.crossDomain} track</Link>
@@ -258,14 +259,14 @@ export default function CloudMissionPage() {
 
       {/* Briefing */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-        <h2 className="text-base font-bold text-bleepx-text mb-2">📋 Mission Briefing</h2>
+        <h2 className="text-base font-bold text-bleepx-text mb-2 flex items-center gap-2"><GuideIcon size={18} /> Mission Briefing</h2>
         <div className="text-sm text-bleepx-text-secondary leading-relaxed whitespace-pre-line">
           {wrapWithGlossary(mission.description)}
         </div>
 
         {mission.realWorld && (
           <div className="mt-4 rounded-lg border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-900/15 p-3">
-            <p className="text-xs font-bold text-amber-700 dark:text-amber-300 mb-0.5">🏢 Real-world scenario</p>
+            <p className="text-xs font-bold text-amber-700 dark:text-amber-300 mb-0.5 flex items-center gap-1"><BuildingIcon size={12} /> Real-world scenario</p>
             <p className="text-sm text-bleepx-text-secondary leading-relaxed">{wrapWithGlossary(mission.realWorld)}</p>
           </div>
         )}
@@ -287,7 +288,7 @@ export default function CloudMissionPage() {
       {/* Architecture flow */}
       {archNodes.length > 1 && (
         <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-          <h2 className="text-base font-bold text-bleepx-text mb-1">🗺️ How it fits together</h2>
+          <h2 className="text-base font-bold text-bleepx-text mb-1 flex items-center gap-2"><MapIcon size={18} /> How it fits together</h2>
           <p className="text-xs text-bleepx-text-secondary mb-3">Follow the request/data flow through the architecture.</p>
           <ArchitectureFlow nodes={archNodes} />
         </div>
@@ -307,7 +308,7 @@ export default function CloudMissionPage() {
         return (
           <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
             <div className="flex items-center justify-between mb-1">
-              <h2 className="text-base font-bold text-bleepx-text">📚 Concept Walkthrough</h2>
+              <h2 className="text-base font-bold text-bleepx-text flex items-center gap-2"><GuideIcon size={18} /> Concept Walkthrough</h2>
               <span className="text-xs text-bleepx-text-secondary font-mono">{understood.size}/{learnList.length} understood</span>
             </div>
             <p className="text-xs text-bleepx-text-secondary mb-3">Work through each concept and mark it understood. This unlocks the knowledge check.</p>
@@ -331,7 +332,7 @@ export default function CloudMissionPage() {
                         : 'border-bleepx-border text-bleepx-text-secondary hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                 >
-                  {understood.has(l.key) ? '✓ ' : ''}{l.concept.icon} {l.concept.name}
+                  {understood.has(l.key) ? <span className="inline-flex items-center gap-1"><CheckBadge size={10} /> {l.concept.name}</span> : l.concept.name}
                 </button>
               ))}
             </div>
@@ -339,7 +340,7 @@ export default function CloudMissionPage() {
             {/* Current concept card */}
             <div className="rounded-xl border border-bleepx-border overflow-hidden">
               <div className="bg-gradient-to-r from-sky-50 to-transparent dark:from-sky-900/20 px-4 py-3 flex items-center gap-3">
-                <span className="text-2xl">{c.icon}</span>
+                <CloudProviderIcon provider={provider} size={24} className="text-sky-600" />
                 <div>
                   <h3 className="font-bold text-bleepx-text leading-tight">{c.name}</h3>
                   <p className="text-xs text-bleepx-text-secondary">{wrapWithGlossary(c.what)}</p>
@@ -362,7 +363,7 @@ export default function CloudMissionPage() {
                 )}
                 {c.gotcha && (
                   <div className="rounded-lg border-l-4 border-red-400 bg-red-50 dark:bg-red-900/15 p-3">
-                    <p className="text-[11px] font-bold text-red-600 mb-0.5">⚠️ Gotcha (exam trap)</p>
+                    <p className="text-[11px] font-bold text-red-600 mb-0.5 flex items-center gap-1"><AlertIcon size={12} /> Gotcha (exam trap)</p>
                     <p className="text-sm text-bleepx-text-secondary leading-relaxed">{c.gotcha}</p>
                   </div>
                 )}
@@ -386,7 +387,7 @@ export default function CloudMissionPage() {
                     : 'bg-sky-600 text-white hover:bg-sky-700'
                 }`}
               >
-                {isUnderstood ? '✓ Understood' : 'Mark understood →'}
+                {isUnderstood ? <span className="inline-flex items-center gap-1"><CheckBadge size={14} className="text-emerald-700 dark:text-emerald-300" /> Understood</span> : 'Mark understood →'}
               </button>
               <button
                 onClick={() => setStepIdx(Math.min(learnList.length - 1, stepIdx + 1))}
@@ -403,7 +404,7 @@ export default function CloudMissionPage() {
       {/* Hands-on code (IaC missions) */}
       {!isQuiz && template && (
         <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-          <h2 className="text-base font-bold text-bleepx-text mb-1">⚙️ Hands-on: Infrastructure as Code</h2>
+          <h2 className="text-base font-bold text-bleepx-text mb-1 flex items-center gap-2"><ToolsIcon size={18} /> Hands-on: Infrastructure as Code</h2>
           <p className="text-xs text-bleepx-text-secondary mb-3">A realistic <code className="font-mono">{template.filename}</code> for this mission. Read it top to bottom — it mirrors the concepts above.</p>
           <CodeBlock code={template.code} lang={template.language} />
         </div>
@@ -412,7 +413,7 @@ export default function CloudMissionPage() {
       {/* Quiz (quiz missions) */}
       {isQuiz && (
         <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-          <h2 className="text-base font-bold text-bleepx-text mb-1">📝 {mission.isBonus ? 'Exam Simulator' : 'Knowledge Check'}</h2>
+          <h2 className="text-base font-bold text-bleepx-text mb-1 flex items-center gap-2"><FormsIcon size={18} /> {mission.isBonus ? 'Exam Simulator' : 'Knowledge Check'}</h2>
           <p className="text-xs text-bleepx-text-secondary mb-4">Answer at least 60% correctly to complete this mission.</p>
           <div className="space-y-4">
             {quizQuestions.map((q, qi) => (
@@ -455,7 +456,7 @@ export default function CloudMissionPage() {
           ) : (
             <div className="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
               <p className={`text-sm font-bold ${quizPassed ? 'text-emerald-600' : 'text-red-500'}`}>
-                Score: {quizScore}/{quizQuestions.length} — {quizPassed ? '✓ Passed!' : 'Try again (need 60%)'}
+                Score: {quizScore}/{quizQuestions.length} — {quizPassed ? <span className="inline-flex items-center gap-1"><CheckBadge size={14} className="text-emerald-600" /> Passed!</span> : 'Try again (need 60%)'}
               </p>
               {!quizPassed && (
                 <button onClick={() => { setQuizSubmitted(false); setAnswers({}); }} className="mt-2 text-sm text-sky-600 hover:underline">Retry</button>
@@ -468,7 +469,7 @@ export default function CloudMissionPage() {
       {/* Knowledge check (diagram/iac missions) */}
       {!isQuiz && knowledgeCheck.length > 0 && (
         <div className={`bg-bleepx-white rounded-xl border p-5 shadow-sm transition-opacity ${allUnderstood ? 'border-bleepx-border' : 'border-dashed border-bleepx-border opacity-60'}`}>
-          <h2 className="text-base font-bold text-bleepx-text mb-1">🧠 Knowledge Check</h2>
+          <h2 className="text-base font-bold text-bleepx-text mb-1 flex items-center gap-2"><BrainIcon size={18} /> Knowledge Check</h2>
           <p className="text-xs text-bleepx-text-secondary mb-4">
             {allUnderstood ? 'Match each description to the right concept (67% to pass).' : 'Finish the walkthrough above to unlock the check.'}
           </p>
@@ -515,7 +516,7 @@ export default function CloudMissionPage() {
               ) : (
                 <div className="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
                   <p className={`text-sm font-bold ${kcPassed ? 'text-emerald-600' : 'text-red-500'}`}>
-                    Score: {kcScore}/{knowledgeCheck.length} — {kcPassed ? '✓ Passed!' : 'Try again (need 67%)'}
+                    Score: {kcScore}/{knowledgeCheck.length} — {kcPassed ? <span className="inline-flex items-center gap-1"><CheckBadge size={14} className="text-emerald-600" /> Passed!</span> : 'Try again (need 67%)'}
                   </p>
                   {!kcPassed && (
                     <button onClick={() => { setKcSubmitted(false); setKcAnswers({}); }} className="mt-2 text-sm text-sky-600 hover:underline">Retry</button>
@@ -530,7 +531,7 @@ export default function CloudMissionPage() {
       {/* Scenario / Sandbox missions: hands-on cloud simulator */}
       {isScenario && !isDone && (
         <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-          <h2 className="text-base font-bold text-bleepx-text mb-1">🧪 Hands-on Cloud Sandbox</h2>
+          <h2 className="text-base font-bold text-bleepx-text mb-1 flex items-center gap-2"><FlaskIcon size={18} /> Hands-on Cloud Sandbox</h2>
           <p className="text-xs text-bleepx-text-secondary mb-4">
             Use the simulated AWS console below to complete each mission step. No real AWS account is required.
           </p>
@@ -564,7 +565,7 @@ export default function CloudMissionPage() {
             className="w-full px-5 py-3 rounded-full bg-gradient-to-r from-sky-600 to-blue-600 text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
           >
             {canComplete
-              ? `✓ Complete Mission (+${tier * 10} pts)`
+              ? <span className="inline-flex items-center gap-1"><CheckBadge size={14} className="text-white" /> Complete Mission (+{tier * 10} pts)</span>
               : isQuiz
                 ? learnList.length > 0 && !allUnderstood
                   ? 'Work through every concept to continue'
@@ -577,7 +578,7 @@ export default function CloudMissionPage() {
           </button>
         ) : (
           <div className="text-center space-y-3">
-            <div className="text-sm font-semibold text-emerald-600">🎉 Mission complete — nice work, human.</div>
+            <div className="text-sm font-semibold text-emerald-600 flex items-center justify-center gap-1"><TrophyIcon size={16} className="text-emerald-600" /> Mission complete — nice work, human.</div>
             {nextSlug && (
               <Link href={`/cloud/${p}/${nextSlug}`}>
                 <button className="px-5 py-2.5 rounded-full bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors">

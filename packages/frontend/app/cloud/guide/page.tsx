@@ -3,14 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { cloudGuide, GUIDE_PROVIDERS } from '@/lib/cloud/guide';
-
-const providerEmoji: Record<string, string> = {
-  general: '🧭',
-  aws: '☁️',
-  azure: '🔷',
-  gcp: '🌐',
-  esg: '🌱',
-};
+import { CloudProviderIcon, GuideIcon, BoltIcon } from '@/components/AppIcons';
 
 export default function CloudGuidePage() {
   const [query, setQuery] = useState('');
@@ -45,7 +38,7 @@ export default function CloudGuidePage() {
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700 to-sky-700 p-6 text-white">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] [background-size:22px_22px] opacity-40" />
         <div className="relative z-10">
-          <h1 className="text-2xl sm:text-3xl font-bold">📖 Cloud Reference Guide</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2"><GuideIcon size={28} className="text-white" /> Cloud Reference Guide</h1>
           <p className="text-white/85 text-sm mt-1">Every concept you need — searchable, plain-English, exam-aligned.</p>
         </div>
       </div>
@@ -61,8 +54,8 @@ export default function CloudGuidePage() {
         <div className="flex flex-wrap gap-2">
           <button onClick={() => setProvider('all')} className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${provider === 'all' ? 'bg-sky-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary'}`}>All</button>
           {GUIDE_PROVIDERS.map((p) => (
-            <button key={p} onClick={() => setProvider(p)} className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${provider === p ? 'bg-sky-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary'}`}>
-              {providerEmoji[p]} {p === 'general' ? 'General' : p.toUpperCase()}
+            <button key={p} onClick={() => setProvider(p)} className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${provider === p ? 'bg-sky-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary'}`}>
+              <CloudProviderIcon provider={p} size={12} /> {p === 'general' ? 'General' : p.toUpperCase()}
             </button>
           ))}
         </div>
@@ -79,7 +72,7 @@ export default function CloudGuidePage() {
               {entries.map((g) => (
                 <div key={g.term} className="bg-bleepx-white rounded-xl border border-bleepx-border p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-1">
-                    <span>{providerEmoji[g.provider] || '🧭'}</span>
+                    <CloudProviderIcon provider={g.provider} size={16} />
                     <h3 className="font-bold text-bleepx-text">{g.term}</h3>
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary uppercase">{g.provider}</span>
                   </div>
@@ -93,7 +86,7 @@ export default function CloudGuidePage() {
 
       <div className="flex gap-4 pt-2">
         <Link href="/cloud" className="text-sm text-sky-600 hover:underline font-medium">← BleepxCloud</Link>
-        <Link href="/cloud/trials" className="text-sm text-bleepx-text-secondary hover:underline font-medium">⚡ Test yourself in Trials</Link>
+        <Link href="/cloud/trials" className="text-sm text-bleepx-text-secondary hover:underline font-medium inline-flex items-center gap-1"><BoltIcon size={14} /> Test yourself in Trials</Link>
       </div>
     </main>
   );

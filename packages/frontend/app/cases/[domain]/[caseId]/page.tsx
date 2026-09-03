@@ -13,6 +13,7 @@ import BleepxLogo from '@/components/BleepxLogo';
 import CrossVerseNav from '@/components/CrossVerseNav';
 import { caseOrder, fullCaseOrder, domainFolderMap, visualizationConfigs } from '@/lib/constants';
 import { normalizeDomain } from '@/lib/utils';
+import { BrainIcon } from '@/components/AppIcons';
 
 // Render only one case per domain at build time to keep SSG fast.
 // The rest are generated on demand when first visited (ISR-style).
@@ -163,7 +164,7 @@ export default async function CasePage({
           href={`/cases/${domainKey}/${caseId}/quiz`}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
         >
-          🧠 Test Your Knowledge
+          <BrainIcon size={16} /> Test Your Knowledge
         </Link>
         {hasVisualizations && (
           <Link

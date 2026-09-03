@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { GoalIcon, FlaskIcon, BulbIcon, MapIcon, BrainIcon } from '@/components/AppIcons';
 
 type Goal = 'sql' | 'python' | 'datascience' | 'machine-learning' | 'llm' | 'cloud' | 'saa' | 'carbon';
 type Level = 'beginner' | 'intermediate' | 'advanced';
@@ -9,15 +10,15 @@ type Time = 'casual' | 'focused' | 'intensive';
 
 const JOURNEY_STORAGE = 'bleepx-journey';
 
-const GOALS: { id: Goal; label: string; icon: string; desc: string }[] = [
-  { id: 'sql', label: 'SQL', icon: '🔷', desc: 'Query, join, aggregate, window functions' },
-  { id: 'python', label: 'Python', icon: '🐍', desc: 'Pandas, plotting, statistics' },
-  { id: 'datascience', label: 'Data Science', icon: '📊', desc: 'EDA, visualisation, experiments' },
-  { id: 'machine-learning', label: 'Machine Learning', icon: '🤖', desc: 'Classification, regression, evaluation' },
-  { id: 'llm', label: 'LLM & AI', icon: '🧠', desc: 'Transformers, fine-tuning, Hugging Face' },
-  { id: 'cloud', label: 'Cloud (AWS)', icon: '☁️', desc: 'S3, IAM, EC2, Lambda, RDS, VPC' },
-  { id: 'saa', label: 'SAA Certification', icon: '🎓', desc: 'Solutions Architect – Associate' },
-  { id: 'carbon', label: 'Carbon Credits', icon: '🌱', desc: 'Climate, regenerative ag, offset markets' },
+const GOALS: { id: Goal; label: string; desc: string }[] = [
+  { id: 'sql', label: 'SQL', desc: 'Query, join, aggregate, window functions' },
+  { id: 'python', label: 'Python', desc: 'Pandas, plotting, statistics' },
+  { id: 'datascience', label: 'Data Science', desc: 'EDA, visualisation, experiments' },
+  { id: 'machine-learning', label: 'Machine Learning', desc: 'Classification, regression, evaluation' },
+  { id: 'llm', label: 'LLM & AI', desc: 'Transformers, fine-tuning, Hugging Face' },
+  { id: 'cloud', label: 'Cloud (AWS)', desc: 'S3, IAM, EC2, Lambda, RDS, VPC' },
+  { id: 'saa', label: 'SAA Certification', desc: 'Solutions Architect – Associate' },
+  { id: 'carbon', label: 'Carbon Credits', desc: 'Climate, regenerative ag, offset markets' },
 ];
 
 interface Step {
@@ -146,7 +147,7 @@ export default function JourneyPage() {
       </nav>
 
       <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-sky-700 rounded-2xl p-6 sm:p-10 text-white">
-        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-3">🧭 Bleepx Journey</h1>
+        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-3 flex items-center gap-2"><MapIcon size={28} /> Bleepx Journey</h1>
         <p className="text-white/80 text-sm sm:text-lg max-w-2xl leading-relaxed">
           Tell Bleepx what you want to learn and how much time you have. We will build a personalized path across SQL, Python, data science, machine learning, AI/LLMs, cloud, and certifications — with hints and the right resources.
         </p>
@@ -195,15 +196,15 @@ export default function JourneyPage() {
                 onClick={() => toggleGoal(g.id)}
                 className={`p-3 rounded-xl border text-left transition-colors ${active ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/10' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
               >
-                <div className="text-lg mb-1">{g.icon}</div>
+                <div className="mb-1 text-bleepx-text"><GoalIcon goal={g.id} size={20} /></div>
                 <div className="font-bold text-sm text-bleepx-text">{g.label}</div>
                 <div className="text-[10px] text-bleepx-text-secondary">{g.desc}</div>
               </button>
             );
           })}
         </div>
-        <button onClick={generate} disabled={selected.length === 0} className="w-full sm:w-auto px-6 py-3 rounded-lg bg-sky-600 text-white text-sm font-bold hover:bg-sky-700 disabled:opacity-50 transition-colors">
-          🧪 Generate My Journey
+        <button onClick={generate} disabled={selected.length === 0} className="w-full sm:w-auto inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-sky-600 text-white text-sm font-bold hover:bg-sky-700 disabled:opacity-50 transition-colors">
+          <FlaskIcon size={18} /> Generate My Journey
         </button>
       </div>
 
@@ -216,7 +217,7 @@ export default function JourneyPage() {
           <div className="flex flex-wrap gap-2">
             {plan.suggested.map((g) => {
               const meta = GOALS.find((x) => x.id === g)!;
-              return <span key={g} className="text-xs px-2 py-1 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-medium">{meta.icon} {meta.label}</span>;
+              return <span key={g} className="text-xs px-2 py-1 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-medium inline-flex items-center gap-1"><GoalIcon goal={g} size={14} /> {meta.label}</span>;
             })}
           </div>
           <ol className="space-y-3">
@@ -228,7 +229,7 @@ export default function JourneyPage() {
                       <span className="text-sky-600 mr-2">{i + 1}.</span>
                       {step.title}
                     </div>
-                    <div className="text-xs text-bleepx-text-secondary mt-0.5">💡 {step.hint}</div>
+                    <div className="text-xs text-bleepx-text-secondary mt-0.5 inline-flex items-center gap-1"><BulbIcon size={14} /> {step.hint}</div>
                   </div>
                   <div className="text-right">
                     <Link href={step.href} target={step.href.startsWith('http') ? '_blank' : undefined} rel={step.href.startsWith('http') ? 'noopener noreferrer' : undefined} className="text-xs text-sky-600 hover:underline font-medium">{step.resource} →</Link>
@@ -242,7 +243,7 @@ export default function JourneyPage() {
       )}
 
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-        <h2 className="text-lg font-bold text-bleepx-text mb-3">🦾 Bleepx Assistant Hints</h2>
+        <h2 className="text-lg font-bold text-bleepx-text mb-3 flex items-center gap-2"><BrainIcon size={20} /> Bleepx Assistant Hints</h2>
         <ul className="text-sm text-bleepx-text-secondary space-y-2 list-disc pl-4">
           <li><strong>Start small.</strong> Pick one SQL case and one Python lab before taking on cloud or ML.</li>
           <li><strong>Do the sandbox scenarios.</strong> BleepxBank, BleepxRetail, and BleepxHealth are built to teach real AWS decisions.</li>

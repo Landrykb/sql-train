@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import Link from 'next/link';
 import BleepxLogo from '@/components/BleepxLogo';
 import AchievementNotification from '@/components/AchievementNotification';
+import { CloudProviderIcon, GuideIcon, BoltIcon, FlaskIcon, ToolsIcon, ChartBarIcon, SendIcon, WorldIcon } from '@/components/AppIcons';
 import { useProgress } from '@/lib/useProgress';
 import {
   CLOUD_PROVIDER_META,
@@ -68,31 +69,13 @@ export default function CloudHomePage() {
             Become <strong className="text-white">cloud-certified and job-ready</strong>. Architect real systems across the big three providers, then go transversal — decarbonization, carbon markets, fintech, healthcare and more. From <strong className="text-white">EC2 to net-zero</strong>.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="#tracks" className="px-5 py-2.5 rounded-full bg-white text-blue-700 font-semibold text-sm hover:bg-gray-100 transition-colors shadow-lg">
+            <Link href="#tracks" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white text-blue-700 font-semibold text-sm hover:bg-gray-100 transition-colors shadow-lg">
               Explore Tracks
             </Link>
-            <Link href="/cloud/trials" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
-              ⚡ Trials Arena
-            </Link>
-            <Link href="/cloud/guide" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
-              📖 Cloud Guide
+            <Link href="/cloud/guide" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
+              <GuideIcon size={16} /> Cloud Guide
             </Link>
           </div>
-        </div>
-      </div>
-
-      {/* Verse Toggle */}
-      <div className="flex items-center justify-center">
-        <div className="inline-flex flex-wrap justify-center rounded-full bg-bleepx-white border border-bleepx-border shadow-sm p-1 gap-1">
-          <Link href="/" className="px-4 py-1.5 rounded-full text-sm font-medium text-bleepx-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            🔷 BleepxQuery
-          </Link>
-          <Link href="/lab" className="px-4 py-1.5 rounded-full text-sm font-medium text-bleepx-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            🔬 BleepxLab
-          </Link>
-          <span className="px-4 py-1.5 rounded-full text-sm font-bold bg-sky-600 text-white">
-            ☁️ BleepxCloud
-          </span>
         </div>
       </div>
 
@@ -130,13 +113,13 @@ export default function CloudHomePage() {
         className="group block bg-gradient-to-br from-indigo-900 via-blue-800 to-sky-900 border-2 border-sky-500/30 rounded-xl shadow-lg hover:shadow-sky-500/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
       >
         <div className="p-5 flex items-center gap-4">
-          <div className="text-3xl">⚡</div>
+          <div className="text-sky-300 flex-shrink-0"><BoltIcon size={32} /></div>
           <div className="flex-1 min-w-0">
             <h3 className="font-extrabold text-white text-lg group-hover:text-sky-300 transition-colors">Trials Arena</h3>
             <p className="text-sm text-gray-400 mt-0.5">Rapid-fire scenario questions across AWS, Azure, GCP, ESG & FinOps — score 70%+ to earn points.</p>
             <div className="mt-2 flex items-center gap-3">
               <span className="text-xs text-gray-500">Pick a track or go multi-cloud</span>
-              <span className="text-sky-400 text-xs">📖 Cloud Guide available</span>
+              <span className="text-sky-400 text-xs inline-flex items-center gap-1"><GuideIcon size={14} /> Cloud Guide available</span>
             </div>
           </div>
           <svg className="w-5 h-5 text-sky-400 group-hover:translate-x-1 transition-transform flex-shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -152,7 +135,7 @@ export default function CloudHomePage() {
           className="group block bg-gradient-to-br from-sky-900 via-blue-900 to-indigo-900 border border-sky-500/30 rounded-xl shadow-lg hover:shadow-sky-500/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
         >
           <div className="p-5 flex items-center gap-4">
-            <div className="text-3xl">🧪</div>
+            <div className="text-sky-300 flex-shrink-0"><FlaskIcon size={32} /></div>
             <div className="flex-1 min-w-0">
               <h3 className="font-extrabold text-white text-lg group-hover:text-sky-300 transition-colors">Cloud Sandbox</h3>
               <p className="text-sm text-gray-400 mt-0.5">Hands-on S3, IAM, EC2, and VPC simulation. No AWS account required — inspired by local cloud emulators like Floci.</p>
@@ -168,7 +151,7 @@ export default function CloudHomePage() {
           className="group block bg-gradient-to-br from-teal-900 via-emerald-900 to-blue-900 border border-teal-500/30 rounded-xl shadow-lg hover:shadow-teal-500/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
         >
           <div className="p-5 flex items-center gap-4">
-            <div className="text-3xl">🛠️</div>
+            <div className="text-teal-300 flex-shrink-0"><ToolsIcon size={32} /></div>
             <div className="flex-1 min-w-0">
               <h3 className="font-extrabold text-white text-lg group-hover:text-teal-300 transition-colors">ETL Pipeline Canvas</h3>
               <p className="text-sm text-gray-400 mt-0.5">Extract from Kaggle / data.world, run SQL and Python transforms, then load the final CSV into the S3 sandbox.</p>
@@ -196,8 +179,8 @@ export default function CloudHomePage() {
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${meta.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
                 <div className="p-4 sm:p-5 flex items-start gap-3 sm:gap-4">
-                  <div className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${meta.color} flex items-center justify-center text-2xl shadow-md`}>
-                    {meta.icon}
+                  <div className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${meta.color} flex items-center justify-center shadow-md`}>
+                    <CloudProviderIcon provider={p} size={24} className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -213,7 +196,7 @@ export default function CloudHomePage() {
                     </div>
                     <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-0.5 line-clamp-2">{meta.desc}</p>
                     <div className="mt-2 flex items-center gap-2 flex-wrap">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary font-medium">📈 {levelRange(CLOUD_MISSIONS[p])}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary font-medium inline-flex items-center gap-1"><ChartBarIcon size={12} /> {levelRange(CLOUD_MISSIONS[p])}</span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary font-medium">{s.total} missions</span>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
@@ -232,7 +215,7 @@ export default function CloudHomePage() {
 
       {/* Transversal callout */}
       <div className="rounded-xl border border-bleepx-border bg-bleepx-white p-5 sm:p-6">
-        <h2 className="text-lg font-bold text-bleepx-text mb-2">🌍 Transversal by design</h2>
+        <h2 className="text-lg font-bold text-bleepx-text mb-2 flex items-center gap-2"><WorldIcon size={22} /> Transversal by design</h2>
         <p className="text-sm text-bleepx-text-secondary leading-relaxed">
           BleepxCloud isn&apos;t just buttons in a console. The <strong className="text-bleepx-text">ESG &amp; Decarbonization</strong> track connects to the BleepxLab carbon &amp; farming projects, while <strong className="text-bleepx-text">Finance &amp; Industry</strong> brings FinOps, real-time fraud, retail, healthcare, media and gaming blueprints. You learn the service <em>and</em> the business problem it solves.
         </p>
@@ -242,7 +225,7 @@ export default function CloudHomePage() {
       
       <div className="text-center pt-2">
         <Link href="/profile?tab=exports" className="inline-flex items-center gap-1.5 text-sm text-sky-600 hover:underline font-medium">
-          📤 Draft Your Report (Export to GitHub)
+          <SendIcon size={16} /> Draft Your Report (Export to GitHub)
         </Link>
       </div>
     </main>

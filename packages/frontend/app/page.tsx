@@ -6,19 +6,20 @@ import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
 import BleepxLogo from '@/components/BleepxLogo';
 import { BleepxWave, BleepxGhost, BleepxSpark, BleepxFace, BleepxGit, BleepxSignal } from '@/components/BleepxIcons';
+import { DomainIcon, StarRating, GuideIcon, BoltIcon, FlaskIcon, CodeIcon } from '@/components/AppIcons';
 import { useProgress } from '@/lib/useProgress';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
 import { LAB_CASE_ORDER } from '@/lib/labConstants';
 
-const domainMeta: Record<string, { icon: string; desc: string; color: string; difficulty: string; stars: number }> = {
-  business: { icon: '🏬', desc: 'Retail analytics, revenue optimization & customer insights', color: 'from-blue-500 to-blue-700', difficulty: 'Beginner', stars: 1 },
-  crime: { icon: '🔍', desc: 'Chicago crime patterns, geospatial analysis & suspect tracking', color: 'from-red-500 to-red-700', difficulty: 'Beginner', stars: 1 },
-  farming: { icon: '🌾', desc: 'NDVI vegetation indices, crop yield prediction & soil analysis', color: 'from-green-500 to-green-700', difficulty: 'Intermediate', stars: 2 },
-  finance: { icon: '📈', desc: 'Stock trading signals, portfolio risk & market analytics', color: 'from-purple-500 to-purple-700', difficulty: 'Intermediate', stars: 2 },
-  healthcare: { icon: '🏥', desc: 'Patient records, diagnosis patterns & treatment outcomes', color: 'from-teal-500 to-teal-700', difficulty: 'Intermediate', stars: 2 },
-  social: { icon: '💬', desc: 'Twitter engagement, user networks & sentiment analysis', color: 'from-pink-500 to-pink-700', difficulty: 'Intermediate', stars: 2 },
-  space: { icon: '🚀', desc: 'Near-Earth objects, orbital mechanics & hazard detection', color: 'from-indigo-500 to-indigo-700', difficulty: 'Advanced', stars: 3 },
-  sports: { icon: '🏀', desc: 'NBA game stats, player performance & shot analytics', color: 'from-orange-500 to-orange-700', difficulty: 'Advanced', stars: 3 },
+const domainMeta: Record<string, { desc: string; color: string; difficulty: string; stars: number }> = {
+  business: { desc: 'Retail analytics, revenue optimization & customer insights', color: 'from-blue-500 to-blue-700', difficulty: 'Beginner', stars: 1 },
+  crime: { desc: 'Chicago crime patterns, geospatial analysis & suspect tracking', color: 'from-red-500 to-red-700', difficulty: 'Beginner', stars: 1 },
+  farming: { desc: 'NDVI vegetation indices, crop yield prediction & soil analysis', color: 'from-green-500 to-green-700', difficulty: 'Intermediate', stars: 2 },
+  finance: { desc: 'Stock trading signals, portfolio risk & market analytics', color: 'from-purple-500 to-purple-700', difficulty: 'Intermediate', stars: 2 },
+  healthcare: { desc: 'Patient records, diagnosis patterns & treatment outcomes', color: 'from-teal-500 to-teal-700', difficulty: 'Intermediate', stars: 2 },
+  social: { desc: 'Twitter engagement, user networks & sentiment analysis', color: 'from-pink-500 to-pink-700', difficulty: 'Intermediate', stars: 2 },
+  space: { desc: 'Near-Earth objects, orbital mechanics & hazard detection', color: 'from-indigo-500 to-indigo-700', difficulty: 'Advanced', stars: 3 },
+  sports: { desc: 'NBA game stats, player performance & shot analytics', color: 'from-orange-500 to-orange-700', difficulty: 'Advanced', stars: 3 },
 };
 
 const domains = Object.keys(domainMeta);
@@ -51,31 +52,13 @@ export default function HomePage() {
             Master SQL through <strong className="text-white">real-world data challenges</strong>. Progress from beginner to expert across 8 industry domains, tackle timed trials, unlock hidden bonus missions, and build a GitHub portfolio.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/cases" className="px-5 py-2.5 rounded-full bg-white text-bleepx-blue font-semibold text-sm hover:bg-gray-100 transition-colors shadow-lg">
+            <Link href="/cases" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white text-bleepx-blue font-semibold text-sm hover:bg-gray-100 transition-colors shadow-lg">
               Start Training
             </Link>
-            <Link href="/cases/guide" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
-              📖 SQL Reference Guide
-            </Link>
-            <Link href="/lab" className="px-5 py-2.5 rounded-full border border-teal-400/40 text-teal-200 font-medium text-sm hover:bg-teal-500/20 transition-colors">
-              🔬 BleepxLab
+            <Link href="/cases/guide" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
+              <GuideIcon size={16} /> SQL Reference Guide
             </Link>
           </div>
-        </div>
-      </div>
-
-      {/* Verse Toggle */}
-      <div className="flex items-center justify-center">
-        <div className="inline-flex flex-wrap justify-center rounded-full bg-bleepx-white border border-bleepx-border shadow-sm p-1 gap-1">
-          <span className="px-4 py-1.5 rounded-full text-sm font-bold bg-bleepx-blue text-white">
-            🔷 BleepxQuery
-          </span>
-          <Link href="/lab" className="px-4 py-1.5 rounded-full text-sm font-medium text-bleepx-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            🔬 BleepxLab
-          </Link>
-          <Link href="/cloud" className="px-4 py-1.5 rounded-full text-sm font-medium text-bleepx-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            ☁️ BleepxCloud
-          </Link>
         </div>
       </div>
 
@@ -134,7 +117,7 @@ export default function HomePage() {
                 <span className="text-xs text-gray-500">
                   {caseOrder.trials?.filter((id: string) => completed?.has(id)).length || 0}/{caseOrder.trials?.length || 5} cleared
                 </span>
-                <span className="text-amber-400 text-xs">⚡ Timed Mode</span>
+                <span className="text-amber-400 text-xs inline-flex items-center gap-1"><BoltIcon size={14} /> Timed Mode</span>
               </div>
             </div>
             <svg className="w-5 h-5 text-indigo-400 group-hover:translate-x-1 transition-transform flex-shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -169,7 +152,7 @@ export default function HomePage() {
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${meta.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
                 <div className="p-4 sm:p-5 flex items-start gap-3 sm:gap-4">
-                  <div className="text-2xl sm:text-3xl flex-shrink-0 pt-0.5">{meta.icon}</div>
+                  <div className="text-bleepx-text flex-shrink-0 pt-0.5"><DomainIcon domain={d} size={26} /></div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="font-bold text-bleepx-text capitalize text-base sm:text-lg group-hover:text-bleepx-blue transition-colors">
@@ -182,7 +165,7 @@ export default function HomePage() {
                     <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-0.5 line-clamp-2">{meta.desc}</p>
                     <div className="mt-2 flex items-center gap-2">
                       <span className="text-[10px] sm:text-xs text-bleepx-text-secondary">{meta.difficulty}</span>
-                      <span className="text-amber-400 text-[10px]">{'⭐'.repeat(meta.stars)}</span>
+                      <StarRating stars={meta.stars} size={12} />
                     </div>
                     <div className="mt-2 flex items-center gap-2">
                       <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -214,7 +197,7 @@ export default function HomePage() {
         >
           <div className="absolute inset-0 bg-[url('/bleepx-logo.png')] bg-center bg-no-repeat opacity-5 bg-contain" />
           <div className="relative p-5 sm:p-6 flex items-center gap-4">
-            <div className="flex-shrink-0 text-3xl">🔬</div>
+            <div className="flex-shrink-0 text-teal-300"><FlaskIcon size={32} /></div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <h3 className="font-extrabold text-white text-lg sm:text-xl group-hover:text-teal-300 transition-colors">
@@ -229,7 +212,7 @@ export default function HomePage() {
               </p>
               <div className="mt-3 flex items-center gap-3">
                 <span className="text-xs text-gray-500">{labCompleted}/{allLabIds.length} steps done</span>
-                <span className="text-teal-400 text-xs">🐍 Python + R</span>
+                <span className="text-teal-400 text-xs inline-flex items-center gap-1"><CodeIcon size={14} /> Python + R</span>
                 {labPct > 0 && (
                   <div className="flex items-center gap-1.5">
                     <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">

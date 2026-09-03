@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { AlertIcon, RefreshIcon } from '@/components/AppIcons';
 
 export default function CaseError({
   error,
@@ -18,7 +19,7 @@ export default function CaseError({
     <div className="max-w-4xl mx-auto p-8 bg-bleepx-bg min-h-screen">
       <div className="rounded-xl shadow-lg p-6 bg-bleepx-white border border-red-200 dark:border-red-800">
         <div className="flex items-center gap-3 mb-4">
-          <span className="text-3xl">⚠️</span>
+          <AlertIcon size={32} className="text-amber-500" />
           <div>
             <h2 className="text-xl font-bold text-red-700 dark:text-red-400">Failed to load challenge</h2>
             <p className="text-sm text-bleepx-text-secondary mt-1">
@@ -32,9 +33,9 @@ export default function CaseError({
         <div className="flex gap-3">
           <button
             onClick={reset}
-            className="px-4 py-2 rounded-full bg-bleepx-blue text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 rounded-full bg-bleepx-blue text-white text-sm font-medium hover:bg-blue-700 transition-colors inline-flex items-center gap-1"
           >
-            🔄 Try Again
+            <RefreshIcon size={16} /> Try Again
           </button>
           <Link href="/cases" className="px-4 py-2 rounded-full border border-bleepx-border text-bleepx-text text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
             ← Back to Cases

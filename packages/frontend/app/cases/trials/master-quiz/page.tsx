@@ -8,6 +8,7 @@ import BleepxLogo from '@/components/BleepxLogo';
 import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
 import MasterQuiz from '@/components/MasterQuiz';
+import { BrainIcon } from '@/components/AppIcons';
 import { caseOrder, fullCaseOrder, CASE_TIERS } from '@/lib/constants';
 
 export const metadata: Metadata = {
@@ -61,7 +62,7 @@ export default async function MasterQuizPage() {
       <div className="flex items-center gap-2">
         <BleepxLogo />
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text">🧠 Master SQL Quiz</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text flex items-center gap-2"><BrainIcon size={26} /> Master SQL Quiz</h1>
           <p className="text-xs sm:text-sm text-bleepx-text-secondary">All skills, all trials — one mega quiz. No locks.</p>
         </div>
       </div>

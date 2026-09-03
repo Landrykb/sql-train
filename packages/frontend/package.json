@@ -25,6 +25,7 @@
     "@codemirror/view": "6.39.15",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.105.1",
+    "@tabler/icons-react": "3.46.0",
     "@types/dompurify": "^3.2.0",
     "@uiw/react-codemirror": "4.25.4",
     "axios": ">=1.18.0",

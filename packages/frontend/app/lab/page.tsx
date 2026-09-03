@@ -5,6 +5,7 @@ import Link from 'next/link';
 import BleepxLogo from '@/components/BleepxLogo';
 import { BleepxWave, BleepxGhost, BleepxSpark, BleepxFace, BleepxGit, BleepxSignal } from '@/components/BleepxIcons';
 import AchievementNotification from '@/components/AchievementNotification';
+import { LabDomainIcon, StarRating, GuideIcon, BrainIcon, TrophyIcon, SendIcon } from '@/components/AppIcons';
 import { LAB_DOMAIN_META, LAB_CASE_ORDER } from '@/lib/labConstants';
 import { useProgress } from '@/lib/useProgress';
 
@@ -38,34 +39,13 @@ export default function LabHomePage() {
             Build <strong className="text-white">real data science projects</strong> step by step. From EDA to ML models — transport delays, fraud detection, ESG analytics, and more.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/lab#projects" className="px-5 py-2.5 rounded-full bg-white text-teal-700 font-semibold text-sm hover:bg-gray-100 transition-colors shadow-lg">
+            <Link href="/lab#projects" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white text-teal-700 font-semibold text-sm hover:bg-gray-100 transition-colors shadow-lg">
               Explore Projects
             </Link>
-            <Link href="/lab/guide" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
-              📖 DS Guide
-            </Link>
-            <Link href="/" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
-              🔷 BleepxQuery (SQL)
-            </Link>
-            <Link href="/cloud" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
-              ☁️ BleepxCloud
+            <Link href="/lab/guide" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
+              <GuideIcon size={16} /> DS Guide
             </Link>
           </div>
-        </div>
-      </div>
-
-      {/* Verse Toggle */}
-      <div className="flex items-center justify-center">
-        <div className="inline-flex flex-wrap justify-center rounded-full bg-bleepx-white border border-bleepx-border shadow-sm p-1 gap-1">
-          <Link href="/" className="px-4 py-1.5 rounded-full text-sm font-medium text-bleepx-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            🔷 BleepxQuery
-          </Link>
-          <span className="px-4 py-1.5 rounded-full text-sm font-bold bg-teal-600 text-white">
-            🔬 BleepxLab
-          </span>
-          <Link href="/cloud" className="px-4 py-1.5 rounded-full text-sm font-medium text-bleepx-text-secondary hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            ☁️ BleepxCloud
-          </Link>
         </div>
       </div>
 
@@ -103,13 +83,13 @@ export default function LabHomePage() {
         className="group block bg-gradient-to-br from-purple-900 via-indigo-800 to-violet-900 border-2 border-purple-500/30 rounded-xl shadow-lg hover:shadow-purple-500/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
       >
         <div className="p-5 flex items-center gap-4">
-          <div className="text-3xl">🧠</div>
+          <div className="text-purple-300 flex-shrink-0"><BrainIcon size={32} /></div>
           <div className="flex-1 min-w-0">
             <h3 className="font-extrabold text-white text-lg group-hover:text-purple-300 transition-colors">Data Science Quizzes</h3>
             <p className="text-sm text-gray-400 mt-0.5">Test your knowledge — statistics, ML, Python, LLMs, AWS & more.</p>
             <div className="mt-2 flex items-center gap-3">
               <span className="text-xs text-gray-500">Per-project quizzes</span>
-              <span className="text-purple-400 text-xs">🏆 Master Quiz available</span>
+              <span className="text-purple-400 text-xs inline-flex items-center gap-1"><TrophyIcon size={14} /> Master Quiz available</span>
             </div>
           </div>
           <svg className="w-5 h-5 text-purple-400 group-hover:translate-x-1 transition-transform flex-shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -137,7 +117,7 @@ export default function LabHomePage() {
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${meta.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
                 <div className="p-4 sm:p-5 flex items-start gap-3 sm:gap-4">
-                  <div className="text-2xl sm:text-3xl flex-shrink-0 pt-0.5">{meta.icon}</div>
+                  <div className="text-bleepx-text flex-shrink-0 pt-0.5"><LabDomainIcon domain={d} size={26} /></div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="font-bold text-bleepx-text text-base sm:text-lg group-hover:text-teal-600 transition-colors">
@@ -147,7 +127,7 @@ export default function LabHomePage() {
                     <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-0.5 line-clamp-2">{meta.desc}</p>
                     <div className="mt-2 flex items-center gap-3 flex-wrap">
                       <span className="text-[10px] sm:text-xs text-bleepx-text-secondary">{meta.difficulty}</span>
-                      <span className="text-amber-400 text-[10px]">{'⭐'.repeat(meta.stars)}</span>
+                      <StarRating stars={meta.stars} size={12} />
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 font-medium">{meta.language}</span>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
@@ -198,7 +178,7 @@ export default function LabHomePage() {
       
       <div className="text-center pt-2">
         <Link href="/profile?tab=exports" className="inline-flex items-center gap-1.5 text-sm text-teal-600 hover:underline font-medium">
-          📤 Draft Your Report (Export to GitHub)
+          <SendIcon size={16} /> Draft Your Report (Export to GitHub)
         </Link>
       </div>
     </main>

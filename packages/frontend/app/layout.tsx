@@ -36,14 +36,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <script dangerouslySetInnerHTML={{__html: '(function(){document.querySelectorAll("[id*=ton],[id*=tron],[id*=wallet]").forEach(e=>e.remove());setTimeout(()=>document.querySelectorAll("[id*=ton],[id*=tron],[id*=wallet]").forEach(e=>e.remove()),100);const originalError=console.error;console.error=function(...e){if(typeof e[0]==="string"&&(e[0].includes("418")||e[0].includes("hydration")||e[0].includes("Text content")))return;originalError.apply(console,e)}})()'}} />
       </head>
-      <body className="bg-bleepx-bg min-h-screen font-sans overflow-x-hidden pb-24" suppressHydrationWarning>
+      <body className="bg-bleepx-bg min-h-screen flex flex-col font-sans overflow-x-hidden" suppressHydrationWarning>
         <ErrorBoundary>
           <AnalyticsProvider>
             <NavHeader />
-            <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-8 text-bleepx-text">
+            <main className="flex-1 flex flex-col max-w-5xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-8 text-bleepx-text">
               {children}
             </main>
-            <footer className="bg-bleepx-white text-bleepx-text-secondary py-3 sm:py-4 border-t border-bleepx-border">
+            <footer className="bg-bleepx-white text-bleepx-text-secondary py-3 sm:py-4 pb-24 border-t border-bleepx-border">
               <div className="max-w-5xl mx-auto px-3 sm:px-6 text-center text-xs sm:text-sm space-y-1">
                 <p>&copy; {new Date().getFullYear()} Bleepx &mdash; All rights reserved.</p>
                 <p className="flex flex-wrap justify-center items-center gap-3 text-[11px]">

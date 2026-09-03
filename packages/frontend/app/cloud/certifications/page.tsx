@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { SchoolIcon, FormsIcon, ToolsIcon, FlaskIcon, MapIcon } from '@/components/AppIcons';
 
 interface JourneyStep {
   id: string;
@@ -141,24 +142,24 @@ export default function CertificationsPage() {
       {/* Hero */}
       <div className="bg-gradient-to-br from-sky-600 via-indigo-600 to-violet-700 rounded-2xl p-6 sm:p-10 text-white">
         <div className="flex items-center gap-3 mb-3">
-          <span className="text-3xl">🎓</span>
+          <SchoolIcon size={40} className="text-white" />
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">AWS Solutions Architect – Associate</h1>
         </div>
         <p className="text-white/80 text-sm sm:text-lg max-w-2xl leading-relaxed">
           Bleepx is building a fully integrated learning journey: SQL → Python → Data Science → ML → ETL → Cloud → SAA. Use this page as your master plan. It maps every SAA-C03 domain to hands-on labs, sandbox exercises, and missions.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/cloud/certifications/practice" className="px-5 py-2.5 rounded-full bg-white text-indigo-700 font-semibold text-sm hover:bg-gray-100 transition-colors shadow-lg">
-            📝 Take Practice Exam
+          <Link href="/cloud/certifications/practice" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white text-indigo-700 font-semibold text-sm hover:bg-gray-100 transition-colors shadow-lg">
+            <FormsIcon size={16} /> Take Practice Exam
           </Link>
-          <Link href="/cloud/sandbox" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-semibold text-sm hover:bg-white/10 transition-colors">
+          <Link href="/cloud/sandbox" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-semibold text-sm hover:bg-white/10 transition-colors">
             Open Cloud Sandbox
           </Link>
-          <Link href="/cloud/pipelines" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
-            🛠️ ETL Pipeline
+          <Link href="/cloud/pipelines" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
+            <ToolsIcon size={16} /> ETL Pipeline
           </Link>
-          <Link href="/lab" className="px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
-            🔬 BleepxLab
+          <Link href="/lab" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full border border-white/30 text-white/90 font-medium text-sm hover:bg-white/10 transition-colors">
+            <FlaskIcon size={16} /> BleepxLab
           </Link>
         </div>
       </div>
@@ -177,7 +178,7 @@ export default function CertificationsPage() {
 
       {/* Foundation track */}
       <div className="bg-bleepx-white rounded-xl p-5 border border-bleepx-border shadow-sm">
-        <h2 className="text-lg font-bold text-bleepx-text mb-3">🗺️ Master Plan: From Zero to SAA</h2>
+        <h2 className="text-lg font-bold text-bleepx-text mb-3 flex items-center gap-2"><MapIcon size={20} /> Master Plan: From Zero to SAA</h2>
         <p className="text-sm text-bleepx-text-secondary mb-4">Follow this sequence. Each step unlocks the vocabulary and skills needed for the next.</p>
         <div className="grid gap-2">
           {FOUNDATION_TRACK.map((step, idx) => (
@@ -251,7 +252,7 @@ export default function CertificationsPage() {
 
       {/* Exam tips */}
       <div className="bg-bleepx-white rounded-xl p-5 border border-bleepx-border shadow-sm">
-        <h2 className="text-lg font-bold text-bleepx-text mb-2">📝 Exam Strategy</h2>
+        <h2 className="text-lg font-bold text-bleepx-text mb-2 flex items-center gap-2"><FormsIcon size={20} /> Exam Strategy</h2>
         <ul className="text-sm text-bleepx-text-secondary space-y-2 list-disc pl-4">
           <li><strong>Start with scenarios, not facts.</strong> SAA questions are scenario-based. The BleepxCloud missions put you in the architect's seat.</li>
           <li><strong>Master the pillars.</strong> Every answer should balance security, resilience, performance, and cost.</li>

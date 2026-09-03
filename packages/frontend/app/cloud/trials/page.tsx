@@ -7,6 +7,7 @@ import { useProgress } from '@/lib/useProgress';
 import { playBleep } from '@/lib/audio';
 import { cloudTrials, TRIAL_PROVIDERS, type CloudTrialQuestion, isAnswerCorrect } from '@/lib/cloud/trials';
 import { CLOUD_PROVIDER_META } from '@/lib/cloud';
+import { CloudProviderIcon, BoltIcon, TrophyIcon, BarbellIcon, BulbIcon, CheckBadge, DiceIcon, WorldIcon } from '@/components/AppIcons';
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -18,7 +19,11 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 const providerLabel = (p: string) =>
-  p === 'multi' ? '🌐 Multi-Cloud' : `${CLOUD_PROVIDER_META[p as keyof typeof CLOUD_PROVIDER_META]?.icon || ''} ${CLOUD_PROVIDER_META[p as keyof typeof CLOUD_PROVIDER_META]?.short || p}`;
+  p === 'multi' ? (
+    <span className="inline-flex items-center gap-1"><WorldIcon size={14} /> Multi-Cloud</span>
+  ) : (
+    <span className="inline-flex items-center gap-1"><CloudProviderIcon provider={p as any} size={14} /> {CLOUD_PROVIDER_META[p as keyof typeof CLOUD_PROVIDER_META]?.short || p}</span>
+  );
 
 export default function CloudTrialsPage() {
   const { markComplete, completed } = useProgress();
@@ -102,7 +107,7 @@ export default function CloudTrialsPage() {
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-600 p-6 text-white">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
         <div className="relative z-10">
-          <h1 className="text-2xl sm:text-3xl font-bold">⚡ Trials Arena</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2"><BoltIcon size={26} /> Trials Arena</h1>
           <p className="text-white/85 text-sm mt-1">Rapid-fire scenario questions across every cloud track. Score 70%+ to earn points.</p>
         </div>
       </div>
@@ -112,8 +117,8 @@ export default function CloudTrialsPage() {
           <div>
             <h2 className="text-sm font-bold text-bleepx-text mb-2">Pick a track</h2>
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => setFilter('all')} className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === 'all' ? 'bg-sky-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
-                🎲 All ({cloudTrials.length})
+              <button onClick={() => setFilter('all')} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === 'all' ? 'bg-sky-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
+                <DiceIcon size={14} /> All ({cloudTrials.length})
               </button>
               {TRIAL_PROVIDERS.map((p) => {
                 const count = cloudTrials.filter((q) => q.provider === p).length;
@@ -132,7 +137,7 @@ export default function CloudTrialsPage() {
         </div>
       ) : finished ? (
         <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-6 shadow-sm text-center space-y-3">
-          <div className="text-4xl">{finalPct >= 70 ? '🏆' : '💪'}</div>
+          <div className="flex justify-center">{finalPct >= 70 ? <TrophyIcon size={48} className="text-amber-400" /> : <BarbellIcon size={48} className="text-sky-500" />}</div>
           <h2 className="text-xl font-bold text-bleepx-text">{score}/{questions.length} — {finalPct}%</h2>
           <p className="text-sm text-bleepx-text-secondary">
             {finalPct >= 70 ? '*bleep* Certified-ready performance, human. +20 pts.' : 'Solid effort. Review the guide and run it back.'}
@@ -187,7 +192,7 @@ export default function CloudTrialsPage() {
                       <span className={`w-4 h-4 rounded border flex items-center justify-center ${
                         isSel ? 'bg-sky-500 border-sky-500 text-white' : 'border-gray-300 dark:border-gray-600'
                       }`}>
-                        {isSel && '✓'}
+                        {isSel && <CheckBadge size={12} className="text-white" />}
                       </span>
                     )}
                     <span>{opt}</span>
@@ -202,7 +207,7 @@ export default function CloudTrialsPage() {
               onClick={() => setShowHint(!showHint)}
               className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
             >
-              {showHint ? 'Hide Hint' : '💡 Need a hint?'}
+              {showHint ? 'Hide Hint' : <span className="inline-flex items-center gap-1"><BulbIcon size={14} /> Need a hint?</span>}
             </button>
           )}
           {showHint && q.hint && !revealed && (

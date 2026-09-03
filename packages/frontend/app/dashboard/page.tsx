@@ -7,6 +7,8 @@ import { caseOrder, fullCaseOrder } from '@/lib/constants';
 import { LAB_CASE_ORDER, LAB_DOMAIN_META } from '@/lib/labConstants';
 import { CLOUD_MISSIONS, CLOUD_PROVIDER_META, cloudMissionId, type CloudProvider } from '@/lib/cloud';
 import { BleepxFace } from '@/components/BleepxIcons';
+import { VerseIcon } from '@/components/NavIcons';
+import { TargetIcon, SchoolIcon, EditIcon } from '@/components/AppIcons';
 
 const SQL_DOMAINS = Object.keys(caseOrder);
 const SAA_STORAGE = 'bleepx-saa-checklist';
@@ -105,11 +107,11 @@ export default function DashboardPage() {
     return sqlStats.next || { title: 'Start your journey', href: '/journey', verse: 'Journey', pct: 0 };
   }, [sqlStats, labStats, cloudStats, journey]);
 
-  const verseCard = (label: string, icon: string, done: number, total: number, pct: number, color: string, next?: NextStep | null) => (
+  const verseCard = (label: string, icon: React.ReactNode, done: number, total: number, pct: number, color: string, next?: NextStep | null) => (
     <div className="bg-bleepx-white rounded-xl p-5 border border-bleepx-border shadow-sm space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xl">{icon}</span>
+          <span className="text-bleepx-text">{icon}</span>
           <h2 className="font-bold text-bleepx-text">{label}</h2>
         </div>
         <span className="text-2xl font-bold" style={{ color }}>{pct}%</span>
@@ -136,7 +138,7 @@ export default function DashboardPage() {
       </nav>
 
       <div className="bg-gradient-to-br from-sky-600 via-indigo-600 to-violet-700 rounded-2xl p-6 sm:p-10 text-white">
-        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">🎯 Cross-Verse Dashboard</h1>
+        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2 flex items-center gap-3"><TargetIcon size={32} className="text-white" /> Cross-Verse Dashboard</h1>
         <p className="text-white/80 text-sm sm:text-lg max-w-2xl">All your progress in one place — SQL, Python, Data Science, Cloud, and SAA.</p>
       </div>
 
@@ -156,10 +158,10 @@ export default function DashboardPage() {
 
       {/* Verse cards */}
       <div className="grid sm:grid-cols-2 gap-4">
-        {verseCard('BleepxQuery', '🔷', sqlStats.done, sqlStats.total, sqlStats.pct, '#f43f5e', sqlStats.next)}
-        {verseCard('BleepxLab', '🔬', labStats.done, labStats.total, labStats.pct, '#10b981', labStats.next)}
-        {verseCard('BleepxCloud', '☁️', cloudStats.done, cloudStats.total, cloudStats.pct, '#0ea5e9', cloudStats.next)}
-        {verseCard('SAA', '🎓', saaStats.done, saaStats.total, saaStats.pct, '#8b5cf6', saaStats.next)}
+        {verseCard('BleepxQuery', <VerseIcon verse="query" size={22} className="text-bleepx-blue" />, sqlStats.done, sqlStats.total, sqlStats.pct, '#f43f5e', sqlStats.next)}
+        {verseCard('BleepxLab', <VerseIcon verse="lab" size={22} className="text-emerald-500" />, labStats.done, labStats.total, labStats.pct, '#10b981', labStats.next)}
+        {verseCard('BleepxCloud', <VerseIcon verse="cloud" size={22} className="text-sky-500" />, cloudStats.done, cloudStats.total, cloudStats.pct, '#0ea5e9', cloudStats.next)}
+        {verseCard('SAA', <SchoolIcon size={22} className="text-violet-500" />, saaStats.done, saaStats.total, saaStats.pct, '#8b5cf6', saaStats.next)}
       </div>
 
       {/* Achievements + points */}
@@ -176,7 +178,7 @@ export default function DashboardPage() {
       {/* Journey card */}
       <div className="text-center">
         <Link href="/journey" className="inline-flex items-center gap-2 text-sm text-sky-600 hover:underline font-medium">
-          ✏️ Edit your journey goals
+          <EditIcon size={16} /> Edit your journey goals
         </Link>
       </div>
     </main>

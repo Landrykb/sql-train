@@ -7,6 +7,8 @@ import Link from 'next/link';
 import BleepxLogo from '@/components/BleepxLogo';
 import AchievementNotification from '@/components/AchievementNotification';
 import { CaseInterpretationButton } from '@/components/CaseInterpretationButton';
+import { LabDomainIcon, StarRating, ChartBarIcon } from '@/components/AppIcons';
+import { VerseIcon } from '@/components/NavIcons';
 import { LAB_DOMAIN_META, LAB_DOMAIN_FOLDER_MAP, LAB_CASE_ORDER } from '@/lib/labConstants';
 
 export function generateStaticParams() {
@@ -74,17 +76,17 @@ export default async function LabDomainPage({ params }: { params: Promise<{ doma
 
       {/* Header */}
       <div className="flex items-start gap-3">
-        <span className="text-3xl sm:text-4xl">{meta.icon}</span>
+        <span className="text-bleepx-text"><LabDomainIcon domain={domain} size={36} /></span>
         <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text">{meta.name}</h1>
           <p className="text-sm text-bleepx-text-secondary mt-1">{meta.desc}</p>
           <div className="mt-2 flex items-center gap-3 flex-wrap">
             <span className="text-xs text-bleepx-text-secondary">{meta.difficulty}</span>
-            <span className="text-amber-400 text-xs">{'⭐'.repeat(meta.stars)}</span>
+            <StarRating stars={meta.stars} size={12} />
             <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 font-medium">{meta.language}</span>
             {meta.dataset_url && (
-              <a href={meta.dataset_url} target="_blank" rel="noopener noreferrer" className="text-xs text-teal-600 hover:underline">
-                📊 Dataset →
+              <a href={meta.dataset_url} target="_blank" rel="noopener noreferrer" className="text-xs text-teal-600 hover:underline inline-flex items-center gap-1">
+                <ChartBarIcon size={12} /> Dataset →
               </a>
             )}
           </div>
@@ -152,7 +154,7 @@ export default async function LabDomainPage({ params }: { params: Promise<{ doma
       {/* Back */}
       <div className="flex gap-3">
         <Link href="/lab" className="text-sm text-teal-600 hover:underline font-medium">← All Projects</Link>
-        <Link href="/" className="text-sm text-bleepx-blue hover:underline font-medium">🔷 BleepxQuery</Link>
+        <Link href="/" className="text-sm text-bleepx-blue hover:underline font-medium inline-flex items-center gap-1"><VerseIcon verse="query" size={14} /> BleepxQuery</Link>
       </div>
 
       <AchievementNotification />
