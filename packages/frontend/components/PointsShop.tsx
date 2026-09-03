@@ -98,6 +98,13 @@ export default function PointsShop() {
   const equippedBadgeObjs = store.equippedBadges.map(id => BADGES.find(b => b.id === id)).filter(Boolean);
   const activePerks = getActivePerks();
 
+  const tabs = [
+    { id: 'titles' as const, label: 'Titles', Icon: IconTag },
+    { id: 'badges' as const, label: 'Badges', Icon: IconMedal },
+    { id: 'trials' as const, label: 'Trials', Icon: IconSwords },
+    { id: 'flair' as const, label: 'Portfolio', Icon: IconSparkles },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Toast */}
@@ -148,16 +155,17 @@ export default function PointsShop() {
 
       {/* Shop Tabs */}
       <div className="rounded-xl shadow-lg overflow-hidden bg-bleepx-white">
-        <div className="flex border-b border-bleepx-border">
-          {(['titles', 'badges', 'trials', 'flair'] as const).map(t => (
+        <div className="grid grid-cols-4 border-b border-bleepx-border">
+          {tabs.map(({ id, label, Icon }) => (
             <button
-              key={t}
-              onClick={() => { playBleep(); setShopTab(t); }}
-              className={`flex-1 py-2.5 text-xs sm:text-sm font-medium transition-colors border-b-2 -mb-px ${
-                shopTab === t ? 'border-bleepx-blue text-bleepx-blue' : 'border-transparent text-bleepx-text-secondary hover:text-bleepx-text'
+              key={id}
+              onClick={() => { playBleep(); setShopTab(id); }}
+              className={`flex flex-col items-center justify-end min-h-[3.25rem] px-1 py-2 text-[10px] sm:text-xs font-medium leading-tight whitespace-normal break-words transition-colors border-b-2 -mb-px ${
+                shopTab === id ? 'border-bleepx-blue text-bleepx-blue' : 'border-transparent text-bleepx-text-secondary hover:text-bleepx-text'
               }`}
             >
-              {t === 'titles' ? <span className="inline-flex items-center gap-1"><IconTag size={14} /> Titles</span> : t === 'badges' ? <span className="inline-flex items-center gap-1"><IconMedal size={14} /> Badges</span> : t === 'trials' ? <span className="inline-flex items-center gap-1"><IconSwords size={14} /> Trials</span> : <span className="inline-flex items-center gap-1"><IconSparkles size={14} /> Portfolio</span>}
+              <Icon size={18} className="mb-0.5" />
+              <span>{label}</span>
             </button>
           ))}
         </div>

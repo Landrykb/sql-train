@@ -523,9 +523,11 @@ export default function ProfilePage() {
             ))}
           </div>
 
-          {/* Domain Progress */}
+          {/* BleepxQuery Progress */}
           <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
-            <h2 className="text-lg font-bold mb-4 text-bleepx-text">Domain Progress</h2>
+            <h2 className="text-lg font-bold mb-4 text-bleepx-text flex items-center gap-2">
+              <VerseIcon verse="query" size={22} className="text-bleepx-blue" /> BleepxQuery Progress
+            </h2>
             <div className="space-y-3">
               {stats.domainStats.map((d) => (
                 <Link key={d.domain} href={`/cases/${d.domain}`} className="block group">

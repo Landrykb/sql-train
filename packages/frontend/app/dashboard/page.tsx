@@ -8,7 +8,8 @@ import { LAB_CASE_ORDER, LAB_DOMAIN_META } from '@/lib/labConstants';
 import { CLOUD_MISSIONS, CLOUD_PROVIDER_META, cloudMissionId, type CloudProvider } from '@/lib/cloud';
 import { BleepxFace } from '@/components/BleepxIcons';
 import { VerseIcon } from '@/components/NavIcons';
-import { TargetIcon, SchoolIcon, EditIcon } from '@/components/AppIcons';
+import { SchoolIcon, EditIcon } from '@/components/AppIcons';
+import { CrossVerseIcon } from '@/components/NavIcons';
 
 const SQL_DOMAINS = Object.keys(caseOrder);
 const SAA_STORAGE = 'bleepx-saa-checklist';
@@ -138,7 +139,9 @@ export default function DashboardPage() {
       </nav>
 
       <div className="bg-gradient-to-br from-sky-600 via-indigo-600 to-violet-700 rounded-2xl p-6 sm:p-10 text-white">
-        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2 flex items-center gap-3"><TargetIcon size={32} className="text-white" /> Cross-Verse Dashboard</h1>
+        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2 flex flex-wrap items-center gap-3">
+          <CrossVerseIcon size={32} className="text-white flex-shrink-0" /> Cross-Verse Dashboard
+        </h1>
         <p className="text-white/80 text-sm sm:text-lg max-w-2xl">All your progress in one place — SQL, Python, Data Science, Cloud, and SAA.</p>
       </div>
 

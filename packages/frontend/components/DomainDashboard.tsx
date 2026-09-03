@@ -13,6 +13,7 @@ import { pushPortfolioToGitHub } from '@/lib/githubPush';
 import { startGitHubLogin } from '@/lib/authClient';
 import { useSupabaseUser } from '@/lib/useSupabaseUser';
 import { TrophyIcon, CheckBadge, ErrorIcon, StarRating, FileTextIcon, PrinterIcon } from '@/components/AppIcons';
+import { VerseIcon } from '@/components/NavIcons';
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 const Spinner = dynamic(() => import('./Spinner'), { ssr: false });
@@ -370,10 +371,13 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
               <span className="text-2xl font-bold text-bleepx-text">{pct}%</span>
             </div>
           </div>
-          <div className="flex-1 text-center sm:text-left">
-            <h2 className="text-2xl font-bold text-bleepx-text">{domain.charAt(0).toUpperCase() + domain.slice(1)} Progress</h2>
+          <div className="flex-1 text-center sm:text-left min-w-0">
+            <h2 className="text-lg sm:text-2xl font-bold text-bleepx-text flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <VerseIcon verse="query" size={24} className="text-bleepx-blue flex-shrink-0" />
+              BleepxQuery: <span className="capitalize">{domain}</span> Progress
+            </h2>
             <p className="text-bleepx-text-secondary mt-1">{completedCount} of {totalCases} challenges completed</p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
               <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium">{solvedEntries.length} solved</span>
               <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-medium">{totalCases - completedCount} remaining</span>
               {solvedEntries.some((e) => e.time) && (
