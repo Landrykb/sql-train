@@ -19,10 +19,19 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
-  if (!url.pathname.startsWith('/')) return;
 
-  // Don't cache API calls or auth endpoints
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) return;
+  // Only handle same-origin requests so we cannot intercept cross-origin APIs
+  // like GitHub with user tokens or third-party analytics.
+  if (url.origin !== self.location.origin) return;
+
+  // Never cache API, auth, or any request carrying user credentials/tokens.
+  if (
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/auth/') ||
+    event.request.headers.has('authorization')
+  ) {
+    return;
+  }
 
   event.respondWith(
     fetch(event.request)
