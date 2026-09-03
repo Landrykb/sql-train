@@ -802,7 +802,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         </div>
       )}
       {open && (
-        <div className="relative w-72 sm:w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white dark:bg-gray-900 border-2 border-sky-300 dark:border-sky-700 shadow-2xl text-sm transform transition-all duration-300 origin-bottom-right overflow-hidden">
+        <div className="relative w-80 sm:w-96 md:w-[28rem] max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white dark:bg-gray-900 border-2 border-sky-300 dark:border-sky-700 shadow-2xl text-sm transform transition-all duration-300 origin-bottom-right overflow-hidden">
           {/* speech bubble tail */}
           <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-sky-300 dark:border-t-sky-700" />
           <div className="p-4 border-b border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/10">
@@ -820,9 +820,9 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               <button onClick={() => setOpen(false)} className="text-xs text-bleepx-text-secondary hover:text-bleepx-text">Close</button>
             </div>
           </div>
-          <div className="h-72 flex flex-col relative" style={{ maxHeight: chatMaxHeight }}>
+          <div className="flex flex-col relative" style={{ maxHeight: chatMaxHeight, height: 'min(70vh, 32rem)' }}>
             <img src="/bleepx-logo.png" alt="" className="absolute right-4 top-20 w-20 h-20 opacity-5 pointer-events-none" />
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="flex-1 overflow-y-auto overscroll-y-contain p-4 space-y-3" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed ${m.role === 'user' ? 'bg-sky-600 text-white rounded-br-none' : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text rounded-bl-none'}`}>
@@ -868,25 +868,25 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               <div ref={messagesEndRef} />
             </div>
             <div className="p-3 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex flex-wrap gap-2 mb-2">
+              <div className="flex flex-nowrap gap-2 mb-2 overflow-x-auto overscroll-x-contain no-scrollbar pb-1">
                 {QUICK_REPLIES.map((q) => (
-                  <button key={q} onClick={() => handleQuick(q)} className="text-[10px] px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors">{q}</button>
+                  <button key={q} onClick={() => handleQuick(q)} className="shrink-0 whitespace-nowrap text-[10px] px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors">{q}</button>
                 ))}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 min-w-0">
                 <input
                   data-bleepx-ignore
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') send(input); }}
                   placeholder="Ask Bleepx..."
-                  className="flex-1 px-3 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  className="flex-1 min-w-0 px-3 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                 />
-                <button onClick={() => send(input)} className="px-3 py-2 rounded-full bg-sky-600 text-white text-xs font-bold hover:bg-sky-700">Send</button>
+                <button onClick={() => send(input)} className="shrink-0 px-3 py-2 rounded-full bg-sky-600 text-white text-xs font-bold hover:bg-sky-700">Send</button>
               </div>
-              <div className="mt-2 flex items-center justify-between">
-                <Link href={hint.href} onClick={() => setOpen(false)} className="text-[10px] px-3 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">{hint.cta}</Link>
-                <button onClick={startChat} className="text-[10px] text-bleepx-text-secondary hover:text-bleepx-text underline">Clear chat</button>
+              <div className="mt-2 flex items-center justify-between gap-2 min-w-0">
+                <Link href={hint.href} onClick={() => setOpen(false)} className="min-w-0 truncate text-[10px] px-3 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">{hint.cta}</Link>
+                <button onClick={startChat} className="shrink-0 text-[10px] text-bleepx-text-secondary hover:text-bleepx-text underline">Clear chat</button>
               </div>
             </div>
           </div>
