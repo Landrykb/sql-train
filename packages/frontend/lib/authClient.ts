@@ -16,6 +16,15 @@ import { supabase } from './supabase';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
+const PROVIDER_TOKEN_COOKIE = 'bleepx_provider_token';
+
+/** Read the GitHub provider_token from the Secure cookie set at OAuth callback. */
+function getProviderTokenFromCookie(): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp(`(?:^|; )${PROVIDER_TOKEN_COOKIE}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 export interface GitHubUser {
   login: string;
   name: string;
@@ -83,18 +92,23 @@ export function clearGitHubUser(): void {
  * refreshed automatically by Supabase — the user may need to re-authenticate).
  */
 export async function getGitHubToken(): Promise<string | null> {
-  if (!supabase) return null;
-  try {
-    const { data } = await supabase.auth.getSession();
-    if (data?.session?.provider_token) {
-      return data.session.provider_token;
+  // Try the active Supabase session first. If the provider_token was dropped
+  // after a refresh, fall back to the Secure cookie we set at OAuth callback.
+  if (supabase) {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.provider_token) {
+        return data.session.provider_token;
+      }
+      const { data: refreshData } = await supabase.auth.refreshSession();
+      if (refreshData?.session?.provider_token) {
+        return refreshData.session.provider_token;
+      }
+    } catch {
+      // Fall through to cookie fallback
     }
-    // If provider_token is not available, try to refresh the session
-    const { data: refreshData } = await supabase.auth.refreshSession();
-    return refreshData?.session?.provider_token || null;
-  } catch {
-    return null;
   }
+  return getProviderTokenFromCookie();
 }
 
 /**
@@ -145,10 +159,13 @@ export async function startGitHubLogin(): Promise<void> {
   }
 }
 
-/** Sign out from Supabase + clear local user data */
+/** Sign out from Supabase + clear local user data and provider token cookie */
 export async function logoutUser(): Promise<void> {
   if (supabase) {
     await supabase.auth.signOut().catch(() => {});
   }
   clearGitHubUser();
+  if (typeof document !== 'undefined') {
+    document.cookie = `${PROVIDER_TOKEN_COOKIE}=; path=/; max-age=0; secure; samesite=lax`;
+  }
 }

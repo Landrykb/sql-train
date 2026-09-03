@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth/error?reason=not_configured', origin));
   }
 
-  const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+  const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
   if (exchangeError) {
     console.error('[auth/callback] Exchange failed:', exchangeError.message);
     const target = new URL('/auth/error', origin);
@@ -72,11 +72,24 @@ export async function GET(request: NextRequest) {
   // Success — session cookies have been set on the response (HttpOnly, Secure).
   // Also set a cookie to trigger client-side GitHub user sync
   const response = NextResponse.redirect(new URL(next.startsWith('/') ? next : '/profile', origin));
-  response.cookies.set('bleepx_auth_sync', 'true', { 
-    httpOnly: false, 
-    secure: true, 
+  response.cookies.set('bleepx_auth_sync', 'true', {
+    httpOnly: false,
+    secure: true,
     sameSite: 'lax',
-    maxAge: 60 // 1 minute to trigger sync
+    maxAge: 60, // 1 minute to trigger sync
   });
+  // Persist the GitHub provider_token in a Secure cookie so the client can use
+  // it to push exports. Supabase does not reliably expose this token after the
+  // initial OAuth exchange, so we keep it alongside the session.
+  const providerToken = exchangeData?.session?.provider_token;
+  if (providerToken) {
+    response.cookies.set('bleepx_provider_token', providerToken, {
+      httpOnly: false,
+      secure: true,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365, // 1 year
+    });
+  }
   return response;
 }
