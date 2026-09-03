@@ -9,6 +9,7 @@ import { playBleep } from '@/lib/audio';
 import { lintInput, BleepxHint } from '@/lib/bleepxLinter';
 import * as voice from '@/lib/bleepxVoice';
 import type { Chunk } from '@/lib/rag';
+import { getProgressSnapshot, formatProgressForPrompt, formatProgressChat, type NextStep } from '@/lib/bleepxProgress';
 import {
   BleepxFace,
   BleepxHead,
@@ -86,9 +87,13 @@ const findJourneyGoal = (): string | null => {
 };
 
 type ChatRole = 'user' | 'assistant';
-interface ChatMessage { role: ChatRole; text: string; }
+interface ChatAction { label: string; href: string; }
+interface ChatMessage { role: ChatRole; text: string; actions?: ChatAction[]; }
 
-const QUICK_REPLIES = ['What is S3?', 'SQL JOIN help', 'EC2 vs Lambda', 'Cost-optimized storage'];
+/** Local, no-LLM-needed detection for "what should I do next / given my progress" style asks. */
+const PROGRESS_INTENT = /(my progress|what should i (do|focus)|what to (do|focus)|what.?s next|do next|proceed|given my|my journey|my plan|where (am i|should i)|next step|roadmap|what now)/i;
+
+const QUICK_REPLIES = ['What should I do next?', 'What is S3?', 'SQL JOIN help', 'EC2 vs Lambda', 'Cost-optimized storage'];
 
 const TOPIC_HINTS: Record<string, string> = {
   'what is s3?': 'S3 is object storage. Use it for static files, data lakes, backups, and content distribution via CloudFront.',
@@ -337,17 +342,35 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         return;
       }
     }
+    const activeContext = context || contextFromPathname(pathname);
+    const ragTopic = topicForContext(activeContext);
+
+    // Progress / "what should I do next" style questions get an instant,
+    // personalized answer with real navigation buttons — no LLM round trip needed.
+    if (PROGRESS_INTENT.test(clean) || PROGRESS_INTENT.test(lower)) {
+      const snap = getProgressSnapshot(completed);
+      const actions: ChatAction[] = [
+        { label: `Go: ${snap.recommended.title}`, href: snap.recommended.href },
+        { label: '📊 Dashboard', href: '/dashboard' },
+        { label: '🧭 Edit Journey', href: '/journey' },
+      ];
+      const text2 = voice.signOff(formatProgressChat(snap, points, displayName), displayName);
+      setMessages((prev) => [...prev, { role: 'assistant', text: text2, actions }]);
+      setMood('success');
+      playBleep();
+      setTimeout(() => setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle'), 1400);
+      return;
+    }
+
     setMood('think');
     const thinkingText = voice.thinking(displayName);
     setMessages((prev) => [...prev, { role: 'assistant', text: thinkingText }]);
-
-    const activeContext = context || contextFromPathname(pathname);
-    const ragTopic = topicForContext(activeContext);
 
     (async () => {
       try {
         const known = TOPIC_HINTS[clean] ?? voice.known(text, activeContext);
         let final: string;
+        let actions: ChatAction[] | undefined;
         let nextMood: Mood = 'chat';
 
         if (known) {
@@ -363,6 +386,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           final = voice.welcomeBack(displayName) + ' Ask me anything about SQL, cloud, Python, or ML.';
           nextMood = 'face';
         } else {
+          const snap = getProgressSnapshot(completed);
           const res = await fetch('/api/bleepx', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -374,11 +398,19 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               hint: dockedHint
                 ? { message: dockedHint.message, fix: dockedHint.fix, severity: dockedHint.severity }
                 : undefined,
+              progress: formatProgressForPrompt(snap, points),
+              page: pathname,
             }),
           });
           if (res.ok) {
             const data = await res.json();
             final = data.answer || voice.fallback(text, activeContext, displayName);
+            if (/next step|recommend|continue|dashboard|journey/i.test(final)) {
+              actions = [
+                { label: `Go: ${snap.recommended.title}`, href: snap.recommended.href },
+                { label: '📊 Dashboard', href: '/dashboard' },
+              ];
+            }
           } else {
             console.warn('Bleepx API error:', res.status, await res.text());
             final = voice.fallback(text, activeContext, displayName);
@@ -387,7 +419,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
         setMessages((prev) => {
           const next = [...prev];
-          next[next.length - 1] = { role: 'assistant', text: final };
+          next[next.length - 1] = { role: 'assistant', text: final, actions };
           return next;
         });
         setMood(nextMood);
@@ -794,7 +826,21 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed ${m.role === 'user' ? 'bg-sky-600 text-white rounded-br-none' : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text rounded-bl-none'}`}>
-                    {m.text}
+                    <div>{m.text}</div>
+                    {m.actions && m.actions.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {m.actions.map((a, ai) => (
+                          <Link
+                            key={ai}
+                            href={a.href}
+                            onClick={() => setOpen(false)}
+                            className="text-[10px] px-2.5 py-1.5 rounded-full bg-sky-600 text-white font-bold hover:bg-sky-700 transition-colors"
+                          >
+                            {a.label} →
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

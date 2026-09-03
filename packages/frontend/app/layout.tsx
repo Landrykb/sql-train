@@ -5,17 +5,29 @@ import NavHeader from '@/components/NavHeader';
 import AnalyticsProvider from '@/components/AnalyticsProvider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import BleepxAssistant from '@/components/BleepxAssistant';
+import Script from 'next/script';
 import type { Viewport } from 'next';
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
+  themeColor: '#57ECF4',
 };
 
 export const metadata = {
   title: 'Bleepx - SQL & Data Science',
   description: 'Master SQL with BleepxQuery and Data Science with BleepxLab',
+  manifest: '/manifest.json',
+  icons: {
+    icon: '/icons/icon-192x192.png',
+    apple: '/apple-touch-icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    title: 'Bleepx',
+    statusBarStyle: 'black-translucent',
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -62,6 +74,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <BleepxAssistant />
           </AnalyticsProvider>
         </ErrorBoundary>
+        <Script strategy="afterInteractive" id="register-sw">
+          {`if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }`}
+        </Script>
       </body>
     </html>
   );

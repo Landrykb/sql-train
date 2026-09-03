@@ -4,6 +4,7 @@
 
 import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { visualizationConfigs } from '@/lib/constants';
+import { LAB_DOMAIN_META } from '@/lib/labConstants';
 
 export interface GeneratedGraph {
   title: string;
@@ -304,7 +305,7 @@ export async function generateLabGraphs(
 
   for (const projectId of projectIds) {
     try {
-      const saved = localStorage.getItem(`bleepx_lab_${domain}_${projectId}`);
+      const saved = localStorage.getItem(`bleepx_lab_step_${projectId}`);
       if (saved) {
         const parsed = JSON.parse(saved);
         // Generate actual data-driven graph for Lab projects
@@ -328,14 +329,21 @@ async function generateLabDataGraph(
   savedData: any
 ): Promise<GeneratedGraph | null> {
   try {
-    // Import YAML to get project details
-    const yamlContent = await fetch(`/lab-projects/${domain}/${projectId}.yaml`).then(r => r.text());
-    const { load } = await import('js-yaml');
-    const project = load(yamlContent) as any;
-    
+    const meta = LAB_DOMAIN_META[domain];
+    if (!meta) return null;
+    const project = {
+      title: meta.name,
+      description: meta.desc,
+      dataset_url: meta.dataset_url,
+      skills: [meta.language]
+    };
+
     const insights: string[] = [];
-    
-    // Extract insights from solution code
+
+    if (savedData.solved) insights.push('Lab step solved');
+    if (savedData.completed) insights.push('All sections completed');
+
+    // Extract insights from solution code if available
     if (savedData.solutionCode) {
       const code = savedData.solutionCode.toLowerCase();
       if (code.includes('accuracy')) insights.push('Accuracy metrics included');
@@ -348,16 +356,16 @@ async function generateLabDataGraph(
         insights.push('Data visualization included');
       }
     }
-    
+
     // Add project-specific insights
     if (project.skills) {
       insights.push(`Skills: ${project.skills.slice(0, 3).join(', ')}`);
     }
-    
+
     // Generate chart based on project type
     const chartType = inferLabChartType(project);
     const chartSvg = generateLabChartSVGWithData(domain, projectId, project, insights);
-    
+
     return {
       title: `${domain} - ${projectId} Analysis`,
       chartType,

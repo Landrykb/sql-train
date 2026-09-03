@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import DataGrid from './DataGrid';
 import ClientCaseGrid from './ClientCaseGrid';
 import { useProgress } from '@/lib/useProgress';
+import { getProgressSnapshot } from '@/lib/bleepxProgress';
 import { caseOrder, fullCaseOrder, visualizationConfigs, CASE_TIERS } from '@/lib/constants';
 import { pushPortfolioToGitHub } from '@/lib/githubPush';
 import { startGitHubLogin } from '@/lib/authClient';
@@ -159,6 +160,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
   const [pushResult, setPushResult] = useState<{ success: boolean; repoUrl?: string; error?: string } | null>(null);
 
   const progress = useProgress();
+  const snap = useMemo(() => getProgressSnapshot(progress.completed), [progress.completed]);
   const allCases = fullCaseOrder[domain] || caseOrder[domain] || [];
   const totalCases = allCases.length;
   const completedCount = allCases.filter((c) => progress.completed.has(c)).length;
@@ -382,6 +384,24 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
           </div>
         </div>
       </section>
+
+      {/* Recommended Next Step */}
+      {snap.recommended && (
+        <section className="bg-bleepx-white p-4 rounded-xl shadow-lg border-l-4 border-bleepx-blue">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h3 className="font-bold text-bleepx-text">*bleep* Recommended Next Step</h3>
+              <p className="text-sm text-bleepx-text-secondary mt-1">{snap.recommended.title}</p>
+            </div>
+            <Link
+              href={snap.recommended.href}
+              className="px-4 py-2 rounded-lg bg-bleepx-blue text-white text-sm font-medium hover:bg-blue-600 transition-colors text-center"
+            >
+              Go there →
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Domain Completion Congratulations */}
       {pct === 100 && (

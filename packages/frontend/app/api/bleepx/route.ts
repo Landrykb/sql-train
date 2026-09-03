@@ -17,6 +17,8 @@ Rules:
 - Keep answers short: 3-6 sentences, or a short code block if code is the answer.
 - Use the CONTEXT block below if it is relevant. If it directly answers the question, prefer it.
 - If CURRENT EDITOR CONTENT or ACTIVE HINT are provided, use them to answer "what should I do here" or "fix this" style questions.
+- If USER PROGRESS is provided, use it to personalize advice about what to do next, what to focus on, or how they are doing. Reference concrete numbers (percent complete, points) when relevant, and mention the recommended next step and its link when the question is about progress, planning, or "what next".
+- If CURRENT PAGE is provided, take it into account — e.g. if they are on a cloud page, prefer cloud advice; if on a lab page, prefer Python/ML advice.
 - If CONTEXT is empty or irrelevant, answer from general knowledge, but stay in the SQL/AWS/Python/ML lane.
 - Do not break character entirely, but do not let the sass get in the way of clarity.
 - If the question is outside your lane, say so briefly and redirect.
@@ -35,6 +37,8 @@ export async function POST(req: NextRequest) {
   let name: string | undefined;
   let code: string | undefined;
   let hint: { message: string; fix?: string; severity?: string } | undefined;
+  let progress: string | undefined;
+  let page: string | undefined;
 
   try {
     const body = await req.json();
@@ -43,6 +47,8 @@ export async function POST(req: NextRequest) {
     name = body.name?.trim();
     code = body.code?.trim();
     hint = body.hint;
+    progress = body.progress?.trim();
+    page = body.page?.trim();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
@@ -59,6 +65,8 @@ export async function POST(req: NextRequest) {
 
   const pieces: string[] = [];
   if (context) pieces.push(`CONTEXT:\n${context}`);
+  if (progress) pieces.push(`USER PROGRESS:\n${progress}`);
+  if (page) pieces.push(`CURRENT PAGE: ${page}`);
   if (code) pieces.push(`CURRENT EDITOR CONTENT:\n${code}`);
   if (hint?.message) pieces.push(`ACTIVE HINT: [${hint.severity}] ${hint.message}${hint.fix ? `\nSUGGESTED FIX: ${hint.fix}` : ''}`);
   pieces.push(`QUESTION:\n${question}`);

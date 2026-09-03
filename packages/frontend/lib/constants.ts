@@ -104,6 +104,60 @@
     ])
   );
 
+  // Dataset manifest per domain (deduplicated from case YAMLs)
+  export const DOMAIN_DATASETS: Record<string, { name: string; file: string }[]> = {
+    business: [
+      { name: 'business_retail', file: '/datasets/business_retail.csv' },
+      { name: 'returns', file: '/datasets/returns.csv' },
+    ],
+    crime: [
+      { name: 'crime_chicago', file: '/datasets/crime_chicago.csv' },
+      { name: 'suspects', file: '/datasets/suspects.csv' },
+    ],
+    farming: [
+      { name: 'farming_yield', file: '/datasets/farming_yield.csv' },
+      { name: 'soil_data', file: '/datasets/soil_data.csv' },
+    ],
+    finance: [
+      { name: 'finance_stocks', file: '/datasets/finance_stocks.csv' },
+      { name: 'market_index', file: '/datasets/market_index.csv' },
+    ],
+    healthcare: [
+      { name: 'healthcare_covid', file: '/datasets/healthcare_covid.csv' },
+      { name: 'patients', file: '/datasets/patients.csv' },
+      { name: 'treatments', file: '/datasets/treatments.csv' },
+      { name: 'admissions', file: '/datasets/admissions.csv' },
+    ],
+    social: [
+      { name: 'tweets', file: '/datasets/tweets.csv' },
+      { name: 'users', file: '/datasets/users.csv' },
+    ],
+    space: [
+      { name: 'space_neo', file: '/datasets/space_neo.csv' },
+    ],
+    sports: [
+      { name: 'nba_games', file: '/datasets/nba_games.csv' },
+      { name: 'shot_zones', file: '/datasets/shot_zones.csv' },
+    ],
+    trials: [
+      { name: 'farming_yield', file: '/datasets/farming_yield.csv' },
+      { name: 'crime_chicago', file: '/datasets/crime_chicago.csv' },
+      { name: 'business_retail', file: '/datasets/business_retail.csv' },
+      { name: 'patients', file: '/datasets/patients.csv' },
+      { name: 'space_neo', file: '/datasets/space_neo.csv' },
+      { name: 'finance_stocks', file: '/datasets/finance_stocks.csv' },
+      { name: 'admissions', file: '/datasets/admissions.csv' },
+      { name: 'nba_games', file: '/datasets/nba_games.csv' },
+      { name: 'soil_data', file: '/datasets/soil_data.csv' },
+      { name: 'treatments', file: '/datasets/treatments.csv' },
+      { name: 'shot_zones', file: '/datasets/shot_zones.csv' },
+      { name: 'returns', file: '/datasets/returns.csv' },
+      { name: 'market_index', file: '/datasets/market_index.csv' },
+      { name: 'users', file: '/datasets/users.csv' },
+      { name: 'tweets', file: '/datasets/tweets.csv' },
+    ],
+  };
+
   /** Tier for each case (from YAML). Used to recalculate points. */
   export const CASE_TIERS: Record<string, number> = {
     // business

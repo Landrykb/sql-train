@@ -134,8 +134,8 @@ export function BleepxThink({ size = 48, className = '' }: IconProps) {
   );
 }
 
-// ─── Bleepx Code: with SQL/code symbol on chest ───
-export function BleepxCode({ size = 40, className = '', label = 'SQL' }: IconProps & { label?: string }) {
+// ─── Bleepx Code: with code symbol on chest ───
+export function BleepxCode({ size = 40, className = '', label }: IconProps & { label: string }) {
   const { DARK, DARK2 } = useBleepxColors();
   const x = label.length <= 2 ? 18 : 15;
   return (

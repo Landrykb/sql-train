@@ -469,13 +469,13 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Tab Navigation */}
-      <div className="flex gap-1 border-b border-bleepx-border">
+      {/* Tab Navigation — horizontally scrollable on narrow screens so it never overflows or squishes */}
+      <div className="flex gap-1 border-b border-bleepx-border overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 no-scrollbar">
         {(['overview', 'shop', 'achievements', 'exports', 'settings'] as const).map((t) => (
           <button
             key={t}
             onClick={() => { playBleep(); setTab(t); }}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={`shrink-0 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
               tab === t
                 ? 'border-bleepx-blue text-bleepx-blue'
                 : 'border-transparent text-bleepx-text-secondary hover:text-bleepx-text'
@@ -753,13 +753,13 @@ export default function ProfilePage() {
                       const solved = all.filter((c) => completed.has(c)).length;
                       const hasWork = solved > 0;
                       return (
-                        <div key={domain} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-                          <div className="flex items-center gap-2">
+                        <div key={domain} className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-lg">{domainMeta[domain]?.icon}</span>
                             <span className="text-sm font-medium text-bleepx-text">{domainMeta[domain]?.label || domain}</span>
                             <span className="text-xs text-bleepx-text-secondary">({solved}/{all.length})</span>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
                             <button
                               disabled={!hasWork || !isSignedIn || exporting === domain}
                               onClick={() => handleExportQueryDomain(domain)}
@@ -821,13 +821,13 @@ export default function ProfilePage() {
                       const hasWork = solved > 0;
                       const meta = LAB_DOMAIN_META[domain];
                       return (
-                        <div key={domain} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-                          <div className="flex items-center gap-2">
+                        <div key={domain} className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-lg">{meta?.icon || '📊'}</span>
                             <span className="text-sm font-medium text-bleepx-text">{meta?.name || domain}</span>
                             <span className="text-xs text-bleepx-text-secondary">({solved}/{cases.length})</span>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
                             <button
                               disabled={!hasWork || !isSignedIn || exporting === `lab-${domain}`}
                               onClick={() => handleExportLabDomain(domain)}
@@ -870,13 +870,13 @@ export default function ProfilePage() {
                       const hasWork = solved > 0;
                       const meta = CLOUD_PROVIDER_META[provider];
                       return (
-                        <div key={provider} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-                          <div className="flex items-center gap-2">
+                        <div key={provider} className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-lg">{meta?.icon}</span>
                             <span className="text-sm font-medium text-bleepx-text">{meta?.name}</span>
                             <span className="text-xs text-bleepx-text-secondary">({solved}/{missions.length})</span>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
                             <button
                               disabled={!hasWork || !isSignedIn || exporting === `cloud-${provider}`}
                               onClick={() => handleExportCloudProvider(provider)}
