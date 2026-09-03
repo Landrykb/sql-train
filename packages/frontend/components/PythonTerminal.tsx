@@ -342,11 +342,14 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
       )}
 
       {/* Code editor — CodeMirror with Python syntax highlighting */}
-      <CodeMirror
+      <div className="max-w-full overflow-x-auto min-w-0">
+        <CodeMirror
         value={code}
         onChange={(val: string) => setCode(val)}
         isDark={isDark}
         height={height}
+        style={{ maxWidth: '100%' }}
+        className="max-w-full min-w-0"
         placeholder="# Write your Python code here...
 # Press ⌘+Enter (Ctrl+Enter) to run
 
@@ -358,7 +361,8 @@ import numpy as np"
             runCode();
           }
         }}
-      />
+        />
+      </div>
 
       {/* Error help panel — like BleepxQuery's sqlErrorHelper */}
       {errorHelp && (

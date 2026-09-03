@@ -207,9 +207,9 @@ export default function CloudSandboxPage() {
       <div className="bg-gradient-to-br from-sky-600 to-indigo-700 rounded-2xl p-5 sm:p-6 text-white">
         <div className="flex flex-wrap items-start gap-3">
           <CloudIcon size={40} className="text-white flex-shrink-0" />
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold">BleepxCloud Sandbox</h1>
-            <p className="text-white/80 text-sm mt-1">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-extrabold break-words">BleepxCloud Sandbox</h1>
+            <p className="text-white/80 text-sm mt-1 break-words">
               Browser-native AWS console. Pick a scenario, follow the objectives, and learn by fixing real-looking infrastructure.
             </p>
           </div>
@@ -237,8 +237,8 @@ export default function CloudSandboxPage() {
       {/* Mission brief */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2 rounded-xl border border-bleepx-border bg-bleepx-white p-5 shadow-sm">
-          <h2 className="text-lg font-extrabold text-bleepx-text flex flex-wrap items-center gap-2">
-            <ScenarioIcon scenario={current.key} size={22} /> {current.title} — Mission Brief
+          <h2 className="text-lg font-extrabold text-bleepx-text flex flex-wrap items-center gap-2 min-w-0">
+            <ScenarioIcon scenario={current.key} size={22} className="flex-shrink-0" /> <span className="min-w-0 break-words">{current.title} — Mission Brief</span>
           </h2>
           <p className="text-sm text-bleepx-text-secondary mt-2 leading-relaxed">{current.description}</p>
           <div className="mt-3 p-3 rounded-lg bg-sky-50 dark:bg-sky-900/10 border border-sky-100 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-200">
@@ -293,7 +293,7 @@ export default function CloudSandboxPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className={`font-semibold ${isDone ? 'text-green-700' : 'text-bleepx-text'}`}>{obj.label}</span>
+                      <span className={`font-semibold min-w-0 break-words ${isDone ? 'text-green-700' : 'text-bleepx-text'}`}>{obj.label}</span>
                       {isDone && <span className="text-green-600 text-xs font-bold inline-flex flex-wrap items-center gap-1"><CheckBadge size={12} className="text-green-600" /> Done</span>}
                     </div>
                     <p className="text-[10px] text-bleepx-text-secondary mt-0.5 leading-relaxed">{obj.theory}</p>

@@ -7,8 +7,8 @@ export default function DataGrid({ data }: { data: Record<string, any>[] }) {
 
   const cols = Object.keys(data[0]);
   return (
-    <div className="overflow-auto">
-      <table className="min-w-full table-auto border-collapse">
+    <div className="overflow-x-auto max-w-full">
+      <table className="w-full min-w-max table-auto border-collapse">
         <thead>
           <tr>
             {cols.map(c => (

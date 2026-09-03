@@ -50,7 +50,7 @@ export default function LabHomePage() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-bleepx-white rounded-xl p-4 text-center shadow-sm border border-bleepx-border">
           <div className="text-2xl font-bold text-bleepx-text">{domains.length}</div>
           <div className="text-xs text-bleepx-text-secondary mt-0.5">Projects</div>
@@ -150,7 +150,7 @@ export default function LabHomePage() {
       {/* Features */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 sm:p-6">
         <h2 className="text-lg font-bold text-bleepx-text mb-4">What You Get</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
           <div>
             <div className="flex justify-center mb-1"><BleepxSignal size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">Step-by-Step Guides</div>

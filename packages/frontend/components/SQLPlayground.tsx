@@ -849,15 +849,15 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           <li className="hidden sm:block text-gray-400">/</li>
           <li><Link href={`/cases/${domain}`} className="hover:underline">{domain.charAt(0).toUpperCase() + domain.slice(1).replace('_', ' ')}</Link></li>
           <li className="text-gray-400">/</li>
-          <li className="text-bleepx-gray font-semibold truncate max-w-[120px] sm:max-w-none">{name}</li>
+          <li className="text-bleepx-gray font-semibold whitespace-normal break-words min-w-0 sm:max-w-none">{name}</li>
         </ol>
       </nav>
 
       <header className="bg-gradient-to-r from-bleepx-blue/10 to-bleepx-pink/10 p-4 sm:p-6 rounded-xl shadow-lg">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <img src="/bleepx-icon.png" alt="Bleepx" className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse-logo" />
-            <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-gray">{name}</h1>
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
+            <img src="/bleepx-icon.png" alt="Bleepx" className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse-logo flex-shrink-0" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-gray break-words min-w-0">{name}</h1>
           </div>
           <span className="text-xs sm:text-sm text-bleepx-gray inline-flex flex-wrap items-center gap-1">Mission {currentIndex >= 0 ? currentIndex + 1 : '?'} of {currentOrder.length || '?'} — {tier <= 1 ? 'Beginner' : tier === 2 ? 'Intermediate' : tier === 3 ? 'Advanced' : tier === 4 ? 'Expert' : 'Master'} <StarRating stars={Math.min(tier || 1, 5)} size={12} /></span>
         </div>
@@ -876,15 +876,18 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
         {/* 1. Write Your Query — always on top */}
         <div className="p-3 sm:p-6 rounded-xl shadow-lg bg-bleepx-white">
           <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-bleepx-gray">Write Your Query</h2>
-          <CodeMirror
+          <div className="max-w-full overflow-x-auto min-w-0">
+            <CodeMirror
             value={query}
             height="200px"
             onChange={setQuery}
             onCreateEditor={(view: any) => { editorViewRef.current = view; }}
             isDark={dark}
             aria-label="SQL query editor"
-            className="border rounded-lg border-bleepx-border"
-          />
+            className="border rounded-lg border-bleepx-border max-w-full min-w-0"
+            style={{ maxWidth: '100%' }}
+            />
+          </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <button onClick={() => setShowSchema((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors inline-flex items-center gap-1 ${showSchema ? 'bg-bleepx-blue text-white border-bleepx-blue' : 'border-bleepx-border text-bleepx-text-secondary hover:bg-bleepx-blue/5'}`}>
               {showSchema ? <><ErrorIcon size={10} /> Hide Schema</> : <><FileTextIcon size={10} /> Schema Explorer</>}

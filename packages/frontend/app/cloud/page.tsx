@@ -80,7 +80,7 @@ export default function CloudHomePage() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-bleepx-white rounded-xl p-4 text-center shadow-sm border border-bleepx-border">
           <div className="text-2xl font-bold text-bleepx-text">{CLOUD_PROVIDERS.length}</div>
           <div className="text-xs text-bleepx-text-secondary mt-0.5">Tracks</div>

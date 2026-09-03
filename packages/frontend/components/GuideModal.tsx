@@ -79,12 +79,12 @@ export default function GuideModal({ isOpen, onClose, guideData, scrollToSection
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       {/* Slide-over panel */}
-      <div className="relative w-full max-w-lg bg-bleepx-bg border-l border-bleepx-border shadow-2xl flex flex-col animate-slide-in-right overflow-hidden">
+      <div className="relative w-full max-w-lg max-w-full bg-bleepx-bg border-l border-bleepx-border shadow-2xl flex flex-col animate-slide-in-right overflow-hidden">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between px-5 py-4 border-b border-bleepx-border bg-bleepx-white">
           <div>
-            <h2 className="text-lg font-bold text-bleepx-text flex flex-wrap items-center gap-2">
-              <GuideIcon size={20} /> SQL GuideBook
+            <h2 className="text-lg font-bold text-bleepx-text flex flex-wrap items-center gap-2 min-w-0">
+              <GuideIcon size={20} className="flex-shrink-0" /> <span className="min-w-0">SQL GuideBook</span>
             </h2>
             <p className="text-xs text-bleepx-text-secondary mt-0.5">Quick reference — stay on your challenge</p>
           </div>

@@ -189,7 +189,7 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
                 }`}>
                   {idx + 1}
                 </span>
-                <span className="font-semibold text-bleepx-text">{step.title}</span>
+                <span className="font-semibold text-bleepx-text min-w-0 whitespace-normal break-words">{step.title}</span>
                 {completedSteps[step.id] && <span className="text-green-600 text-xs font-bold inline-flex flex-wrap items-center gap-1"><CheckBadge size={12} className="text-green-600" /> Done</span>}
               </div>
               <p className="text-xs text-bleepx-text-secondary mt-1 ml-7">{step.instruction}</p>
@@ -383,7 +383,7 @@ function S3Panel({ state, onAction }: { state: CloudSandboxState; onAction: (s: 
         {buckets.map((b) => (
           <div key={b.name} className="p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <div className="flex flex-wrap items-center justify-between">
-              <span className="font-mono text-sm font-bold text-bleepx-text">{b.name}</span>
+              <span className="font-mono text-sm font-bold text-bleepx-text min-w-0 whitespace-normal break-words">{b.name}</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
                 {b.region} · {b.objects.length} objects
               </span>
@@ -409,7 +409,7 @@ function S3Panel({ state, onAction }: { state: CloudSandboxState; onAction: (s: 
                   return (
                     <li key={o.key} className="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm">
                       <div className="flex flex-wrap items-center justify-between">
-                        <span className="font-mono text-bleepx-text">{o.key}</span>
+                        <span className="font-mono text-bleepx-text min-w-0 whitespace-normal break-words">{o.key}</span>
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300">{o.storageClass}</span>
                       </div>
                       <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -512,8 +512,8 @@ function IAMPanel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
       <div className="space-y-2">
         {users.map((u) => (
           <div key={u.name} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
-            <span className="font-mono font-bold">{u.name}</span>
-            <div className="text-[10px] text-gray-500">Attached: {u.attachedPolicies.join(', ') || 'none'}</div>
+            <span className="font-mono font-bold min-w-0 whitespace-normal break-words">{u.name}</span>
+            <div className="text-[10px] text-gray-500 break-words">Attached: {u.attachedPolicies.join(', ') || 'none'}</div>
           </div>
         ))}
       </div>
@@ -549,10 +549,10 @@ function EC2Panel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
         {instances.map((i) => (
           <div key={i.instanceId} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
             <div className="flex flex-wrap items-center justify-between">
-              <span className="font-mono font-bold">{i.instanceId}</span>
+              <span className="font-mono font-bold min-w-0 whitespace-normal break-words">{i.instanceId}</span>
               <span className={`text-[10px] px-2 py-0.5 rounded-full ${i.state === 'running' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{i.state}</span>
             </div>
-            <div className="text-[10px] text-gray-500">{i.size} · {i.ami} · {i.vCpu} vCPU · {i.ramGiB} GB</div>
+            <div className="text-[10px] text-gray-500 break-words">{i.size} · {i.ami} · {i.vCpu} vCPU · {i.ramGiB} GB</div>
             <div className="mt-1 flex gap-2">
               <button onClick={() => onAction(stopEC2Instance(state, i.instanceId))} className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-700">Stop</button>
               <button onClick={() => onAction(terminateEC2Instance(state, i.instanceId))} className="text-[10px] px-2 py-0.5 rounded bg-red-100 text-red-700">Terminate</button>
@@ -629,10 +629,10 @@ function VPCPanel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
       <div className="space-y-2">
         {securityGroups.map((sg) => (
           <div key={sg.groupId} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
-            <div className="font-mono font-bold">{sg.name}</div>
+            <div className="font-mono font-bold min-w-0 whitespace-normal break-words">{sg.name}</div>
             <div className="text-[10px] text-gray-500">{sg.inbound.length} inbound · {sg.outbound.length} outbound</div>
             {sg.inbound.map((r, i) => (
-              <div key={i} className="text-[10px] text-gray-600 dark:text-gray-400 font-mono mt-0.5">
+              <div key={i} className="text-[10px] text-gray-600 dark:text-gray-400 font-mono mt-0.5 break-words">
                 {r.protocol} {r.fromPort}-{r.toPort} from {r.source}
               </div>
             ))}
@@ -643,8 +643,8 @@ function VPCPanel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
       <div className="space-y-2">
         {vpcs.map((v) => (
           <div key={v.vpcId} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
-            <div className="font-mono font-bold">{v.vpcId}</div>
-            <div className="text-[10px] text-gray-500">{v.cidr} · {subnets.filter((s) => s.vpcId === v.vpcId).length} subnets</div>
+            <div className="font-mono font-bold min-w-0 whitespace-normal break-words">{v.vpcId}</div>
+            <div className="text-[10px] text-gray-500 break-words">{v.cidr} · {subnets.filter((s) => s.vpcId === v.vpcId).length} subnets</div>
           </div>
         ))}
       </div>
@@ -661,11 +661,11 @@ function EventsPanel({ state }: { state: CloudSandboxState }) {
       {reversed.map((e, i) => (
         <div key={i} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs">
           <div className="flex flex-wrap items-center justify-between">
-            <span className="font-bold text-sky-700 dark:text-sky-300">{e.service}</span>
+            <span className="font-bold text-sky-700 dark:text-sky-300 min-w-0 whitespace-normal break-words">{e.service}</span>
             <span className="text-[10px] text-gray-500">{new Date(e.timestamp).toLocaleTimeString()}</span>
           </div>
-          <div className="font-mono text-bleepx-text">{e.action} {e.resource}</div>
-          <div className={`text-[10px] ${e.status === 'success' ? 'text-green-600' : e.status === 'failure' ? 'text-red-600' : 'text-gray-500'}`}>{e.message}</div>
+          <div className="font-mono text-bleepx-text break-words">{e.action} {e.resource}</div>
+          <div className={`text-[10px] break-words ${e.status === 'success' ? 'text-green-600' : e.status === 'failure' ? 'text-red-600' : 'text-gray-500'}`}>{e.message}</div>
         </div>
       ))}
     </div>
@@ -752,8 +752,8 @@ function DynamoDBPanel({ state, onAction }: { state: CloudSandboxState; onAction
       <div className="space-y-2">
         {Object.values(state.dynamodb.tables).map((t) => (
           <div key={t.tableName} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
-            <div className="font-mono font-bold">{t.tableName}</div>
-            <div className="text-[10px] text-gray-500">PK: {t.partitionKey} · {t.items.length} items · {t.billingMode}</div>
+            <div className="font-mono font-bold min-w-0 whitespace-normal break-words">{t.tableName}</div>
+            <div className="text-[10px] text-gray-500 break-words">PK: {t.partitionKey} · {t.items.length} items · {t.billingMode}</div>
           </div>
         ))}
       </div>
@@ -808,8 +808,8 @@ function LambdaPanel({ state, onAction, onInvoke }: { state: CloudSandboxState; 
       <div className="space-y-2">
         {Object.values(state.lambda.functions).map((f) => (
           <div key={f.functionName} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
-            <div className="font-mono font-bold">{f.functionName}</div>
-            <div className="text-[10px] text-gray-500">{f.runtime} · {f.memoryMb} MB · {f.timeout}s</div>
+            <div className="font-mono font-bold min-w-0 whitespace-normal break-words">{f.functionName}</div>
+            <div className="text-[10px] text-gray-500 break-words">{f.runtime} · {f.memoryMb} MB · {f.timeout}s</div>
           </div>
         ))}
       </div>
@@ -864,7 +864,7 @@ function SecurityPanel({ state }: { state: CloudSandboxState }) {
                 f.severity === 'medium' ? 'bg-amber-500 text-white' :
                 'bg-sky-500 text-white'
               }`}>{f.severity}</span>
-              <span className="font-mono font-bold text-bleepx-text">{f.resource}</span>
+              <span className="font-mono font-bold text-bleepx-text min-w-0 whitespace-normal break-words">{f.resource}</span>
             </div>
             <p className="text-xs text-bleepx-text-secondary mt-1"><strong>{f.issue}</strong></p>
             <p className="text-[10px] text-bleepx-text mt-1 inline-flex flex-wrap items-center gap-1"><ToolsIcon size={10} /> {f.remediation}</p>
@@ -929,10 +929,10 @@ function RDSPanel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
           {Object.values(state.rds.instances).map((db) => (
             <div key={db.dbInstanceIdentifier} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-sm space-y-1">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="font-bold text-bleepx-text">{db.dbInstanceIdentifier}</span>
+                <span className="font-bold text-bleepx-text min-w-0 whitespace-normal break-words">{db.dbInstanceIdentifier}</span>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${db.status === 'available' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{db.status}</span>
               </div>
-              <div className="text-xs text-bleepx-text-secondary grid sm:grid-cols-2 gap-1">
+              <div className="text-xs text-bleepx-text-secondary grid sm:grid-cols-2 gap-1 break-words">
                 <span>Engine: {db.engine} {db.instanceClass}</span>
                 <span>Storage: {db.allocatedStorage} GB {db.storageType}</span>
                 <span>AZ: {db.availabilityZone} {db.multiAZ && db.secondaryAvailabilityZone ? `↔ ${db.secondaryAvailabilityZone}` : ''}</span>
@@ -957,9 +957,9 @@ function RDSPanel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
           <div className="grid sm:grid-cols-2 gap-2">
             {Object.values(state.rds.snapshots).map((snap) => (
               <div key={snap.dbSnapshotIdentifier} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-xs">
-                <strong className="text-bleepx-text">{snap.dbSnapshotIdentifier}</strong>
-                <p className="text-bleepx-text-secondary">Source: {snap.dbInstanceIdentifier}</p>
-                <p className="text-bleepx-text-secondary">Encrypted: {snap.encrypted ? 'Yes' : 'No'} | {new Date(snap.createdAt).toLocaleString()}</p>
+                <strong className="text-bleepx-text break-words">{snap.dbSnapshotIdentifier}</strong>
+                <p className="text-bleepx-text-secondary break-words">Source: {snap.dbInstanceIdentifier}</p>
+                <p className="text-bleepx-text-secondary break-words">Encrypted: {snap.encrypted ? 'Yes' : 'No'} | {new Date(snap.createdAt).toLocaleString()}</p>
               </div>
             ))}
           </div>

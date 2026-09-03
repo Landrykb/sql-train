@@ -35,8 +35,8 @@ export default function ClientSQLPlayground({ caseData, guideData }: ClientSQLPl
   return (
     <div className="p-6 bg-bleepx-white rounded-lg shadow-md">
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        <img src="/bleepx-icon.png" alt="Bleepx" className="h-6 w-6 animate-pulse-logo" />
-        <h2 className="text-xl font-semibold text-bleepx-gray">{caseData.name}</h2>
+        <img src="/bleepx-icon.png" alt="Bleepx" className="h-6 w-6 animate-pulse-logo flex-shrink-0" />
+        <h2 className="text-xl font-semibold text-bleepx-gray break-words min-w-0 flex-1">{caseData.name}</h2>
       </div>
       <p className="text-bleepx-gray mb-4">{caseData.description}</p>
       <SQLPlaygroundErrorBoundary>

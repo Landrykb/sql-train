@@ -81,9 +81,9 @@ export default async function LabProjectPage({ params }: { params: Promise<{ dom
 
       {/* Header with Report Button */}
       <div className="flex flex-wrap items-start justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text">{doc.name}</h1>
-          <p className="text-sm text-bleepx-text-secondary mt-1">{doc.description}</p>
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text break-words">{doc.name}</h1>
+          <p className="text-sm text-bleepx-text-secondary mt-1 break-words">{doc.description}</p>
         </div>
         <CaseInterpretationButton 
           verse="lab" 

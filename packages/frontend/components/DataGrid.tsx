@@ -16,8 +16,8 @@ export function DataGrid({ data }: { data: Record<string, any>[] }) {
     return <p className="text-sm text-bleepx-text-secondary">Query returned {data.length} row(s) but no columns were found.</p>
   }
   return (
-    <div className="overflow-auto max-h-[400px]">
-      <table className="min-w-full table-auto border-collapse text-sm" style={{ borderCollapse: 'collapse' }}>
+    <div className="overflow-x-auto max-w-full max-h-[400px]">
+      <table className="w-full min-w-max table-auto border-collapse text-sm" style={{ borderCollapse: 'collapse' }}>
         <thead className="sticky top-0 z-10">
           <tr>
             {cols.map(c => (

@@ -114,7 +114,7 @@ function HowItWorksBanner() {
       >
         <div className="flex flex-wrap items-center gap-3">
           <BleepxFace size={22} />
-          <h3 className="text-sm font-bold text-teal-800 dark:text-teal-200">
+          <h3 className="text-sm font-bold text-teal-800 dark:text-teal-200 min-w-0">
             How this step works
           </h3>
         </div>
@@ -457,7 +457,7 @@ export default function LabProjectViewer({
             <BleepxFace size={22} />
             <span className="text-white text-xs font-bold tracking-wide uppercase whitespace-nowrap">BleepxLab</span>
             <span className="text-teal-200 text-[10px] hidden sm:inline">•</span>
-            <span className="text-teal-100 text-xs whitespace-normal break-words">{project}</span>
+            <span className="text-teal-100 text-xs whitespace-normal break-words min-w-0">{project}</span>
           </div>
           {/* Action chips — wrap on narrow screens, never push Run/Quiz off-screen */}
           <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 sm:justify-end">
@@ -509,8 +509,8 @@ export default function LabProjectViewer({
             <div className="w-9 h-9 rounded-full bg-teal-100 dark:bg-teal-900/30 flex flex-wrap items-center justify-center text-sm font-bold text-teal-700 dark:text-teal-300 shadow-sm">
               {stepNumber}
             </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-bleepx-text leading-tight">{name}</h2>
+            <div className="min-w-0">
+              <h2 className="text-xl sm:text-2xl font-bold text-bleepx-text leading-tight break-words">{name}</h2>
               <p className="text-[10px] text-bleepx-text-secondary mt-0.5">{language} • Step {stepNumber}</p>
             </div>
           </div>
@@ -528,8 +528,8 @@ export default function LabProjectViewer({
           {/* Learning objectives */}
           {learningObjectives.length > 0 && (
             <div className="mt-4 p-3 rounded-xl bg-teal-50 dark:bg-teal-900/10 border border-teal-200 dark:border-teal-800">
-              <h4 className="text-xs font-bold text-teal-700 dark:text-teal-300 uppercase tracking-wide mb-2 flex flex-wrap items-center gap-1.5">
-                <TargetIcon size={12} /> Learning Objectives
+              <h4 className="text-xs font-bold text-teal-700 dark:text-teal-300 uppercase tracking-wide mb-2 flex flex-wrap items-center gap-1.5 min-w-0">
+                <TargetIcon size={12} className="flex-shrink-0" /> <span className="min-w-0">Learning Objectives</span>
               </h4>
               <ul className="space-y-1">
                 {learningObjectives.map((obj, i) => (
@@ -546,8 +546,8 @@ export default function LabProjectViewer({
           {datasetUrl && (
             <div className="mt-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
               <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-                <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide flex flex-wrap items-center gap-1.5">
-                  <ChartBarIcon size={12} /> Dataset
+                <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide flex flex-wrap items-center gap-1.5 min-w-0">
+                  <ChartBarIcon size={12} className="flex-shrink-0" /> <span className="min-w-0">Dataset</span>
                 </h4>
                 <a
                   href={datasetUrl}
@@ -612,8 +612,8 @@ export default function LabProjectViewer({
           {/* Schema columns */}
           {schema && schema.length > 0 && (
             <div className="mt-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-              <h4 className="text-xs font-bold text-bleepx-text-secondary uppercase tracking-wide mb-2 flex flex-wrap items-center gap-1.5">
-                <FolderIcon size={12} /> Dataset Columns
+              <h4 className="text-xs font-bold text-bleepx-text-secondary uppercase tracking-wide mb-2 flex flex-wrap items-center gap-1.5 min-w-0">
+                <FolderIcon size={12} className="flex-shrink-0" /> <span className="min-w-0">Dataset Columns</span>
               </h4>
               <div className="flex flex-wrap gap-1.5">
                 {schema.map((col, i) => (
@@ -669,8 +669,9 @@ export default function LabProjectViewer({
       {/* Python Terminal — Try It Yourself */}
       <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border overflow-hidden">
         <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-5 py-3 flex flex-wrap items-center justify-between">
-          <h3 className="text-sm font-bold text-white flex flex-wrap items-center gap-2">
-            <span className="text-lg">{codeLang === 'r' ? <IconLetterR size={20} /> : <IconBrandPython size={20} />}</span> Try It Yourself {codeLang === 'r' ? '(R reference — run Python in editor)' : ''}
+          <h3 className="text-sm font-bold text-white flex flex-wrap items-center gap-2 min-w-0">
+            <span className="text-lg flex-shrink-0">{codeLang === 'r' ? <IconLetterR size={20} /> : <IconBrandPython size={20} />}</span>
+            <span className="min-w-0">Try It Yourself {codeLang === 'r' ? '(R reference — run Python in editor)' : ''}</span>
           </h3>
           <div className="flex flex-wrap items-center gap-2">
             {stepSolved && (
@@ -704,8 +705,8 @@ import numpy as np
           />
           {codeLang === 'r' && rSolutionCode && (
             <div className="mt-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
-              <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 mb-2 flex flex-wrap items-center gap-1.5">
-                <IconLetterR size={12} /> R Solution Reference
+              <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 mb-2 flex flex-wrap items-center gap-1.5 min-w-0">
+                <IconLetterR size={12} className="flex-shrink-0" /> <span className="min-w-0">R Solution Reference</span>
               </h4>
               <pre className="text-xs bg-gray-900 text-gray-100 rounded-lg p-3 overflow-x-auto font-mono"><code>{rSolutionCode}</code></pre>
               <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
@@ -791,8 +792,8 @@ import numpy as np
                 {/* Bleepx explanation */}
                 <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800">
                   <div className="flex flex-wrap items-start gap-2">
-                    <BleepxFace size={20} />
-                    <div>
+                    <BleepxFace size={20} className="flex-shrink-0" />
+                    <div className="min-w-0">
                       <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Bleepx says:</span>
                       <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed mt-0.5">{section.explanation}</p>
                     </div>
@@ -826,8 +827,8 @@ import numpy as np
             onClick={() => setShowThoughtProcess(!showThoughtProcess)}
             className="flex flex-wrap items-center gap-2 w-full text-left group"
           >
-            <BrainIcon size={20} className="inline" />
-            <span className="text-sm font-bold text-bleepx-text group-hover:text-teal-600 transition-colors">
+            <BrainIcon size={20} className="inline flex-shrink-0" />
+            <span className="text-sm font-bold text-bleepx-text group-hover:text-teal-600 transition-colors min-w-0">
               {showThoughtProcess ? 'Hide Thought Process' : 'View Thought Process'}
             </span>
             <svg
@@ -857,8 +858,8 @@ import numpy as np
             onClick={() => setShowHints(!showHints)}
             className="flex flex-wrap items-center gap-2 w-full text-left group"
           >
-            <BleepxGhost size={20} />
-            <span className="text-sm font-bold text-bleepx-text group-hover:text-amber-600 transition-colors">
+            <BleepxGhost size={20} className="flex-shrink-0" />
+            <span className="text-sm font-bold text-bleepx-text group-hover:text-amber-600 transition-colors min-w-0">
               {showHints ? 'Hide Hints' : '*bleep* Need a hint, human?'}
             </span>
             <svg
@@ -887,8 +888,8 @@ import numpy as np
           onClick={() => setShowVizGuide(!showVizGuide)}
           className="flex flex-wrap items-center gap-2 w-full text-left group"
         >
-          <ChartBarIcon size={20} className="inline" />
-          <span className="text-sm font-bold text-bleepx-text group-hover:text-indigo-600 transition-colors">
+          <ChartBarIcon size={20} className="inline flex-shrink-0" />
+          <span className="text-sm font-bold text-bleepx-text group-hover:text-indigo-600 transition-colors min-w-0">
             {showVizGuide ? 'Hide Visualization Guide' : 'Visualize Your Data'}
           </span>
           <svg
@@ -946,8 +947,8 @@ import numpy as np
       <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between">
           <div className="flex flex-wrap items-center gap-2">
-            <BleepxGitHub size={20} />
-            <span className="text-sm font-bold text-bleepx-text">Export to GitHub</span>
+            <BleepxGitHub size={20} className="flex-shrink-0" />
+            <span className="text-sm font-bold text-bleepx-text min-w-0">Export to GitHub</span>
           </div>
           <button
             onClick={handleGitHubPush}
