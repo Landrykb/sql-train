@@ -820,7 +820,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               <button onClick={() => setOpen(false)} className="text-xs text-bleepx-text-secondary hover:text-bleepx-text">Close</button>
             </div>
           </div>
-          <div className="flex flex-col relative" style={{ maxHeight: chatMaxHeight, height: 'min(70vh, 32rem)' }}>
+          <div className="flex flex-col relative" style={{ maxHeight: chatMaxHeight, height: 'min(55vh, 22rem)' }}>
             <img src="/bleepx-logo.png" alt="" className="absolute right-4 top-20 w-20 h-20 opacity-5 pointer-events-none" />
             <div className="flex-1 overflow-y-auto overscroll-y-contain p-4 space-y-3" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>
               {messages.map((m, i) => (
