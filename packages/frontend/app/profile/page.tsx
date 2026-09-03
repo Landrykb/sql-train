@@ -469,13 +469,13 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Tab Navigation — horizontally scrollable on narrow screens so it never overflows or squishes */}
-      <div className="flex gap-1 border-b border-bleepx-border overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 no-scrollbar">
+      {/* Tab Navigation — 5-column grid so every tab is always visible on a phone. */}
+      <div className="grid grid-cols-5 gap-1 border-b border-bleepx-border items-end">
         {(['overview', 'shop', 'achievements', 'exports', 'settings'] as const).map((t) => (
           <button
             key={t}
             onClick={() => { playBleep(); setTab(t); }}
-            className={`shrink-0 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
+            className={`flex flex-col items-center justify-end text-center min-h-[3rem] px-1 sm:px-3 py-2 text-[10px] sm:text-xs font-medium leading-tight whitespace-normal break-words transition-colors border-b-2 -mb-px ${
               tab === t
                 ? 'border-bleepx-blue text-bleepx-blue'
                 : 'border-transparent text-bleepx-text-secondary hover:text-bleepx-text'
