@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronDown } from 'lucide-react';
 import NavAuth from '@/components/NavAuth';
-import { DashboardIcon, TrialsIcon, GuideIcon, ProjectsIcon, VerseIcon } from '@/components/NavIcons';
+import { CrossVerseIcon, TrialsIcon, GuideIcon, ProjectsIcon, VerseIcon } from '@/components/NavIcons';
 import { verseFromPath, setActiveVerse, getActiveVerse, VERSE_THEMES, type Verse } from '@/lib/verse';
 
 const VERSE_OPTIONS: { verse: Verse; href: string }[] = [
@@ -102,7 +102,7 @@ export default function NavHeader() {
 
         <nav className="flex items-center gap-3 sm:gap-4">
           <Link href="/dashboard" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-violet-600 font-semibold text-sm sm:text-base transition-colors">
-            <DashboardIcon size={20} />
+            <CrossVerseIcon size={20} />
             <span className="hidden sm:inline">Dashboard</span>
           </Link>
 
