@@ -66,18 +66,17 @@
   export interface TrialDifficulty {
     id: string;
     label: string;
-    emoji: string;
     timeLimitSeconds: number;
     description: string;
     color: string;
   }
 
   export const trialDifficulties: TrialDifficulty[] = [
-    { id: 'intermediate', label: 'Intermediate', emoji: '🟢', timeLimitSeconds: 60 * 60, description: '1 hour — relaxed pace, take your time and think it through', color: 'green' },
-    { id: 'advanced', label: 'Advanced', emoji: '🟡', timeLimitSeconds: 45 * 60, description: '45 minutes — confident and focused, you know your way around SQL', color: 'yellow' },
-    { id: 'elite', label: 'Elite', emoji: '🔴', timeLimitSeconds: 30 * 60, description: '30 minutes — sharp under pressure, no second-guessing', color: 'red' },
-    { id: 'legendary', label: 'Legendary', emoji: '💀', timeLimitSeconds: 20 * 60, description: '20 minutes — fearless problem solver, thrives on challenge', color: 'purple' },
-    { id: 'senior_pro', label: 'Senior Data Pro', emoji: '👑', timeLimitSeconds: 20 * 60, description: '20 minutes — battle-tested expert, nothing phases you', color: 'amber' },
+    { id: 'intermediate', label: 'Intermediate', timeLimitSeconds: 60 * 60, description: '1 hour — relaxed pace, take your time and think it through', color: 'green' },
+    { id: 'advanced', label: 'Advanced', timeLimitSeconds: 45 * 60, description: '45 minutes — confident and focused, you know your way around SQL', color: 'yellow' },
+    { id: 'elite', label: 'Elite', timeLimitSeconds: 30 * 60, description: '30 minutes — sharp under pressure, no second-guessing', color: 'red' },
+    { id: 'legendary', label: 'Legendary', timeLimitSeconds: 20 * 60, description: '20 minutes — fearless problem solver, thrives on challenge', color: 'purple' },
+    { id: 'senior_pro', label: 'Senior Data Pro', timeLimitSeconds: 20 * 60, description: '20 minutes — battle-tested expert, nothing phases you', color: 'amber' },
   ];
 
   // Progressive trial unlock: maps trial case tier to minimum lifetime points earned

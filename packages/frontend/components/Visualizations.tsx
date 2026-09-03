@@ -10,6 +10,8 @@ import { useTheme } from '@/lib/useTheme';
 import { pushCaseToGitHub } from '@/lib/githubPush';
 import { startGitHubLogin } from '@/lib/authClient';
 import { useSupabaseUser } from '@/lib/useSupabaseUser';
+import { ChartBarIcon, FileTextIcon, CodeIcon } from '@/components/AppIcons';
+import { IconPackage, IconCheck, IconX } from '@tabler/icons-react';
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 const Spinner = dynamic(() => import('./Spinner'), { ssr: false });
@@ -233,7 +235,7 @@ ${getJSCode()}
   if (charts.length === 0) {
     return (
       <div className="p-6 sm:p-8 rounded-xl shadow-sm border text-center bg-bleepx-white border-bleepx-border">
-        <div className="text-4xl mb-3">📊</div>
+        <div className="mb-3"><ChartBarIcon size={40} className="text-bleepx-text-secondary" /></div>
         <p className="text-sm font-medium text-bleepx-text-secondary">No visualizations configured for this challenge yet.</p>
         <p className="text-xs mt-1 text-bleepx-text-secondary">Visualizations are available for most challenges — try another one!</p>
         <Link href={`/cases/${domain}/${caseId}`} className="text-bleepx-blue text-sm hover:underline mt-3 inline-block">
@@ -280,7 +282,7 @@ ${getJSCode()}
                   : 'text-bleepx-text-secondary hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
-              {t === 'chart' ? '📊 Chart' : t === 'data' ? '📋 Data' : '💻 Code'}
+              {t === 'chart' ? <span className="inline-flex items-center gap-1.5"><ChartBarIcon size={14} className="inline" /> Chart</span> : t === 'data' ? <span className="inline-flex items-center gap-1.5"><FileTextIcon size={14} className="inline" /> Data</span> : <span className="inline-flex items-center gap-1.5"><CodeIcon size={14} className="inline" /> Code</span>}
             </button>
           ))}
         </div>
@@ -429,7 +431,7 @@ ${getJSCode()}
             onClick={handleDownloadProject}
             className="px-4 py-2 rounded-full bg-bleepx-blue text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors"
           >
-            📦 Download Project Files
+            <IconPackage size={16} className="inline" /> Download Project Files
           </button>
           <Link
             href={`/cases/${domain}/${caseId}`}
@@ -440,10 +442,10 @@ ${getJSCode()}
         </div>
         {pushResult?.success && (
           <p className="mt-2 text-sm text-green-700 dark:text-green-400">
-            ✅ Pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline text-bleepx-blue">{pushResult.repoUrl}</a>
+            <IconCheck size={16} className="inline" /> Pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline text-bleepx-blue">{pushResult.repoUrl}</a>
           </p>
         )}
-        {pushResult?.error && <p className="mt-2 text-sm text-red-600">❌ {pushResult.error}</p>}
+        {pushResult?.error && <p className="mt-2 text-sm text-red-600 inline-flex items-center gap-1.5"><IconX size={16} className="inline" /> {pushResult.error}</p>}
         <p className="text-xs mt-2 text-bleepx-text-secondary">
           Push creates a <code>sql-portfolio</code> repo organized as <code>{domain}/{caseId}/</code> with your query, visualizations, and data.
         </p>

@@ -3,6 +3,7 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 import { useProgress } from '@/lib/useProgress';
+import { IconCheck } from '@tabler/icons-react';
 import SQLPlaygroundErrorBoundary from './SQLPlaygroundErrorBoundary';
 
 const SQLPlayground = dynamic(() => import('./SQLPlayground'), { ssr: false });
@@ -44,7 +45,7 @@ export default function ClientSQLPlayground({ caseData, guideData }: ClientSQLPl
       {completed.has(caseData.id) && (
         <div className="mt-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 rounded-xl animate-fade-in" role="alert">
           <div className="flex items-center gap-2">
-            <span className="text-emerald-600 font-bold">✓</span>
+            <IconCheck size={18} className="text-emerald-600" />
             <span className="text-sm">*bleep* Mission cleared — +{10 * caseData.tier} pts awarded. Total: {points}</span>
           </div>
         </div>

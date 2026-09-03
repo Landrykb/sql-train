@@ -53,7 +53,6 @@ export interface BadgePerks {
 
 export interface StoreBadge {
   id: string;
-  emoji: string;
   name: string;
   description: string;
   cost: number;
@@ -62,22 +61,22 @@ export interface StoreBadge {
 }
 
 export const BADGES: StoreBadge[] = [
-  { id: 'badge_fire',      emoji: '🔥', name: 'On Fire',        description: 'Hot streak energy.',           cost: 30,  perks: { pointMultiplier: 0.03, hintDiscount: 0,  skipDiscount: 0 } },
-  { id: 'badge_brain',     emoji: '🧠', name: 'Big Brain',      description: 'Outsmarted the machine.',      cost: 60,  perks: { pointMultiplier: 0.05, hintDiscount: 3,  skipDiscount: 0 } },
-  { id: 'badge_rocket',    emoji: '🚀', name: 'Launch Ready',   description: 'Speed-running SQL.',           cost: 100, perks: { pointMultiplier: 0.05, hintDiscount: 0,  skipDiscount: 10 } },
-  { id: 'badge_crown',     emoji: '👑', name: 'Royal Query',    description: 'Royalty of the database.',     cost: 150, perks: { pointMultiplier: 0.07, hintDiscount: 5,  skipDiscount: 0 } },
-  { id: 'badge_diamond',   emoji: '💎', name: 'Diamond Hands',  description: 'Never gave up.',               cost: 200, perks: { pointMultiplier: 0.08, hintDiscount: 0,  skipDiscount: 15 } },
-  { id: 'badge_ghost',     emoji: '👻', name: 'Phantom',        description: 'Solved it like a ghost.',      cost: 300, perks: { pointMultiplier: 0.10, hintDiscount: 5,  skipDiscount: 10 } },
-  { id: 'badge_star',      emoji: '⭐', name: 'Gold Star',      description: 'Teacher\'s favorite.',         cost: 100, perks: { pointMultiplier: 0.05, hintDiscount: 3,  skipDiscount: 5 } },
-  { id: 'badge_ninja',     emoji: '🥷', name: 'SQL Ninja',      description: 'Silent but effective.',        cost: 250, perks: { pointMultiplier: 0.08, hintDiscount: 5,  skipDiscount: 10 } },
-  { id: 'badge_lightning',  emoji: '⚡', name: 'Lightning Fast', description: 'Sub-minute solves.',           cost: 350, perks: { pointMultiplier: 0.12, hintDiscount: 5,  skipDiscount: 15 } },
-  { id: 'badge_trophy',    emoji: '🏆', name: 'Champion',       description: 'Undisputed domain champion.',  cost: 500, perks: { pointMultiplier: 0.15, hintDiscount: 8,  skipDiscount: 20 } },
+  { id: 'badge_fire',      name: 'On Fire',        description: 'Hot streak energy.',           cost: 30,  perks: { pointMultiplier: 0.03, hintDiscount: 0,  skipDiscount: 0 } },
+  { id: 'badge_brain',     name: 'Big Brain',      description: 'Outsmarted the machine.',      cost: 60,  perks: { pointMultiplier: 0.05, hintDiscount: 3,  skipDiscount: 0 } },
+  { id: 'badge_rocket',    name: 'Launch Ready',   description: 'Speed-running SQL.',           cost: 100, perks: { pointMultiplier: 0.05, hintDiscount: 0,  skipDiscount: 10 } },
+  { id: 'badge_crown',     name: 'Royal Query',    description: 'Royalty of the database.',     cost: 150, perks: { pointMultiplier: 0.07, hintDiscount: 5,  skipDiscount: 0 } },
+  { id: 'badge_diamond',   name: 'Diamond Hands',  description: 'Never gave up.',               cost: 200, perks: { pointMultiplier: 0.08, hintDiscount: 0,  skipDiscount: 15 } },
+  { id: 'badge_ghost',     name: 'Phantom',        description: 'Solved it like a ghost.',      cost: 300, perks: { pointMultiplier: 0.10, hintDiscount: 5,  skipDiscount: 10 } },
+  { id: 'badge_star',      name: 'Gold Star',      description: 'Teacher\'s favorite.',         cost: 100, perks: { pointMultiplier: 0.05, hintDiscount: 3,  skipDiscount: 5 } },
+  { id: 'badge_ninja',     name: 'SQL Ninja',      description: 'Silent but effective.',        cost: 250, perks: { pointMultiplier: 0.08, hintDiscount: 5,  skipDiscount: 10 } },
+  { id: 'badge_lightning',  name: 'Lightning Fast', description: 'Sub-minute solves.',           cost: 350, perks: { pointMultiplier: 0.12, hintDiscount: 5,  skipDiscount: 15 } },
+  { id: 'badge_trophy',    name: 'Champion',       description: 'Undisputed domain champion.',  cost: 500, perks: { pointMultiplier: 0.15, hintDiscount: 8,  skipDiscount: 20 } },
   // ── BleepxLab badges ──
-  { id: 'badge_flask',     emoji: '🧪', name: 'Lab Coat',       description: 'Experiments in progress.',     cost: 80,  perks: { pointMultiplier: 0.05, hintDiscount: 3,  skipDiscount: 0 } },
-  { id: 'badge_dna',       emoji: '🧬', name: 'Data Scientist', description: 'Models, metrics, mastery.',    cost: 220, perks: { pointMultiplier: 0.09, hintDiscount: 5,  skipDiscount: 10 } },
+  { id: 'badge_flask',     name: 'Lab Coat',       description: 'Experiments in progress.',     cost: 80,  perks: { pointMultiplier: 0.05, hintDiscount: 3,  skipDiscount: 0 } },
+  { id: 'badge_dna',       name: 'Data Scientist', description: 'Models, metrics, mastery.',    cost: 220, perks: { pointMultiplier: 0.09, hintDiscount: 5,  skipDiscount: 10 } },
   // ── BleepxCloud badges ──
-  { id: 'badge_cloud',     emoji: '☁️', name: 'Cloud Native',   description: 'Born in the data center.',     cost: 80,  perks: { pointMultiplier: 0.05, hintDiscount: 3,  skipDiscount: 0 } },
-  { id: 'badge_satellite', emoji: '🛰️', name: 'Architect',      description: 'Designs that scale to infinity.', cost: 280, perks: { pointMultiplier: 0.10, hintDiscount: 5,  skipDiscount: 12 } },
+  { id: 'badge_cloud',     name: 'Cloud Native',   description: 'Born in the data center.',     cost: 80,  perks: { pointMultiplier: 0.05, hintDiscount: 3,  skipDiscount: 0 } },
+  { id: 'badge_satellite', name: 'Architect',      description: 'Designs that scale to infinity.', cost: 280, perks: { pointMultiplier: 0.10, hintDiscount: 5,  skipDiscount: 12 } },
 ];
 
 // ─── Trial Difficulty Gating ─────────────────────────────────────────────────

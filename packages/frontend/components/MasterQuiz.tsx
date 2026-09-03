@@ -4,7 +4,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { BleepxHead, BleepxTrophy, BleepxFace, BleepxGhost } from '@/components/BleepxIcons';
+import { RefreshIcon } from '@/components/AppIcons';
 import { SKILL_QUESTIONS, GENERIC_QUESTIONS, type QuizQuestion } from '@/components/TrialQuiz';
+import { IconCheck, IconX, IconSparkles, IconCircleFilled } from '@tabler/icons-react';
 import { syncCurrentProgress } from '@/lib/progressSync';
 import { track, Events } from '@/lib/analytics';
 
@@ -56,13 +58,23 @@ const SKILL_CURRICULUM: string[][] = [
 ];
 
 const LEVEL_LABELS = [
-  '🟢 Fundamentals',
-  '🔵 Aggregation',
-  '🟡 Filtering & Nulls',
-  '🟠 Data Manipulation',
-  '🔴 Joins & Subqueries',
-  '🟣 Advanced Analytics',
+  'Fundamentals',
+  'Aggregation',
+  'Filtering & Nulls',
+  'Data Manipulation',
+  'Joins & Subqueries',
+  'Advanced Analytics',
 ];
+
+const LEVEL_COLORS: Record<number, string> = {
+  [-1]: 'text-gray-400',
+  0: 'text-green-500',
+  1: 'text-blue-500',
+  2: 'text-yellow-500',
+  3: 'text-orange-500',
+  4: 'text-red-500',
+  5: 'text-purple-500',
+};
 
 // Curriculum level → max trial tier allowed for redirects
 // This prevents fundamentals questions from sending users to advanced trials
@@ -130,7 +142,7 @@ function buildMasterPool(trials: TrialInfo[]): MasterQuestion[] {
         skill: 'general',
         relatedTrials: tier1Trials,
         level: -1,
-        levelLabel: '⚪ Warm-Up',
+        levelLabel: 'Warm-Up',
       });
     }
   }
@@ -385,7 +397,7 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
             <div className="text-4xl font-bold text-bleepx-blue mb-1">+{score} pts</div>
             <p className="text-sm text-bleepx-text-secondary">
               {score}/{maxScore} possible ({pct}%) — {totalQuestions} questions
-              {isPerfect && <span className="ml-1 text-yellow-500">✨ Perfect Bonus!</span>}
+              {isPerfect && <span className="ml-1 text-yellow-500 inline-flex items-center gap-1"><IconSparkles size={14} /> Perfect Bonus!</span>}
             </p>
           </div>
 
@@ -394,7 +406,7 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
               onClick={handleRestart}
               className="px-5 py-2.5 rounded-full border-2 border-bleepx-border text-sm font-bold text-bleepx-text-secondary hover:bg-bleepx-blue/5 transition-colors"
             >
-              🔄 Retake
+              <RefreshIcon size={16} className="inline" /> Retake
             </button>
             <Link href="/cases/trials">
               <button className="px-5 py-2.5 rounded-full bg-bleepx-blue text-white text-sm font-bold hover:bg-bleepx-blue/90 transition-colors shadow-sm">
@@ -439,7 +451,8 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
       <div className="bg-bleepx-white rounded-2xl shadow-xl p-5 sm:p-8">
         {/* Level + Skill tags */}
         <div className="flex flex-wrap gap-2 mb-3">
-          <span className="text-xs px-2.5 py-0.5 rounded-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 font-bold tracking-wide">
+          <span className="text-xs px-2.5 py-0.5 rounded-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 font-bold tracking-wide inline-flex items-center gap-1">
+            <IconCircleFilled size={10} className={LEVEL_COLORS[currentQ.level]} />
             {currentQ.levelLabel}
           </span>
           <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium uppercase tracking-wide">
@@ -447,7 +460,7 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
           </span>
           {answered && (
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${correct ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'}`}>
-              {correct ? '✅ Mastered' : '❌ Review'}
+              {correct ? <span className="inline-flex items-center gap-1"><IconCheck size={12} /> Mastered</span> : <span className="inline-flex items-center gap-1"><IconX size={12} /> Review</span>}
             </span>
           )}
           {currentQ.relatedTrials.length > 0 && (
@@ -530,7 +543,7 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
               ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-200'
               : 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200'
           }`}>
-            <strong>{correct ? '✅ Correct!' : '❌ Not quite.'}</strong>{' '}
+            <strong className="inline-flex items-center gap-1">{correct ? <><IconCheck size={14} /> Correct!</> : <><IconX size={14} /> Not quite.</>}</strong>{' '}
             {currentQ.explanation}
             {correct && <span className="ml-1 font-bold text-indigo-600 dark:text-indigo-400">+{POINTS_PER_CORRECT} pts</span>}
           </div>

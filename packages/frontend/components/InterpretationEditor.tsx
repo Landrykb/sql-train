@@ -13,6 +13,8 @@ import {
   generateCompleteReport
 } from '@/lib/reportGeneration';
 import { BleepxFace } from './BleepxIcons';
+import { ChartBarIcon, AlertIcon } from '@/components/AppIcons';
+import { IconDownload } from '@tabler/icons-react';
 import { 
   useReportGeneration, 
   recordReportGeneration,
@@ -95,7 +97,7 @@ export function InterpretationEditor({
     const newSection: InterpretationSection = {
       id: newSectionTitle.toLowerCase().replace(/\s+/g, '_'),
       title: newSectionTitle,
-      hint: '💡 *bleep* Add your custom analysis here.',
+      hint: '*bleep* Add your custom analysis here.',
       placeholder: 'Write your custom interpretation...',
       userContent: ''
     };
@@ -216,7 +218,7 @@ export function InterpretationEditor({
               disabled={generatingGraphs || !reportPerms.allowed}
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 transition-colors"
             >
-              {generatingGraphs ? 'Generating...' : '📊 Generate Graphs'}
+              {generatingGraphs ? 'Generating...' : <span className="inline-flex items-center gap-1.5"><ChartBarIcon size={14} className="inline" /> Generate Graphs</span>}
             </button>
           )}
           {reportTier?.perks.multipleFormats && (
@@ -224,7 +226,7 @@ export function InterpretationEditor({
               onClick={handleExportMarkdown}
               className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
-              📥 Export
+              <IconDownload size={14} className="inline" /> Export
             </button>
           )}
           {hasChanges && (
@@ -249,8 +251,8 @@ export function InterpretationEditor({
 
       {!hasReportTier && (
         <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-          <p className="text-xs text-amber-800 dark:text-amber-300 mb-2">
-            ⚠️ Purchase a Report Generation tier to unlock AI-powered reports with graphs
+          <p className="text-xs text-amber-800 dark:text-amber-300 mb-2 flex items-center gap-1.5">
+            <AlertIcon size={14} className="inline" /> Purchase a Report Generation tier to unlock AI-powered reports with graphs
           </p>
           <div className="flex flex-wrap gap-2">
             {REPORT_GENERATION_TIERS.map((tier) => (
@@ -271,8 +273,8 @@ export function InterpretationEditor({
 
       {reportPerms.error && hasReportTier && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-xs text-red-800 dark:text-red-300">
-            ⚠️ {reportPerms.error}
+          <p className="text-xs text-red-800 dark:text-red-300 flex items-center gap-1.5">
+            <AlertIcon size={14} className="inline" /> {reportPerms.error}
           </p>
         </div>
       )}
@@ -293,7 +295,7 @@ export function InterpretationEditor({
             {section.context && (
               <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 p-3 border-l-4 border-emerald-400 mb-3">
                 <p className="text-xs text-emerald-700 dark:text-emerald-300">
-                  <span className="font-semibold">📊 Context:</span> {section.context}
+                  <span className="font-semibold inline-flex items-center gap-1"><ChartBarIcon size={12} className="inline" /> Context:</span> {section.context}
                 </p>
               </div>
             )}
@@ -438,7 +440,12 @@ export function InterpretationEditor({
             disabled={generatingGraphs}
             className="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 transition-colors"
           >
-            {generatingGraphs ? 'Generating...' : reportData?.graphs?.length ? '📊 Regenerate Graphs' : '📊 Generate Graphs from Your Data'}
+            {generatingGraphs ? 'Generating...' : (
+              <span className="inline-flex items-center gap-1.5">
+                <ChartBarIcon size={14} className="inline" />
+                {reportData?.graphs?.length ? 'Regenerate Graphs' : 'Generate Graphs from Your Data'}
+              </span>
+            )}
           </button>
           <p className="text-xs text-bleepx-text-secondary mt-2">
             Generate data-driven graphs from your completed work

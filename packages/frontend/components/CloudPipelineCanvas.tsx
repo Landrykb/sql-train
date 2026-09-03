@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { BleepxFace } from '@/components/BleepxIcons';
+import { CheckBadge, AlertIcon, ToolsIcon, RocketIcon, ChartBarIcon, UploadIcon, RefreshIcon } from '@/components/AppIcons';
 import { getKaggleInfo } from '@/lib/kaggleDatasets';
 import { getDataWorldInfo } from '@/lib/dataWorldDatasets';
 import { PIPELINE_PRESETS } from '@/lib/cloud/pipelinePresets';
@@ -130,7 +131,7 @@ export default function CloudPipelineCanvas() {
       activeStep: 'sql',
     }));
     setSelectedPresetId(id);
-    setMessage(`✓ Loaded "${preset.name}". Source: ${preset.sourceUrl}. Run SQL preview next.`);
+    setMessage(`Loaded "${preset.name}". Source: ${preset.sourceUrl}. Run SQL preview next.`);
   }, []);
 
   useEffect(() => {
@@ -148,7 +149,7 @@ export default function CloudPipelineCanvas() {
 
   const loadSample = useCallback((csv: string) => {
     setPipeline((p) => ({ ...p, rawCsv: csv, activeStep: 'sql' }));
-    setMessage('✓ CSV loaded into the pipeline. Run SQL or Python next.');
+    setMessage('CSV loaded into the pipeline. Run SQL or Python next.');
   }, []);
 
   const runSql = useCallback(() => {
@@ -158,7 +159,7 @@ export default function CloudPipelineCanvas() {
     const lines = pipeline.rawCsv.trim().split('\n');
     const preview = lines.slice(0, 20).join('\n');
     setPipeline((p) => ({ ...p, sqlResult: preview, sqlCell: nextCell, activeStep: 'csv' }));
-    setMessage('✓ SQL step preview complete. (Full sql.js integration coming in the next release.)');
+    setMessage('SQL step preview complete. (Full sql.js integration coming in the next release.)');
   }, [pipeline.rawCsv, execCount]);
 
   const runPython = useCallback(() => {
@@ -166,20 +167,20 @@ export default function CloudPipelineCanvas() {
     setExecCount(nextCell);
     // Simplified Python preview: echo the CSV back as a demo
     setPipeline((p) => ({ ...p, transformedCsv: p.rawCsv, pythonCell: nextCell, activeStep: 'csv' }));
-    setMessage('✓ Python transformation step complete. (Pyodide integration coming in the next release.)');
+    setMessage('Python transformation step complete. (Pyodide integration coming in the next release.)');
   }, [pipeline.rawCsv, execCount]);
 
   const uploadToS3 = useCallback(() => {
     let next = createS3Bucket(sandbox, pipeline.s3Bucket, sandbox.activeRegion);
     const bucket = next.s3.buckets[pipeline.s3Bucket];
     if (!bucket) {
-      setMessage('⚠ Could not create bucket. It may already exist. Trying upload anyway.');
+      setMessage('Could not create bucket. It may already exist. Trying upload anyway.');
     }
     next = putS3Object(next, pipeline.s3Bucket, pipeline.s3Key, pipeline.transformedCsv || pipeline.rawCsv);
     setSandbox(next);
     setPipeline((p) => ({ ...p, activeStep: 's3' }));
     const last = next.events[next.events.length - 1];
-    setMessage(last ? last.message : '✓ Uploaded to S3 sandbox.');
+    setMessage(last ? last.message : 'Uploaded to S3 sandbox.');
   }, [sandbox, pipeline.s3Bucket, pipeline.s3Key, pipeline.transformedCsv, pipeline.rawCsv]);
 
   const stepOrder: PipelineStep[] = ['extract', 'sql', 'python', 'csv', 's3'];
@@ -189,7 +190,7 @@ export default function CloudPipelineCanvas() {
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-br from-teal-600 to-sky-700 rounded-2xl p-6 text-white">
-        <h1 className="text-2xl font-extrabold">🛠️ Bleepx Pipeline Canvas</h1>
+        <h1 className="text-2xl font-extrabold flex items-center gap-2"><ToolsIcon size={24} /> Bleepx Pipeline Canvas</h1>
         <p className="text-white/80 text-sm mt-1">
           Extract data from Kaggle or data.world, analyze it with SQL and Python, then ship the final CSV to the AWS S3 sandbox.
         </p>
@@ -227,7 +228,7 @@ export default function CloudPipelineCanvas() {
 
       {/* Project picker */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-        <h2 className="text-base font-bold text-bleepx-text mb-2">🚀 Load a Project</h2>
+        <h2 className="text-base font-bold text-bleepx-text mb-2 flex items-center gap-2"><RocketIcon size={18} /> Load a Project</h2>
         <p className="text-xs text-bleepx-text-secondary mb-3">
           Pick a SQLverse lab, a data.world dataset, or a carbon-credit / regenerative agriculture ML project. It pre-fills the source URL, SQL, Python, and S3 destination.
         </p>
@@ -239,7 +240,7 @@ export default function CloudPipelineCanvas() {
           >
             <option value="">Choose a project preset...</option>
             {PIPELINE_PRESETS.map((p) => (
-              <option key={p.id} value={p.id}>{p.icon} {p.name} — {p.tags.join(', ')}</option>
+              <option key={p.id} value={p.id}>{p.name} — {p.tags.join(', ')}</option>
             ))}
           </select>
           <select
@@ -262,7 +263,7 @@ export default function CloudPipelineCanvas() {
           const p = PIPELINE_PRESETS.find((x) => x.id === selectedPresetId)!;
           return (
             <div className="p-3 rounded-lg bg-sky-50 dark:bg-sky-900/10 border border-sky-200 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-200">
-              <strong>{p.icon} {p.name}</strong> — {p.description}<br/>
+              <strong>{p.name}</strong> — {p.description}<br/>
               <span className="text-[10px]">Source: {p.sourceUrl}</span>
             </div>
           );
@@ -283,7 +284,7 @@ export default function CloudPipelineCanvas() {
         />
         {sourceInfo && (
           <p className="text-[10px] text-sky-600 dark:text-sky-400 mb-3">
-            📊 Detected {sourceInfo.filename} from {pipeline.sourceUrl.includes('kaggle') ? 'Kaggle' : 'data.world'}.
+            <span className="inline-flex items-center gap-1"><ChartBarIcon size={12} /> Detected {sourceInfo.filename} from {pipeline.sourceUrl.includes('kaggle') ? 'Kaggle' : 'data.world'}.</span>
           </p>
         )}
         <textarea
@@ -362,8 +363,8 @@ export default function CloudPipelineCanvas() {
             className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
           />
         </div>
-        <button onClick={uploadToS3} disabled={!pipeline.rawCsv} className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-sky-600 to-teal-600 text-white text-sm font-bold hover:opacity-90 disabled:opacity-50">
-          🚀 Upload CSV to S3 Sandbox
+        <button onClick={uploadToS3} disabled={!pipeline.rawCsv} className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-sky-600 to-teal-600 text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 inline-flex items-center justify-center gap-1">
+          <UploadIcon size={16} /> Upload CSV to S3 Sandbox
         </button>
       </div>
 
@@ -373,7 +374,7 @@ export default function CloudPipelineCanvas() {
           onClick={() => { clearSandboxState(); setSandbox(createEmptySandboxState()); setMessage('Sandbox reset.'); }}
           className="text-xs px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
         >
-          🔄 Reset Pipeline
+          <span className="inline-flex items-center gap-1"><RefreshIcon size={12} /> Reset Pipeline</span>
         </button>
         <Link href="/cloud" className="text-sm text-sky-600 hover:underline font-medium">
           ← Back to BleepxCloud

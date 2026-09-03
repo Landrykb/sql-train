@@ -41,7 +41,7 @@ files.forEach(filePath => {
     expected: Array.isArray(doc.expected) ? doc.expected : [],
   };
 
-  console.log(`✅ Updated entry for ${domain}/${exId}`);
+  console.log(`[OK] Updated entry for ${domain}/${exId}`);
 });
 
 // 3) Write back sorted YAML
@@ -50,4 +50,4 @@ const dump = dump(central, {
   lineWidth: 120,
 });
 fs.writeFileSync(SOL_PATH, dump, 'utf8');
-console.log(`\n✅ Fully regenerated ${SOL_PATH}`);
+console.log(`\n[OK] Fully regenerated ${SOL_PATH}`);

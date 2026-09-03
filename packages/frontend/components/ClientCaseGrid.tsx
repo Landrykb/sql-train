@@ -8,6 +8,8 @@ import { useProgress } from '@/lib/useProgress';
 import { caseOrder, hiddenCaseOrder, CASE_TIERS, TRIAL_TIER_UNLOCK } from '@/lib/constants';
 import { getStoreState } from '@/lib/pointsStore';
 import { BleepxLock, BleepxSpark } from '@/components/BleepxIcons';
+import { BrainIcon, StarRating } from '@/components/AppIcons';
+import { IconCheck } from '@tabler/icons-react';
 
 interface Case {
   id: string;
@@ -154,8 +156,8 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
                     <span className="text-amber-500 text-xs font-bold px-2 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-full">BONUS</span>
                   )}
                   {completed.has(c.id) && (
-                    <span className="text-bleepx-blue text-sm" aria-label="Completed">
-                      ✓ (+{10 * c.tier} Points)
+                    <span className="text-bleepx-blue text-sm inline-flex items-center gap-1" aria-label="Completed">
+                      <IconCheck size={14} /> (+{10 * c.tier} Points)
                     </span>
                   )}
                 </div>
@@ -166,7 +168,7 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
                 ) : (
                   <>
                     <span>{c.tier <= 1 ? 'Beginner' : c.tier === 2 ? 'Intermediate' : c.tier === 3 ? 'Advanced' : c.tier === 4 ? 'Expert' : 'Master'}</span>
-                    <span className="text-amber-400 text-xs">{'⭐'.repeat(Math.min(c.tier || 1, 5))}</span>
+                    <span className="text-amber-400 text-xs"><StarRating stars={Math.min(c.tier || 1, 5)} size={12} /></span>
                   </>
                 )}
               </div>
@@ -190,7 +192,7 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
                   className="inline-flex items-center gap-1 mt-2 mr-2 px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-bold hover:bg-indigo-200 dark:hover:bg-indigo-800/40 transition-colors cursor-pointer"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/cases/${domain}/${c.id}/quiz`); }}
                 >
-                  🧠 Quiz
+                  <BrainIcon size={14} className="inline" /> Quiz
                 </span>
               )}
               {isNext && (

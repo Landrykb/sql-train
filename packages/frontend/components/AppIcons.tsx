@@ -8,6 +8,23 @@ import {
   IconSeeding,
   IconTrendingUp,
   IconHeartbeat,
+  IconCircleFilled,
+  IconSkull,
+  IconMoon,
+  IconSun,
+  IconEye,
+  IconEyeOff,
+  IconEraser,
+  IconUpload,
+  IconFileText,
+  IconPrinter,
+  IconClock,
+  IconPlayerPlay,
+  IconRotateClockwise,
+  IconHistory,
+  IconFolder,
+  IconCircle,
+  IconSearch,
   IconMessages,
   IconRocket,
   IconBallBasketball,
@@ -57,6 +74,7 @@ import {
   IconMap,
   IconForms,
   IconLock,
+  IconLockOpen,
   IconDice,
   IconCompass,
   IconTable,
@@ -70,7 +88,6 @@ import {
   IconSpy,
   IconDna,
   IconSatellite,
-  IconClock,
   IconRefresh,
   IconAlertTriangle,
 } from '@tabler/icons-react';
@@ -229,6 +246,21 @@ export function TopicIcon({ topic, size = 18, className }: { topic: string } & A
   return <I size={size} className={className} />;
 }
 
+// ─── Trial difficulty icons ───────────────────────────────────────────────────
+const DIFFICULTY_CLASS: Record<string, string> = {
+  intermediate: 'text-green-500',
+  advanced: 'text-yellow-500',
+  elite: 'text-red-500',
+  legendary: 'text-purple-500',
+  senior_pro: 'text-amber-500',
+};
+
+export function DifficultyIcon({ id, size = 18, className }: { id: string } & AppIconProps) {
+  if (id === 'legendary') return <IconSkull size={size} className={className || DIFFICULTY_CLASS[id]} />;
+  if (id === 'senior_pro') return <IconCrown size={size} className={className || DIFFICULTY_CLASS[id]} />;
+  return <IconCircleFilled size={size} className={className || DIFFICULTY_CLASS[id]} />;
+}
+
 // ─── Mission / lab type icons ───────────────────────────────────────────────
 const TYPE_ICONS: Record<string, TablerIcon> = {
   diagram: IconMap,
@@ -292,11 +324,29 @@ export {
   IconMap as MapIcon,
   IconForms as FormsIcon,
   IconLock as LockIcon,
+  IconLockOpen as LockOpenIcon,
   IconDice as DiceIcon,
   IconBarbell as BarbellIcon,
   IconCopy as CopyIcon,
   IconRefresh as RefreshIcon,
   IconAlertTriangle as AlertIcon,
+  IconBuildingBank as BuildingBankIcon,
+  IconRocket as RocketIcon,
+  IconClock as ClockIcon,
+  IconMoon as MoonIcon,
+  IconSun as SunIcon,
+  IconEye as EyeIcon,
+  IconEyeOff as EyeOffIcon,
+  IconEraser as EraserIcon,
+  IconUpload as UploadIcon,
+  IconFileText as FileTextIcon,
+  IconPrinter as PrinterIcon,
+  IconHistory as HistoryIcon,
+  IconPlayerPlay as PlayIcon,
+  IconRotateClockwise as ResetIcon,
+  IconFolder as FolderIcon,
+  IconCircle as CircleIcon,
+  IconSearch as SearchIcon,
   IconExternalLink as ExternalLinkIcon,
   IconX as ErrorIcon,
 };

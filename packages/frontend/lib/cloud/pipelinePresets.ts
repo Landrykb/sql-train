@@ -8,7 +8,6 @@
 export interface PipelinePreset {
   id: string;
   name: string;
-  icon: string;
   tags: string[];
   sourceUrl: string;
   description: string;
@@ -38,7 +37,6 @@ export const PIPELINE_PRESETS: PipelinePreset[] = [
   {
     id: 'sqlverse-churn',
     name: 'Customer Churn',
-    icon: '🔄',
     tags: ['SQLverse', 'classification', 'telco'],
     sourceUrl: 'https://www.kaggle.com/datasets/blastchar/telco-customer-churn',
     description: 'Telco customer records — mirror of the BleepxLab churn domain.',
@@ -66,7 +64,6 @@ ORDER BY avg_monthly DESC;`,
   {
     id: 'sqlverse-fraud',
     name: 'Credit Card Fraud',
-    icon: '🛡️',
     tags: ['SQLverse', 'anomaly', 'fintech'],
     sourceUrl: 'https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud',
     description: 'PCA-anonymized credit card transactions with class imbalance.',
@@ -105,7 +102,6 @@ print(df[['amount','class','anomaly']].to_csv(index=False))`,
   {
     id: 'sqlverse-transport',
     name: 'Public Transport Delays',
-    icon: '🚌',
     tags: ['SQLverse', 'regression', 'transport'],
     sourceUrl: 'https://www.kaggle.com/datasets/khushikyad001/public-transport-delays-with-weather-and-events',
     description: 'Departures, weather, and event context — predict delay minutes.',
@@ -129,7 +125,6 @@ ORDER BY avg_delay DESC;`,
   {
     id: 'sqlverse-yield',
     name: 'Crop Yield Panel',
-    icon: '🌾',
     tags: ['SQLverse', 'regression', 'agriculture'],
     sourceUrl: 'https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset',
     description: 'Country-level crop yield with rainfall, pesticides, and temperature.',
@@ -158,7 +153,6 @@ ORDER BY avg_yield DESC;`,
   {
     id: 'dataworld-co2',
     name: 'World Bank CO₂ Emissions',
-    icon: '🌍',
     tags: ['data.world', 'climate', 'time-series'],
     sourceUrl: 'https://data.world/worldbank/co2-emissions',
     description: 'CO₂ (kt) by country and year from the World Bank.',
@@ -189,7 +183,6 @@ ORDER BY growth_kt DESC;`,
   {
     id: 'dataworld-crime',
     name: 'Chicago Crime Reports',
-    icon: '🚔',
     tags: ['data.world', 'geospatial', 'public-data'],
     sourceUrl: 'https://data.world/cityofchicago/crimes-2001-to-present',
     description: 'Chicago reported crimes with geospatial columns.',
@@ -212,7 +205,6 @@ ORDER BY incidents DESC;`,
   {
     id: 'dataworld-cancer',
     name: 'U.S. Cancer Mortality',
-    icon: '🏥',
     tags: ['data.world', 'health', 'geospatial'],
     sourceUrl: 'https://data.world/cdc/us-cancer-mortality',
     description: 'Age-adjusted cancer mortality by county.',
@@ -238,7 +230,6 @@ ORDER BY state_rate DESC;`,
   {
     id: 'carbon-awd',
     name: 'AWD Rice Methane Reduction',
-    icon: '🌾',
     tags: ['carbon-credits', 'AWD', 'agriculture'],
     sourceUrl: 'https://data.world/california-chromium/soil-carbon-ratios-for-agricultural-lands',
     description: 'Alternate Wetting and Drying (AWD) water-management field data: estimate methane avoided and carbon credits per hectare.',
@@ -272,7 +263,6 @@ print(df[['field_id','method','credits_tco2e_ha','estimated_usd']].to_csv(index=
   {
     id: 'carbon-regenerative',
     name: 'Regenerative Agriculture Soil Carbon',
-    icon: '🌱',
     tags: ['carbon-credits', 'regenerative', 'soil'],
     sourceUrl: 'https://data.world/california-chromium/soil-carbon-ratios-for-agricultural-lands',
     description: 'Compare conventional and regenerative fields to estimate soil organic carbon increase and the carbon credits it could generate.',
@@ -305,7 +295,6 @@ print(df[['farm_id','practice','carbon_stock_Mg_ha','credits_tco2e_ha']].to_csv(
   {
     id: 'carbon-offsets',
     name: 'Voluntary Carbon Offset Market',
-    icon: '♻️',
     tags: ['carbon-credits', 'offsets', 'finance'],
     sourceUrl: 'https://data.world/carbonplan/carbon-offsets',
     description: 'Project type, vintage, price, and retirement data for voluntary carbon credits.',
@@ -329,7 +318,6 @@ ORDER BY total_issued DESC;`,
   {
     id: 'carbon-ml-price',
     name: 'Carbon Credit Price ML',
-    icon: '🤖',
     tags: ['carbon-credits', 'ML', 'regression'],
     sourceUrl: 'https://data.world/carbonplan/carbon-offsets',
     description: 'Predict carbon credit price from project features — a tiny ML pipeline using scikit-learn.',

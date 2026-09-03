@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { AlertIcon, RefreshIcon } from '@/components/AppIcons';
 
 interface Props {
   children: React.ReactNode;
@@ -30,7 +31,7 @@ export default class SQLPlaygroundErrorBoundary extends React.Component<Props, S
       return (
         <div className="p-6 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-2xl">⚠️</span>
+            <AlertIcon size={24} className="text-red-600" />
             <h3 className="font-bold text-red-800 dark:text-red-300">Something went wrong</h3>
           </div>
           <p className="text-sm text-red-700 dark:text-red-400 mb-3">
@@ -46,7 +47,7 @@ export default class SQLPlaygroundErrorBoundary extends React.Component<Props, S
             }}
             className="px-4 py-2 rounded-full bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors"
           >
-            🔄 Reload Page
+            <RefreshIcon size={16} className="inline" /> Reload Page
           </button>
         </div>
       );

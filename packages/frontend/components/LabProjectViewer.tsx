@@ -3,6 +3,12 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { BleepxFace, BleepxGhost, BleepxGitHub } from '@/components/BleepxIcons';
+import {
+  EyeIcon, EyeOffIcon, SendIcon, CopyIcon, FlaskIcon, BrainIcon,
+  ChartBarIcon, TargetIcon, FolderIcon, CodeIcon, BulbIcon, FileTextIcon,
+  ExternalLinkIcon, ClockIcon
+} from '@/components/AppIcons';
+import { IconBrandPython, IconLetterR, IconConfetti, IconCheck } from '@tabler/icons-react';
 import PythonTerminal, { type PythonTerminalHandle } from '@/components/PythonTerminal';
 import { useProgress } from '@/lib/useProgress';
 import { playBleep } from '@/lib/audio';
@@ -74,7 +80,7 @@ function CopyInline({ value }: { value: string }) {
     >
       <code className="text-[11px] font-mono text-bleepx-text break-all flex-1">{value}</code>
       <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold transition-colors flex-shrink-0 ${copied ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 group-hover:bg-teal-500 group-hover:text-white'}`}>
-        {copied ? '✓' : '📋'}
+        {copied ? <IconCheck size={10} /> : <CopyIcon size={10} />}
       </span>
     </button>
   );
@@ -172,7 +178,7 @@ function SpoilerCodeBlock({
             onClick={() => { setRevealed(true); playBleep(); }}
             className="px-4 py-1.5 rounded-full text-xs font-bold border-2 border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-colors"
           >
-            👁️ Reveal Reference Code
+            <EyeIcon size={14} className="inline" /> Reveal Reference Code
           </button>
         </div>
       </div>
@@ -191,7 +197,7 @@ function SpoilerCodeBlock({
             onClick={() => setRevealed(false)}
             className="text-[10px] px-2 py-1 rounded-md text-bleepx-text-secondary hover:text-bleepx-text transition-colors"
           >
-            🙈 Hide
+            <EyeOffIcon size={14} className="inline" /> Hide
           </button>
           {onSendToEditor && (
             <button
@@ -199,14 +205,14 @@ function SpoilerCodeBlock({
               className="text-xs px-2.5 py-1 rounded-md bg-teal-600 text-white hover:bg-teal-700 transition-colors font-medium"
               title="Append this snippet to the Try It Yourself editor above"
             >
-              {sent ? '✅ Sent!' : '↑ Send to editor'}
+              {sent ? <span className="inline-flex items-center gap-1"><IconCheck size={12} /> Sent!</span> : <span className="inline-flex items-center gap-1"><SendIcon size={12} className="inline" /> Send to editor</span>}
             </button>
           )}
           <button
             onClick={handleCopy}
             className="text-xs px-2.5 py-1 rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-bleepx-text-secondary hover:text-bleepx-text hover:border-teal-400 transition-colors"
           >
-            {copied ? '✅ Copied!' : '📋 Copy'}
+            {copied ? <span className="inline-flex items-center gap-1"><IconCheck size={12} /> Copied!</span> : <span className="inline-flex items-center gap-1"><CopyIcon size={12} className="inline" /> Copy</span>}
           </button>
         </div>
       </div>
@@ -462,7 +468,7 @@ export default function LabProjectViewer({
                 timerSeconds <= 5 * 60 ? 'bg-amber-400 text-amber-900' :
                 'bg-white/20 text-white'
               }`}>
-                🧪 {fmtTime(timerSeconds)}
+                <FlaskIcon size={10} className="inline" /> {fmtTime(timerSeconds)}
               </span>
             )}
             {/* Toggle timer on/off */}
@@ -487,13 +493,13 @@ export default function LabProjectViewer({
               }`}
               title={timerEnabled ? 'Stop timer' : 'Start test-mode timer'}
             >
-              {timerEnabled ? '⏱ Stop' : '⏱ Timer'}
+              {timerEnabled ? <span className="inline-flex items-center gap-1"><ClockIcon size={10} /> Stop</span> : <span className="inline-flex items-center gap-1"><ClockIcon size={10} /> Timer</span>}
             </button>
-            <Link href="/lab/quiz" className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-100 hover:bg-purple-500/50 transition-colors font-medium whitespace-nowrap">
-              🧠 Quiz
+            <Link href="/lab/quiz" className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-100 hover:bg-purple-500/50 transition-colors font-medium whitespace-nowrap inline-flex items-center gap-1">
+              <BrainIcon size={10} /> Quiz
             </Link>
-            <Link href={`/lab/${domain}`} className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors font-medium whitespace-nowrap">
-              📋 Steps
+            <Link href={`/lab/${domain}`} className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors font-medium whitespace-nowrap inline-flex items-center gap-1">
+              <FileTextIcon size={10} /> Steps
             </Link>
           </div>
         </div>
@@ -523,7 +529,7 @@ export default function LabProjectViewer({
           {learningObjectives.length > 0 && (
             <div className="mt-4 p-3 rounded-xl bg-teal-50 dark:bg-teal-900/10 border border-teal-200 dark:border-teal-800">
               <h4 className="text-xs font-bold text-teal-700 dark:text-teal-300 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                <span>🎯</span> Learning Objectives
+                <TargetIcon size={12} /> Learning Objectives
               </h4>
               <ul className="space-y-1">
                 {learningObjectives.map((obj, i) => (
@@ -541,7 +547,7 @@ export default function LabProjectViewer({
             <div className="mt-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
               <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
                 <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide flex items-center gap-1.5">
-                  <span>📊</span> Dataset
+                  <ChartBarIcon size={12} /> Dataset
                 </h4>
                 <a
                   href={datasetUrl}
@@ -549,14 +555,14 @@ export default function LabProjectViewer({
                   rel="noopener noreferrer"
                   className="text-[10px] px-2.5 py-1 rounded-full bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors inline-flex items-center gap-1"
                 >
-                  ⬇ View on {sourceName}
+                  <ExternalLinkIcon size={10} /> View on {sourceName}
                 </a>
               </div>
 
               {/* Filename panel. */}
               {sourceMatchesPath ? (
                 <div className="mb-2 p-2.5 rounded-lg bg-white dark:bg-gray-900 border border-green-300 dark:border-green-800 flex items-center gap-2.5">
-                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 font-bold whitespace-nowrap flex-shrink-0">✓ Matches {sourceName}</span>
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 font-bold whitespace-nowrap flex-shrink-0 inline-flex items-center gap-1"><IconCheck size={10} /> Matches {sourceName}</span>
                   <div className="flex-1 min-w-0">
                     <CopyInline value={sourceFilename} />
                   </div>
@@ -593,11 +599,11 @@ export default function LabProjectViewer({
               </div>
               {sourceFilename && datasetPath && sourceFilename === labBasename ? (
                 <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
-                  💡 Running locally? The file inside the {sourceName} download is already named <code className="px-1 bg-white dark:bg-gray-900 rounded font-mono">{sourceFilename}</code> — drop it into the notebook's working directory and the code above runs unchanged (swap <code>open_url(...)</code> for <code>"{sourceFilename}"</code>).
+                  <BulbIcon size={10} className="inline" /> Running locally? The file inside the {sourceName} download is already named <code className="px-1 bg-white dark:bg-gray-900 rounded font-mono">{sourceFilename}</code> — drop it into the notebook's working directory and the code above runs unchanged (swap <code>open_url(...)</code> for <code>"{sourceFilename}"</code>).
                 </p>
               ) : sourceFilename ? (
                 <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
-                  💡 Running locally? {sourceName} ships <code className="px-1 bg-white dark:bg-gray-900 rounded font-mono">{sourceFilename}</code>. Point <code>read_csv</code> at that path and everything else works unchanged.
+                  <BulbIcon size={10} className="inline" /> Running locally? {sourceName} ships <code className="px-1 bg-white dark:bg-gray-900 rounded font-mono">{sourceFilename}</code>. Point <code>read_csv</code> at that path and everything else works unchanged.
                 </p>
               ) : null}
             </div>
@@ -607,7 +613,7 @@ export default function LabProjectViewer({
           {schema && schema.length > 0 && (
             <div className="mt-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
               <h4 className="text-xs font-bold text-bleepx-text-secondary uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                <span>🗂️</span> Dataset Columns
+                <FolderIcon size={12} /> Dataset Columns
               </h4>
               <div className="flex flex-wrap gap-1.5">
                 {schema.map((col, i) => (
@@ -624,7 +630,7 @@ export default function LabProjectViewer({
         <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border p-4">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold text-bleepx-text uppercase tracking-wide flex items-center gap-1.5">
-              <span>💻</span> Code Language
+              <CodeIcon size={12} /> Code Language
             </h4>
             <div className="inline-flex rounded-full bg-gray-100 dark:bg-gray-800 p-0.5 border border-gray-200 dark:border-gray-700">
               <button
@@ -635,7 +641,7 @@ export default function LabProjectViewer({
                     : 'text-bleepx-text-secondary hover:text-bleepx-text'
                 }`}
               >
-                🐍 Python
+                <IconBrandPython size={14} className="inline" /> Python
               </button>
               <button
                 onClick={() => setCodeLang('r')}
@@ -645,7 +651,7 @@ export default function LabProjectViewer({
                     : 'text-bleepx-text-secondary hover:text-bleepx-text'
                 }`}
               >
-                📐 R
+                <IconLetterR size={14} className="inline" /> R
               </button>
             </div>
           </div>
@@ -664,7 +670,7 @@ export default function LabProjectViewer({
       <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border overflow-hidden">
         <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-5 py-3 flex items-center justify-between">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <span className="text-lg">{codeLang === 'r' ? '📐' : '🐍'}</span> Try It Yourself {codeLang === 'r' ? '(R reference — run Python in editor)' : ''}
+            <span className="text-lg">{codeLang === 'r' ? <IconLetterR size={20} /> : <IconBrandPython size={20} />}</span> Try It Yourself {codeLang === 'r' ? '(R reference — run Python in editor)' : ''}
           </h3>
           <div className="flex items-center gap-2">
             {stepSolved && (
@@ -699,7 +705,7 @@ import numpy as np
           {codeLang === 'r' && rSolutionCode && (
             <div className="mt-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
               <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 mb-2 flex items-center gap-1.5">
-                📐 R Solution Reference
+                <IconLetterR size={12} /> R Solution Reference
               </h4>
               <pre className="text-xs bg-gray-900 text-gray-100 rounded-lg p-3 overflow-x-auto font-mono"><code>{rSolutionCode}</code></pre>
               <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
@@ -747,7 +753,7 @@ import numpy as np
                   ? 'bg-emerald-500 text-white'
                   : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary'
               }`}>
-                {isComplete ? '✓' : idx + 1}
+                {isComplete ? <IconCheck size={12} /> : idx + 1}
               </div>
               <h3 className="flex-1 min-w-0 font-bold text-bleepx-text text-sm truncate">{section.title}</h3>
               <svg
@@ -772,8 +778,8 @@ import numpy as np
                     <SpoilerCodeBlock code={section.r_code.trim()} language="R" />
                   ) : (
                     <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 text-center">
-                      <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                        📐 R code not yet available for this section — showing Python below
+                      <p className="text-xs text-blue-600 dark:text-blue-400 font-medium inline-flex items-center gap-1">
+                        <IconLetterR size={12} /> R code not yet available for this section — showing Python below
                       </p>
                       <SpoilerCodeBlock code={section.code.trim()} language={language} onSendToEditor={sendToEditor} />
                     </div>
@@ -804,7 +810,7 @@ import numpy as np
                   </button>
                 ) : (
                   <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
-                    <span>✅</span> Section complete — *bleep*
+                    <IconCheck size={14} /> Section complete — *bleep*
                   </div>
                 )}
               </div>
@@ -820,7 +826,7 @@ import numpy as np
             onClick={() => setShowThoughtProcess(!showThoughtProcess)}
             className="flex items-center gap-2 w-full text-left group"
           >
-            <span className="text-lg">🧠</span>
+            <BrainIcon size={20} className="inline" />
             <span className="text-sm font-bold text-bleepx-text group-hover:text-teal-600 transition-colors">
               {showThoughtProcess ? 'Hide Thought Process' : 'View Thought Process'}
             </span>
@@ -866,7 +872,7 @@ import numpy as np
             <ul className="mt-3 space-y-2">
               {hints.map((hint, i) => (
                 <li key={i} className="text-xs text-bleepx-text-secondary flex items-start gap-2">
-                  <span className="text-amber-500">💡</span>
+                  <BulbIcon size={12} className="text-amber-500 mt-0.5" />
                   <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-[11px]">{hint}</code>
                 </li>
               ))}
@@ -881,7 +887,7 @@ import numpy as np
           onClick={() => setShowVizGuide(!showVizGuide)}
           className="flex items-center gap-2 w-full text-left group"
         >
-          <span className="text-lg">📊</span>
+          <ChartBarIcon size={20} className="inline" />
           <span className="text-sm font-bold text-bleepx-text group-hover:text-indigo-600 transition-colors">
             {showVizGuide ? 'Hide Visualization Guide' : 'Visualize Your Data'}
           </span>
@@ -955,7 +961,7 @@ import numpy as np
         {pushStatus && pushStatus !== 'Pushing...' && (
           <p className={`mt-2 text-xs ${pushStatus.startsWith('Pushed!') ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
             {pushStatus.startsWith('Pushed!') ? (
-              <>✅ {pushStatus.replace('Pushed! ', '')} — <a href={pushStatus.replace('Pushed! ', '')} target="_blank" rel="noopener noreferrer" className="underline">View on GitHub</a></>
+              <><IconCheck size={12} className="inline" /> {pushStatus.replace('Pushed! ', '')} — <a href={pushStatus.replace('Pushed! ', '')} target="_blank" rel="noopener noreferrer" className="underline">View on GitHub</a></>
             ) : pushStatus}
           </p>
         )}
@@ -964,7 +970,7 @@ import numpy as np
       {/* Step solved celebration — only when code output matches */}
       {stepSolved && (
         <div className="bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 rounded-2xl border border-teal-200 dark:border-teal-700 p-6 text-center">
-          <div className="text-4xl mb-2">🎉</div>
+          <div className="mb-2"><IconConfetti size={40} className="text-teal-600 mx-auto" /></div>
           <h3 className="text-lg font-bold text-teal-700 dark:text-teal-300">
             *bleep* Step Solved!
           </h3>
@@ -1002,7 +1008,7 @@ import numpy as np
           )}
           <div className="mt-4">
             <Link href="/lab/quiz" className="text-xs text-purple-600 dark:text-purple-400 hover:underline font-medium">
-              🧠 Test your knowledge with a quiz →
+              <BrainIcon size={12} className="inline" /> Test your knowledge with a quiz →
             </Link>
           </div>
         </div>

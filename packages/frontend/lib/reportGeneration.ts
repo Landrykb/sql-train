@@ -44,67 +44,67 @@ export interface GraphData {
 export const BLEEPX_HINTS = {
   query: {
     executiveSummary: {
-      hint: "💡 *bleep* Write a 2-3 sentence summary for executives. What business problem did you solve and what was the key finding?",
+      hint: "Tip: *bleep* Write a 2-3 sentence summary for executives. What business problem did you solve and what was the key finding?",
       placeholder: "This analysis examined [key metrics] and revealed that [main insight]. The findings suggest [business implication]."
     },
     keyFindings: {
-      hint: "💡 *bleep* List 3-5 bullet points of your most important discoveries. Focus on actionable insights.",
+      hint: "Tip: *bleep* List 3-5 bullet points of your most important discoveries. Focus on actionable insights.",
       placeholder: "• [Finding 1]\n• [Finding 2]\n• [Finding 3]"
     },
     methodology: {
-      hint: "💡 *bleep* Briefly explain your approach. What techniques did you use? Any assumptions?",
+      hint: "Tip: *bleep* Briefly explain your approach. What techniques did you use? Any assumptions?",
       placeholder: "I analyzed [X] using [Y] approach, considering [Z] factors."
     },
     recommendations: {
-      hint: "💡 *bleep* What should the business do based on your findings? Be specific and actionable.",
+      hint: "Tip: *bleep* What should the business do based on your findings? Be specific and actionable.",
       placeholder: "Based on the analysis, I recommend:\n1. [Action 1]\n2. [Action 2]\n3. [Action 3]"
     },
     limitations: {
-      hint: "💡 *bleep* Be honest about what the data doesn't tell you or what you couldn't analyze.",
+      hint: "Tip: *bleep* Be honest about what the data doesn't tell you or what you couldn't analyze.",
       placeholder: "This analysis is limited by [factor]. Additional data on [topic] would strengthen the conclusions."
     }
   },
   lab: {
     executiveSummary: {
-      hint: "💡 *bleep* Summarize your data science project for non-technical stakeholders. What was the goal and outcome?",
+      hint: "Tip: *bleep* Summarize your data science project for non-technical stakeholders. What was the goal and outcome?",
       placeholder: "This project built a [model type] to predict [target], achieving [metric] performance. The model can be used for [business purpose]."
     },
     keyFindings: {
-      hint: "💡 *bleep* What did your analysis reveal? Include statistical insights, feature importance, or model performance.",
+      hint: "Tip: *bleep* What did your analysis reveal? Include statistical insights, feature importance, or model performance.",
       placeholder: "• Top features: [feature list]\n• Model accuracy: [metric]\n• Key insight: [discovery]"
     },
     methodology: {
-      hint: "💡 *bleep* Explain your data science pipeline: data preparation, feature engineering, model selection, evaluation.",
+      hint: "Tip: *bleep* Explain your data science pipeline: data preparation, feature engineering, model selection, evaluation.",
       placeholder: "Used [dataset] with [preprocessing steps]. Trained [model] using [technique] and evaluated with [metrics]."
     },
     recommendations: {
-      hint: "💡 *bleep* How should this model be used? What are the business applications and next steps?",
+      hint: "Tip: *bleep* How should this model be used? What are the business applications and next steps?",
       placeholder: "Deploy this model for [use case]. Consider collecting additional data on [feature] to improve accuracy."
     },
     technicalNotes: {
-      hint: "💡 *bleep* Include technical details for data scientists: hyperparameters, feature importance, model interpretability.",
+      hint: "Tip: *bleep* Include technical details for data scientists: hyperparameters, feature importance, model interpretability.",
       placeholder: "Best parameters: [hyperparameters]\nFeature importance: [top features]\nModel explainability: [method]"
     }
   },
   cloud: {
     executiveSummary: {
-      hint: "💡 *bleep* Summarize the cloud architecture solution. What problem does it solve and for whom?",
+      hint: "Tip: *bleep* Summarize the cloud architecture solution. What problem does it solve and for whom?",
       placeholder: "This architecture provides [service] for [use case], ensuring [benefits like scalability, security, cost-efficiency]."
     },
     keyFindings: {
-      hint: "💡 *bleep* What are the architectural highlights? Key services, patterns, or design decisions?",
+      hint: "Tip: *bleep* What are the architectural highlights? Key services, patterns, or design decisions?",
       placeholder: "• Uses [services] for [purpose]\n• Implements [pattern] for [benefit]\n• Ensures [non-functional requirement]"
     },
     designDecisions: {
-      hint: "💡 *bleep* Explain why you chose this architecture. What alternatives did you consider?",
+      hint: "Tip: *bleep* Explain why you chose this architecture. What alternatives did you consider?",
       placeholder: "Chose [service] over [alternative] because [reason]. This design prioritizes [requirement]."
     },
     tradeoffs: {
-      hint: "💡 *bleep* Be honest about trade-offs. What are the costs, complexities, or limitations?",
+      hint: "Tip: *bleep* Be honest about trade-offs. What are the costs, complexities, or limitations?",
       placeholder: "This approach offers [benefit] but requires [consideration]. Alternative [X] would be better if [condition]."
     },
     recommendations: {
-      hint: "💡 *bleep* What improvements or next steps would you recommend?",
+      hint: "Tip: *bleep* What improvements or next steps would you recommend?",
       placeholder: "Consider adding [service] for [benefit]. Monitor [metric] to ensure [goal]."
     }
   }

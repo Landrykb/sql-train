@@ -26,7 +26,7 @@ export function getPyErrorHelp(rawError: string, userCode: string): PyErrorHelp 
         'Use a public URL to load data: pd.read_csv("https://raw.githubusercontent.com/...")',
         'Check the dataset link at the top of this step for the correct URL',
         'For practice, create sample data inline: pd.DataFrame({"col": [1, 2, 3]})',
-        'Click "📊 Download Dataset" above to see the data source',
+        'Click "Download Dataset" above to see the data source',
       ],
       guideSection: 'loading-data',
     };
@@ -56,7 +56,7 @@ export function getPyErrorHelp(rawError: string, userCode: string): PyErrorHelp 
     return {
       title: `Module "${modName}" not found`,
       explanation: isSklearn
-        ? `"${modName}" is pre-installed but may still be loading. Click "▶ Run" again — it should work on the second attempt.`
+        ? `"${modName}" is pre-installed but may still be loading. Click "Run" again — it should work on the second attempt.`
         : isPreloaded
         ? `"${modName}" should be available but may need to be loaded. Try running your import again.`
         : `The module "${modName}" is not available in the browser Python environment. Only a subset of Python packages are supported.`,
@@ -271,7 +271,7 @@ export function getPyErrorHelp(rawError: string, userCode: string): PyErrorHelp 
       'Check for typos in variable and function names',
       'Make sure all imports are at the top and executed first',
       'Use print() statements to debug intermediate values',
-      'Check the "📖 DS Guide" link above for reference material',
+      'Check the "DS Guide" link above for reference material',
     ],
   };
 }

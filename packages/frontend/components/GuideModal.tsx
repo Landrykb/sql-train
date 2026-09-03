@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { marked } from 'marked';
+import { GuideIcon } from '@/components/AppIcons';
 
 interface QueryVariant {
   name: string;
@@ -83,7 +84,7 @@ export default function GuideModal({ isOpen, onClose, guideData, scrollToSection
         <div className="flex items-center justify-between px-5 py-4 border-b border-bleepx-border bg-bleepx-white">
           <div>
             <h2 className="text-lg font-bold text-bleepx-text flex items-center gap-2">
-              <span>📖</span> SQL GuideBook
+              <GuideIcon size={20} /> SQL GuideBook
             </h2>
             <p className="text-xs text-bleepx-text-secondary mt-0.5">Quick reference — stay on your challenge</p>
           </div>

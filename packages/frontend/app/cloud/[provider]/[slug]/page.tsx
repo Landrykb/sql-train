@@ -69,13 +69,12 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
 }
 
 // Architecture flow: connected cards with arrows between them.
-function ArchitectureFlow({ nodes }: { nodes: { icon: string; label: string; note?: string }[] }) {
+function ArchitectureFlow({ nodes }: { nodes: { label: string; note?: string }[] }) {
   return (
     <div className="flex items-stretch gap-1.5 overflow-x-auto pb-2">
       {nodes.map((n, i) => (
         <React.Fragment key={i}>
           <div className="flex-shrink-0 min-w-[110px] max-w-[150px] rounded-lg border border-bleepx-border bg-gradient-to-b from-bleepx-bg to-bleepx-white p-3 text-center">
-            <div className="text-2xl leading-none mb-1">{n.icon}</div>
             <div className="text-xs font-bold text-bleepx-text leading-tight">{n.label}</div>
             {n.note && <div className="text-[10px] text-bleepx-text-secondary mt-0.5">{n.note}</div>}
           </div>
@@ -152,8 +151,8 @@ export default function CloudMissionPage() {
   );
 
   const archNodes = useMemo(() => {
-    if (mission.architecture && mission.architecture.length) return mission.architecture;
-    return learnList.map(({ concept }) => ({ icon: concept.icon, label: concept.name }));
+    if (mission.architecture && mission.architecture.length) return mission.architecture.map((n) => ({ label: n.label, note: n.note }));
+    return learnList.map(({ concept }) => ({ label: concept.name }));
   }, [mission.architecture, learnList]);
 
   const [stepIdx, setStepIdx] = useState(0);

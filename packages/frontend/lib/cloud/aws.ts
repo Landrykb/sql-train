@@ -23,10 +23,10 @@ export const awsMissions: CloudMission[] = [
       'Predict what you are billed for when an instance is stopped vs terminated',
     ],
     architecture: [
-      { icon: '👤', label: 'You (SSH)', note: 'key pair' },
-      { icon: '🔥', label: 'Security Group', note: 'stateful firewall' },
-      { icon: '🖥️', label: 'EC2 Instance', note: 'from an AMI' },
-      { icon: '💾', label: 'EBS Volume', note: 'root disk' },
+      { label: 'You (SSH)', note: 'key pair' },
+      { label: 'Security Group', note: 'stateful firewall' },
+      { label: 'EC2 Instance', note: 'from an AMI' },
+      { label: 'EBS Volume', note: 'root disk' },
     ],
   },
   {
@@ -49,10 +49,10 @@ export const awsMissions: CloudMission[] = [
       'Explain why the app tier must be stateless',
     ],
     architecture: [
-      { icon: '🌐', label: 'Users' },
-      { icon: '⚖️', label: 'ALB', note: 'across 2 AZs' },
-      { icon: '📈', label: 'Auto Scaling Group', note: '2–6 instances' },
-      { icon: '🖥️', label: 'EC2 fleet', note: 'stateless' },
+      { label: 'Users' },
+      { label: 'ALB', note: 'across 2 AZs' },
+      { label: 'Auto Scaling Group', note: '2–6 instances' },
+      { label: 'EC2 fleet', note: 'stateless' },
     ],
   },
   {
@@ -101,10 +101,10 @@ export const awsMissions: CloudMission[] = [
       'Explain why S3 is private by default',
     ],
     architecture: [
-      { icon: '📤', label: 'Upload', note: 'Standard' },
-      { icon: '♻️', label: 'Lifecycle rule', note: 'age-based' },
-      { icon: '🧊', label: 'Glacier', note: 'after 90d' },
-      { icon: '🗑️', label: 'Expire', note: 'after 1y' },
+      { label: 'Upload', note: 'Standard' },
+      { label: 'Lifecycle rule', note: 'age-based' },
+      { label: 'Glacier', note: 'after 90d' },
+      { label: 'Expire', note: 'after 1y' },
     ],
   },
   {
@@ -153,10 +153,10 @@ export const awsMissions: CloudMission[] = [
       'Spread subnets across AZs for high availability',
     ],
     architecture: [
-      { icon: '🌐', label: 'Internet' },
-      { icon: '🚪', label: 'Internet Gateway' },
-      { icon: '🟢', label: 'Public subnets', note: 'ALB' },
-      { icon: '🔒', label: 'Private subnets', note: 'app + DB' },
+      { label: 'Internet' },
+      { label: 'Internet Gateway' },
+      { label: 'Public subnets', note: 'ALB' },
+      { label: 'Private subnets', note: 'app + DB' },
     ],
   },
   {
@@ -205,10 +205,10 @@ export const awsMissions: CloudMission[] = [
       'Decide when RDS fits vs DynamoDB',
     ],
     architecture: [
-      { icon: '🖥️', label: 'App tier' },
-      { icon: '🛢️', label: 'RDS primary', note: 'AZ-a' },
-      { icon: '🔁', label: 'Standby', note: 'AZ-b, failover' },
-      { icon: '📖', label: 'Read replica', note: 'read scaling' },
+      { label: 'App tier' },
+      { label: 'RDS primary', note: 'AZ-a' },
+      { label: 'Standby', note: 'AZ-b, failover' },
+      { label: 'Read replica', note: 'read scaling' },
     ],
   },
   {
@@ -458,9 +458,9 @@ export const awsMissions: CloudMission[] = [
       'Understand global namespace uniqueness',
     ],
     architecture: [
-      { icon: '👤', label: 'You', note: 'console' },
-      { icon: '📦', label: 'S3', note: 'bucket' },
-      { icon: '🌍', label: 'Region', note: 'us-east-1' },
+      { label: 'You', note: 'console' },
+      { label: 'S3', note: 'bucket' },
+      { label: 'Region', note: 'us-east-1' },
     ],
     steps: [
       {
@@ -1003,10 +1003,10 @@ export const awsMissions: CloudMission[] = [
       'Export the cleaned architecture as Terraform',
     ],
     architecture: [
-      { icon: '🏦', label: 'BleepxBank', note: 'data + customers' },
-      { icon: '📦', label: 'S3', note: 'data lake + website' },
-      { icon: '🗝️', label: 'IAM', note: 'roles + policies' },
-      { icon: '🛡️', label: 'Security', note: 'remediate findings' },
+      { label: 'BleepxBank', note: 'data + customers' },
+      { label: 'S3', note: 'data lake + website' },
+      { label: 'IAM', note: 'roles + policies' },
+      { label: 'Security', note: 'remediate findings' },
     ],
     steps: [
       {
@@ -1194,13 +1194,13 @@ export const awsMissions: CloudMission[] = [
       'Monitor health with CloudWatch',
     ],
     architecture: [
-      { icon: '🌍', label: 'Route 53', note: 'DNS + failover' },
-      { icon: '⚡', label: 'CloudFront', note: 'edge cache' },
-      { icon: '⚖️', label: 'ALB', note: 'across AZs' },
-      { icon: '📈', label: 'ASG', note: '2–6 EC2' },
-      { icon: '💾', label: 'ElastiCache', note: 'Redis cache' },
-      { icon: '🛢️', label: 'RDS MySQL', note: 'Multi-AZ' },
-      { icon: '🔐', label: 'Secrets Manager', note: 'db password' },
+      { label: 'Route 53', note: 'DNS + failover' },
+      { label: 'CloudFront', note: 'edge cache' },
+      { label: 'ALB', note: 'across AZs' },
+      { label: 'ASG', note: '2–6 EC2' },
+      { label: 'ElastiCache', note: 'Redis cache' },
+      { label: 'RDS MySQL', note: 'Multi-AZ' },
+      { label: 'Secrets Manager', note: 'db password' },
     ],
     steps: [
       {

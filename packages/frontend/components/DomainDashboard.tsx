@@ -12,6 +12,7 @@ import { caseOrder, fullCaseOrder, visualizationConfigs, CASE_TIERS } from '@/li
 import { pushPortfolioToGitHub } from '@/lib/githubPush';
 import { startGitHubLogin } from '@/lib/authClient';
 import { useSupabaseUser } from '@/lib/useSupabaseUser';
+import { TrophyIcon, CheckBadge, ErrorIcon, StarRating, FileTextIcon, PrinterIcon } from '@/components/AppIcons';
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 const Spinner = dynamic(() => import('./Spinner'), { ssr: false });
@@ -253,7 +254,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
       const tier = CASE_TIERS[e.id] || 1;
       const level = tier <= 1 ? 'Beginner' : tier === 2 ? 'Intermediate' : tier === 3 ? 'Advanced' : tier === 4 ? 'Expert' : 'Master';
       const hasViz = !!vizConfigs[e.id];
-      return `### ${i + 1}. [${e.name}](./${e.id}/query.sql)${hasViz ? ' 📊' : ''}\n- **Level:** ${level} ${'⭐'.repeat(Math.min(tier, 5))}\n${e.attempts ? `- **Attempts:** ${e.attempts}${(e.attempts || 1) === 1 ? ' (first try!)' : ''}` : ''}\n${e.time ? `- **Solve Time:** ${Math.floor(e.time / 60)}m ${e.time % 60}s` : ''}\n${e.query ? `\n\`\`\`sql\n${e.query}\n\`\`\`\n` : '*(query data not available)*\n'}`;
+      return `### ${i + 1}. [${e.name}](./${e.id}/query.sql)${hasViz ? ' (visualization)' : ''}\n- **Level:** ${level} ${'*'.repeat(Math.min(tier, 5))}\n${e.attempts ? `- **Attempts:** ${e.attempts}${(e.attempts || 1) === 1 ? ' (first try!)' : ''}` : ''}\n${e.time ? `- **Solve Time:** ${Math.floor(e.time / 60)}m ${e.time % 60}s` : ''}\n${e.query ? `\n\`\`\`sql\n${e.query}\n\`\`\`\n` : '*(query data not available)*\n'}`;
     }).join('\n');
 
     files.push({
@@ -277,7 +278,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
       }
 
       // Per-case README.md
-      let caseReadme = `# ${dt} — ${caseName}\n\n**Level:** ${level} ${'⭐'.repeat(Math.min(tier, 5))}\n**Domain:** ${dt}\n`;
+      let caseReadme = `# ${dt} — ${caseName}\n\n**Level:** ${level} ${'*'.repeat(Math.min(tier, 5))}\n**Domain:** ${dt}\n`;
       if (e.attempts) caseReadme += `**Attempts:** ${e.attempts}${(e.attempts || 1) === 1 ? ' (first try!)' : ''}\n`;
       if (e.time) caseReadme += `**Solve Time:** ${Math.floor(e.time / 60)}m ${e.time % 60}s\n`;
       if (e.query) caseReadme += `\n### My SQL Query\n\`\`\`sql\n${e.query}\n\`\`\`\n`;
@@ -339,7 +340,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
         runAll += `    '${e.id}': """${escaped}""",\n`;
       }
     }
-    runAll += `}\n\nfor name, sql in queries.items():\n    try:\n        df = pd.read_sql_query(sql, conn)\n        print(f"✓ {name}: {len(df)} rows")\n    except Exception as e:\n        print(f"✗ {name}: {e}")\n\nconn.close()\nprint("\\nDone!")\n`;
+    runAll += `}\n\nfor name, sql in queries.items():\n    try:\n        df = pd.read_sql_query(sql, conn)\n        print(f"+ {name}: {len(df)} rows")\n    except Exception as e:\n        print(f"- {name}: {e}")\n\nconn.close()\nprint("\\nDone!")\n`;
     files.push({ path: `${domain}/run_all.py`, content: runAll });
 
     return files;
@@ -407,7 +408,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
       {pct === 100 && (
         <section className="p-6 rounded-xl shadow-xl bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 border-2 border-green-400 dark:border-green-600 ring-2 ring-green-300 dark:ring-green-700">
           <div className="flex items-start gap-4">
-            <span className="text-4xl animate-bounce">🏆</span>
+            <span className="animate-bounce"><TrophyIcon size={40} className="text-amber-500" /></span>
             <div className="flex-1">
               <h2 className="text-xl font-bold text-green-900 dark:text-green-200 mb-1">*bleep* Domain Complete!</h2>
               <p className="text-sm text-green-800 dark:text-green-300 mb-3">
@@ -434,10 +435,10 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
                   </button>
                   {pushResult?.success && (
                     <p className="mt-2 text-sm text-green-800 dark:text-green-300">
-                      ✅ Pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline">{pushResult.repoUrl}</a>
+                      <span className="inline-flex items-center gap-1"><CheckBadge size={14} className="text-green-700" /> Pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline">{pushResult.repoUrl}</a></span>
                     </p>
                   )}
-                  {pushResult?.error && <p className="mt-2 text-sm text-red-700">❌ {pushResult.error}</p>}
+                  {pushResult?.error && <p className="mt-2 text-sm text-red-700 inline-flex items-center gap-1"><ErrorIcon size={14} /> {pushResult.error}</p>}
                 </div>
               ) : (
                 <button
@@ -496,13 +497,13 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
               </thead>
               <tbody>
                 {solvedEntries.map((e) => {
-                  const rating = (e.attempts || 1) <= 1 ? '⭐⭐⭐' : (e.attempts || 1) <= 3 ? '⭐⭐' : '⭐';
+                  const stars = (e.attempts || 1) <= 1 ? 3 : (e.attempts || 1) <= 3 ? 2 : 1;
                   return (
                     <tr key={e.id} className="border-b border-bleepx-border hover:bg-bleepx-blue/5">
                       <td className="py-2 px-3 font-medium text-bleepx-text">{e.name}</td>
                       <td className="py-2 px-3 text-bleepx-text-secondary">{e.attempts || '—'}</td>
                       <td className="py-2 px-3 text-bleepx-text-secondary">{e.time ? `${Math.floor(e.time / 60)}m ${e.time % 60}s` : '—'}</td>
-                      <td className="py-2 px-3">{rating}</td>
+                      <td className="py-2 px-3"><StarRating stars={stars} size={12} /></td>
                     </tr>
                   );
                 })}
@@ -521,7 +522,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
               <div key={e.id} className="border border-bleepx-border rounded-lg p-3">
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-sm font-medium text-bleepx-text">{e.name}</span>
-                  <span className="text-xs text-green-600 dark:text-green-400 font-semibold">✓ Solved</span>
+                  <span className="text-xs text-green-600 dark:text-green-400 font-semibold inline-flex items-center gap-1"><CheckBadge size={12} className="text-green-600" /> Solved</span>
                 </div>
                 <pre className="text-xs text-bleepx-text-secondary bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded overflow-x-auto whitespace-pre-wrap">{e.query}</pre>
               </div>
@@ -589,13 +590,13 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
                   const avgT = solvedEntries.filter((e) => e.time).length > 0 ? Math.round(solvedEntries.filter((e) => e.time).reduce((s, e) => s + (e.time || 0), 0) / solvedEntries.filter((e) => e.time).length) : 0;
                   const bestT = solvedEntries.filter((e) => e.time).length > 0 ? Math.min(...solvedEntries.filter((e) => e.time).map((e) => e.time!)) : 0;
                   const ftc = solvedEntries.filter((e) => (e.attempts || 1) === 1).length;
-                  const report = `# ${dt} SQL Analytics — Progress Report\n## BleepxQuery SwiftLink Training Program\n\n| Metric | Value |\n|--------|-------|\n| Domain | **${dt}** |\n| Completed | **${completedCount}/${totalCases}** (${pct}%) |\n${avgT ? `| Avg Solve Time | **${Math.floor(avgT / 60)}m ${avgT % 60}s** |\n` : ''}${bestT ? `| Best Solve Time | **${Math.floor(bestT / 60)}m ${bestT % 60}s** |\n` : ''}| First-Try Solves | **${ftc}/${solvedEntries.length}** |\n| Date | **${new Date().toLocaleDateString()}** |\n\n## Datasets Analyzed\n${tables.map((t) => `- **${t.name}** — ${t.rowCount.toLocaleString()} rows, ${t.columns.length} columns (\`${t.columns.slice(0, 6).join('`, `')}\`${t.columns.length > 6 ? ', ...' : ''})`).join('\n')}\n\n## Skills Demonstrated\nSELECT, WHERE, ORDER BY, GROUP BY, HAVING, JOIN, LEFT JOIN, CTE, Window Functions, Subqueries, CASE, Date Functions, Aggregation (COUNT, SUM, AVG, MAX, MIN)\n\n---\n\n## Solved Challenges\n\n${solvedEntries.map((e, i) => `### ${i + 1}. ${e.name}\n${e.attempts ? `- **Attempts:** ${e.attempts}${(e.attempts || 1) === 1 ? ' ✨ first try' : ''}` : ''}\n${e.time ? `- **Solve Time:** ${Math.floor(e.time / 60)}m ${e.time % 60}s` : ''}\n${e.ts ? `- **Date:** ${new Date(e.ts).toLocaleDateString()}` : ''}\n\n\`\`\`sql\n${e.query}\n\`\`\`\n`).join('\n')}\n\n---\n*Generated by [BleepxQuery](https://bleepxacademy.vercel.app) — SwiftLink Training Program*\n`;
+                  const report = `# ${dt} SQL Analytics — Progress Report\n## BleepxQuery SwiftLink Training Program\n\n| Metric | Value |\n|--------|-------|\n| Domain | **${dt}** |\n| Completed | **${completedCount}/${totalCases}** (${pct}%) |\n${avgT ? `| Avg Solve Time | **${Math.floor(avgT / 60)}m ${avgT % 60}s** |\n` : ''}${bestT ? `| Best Solve Time | **${Math.floor(bestT / 60)}m ${bestT % 60}s** |\n` : ''}| First-Try Solves | **${ftc}/${solvedEntries.length}** |\n| Date | **${new Date().toLocaleDateString()}** |\n\n## Datasets Analyzed\n${tables.map((t) => `- **${t.name}** — ${t.rowCount.toLocaleString()} rows, ${t.columns.length} columns (\`${t.columns.slice(0, 6).join('`, `')}\`${t.columns.length > 6 ? ', ...' : ''})`).join('\n')}\n\n## Skills Demonstrated\nSELECT, WHERE, ORDER BY, GROUP BY, HAVING, JOIN, LEFT JOIN, CTE, Window Functions, Subqueries, CASE, Date Functions, Aggregation (COUNT, SUM, AVG, MAX, MIN)\n\n---\n\n## Solved Challenges\n\n${solvedEntries.map((e, i) => `### ${i + 1}. ${e.name}\n${e.attempts ? `- **Attempts:** ${e.attempts}${(e.attempts || 1) === 1 ? ' (first try!)' : ''}` : ''}\n${e.time ? `- **Solve Time:** ${Math.floor(e.time / 60)}m ${e.time % 60}s` : ''}\n${e.ts ? `- **Date:** ${new Date(e.ts).toLocaleDateString()}` : ''}\n\n\`\`\`sql\n${e.query}\n\`\`\`\n`).join('\n')}\n\n---\n*Generated by [BleepxQuery](https://bleepxacademy.vercel.app) — SwiftLink Training Program*\n`;
                   const blob = new Blob([report], { type: 'text/markdown' });
                   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${domain}_progress.md`; a.click();
                 }}
                 className="px-4 py-2 rounded-full bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors"
               >
-                📄 Progress Report
+                <span className="inline-flex items-center gap-1"><FileTextIcon size={14} /> Progress Report</span>
               </button>
               <button
                 onClick={() => {
@@ -608,15 +609,15 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
                 }}
                 className="px-4 py-2 rounded-full bg-gray-700 text-white text-sm hover:bg-gray-600 transition-colors"
               >
-                🖨️ Print / PDF
+                <span className="inline-flex items-center gap-1"><PrinterIcon size={14} /> Print / PDF</span>
               </button>
             </div>
             {pushResult?.success && (
               <p className="text-sm text-green-700 dark:text-green-400">
-                ✅ Portfolio pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline text-bleepx-blue">{pushResult.repoUrl}</a>
+                <span className="inline-flex items-center gap-1"><CheckBadge size={14} className="text-green-700" /> Portfolio pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline text-bleepx-blue">{pushResult.repoUrl}</a></span>
               </p>
             )}
-            {pushResult?.error && <p className="text-sm text-red-600">❌ {pushResult.error}</p>}
+            {pushResult?.error && <p className="text-sm text-red-600 inline-flex items-center gap-1"><ErrorIcon size={14} /> {pushResult.error}</p>}
             <p className="text-xs text-bleepx-text-secondary">Push creates a <code>sql-portfolio-{domain}</code> repo with README, SQL queries, per-case READMEs, Python visualization scripts, sample CSV datasets, and a run_all.py script.</p>
           </div>
         ) : (

@@ -3,6 +3,7 @@ import { useProgress } from '@/lib/useProgress';
 import { hiddenCaseOrder } from '@/lib/constants';
 import { getProgressMessage } from '@/lib/bleepxDialogue';
 import { useState, useEffect } from 'react';
+import { IconCheck, IconArrowRight, IconPoint, IconStar, IconDiamondFilled, IconQuestionMark } from '@tabler/icons-react';
 
 interface Props {
   caseIds: string[];
@@ -53,7 +54,7 @@ export default function CaseProgress({ caseIds, domain, cases }: Props) {
           return (
             <li key={id} className={`flex items-center py-1.5 px-3 rounded-lg transition-colors ${done ? 'bg-emerald-50 dark:bg-emerald-900/20' : open ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'bg-gray-50 dark:bg-gray-800/50'}`}>
               <span className={`w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold flex-shrink-0 ${done ? 'bg-emerald-500 text-white' : open ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-gray-200 dark:bg-gray-700 text-gray-400'}`}>
-                {done ? '✓' : open ? '→' : '·'}
+                {done ? <IconCheck size={12} /> : open ? <IconArrowRight size={12} /> : <IconPoint size={12} />}
               </span>
               <span className={`ml-3 text-sm ${done ? 'text-emerald-700 dark:text-emerald-400 line-through' : open ? 'text-bleepx-text font-medium' : 'text-gray-400'}`}>
                 {getCaseName(id)}
@@ -78,7 +79,7 @@ export default function CaseProgress({ caseIds, domain, cases }: Props) {
               return (
                 <li key={id} className={`flex items-center py-1.5 px-3 rounded-lg transition-colors ${done ? 'bg-amber-50 dark:bg-amber-900/20' : open ? 'bg-purple-50/50 dark:bg-purple-900/10' : 'bg-gray-50 dark:bg-gray-800/50'}`}>
                   <span className={`w-5 h-5 flex items-center justify-center rounded text-xs font-bold flex-shrink-0 rotate-45 ${done ? 'bg-amber-500 text-white' : open ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'bg-gray-200 dark:bg-gray-700 text-gray-400'}`}>
-                    <span className="-rotate-45">{done ? '★' : open ? '◆' : '?'}</span>
+                    <span className="-rotate-45">{done ? <IconStar size={12} /> : open ? <IconDiamondFilled size={12} /> : <IconQuestionMark size={12} />}</span>
                   </span>
                   <span className={`ml-3 text-sm ${done ? 'text-amber-700 dark:text-amber-400' : open ? 'text-purple-700 dark:text-purple-400 font-medium' : 'text-gray-400 italic'}`}>
                     {open || done ? getCaseName(id) : '■■■ Classified ■■■'}

@@ -39,7 +39,7 @@ ORDER BY <grouping_col1>;
 ---
 
 <aside>
-💡 **Warm‑up:**  
+Tip: **Warm‑up:**  
 - Preview 5 random rows:  
   \`\`\`sql
   SELECT * FROM main ORDER BY RANDOM() LIMIT 5;

@@ -31,11 +31,11 @@ console.log('DEBUG: Looking for solutions.yaml at', SOL_PATH);
 
 // ─── Verify existence ───────────────────────────────────────────────────────
 if (!fs.existsSync(REG_PATH)) {
-  console.error(`❌ dataset_registry.yaml not found at ${REG_PATH}`);
+  console.error(`[ERROR] dataset_registry.yaml not found at ${REG_PATH}`);
   process.exit(1);
 }
 if (!fs.existsSync(SOL_PATH)) {
-  console.error(`❌ solutions.yaml not found at ${SOL_PATH}`);
+  console.error(`[ERROR] solutions.yaml not found at ${SOL_PATH}`);
   process.exit(1);
 }
 
@@ -116,7 +116,7 @@ const central  = load(fs.readFileSync(SOL_PATH, 'utf8')) || {};
     for (const [caseId, entry] of Object.entries(cases)) {
       const sql = (entry.solutionQuery || '').trim();
       if (!sql) {
-        console.warn(`⚠️  Skipping ${domain}/${caseId} (no solutionQuery)`);
+        console.warn(`[WARN]  Skipping ${domain}/${caseId} (no solutionQuery)`);
         continue;
       }
 
@@ -152,9 +152,9 @@ const central  = load(fs.readFileSync(SOL_PATH, 'utf8')) || {};
 
         // Overwrite expected in central YAML
         central[domain][caseId].expected = actual;
-        console.log(`✔️  ${actual.length} rows`);
+        console.log(`[OK]  ${actual.length} rows`);
       } catch (err) {
-        console.error(`❌  Error: ${err.message}`);
+        console.error(`[ERROR]  Error: ${err.message}`);
       }
     }
   }
@@ -165,7 +165,7 @@ const central  = load(fs.readFileSync(SOL_PATH, 'utf8')) || {};
     dump(central, { sortKeys: true, lineWidth: 120 }),
     'utf8'
   );
-  console.log('\n✅ Updated solutions.yaml');
+  console.log('\n[OK] Updated solutions.yaml');
 })().catch(err => {
   console.error('Fatal error:', err);
   process.exit(1);

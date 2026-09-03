@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { getGlossaryEntry, hasGlossaryEntry } from '@/lib/cloud/glossary';
+import { BulbIcon, TargetIcon } from '@/components/AppIcons';
 
 interface GlossaryTooltipProps {
   term: string;
@@ -109,7 +110,7 @@ export function GlossaryTooltip({ term, children, className = '' }: GlossaryTool
           }}
         >
           <div className="flex items-start gap-3">
-            <div className="text-2xl flex-shrink-0">💡</div>
+            <div className="flex-shrink-0"><BulbIcon size={24} className="text-amber-500" /></div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <h4 className="font-bold text-bleepx-text">{entry.term}</h4>
@@ -119,7 +120,7 @@ export function GlossaryTooltip({ term, children, className = '' }: GlossaryTool
               </div>
               <p className="text-sm text-bleepx-text-secondary mb-3 leading-relaxed">{entry.definition}</p>
               <div className="rounded-lg bg-gradient-to-r from-sky-50 to-indigo-50 dark:from-sky-900/20 dark:to-indigo-900/20 p-3 border-l-4 border-sky-500">
-                <p className="text-xs font-bold text-sky-700 dark:text-sky-300 mb-1">🎯 Analogy</p>
+                <p className="text-xs font-bold text-sky-700 dark:text-sky-300 mb-1 flex items-center gap-1"><TargetIcon size={12} /> Analogy</p>
                 <p className="text-sm text-bleepx-text leading-relaxed">{entry.analogy}</p>
               </div>
               {entry.example && (

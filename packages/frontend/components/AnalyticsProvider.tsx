@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { initAnalytics, capturePageview, setAnalyticsConsent } from '@/lib/analytics';
 import { scrubCurrentUrl } from '@/lib/sanitizeUrl';
 import { migrateLegacyStoredToken } from '@/lib/authClient';
+import { IconCookie } from '@tabler/icons-react';
 
 /** Initializes PostHog on mount + renders a small consent banner (first visit only). */
 export default function AnalyticsProvider({ children }: { children: React.ReactNode }) {
@@ -53,7 +54,7 @@ export default function AnalyticsProvider({ children }: { children: React.ReactN
       {children}
       {showBanner && (
         <div className="fixed bottom-3 left-3 right-3 sm:left-auto sm:right-4 sm:bottom-4 sm:max-w-sm z-50 bg-bleepx-white border border-bleepx-border rounded-2xl shadow-lg p-4 text-sm">
-          <p className="text-bleepx-text font-medium mb-1">🍪 A tiny *bleep* about privacy</p>
+          <p className="text-bleepx-text font-medium mb-1 flex items-center gap-1.5"><IconCookie size={16} /> A tiny *bleep* about privacy</p>
           <p className="text-xs text-bleepx-text-secondary mb-3">
             We use anonymous analytics to understand which challenges help learners most. No personal data, no selling, no ads.{' '}
             <Link href="/privacy" className="underline text-teal-600">Read more</Link>.

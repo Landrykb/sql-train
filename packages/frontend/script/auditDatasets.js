@@ -47,7 +47,7 @@ function inferTypes(rows, fields) {
 
 fs.readdir(DATA_DIR, (err, files) => {
   if (err) {
-    console.error(`❌ Could not read datasets dir:`, err);
+    console.error(`[ERROR] Could not read datasets dir:`, err);
     process.exit(1);
   }
 
@@ -64,13 +64,13 @@ fs.readdir(DATA_DIR, (err, files) => {
       });
 
       if (errors.length) {
-        console.warn(`⚠️  Parse errors in ${file}:`, errors.slice(0,3));
+        console.warn(`[WARN]  Parse errors in ${file}:`, errors.slice(0,3));
       }
 
       const rowCount = data.length;
       const cols     = meta.fields || [];
 
-      console.log(`\n📊 Dataset: ${file}`);
+      console.log(`\n[Dataset] Dataset: ${file}`);
       console.log(`  Rows:   ${rowCount}`);
       console.log(`  Columns (${cols.length}):`);
       const types = inferTypes(data, cols);

@@ -1,7 +1,7 @@
 // @ts-nocheck
 // packages/frontend/lib/duckdbClient.ts — UNUSED, kept for reference
 // The app uses lib/sqlClient/browser.ts (sql.js) instead.
-console.log('🦆 [duckdbClient] module loaded');
+console.log('[duckdbClient] module loaded');
 
 let db: any = null;
 let conn: any = null;
@@ -42,7 +42,7 @@ export async function loadCSV(
     false
   );
 
-  console.log(`🦆 [duckdbClient] creating table "${tableName}" from CSV`);
+  console.log(`[duckdbClient] creating table "${tableName}" from CSV`);
   // use explicit read_csv (faster, more predictable than auto)
   await conn.query(`
     CREATE OR REPLACE TABLE ${tableName} AS
@@ -66,7 +66,7 @@ export async function runQuery(
       : (result.schema?.fields || []).map((f: any) => f.name);
     return { columns: cols, data };
   } catch (err) {
-    console.error('🦆 [duckdbClient] runQuery error', err);
+    console.error('[duckdbClient] runQuery error', err);
     return { columns: [], data: [] };
   }
 }

@@ -80,7 +80,6 @@ export const LAB_CASE_ORDER: Record<string, string[]> = {
 };
 
 export const LAB_DOMAIN_META: Record<string, {
-  icon: string;
   name: string;
   desc: string;
   color: string;
@@ -90,7 +89,6 @@ export const LAB_DOMAIN_META: Record<string, {
   dataset_url?: string;
 }> = {
   transport: {
-    icon: '🚌',
     name: 'Transport Delays',
     desc: 'Predict public transport delays using weather & events data',
     color: 'from-sky-500 to-sky-700',
@@ -100,7 +98,6 @@ export const LAB_DOMAIN_META: Record<string, {
     dataset_url: 'https://www.kaggle.com/datasets/khushikyad001/public-transport-delays-with-weather-and-events',
   },
   forecasting: {
-    icon: '📉',
     name: 'Time Series Forecasting',
     desc: 'Predict future trends with ARIMA, Prophet & LSTM models',
     color: 'from-violet-500 to-violet-700',
@@ -110,7 +107,6 @@ export const LAB_DOMAIN_META: Record<string, {
     dataset_url: 'https://www.kaggle.com/datasets/rohitsahoo/sales-forecasting',
   },
   churn: {
-    icon: '🔄',
     name: 'Customer Churn',
     desc: 'Predict customer churn with classification models',
     color: 'from-rose-500 to-rose-700',
@@ -120,7 +116,6 @@ export const LAB_DOMAIN_META: Record<string, {
     dataset_url: 'https://www.kaggle.com/datasets/blastchar/telco-customer-churn',
   },
   music: {
-    icon: '🎵',
     name: 'Spotify Analysis',
     desc: 'Analyze music patterns, popularity & audio features',
     color: 'from-emerald-500 to-emerald-700',
@@ -130,7 +125,6 @@ export const LAB_DOMAIN_META: Record<string, {
     dataset_url: 'https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset',
   },
   fraud: {
-    icon: '🛡️',
     name: 'Fraud Detection',
     desc: 'Detect suspicious transactions with anomaly detection',
     color: 'from-amber-500 to-amber-700',
@@ -140,7 +134,6 @@ export const LAB_DOMAIN_META: Record<string, {
     dataset_url: 'https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud',
   },
   esg_climate: {
-    icon: '🌍',
     name: 'ESG & Climate Risk',
     desc: 'Analyze ESG scores, climate risk metrics & sustainability reporting',
     color: 'from-teal-500 to-teal-700',
@@ -150,7 +143,6 @@ export const LAB_DOMAIN_META: Record<string, {
     dataset_url: 'https://www.kaggle.com/datasets/shriyashjagtap/esg-and-financial-performance-dataset',
   },
   decarb: {
-    icon: '♻️',
     name: 'Decarbonization',
     desc: 'Model carbon emissions, forecast reduction pathways & net-zero strategies',
     color: 'from-lime-600 to-lime-800',
@@ -160,7 +152,6 @@ export const LAB_DOMAIN_META: Record<string, {
     dataset_url: 'https://www.kaggle.com/datasets/unitednations/international-greenhouse-gas-emissions',
   },
   agri_econ: {
-    icon: '🌾',
     name: 'Agriculture Economics',
     desc: 'Commodity price analysis, yield prediction & food-security modeling',
     color: 'from-yellow-600 to-yellow-800',
@@ -170,7 +161,6 @@ export const LAB_DOMAIN_META: Record<string, {
     dataset_url: 'https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset',
   },
   fin_risk: {
-    icon: '💹',
     name: 'Financial Risk',
     desc: 'Value-at-Risk, portfolio optimization & stress testing',
     color: 'from-fuchsia-500 to-fuchsia-700',
@@ -180,7 +170,6 @@ export const LAB_DOMAIN_META: Record<string, {
     dataset_url: 'https://www.kaggle.com/datasets/szrlee/stock-time-series-20050101-to-20171231',
   },
   carbon_credits: {
-    icon: '🌱',
     name: 'Carbon Credits',
     desc: 'AWD rice, regenerative agriculture, offset markets & carbon price ML',
     color: 'from-green-600 to-emerald-800',

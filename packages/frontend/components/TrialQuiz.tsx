@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { BleepxHead, BleepxTrophy, BleepxFace } from '@/components/BleepxIcons';
+import { RefreshIcon } from '@/components/AppIcons';
+import { IconCheck, IconX, IconSparkles } from '@tabler/icons-react';
 import { syncCurrentProgress } from '@/lib/progressSync';
 import { useAuthGate } from '@/components/SignInGate';
 import { track, Events } from '@/lib/analytics';
@@ -389,7 +391,7 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
             <div className="text-4xl font-bold text-bleepx-blue mb-1">+{score} pts</div>
             <p className="text-sm text-bleepx-text-secondary">
               {score}/{maxScore} possible points ({pct}%)
-              {isPerfect && <span className="ml-1 text-yellow-500">✨ Perfect Bonus!</span>}
+              {isPerfect && <span className="ml-1 text-yellow-500 inline-flex items-center gap-1"><IconSparkles size={14} /> Perfect Bonus!</span>}
             </p>
           </div>
 
@@ -398,7 +400,7 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
               onClick={handleRetake}
               className="px-5 py-2.5 rounded-full border-2 border-bleepx-border text-sm font-bold text-bleepx-text-secondary hover:bg-bleepx-blue/5 transition-colors"
             >
-              🔄 Retake Quiz
+              <RefreshIcon size={16} className="inline" /> Retake Quiz
             </button>
             <Link href={`/cases/${domain}/${caseId}`}>
               <button className="px-5 py-2.5 rounded-full bg-bleepx-blue text-white text-sm font-bold hover:bg-bleepx-blue/90 transition-colors shadow-sm">
@@ -420,7 +422,7 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
 
   const previousBanner = alreadyCompleted && currentIdx === 0 && !answered ? (
     <div className="mb-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
-      <span>✅</span>
+      <IconCheck size={16} />
       <span>You scored <strong>+{previousScore} pts</strong> previously. Retake to earn more!</span>
     </div>
   ) : null;
@@ -459,7 +461,7 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
           ))}
           {answered && (
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${correct ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'}`}>
-              {correct ? '✅ Mastered' : '❌ Review'}
+              {correct ? <span className="inline-flex items-center gap-1"><IconCheck size={12} /> Mastered</span> : <span className="inline-flex items-center gap-1"><IconX size={12} /> Review</span>}
             </span>
           )}
         </div>
@@ -537,7 +539,7 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
               ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-200'
               : 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200'
           }`}>
-            <strong>{correct ? '✅ Correct!' : '❌ Not quite.'}</strong>{' '}
+            <strong className="inline-flex items-center gap-1">{correct ? <><IconCheck size={14} /> Correct!</> : <><IconX size={14} /> Not quite.</>}</strong>{' '}
             {currentQ.explanation}
             {correct && <span className="ml-1 font-bold text-bleepx-blue">+{POINTS_PER_CORRECT} pts</span>}
           </div>

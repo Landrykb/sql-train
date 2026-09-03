@@ -9,6 +9,8 @@ import {
 } from '@/lib/pointsStore';
 import { playBleep } from '@/lib/audio';
 import { track, Events } from '@/lib/analytics';
+import { BadgeIcon, LockIcon, BoltIcon } from '@/components/AppIcons';
+import { IconTag, IconMedal, IconSwords, IconSparkles, IconCheck } from '@tabler/icons-react';
 
 export default function PointsShop() {
   const { points, spendPoints } = useProgress();
@@ -117,7 +119,7 @@ export default function PointsShop() {
             <span className="text-xs text-bleepx-text-secondary">Badges:</span>
             {equippedBadgeObjs.length > 0 ? (
               equippedBadgeObjs.map(b => b && (
-                <span key={b.id} className="text-lg" title={b.name}>{b.emoji}</span>
+                <span key={b.id} className="text-lg" title={b.name}><BadgeIcon id={b.id} size={20} /></span>
               ))
             ) : (
               <span className="text-xs text-bleepx-text-secondary italic">None equipped</span>
@@ -134,7 +136,7 @@ export default function PointsShop() {
         </div>
         {activePerks.perkLines.length > 0 && (
           <div className="mt-3 p-3 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800">
-            <p className="text-xs font-bold text-indigo-700 dark:text-indigo-300 mb-1.5">⚡ Active Perks</p>
+            <p className="text-xs font-bold text-indigo-700 dark:text-indigo-300 mb-1.5 inline-flex items-center gap-1"><BoltIcon size={12} /> Active Perks</p>
             <div className="flex flex-wrap gap-2">
               {activePerks.perkLines.map((line, i) => (
                 <span key={i} className="text-[11px] px-2 py-0.5 rounded-full bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-700 text-indigo-600 dark:text-indigo-300 font-medium">{line}</span>
@@ -155,7 +157,7 @@ export default function PointsShop() {
                 shopTab === t ? 'border-bleepx-blue text-bleepx-blue' : 'border-transparent text-bleepx-text-secondary hover:text-bleepx-text'
               }`}
             >
-              {t === 'titles' ? '🏷️ Titles' : t === 'badges' ? '🎖️ Badges' : t === 'trials' ? '⚔️ Trials' : '✨ Portfolio'}
+              {t === 'titles' ? <span className="inline-flex items-center gap-1"><IconTag size={14} /> Titles</span> : t === 'badges' ? <span className="inline-flex items-center gap-1"><IconMedal size={14} /> Badges</span> : t === 'trials' ? <span className="inline-flex items-center gap-1"><IconSwords size={14} /> Trials</span> : <span className="inline-flex items-center gap-1"><IconSparkles size={14} /> Portfolio</span>}
             </button>
           ))}
         </div>
@@ -195,12 +197,12 @@ export default function PointsShop() {
                           <span className="text-xs font-bold text-amber-600 dark:text-amber-400 flex-shrink-0 ml-2">{title.cost} pts</span>
                         )}
                         {locked && (
-                          <span className="text-xs text-gray-400 flex-shrink-0 ml-2">🔒 {title.minPointsRequired} pts</span>
+                          <span className="text-xs text-gray-400 flex-shrink-0 ml-2 inline-flex items-center gap-1"><LockIcon size={12} /> {title.minPointsRequired} pts</span>
                         )}
                       </div>
                       <div className="mt-2 flex gap-2">
                         {equipped ? (
-                          <span className="text-xs font-bold text-amber-600 dark:text-amber-400">✓ Equipped</span>
+                          <span className="text-xs font-bold text-amber-600 dark:text-amber-400 inline-flex items-center gap-1"><IconCheck size={12} /> Equipped</span>
                         ) : owned ? (
                           <button onClick={() => handleEquipTitle(title.id)} className="px-3 py-1 text-xs rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 hover:bg-amber-200 transition-colors font-medium">
                             Equip
@@ -245,7 +247,7 @@ export default function PointsShop() {
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">{badge.emoji}</span>
+                        <span className="text-bleepx-text"><BadgeIcon id={badge.id} size={24} /></span>
                         <div className="flex-1">
                           <div className="flex justify-between items-start">
                             <p className="font-bold text-sm text-bleepx-text">{badge.name}</p>
@@ -253,7 +255,7 @@ export default function PointsShop() {
                               <span className="text-xs font-bold text-amber-600 dark:text-amber-400 ml-2">{badge.cost} pts</span>
                             )}
                             {locked && (
-                              <span className="text-xs text-gray-400 ml-2">🔒</span>
+                              <span className="text-xs text-gray-400 ml-2"><LockIcon size={12} /></span>
                             )}
                           </div>
                           <p className="text-xs text-bleepx-text-secondary">{badge.description}</p>
@@ -266,8 +268,8 @@ export default function PointsShop() {
                       </div>
                       <div className="mt-2 flex gap-2">
                         {equipped ? (
-                          <button onClick={() => handleEquipBadge(badge.id)} className="px-3 py-1 text-xs rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 hover:bg-purple-200 transition-colors font-medium">
-                            ✓ Equipped — tap to unequip
+                          <button onClick={() => handleEquipBadge(badge.id)} className="px-3 py-1 text-xs rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 hover:bg-purple-200 transition-colors font-medium inline-flex items-center gap-1">
+                            <IconCheck size={12} /> Equipped — tap to unequip
                           </button>
                         ) : owned ? (
                           <button onClick={() => handleEquipBadge(badge.id)} className="px-3 py-1 text-xs rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 hover:bg-purple-200 transition-colors font-medium">
@@ -312,7 +314,7 @@ export default function PointsShop() {
                           </p>
                         </div>
                         {unlocked ? (
-                          <span className="text-xs font-bold text-green-600">✓ Unlocked</span>
+                          <span className="text-xs font-bold text-green-600 inline-flex items-center gap-1"><IconCheck size={12} /> Unlocked</span>
                         ) : (
                           <button
                             onClick={() => handleUnlockTrial(diff)}

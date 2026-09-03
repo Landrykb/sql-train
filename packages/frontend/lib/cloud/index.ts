@@ -18,7 +18,6 @@ export const CLOUD_MISSIONS: Record<CloudProvider, CloudMission[]> = {
 export const CLOUD_PROVIDER_META: Record<CloudProvider, CloudProviderMeta> = {
   aws: {
     key: 'aws',
-    icon: '☁️',
     name: 'Amazon Web Services',
     short: 'AWS',
     desc: 'EC2, S3, VPC, IAM, RDS, Lambda & SAA-C03 exam prep',
@@ -29,7 +28,6 @@ export const CLOUD_PROVIDER_META: Record<CloudProvider, CloudProviderMeta> = {
   },
   azure: {
     key: 'azure',
-    icon: '🔷',
     name: 'Microsoft Azure',
     short: 'Azure',
     desc: 'VMs, Blob Storage, Entra ID, ARM/Bicep & AZ-305 prep',
@@ -40,7 +38,6 @@ export const CLOUD_PROVIDER_META: Record<CloudProvider, CloudProviderMeta> = {
   },
   gcp: {
     key: 'gcp',
-    icon: '🌐',
     name: 'Google Cloud',
     short: 'GCP',
     desc: 'Compute Engine, GKE, BigQuery & PCA exam prep',
@@ -51,7 +48,6 @@ export const CLOUD_PROVIDER_META: Record<CloudProvider, CloudProviderMeta> = {
   },
   esg: {
     key: 'esg',
-    icon: '🌱',
     name: 'ESG & Decarbonization',
     short: 'ESG',
     desc: 'Carbon credits, net-zero infra, ESG pipelines & farming',
@@ -61,7 +57,6 @@ export const CLOUD_PROVIDER_META: Record<CloudProvider, CloudProviderMeta> = {
   },
   finance: {
     key: 'finance',
-    icon: '💹',
     name: 'Finance & Industry',
     short: 'FinOps',
     desc: 'FinOps, financial services, fraud, retail, healthcare, media & gaming blueprints',

@@ -6,6 +6,7 @@ import DOMPurify from 'dompurify';
 import { getPyErrorHelp } from '@/lib/pyErrorHelper';
 import { useTheme } from '@/lib/useTheme';
 import { BleepxFace } from '@/components/BleepxIcons';
+import { CodeIcon, RefreshIcon, MoonIcon, SunIcon, BulbIcon, EyeIcon, EyeOffIcon, EraserIcon, ErrorIcon, ClockIcon, PlayIcon, ResetIcon } from '@/components/AppIcons';
 import { useAuthGate } from '@/components/SignInGate';
 import { track, Events } from '@/lib/analytics';
 import { loadPyodide, runPythonCode, type OutputLine } from '@/lib/pyodideRuntime';
@@ -238,8 +239,8 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
             <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
             <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
           </div>
-          <span className={`text-xs font-bold ml-1 ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>
-            🐍 Python
+          <span className={`text-xs font-bold ml-1 inline-flex items-center gap-1 ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>
+            <CodeIcon size={12} /> Python
           </span>
           {solved && (
             <span className="text-[10px] font-bold text-green-500 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30">
@@ -257,7 +258,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
             }`}
             title={`Theme: ${editorTheme}`}
           >
-            {editorTheme === 'auto' ? '🔄' : editorTheme === 'dark' ? '🌙' : '☀️'}
+            {editorTheme === 'auto' ? <RefreshIcon size={10} /> : editorTheme === 'dark' ? <MoonIcon size={10} /> : <SunIcon size={10} />}
             <span className="hidden sm:inline ml-0.5">{editorTheme === 'auto' ? 'Auto' : editorTheme === 'dark' ? 'Dark' : 'Light'}</span>
           </button>
           {hints.length > 0 && (
@@ -268,7 +269,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
                 isDark ? 'bg-amber-900/40 text-amber-300 hover:bg-amber-900/60' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
               }`}
             >
-              💡<span className="hidden sm:inline"> Hint</span> ({Math.max(0, hintIdx + 1)}/{hints.length})
+              <span className="inline-flex items-center gap-1"><BulbIcon size={10} /><span className="hidden sm:inline"> Hint</span> ({Math.max(0, hintIdx + 1)}/{hints.length})</span>
             </button>
           )}
           {solutionCode && (
@@ -278,7 +279,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
                 isDark ? 'bg-purple-900/40 text-purple-300 hover:bg-purple-900/60' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
               }`}
             >
-              {showSolution ? '🙈' : '👁️'}<span className="hidden sm:inline"> {showSolution ? 'Hide' : 'Solution'}</span>
+              <span className="inline-flex items-center gap-1">{showSolution ? <EyeOffIcon size={10} /> : <EyeIcon size={10} />}<span className="hidden sm:inline"> {showSolution ? 'Hide' : 'Solution'}</span></span>
             </button>
           )}
           <button
@@ -289,7 +290,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
               isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
             }`}
           >
-            ↺<span className="hidden sm:inline ml-0.5">Reset</span>
+            <span className="inline-flex items-center gap-1"><ResetIcon size={10} /><span className="hidden sm:inline ml-0.5">Reset</span></span>
           </button>
           <button
             onClick={clearOutput}
@@ -297,14 +298,14 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
               isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
             }`}
           >
-            🧹<span className="hidden sm:inline"> Clear</span>
+            <span className="inline-flex items-center gap-1"><EraserIcon size={10} /><span className="hidden sm:inline"> Clear</span></span>
           </button>
           <button
             onClick={runCode}
             disabled={running || !code.trim()}
             className="px-3 py-1.5 text-xs font-bold rounded bg-teal-600 text-white hover:bg-teal-700 active:bg-teal-800 transition-colors disabled:opacity-40 flex items-center gap-1 whitespace-nowrap shadow-md"
           >
-            {running ? '⏳ Running...' : '▶ Run'}
+            {running ? <span className="inline-flex items-center gap-1"><ClockIcon size={10} /> Running...</span> : <span className="inline-flex items-center gap-1"><PlayIcon size={10} /> Run</span>}
             <span className="text-[9px] opacity-70 hidden sm:inline">(⌘↵)</span>
           </button>
         </div>
@@ -315,7 +316,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
         <div className={`px-3 py-2 border-b text-xs flex items-start gap-2 ${
           isDark ? 'bg-amber-900/20 border-amber-800 text-amber-200' : 'bg-amber-50 border-amber-200 text-amber-800'
         }`}>
-          <span className="flex-shrink-0">💡</span>
+          <span className="flex-shrink-0"><BulbIcon size={14} /></span>
           <span><strong>Hint {hintIdx + 1}:</strong> {hints[hintIdx]}</span>
         </div>
       )}
@@ -386,7 +387,7 @@ import numpy as np"
               onClick={() => setErrorHelp(null)}
               className={`text-xs flex-shrink-0 ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
             >
-              ✕
+              <ErrorIcon size={12} />
             </button>
           </div>
         </div>

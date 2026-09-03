@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { EditIcon, ErrorIcon } from '@/components/AppIcons';
 import { InterpretationEditor } from './InterpretationEditor';
 
 interface CaseInterpretationButtonProps {
@@ -19,7 +20,7 @@ export function CaseInterpretationButton({ verse, itemId, itemName, domain }: Ca
         onClick={() => setIsOpen(true)}
         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
       >
-        📝 Write Analysis
+        <EditIcon size={16} className="inline" /> Write Analysis
       </button>
       
       {isOpen && (
@@ -31,7 +32,7 @@ export function CaseInterpretationButton({ verse, itemId, itemName, domain }: Ca
                 onClick={() => setIsOpen(false)}
                 className="text-bleepx-text-secondary hover:text-bleepx-text"
               >
-                ✕
+                <ErrorIcon size={16} />
               </button>
             </div>
             <div className="p-4">

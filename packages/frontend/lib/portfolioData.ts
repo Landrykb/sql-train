@@ -286,25 +286,25 @@ function generateQueryContextHints(data: DomainPortfolioData) {
   return [
     {
       title: 'Executive Summary',
-      hint: `💡 *bleep* Based on your ${completedCases.length} completed challenges in ${data.domain}, summarize the key business insights. Focus on what the data reveals about ${data.domain}.`,
+      hint: `Tip: *bleep* Based on your ${completedCases.length} completed challenges in ${data.domain}, summarize the key business insights. Focus on what the data reveals about ${data.domain}.`,
       placeholder: `This analysis of ${data.domain} data examined ${completedCases.length} key business questions. The findings reveal patterns in [key metrics] that suggest [business implication].`,
       context: summary
     },
     {
       title: 'Key Findings',
-      hint: `💡 *bleep* You created ${visualizationData.length} visualizations. What patterns did you discover? Include specific insights from your charts.`,
+      hint: `Tip: *bleep* You created ${visualizationData.length} visualizations. What patterns did you discover? Include specific insights from your charts.`,
       placeholder: `• ${visualizationData[0]?.keyInsights[0] || 'Key insight from analysis'}\n• ${visualizationData[1]?.keyInsights[0] || 'Secondary finding'}\n• ${visualizationData[2]?.keyInsights[0] || 'Additional discovery'}`,
       context: visualizationData.map(v => v.title).join(', ')
     },
     {
       title: 'Methodology',
-      hint: `💡 *bleep* You used SQL techniques including ${getTechniquesUsed(completedCases)}. Explain your analytical approach.`,
+      hint: `Tip: *bleep* You used SQL techniques including ${getTechniquesUsed(completedCases)}. Explain your analytical approach.`,
       placeholder: `Analyzed ${data.domain} dataset using ${getTechniquesUsed(completedCases).join(', ')} techniques. Focused on extracting actionable business insights from raw data.`,
       context: getTechniquesUsed(completedCases).join(', ')
     },
     {
       title: 'Recommendations',
-      hint: `💡 *bleep* Based on your findings, what should ${data.domain} stakeholders do? Be specific and actionable.`,
+      hint: `Tip: *bleep* Based on your findings, what should ${data.domain} stakeholders do? Be specific and actionable.`,
       placeholder: `1. Optimize [metric] based on analysis patterns\n2. Investigate [anomaly] revealed in visualizations\n3. Monitor [trend] for future decision-making`,
       context: 'Business recommendations based on data analysis'
     }
@@ -318,25 +318,25 @@ function generateLabContextHints(data: LabDomainPortfolioData) {
   return [
     {
       title: 'Executive Summary',
-      hint: `💡 *bleep* You completed ${completedProjects.length} data science projects in ${data.domain}. Summarize your technical work for non-technical stakeholders.`,
+      hint: `Tip: *bleep* You completed ${completedProjects.length} data science projects in ${data.domain}. Summarize your technical work for non-technical stakeholders.`,
       placeholder: `Built ${completedProjects.length} end-to-end data science solutions for ${data.domain}, including data preprocessing, analysis, and modeling. Projects demonstrate proficiency in Python/R and machine learning.`,
       context: summary
     },
     {
       title: 'Key Findings',
-      hint: `💡 *bleep* What did your models reveal? Include performance metrics, feature importance, or statistical insights.`,
+      hint: `Tip: *bleep* What did your models reveal? Include performance metrics, feature importance, or statistical insights.`,
       placeholder: `• Model accuracy: [X]% on test data\n• Top predictive features: [feature list]\n• Key insight: [discovery from analysis]`,
       context: 'Model performance and insights'
     },
     {
       title: 'Methodology',
-      hint: `💡 *bleep* Explain your data science pipeline: data loading, cleaning, feature engineering, modeling, evaluation.`,
+      hint: `Tip: *bleep* Explain your data science pipeline: data loading, cleaning, feature engineering, modeling, evaluation.`,
       placeholder: `Used Kaggle datasets with ${completedProjects.length} projects. Applied preprocessing, feature engineering, and model training. Evaluated using accuracy, precision, recall metrics.`,
       context: 'Data science pipeline and techniques'
     },
     {
       title: 'Technical Notes',
-      hint: `💡 *bleep* Include technical details: libraries used, hyperparameters, model architecture.`,
+      hint: `Tip: *bleep* Include technical details: libraries used, hyperparameters, model architecture.`,
       placeholder: `Libraries: pandas, scikit-learn, matplotlib\nModels: [model types]\nBest parameters: [hyperparameters]`,
       context: 'Technical implementation details'
     }
@@ -350,25 +350,25 @@ function generateCloudContextHints(data: CloudTrackPortfolioData) {
   return [
     {
       title: 'Executive Summary',
-      hint: `💡 *bleep* You completed ${completedMissions.length} cloud architecture missions in ${data.provider}. Summarize the solutions you designed.`,
+      hint: `Tip: *bleep* You completed ${completedMissions.length} cloud architecture missions in ${data.provider}. Summarize the solutions you designed.`,
       placeholder: `Designed ${completedMissions.length} production-ready cloud architectures on ${data.provider}, focusing on scalability, security, and cost optimization. Solutions follow best practices and well-architected frameworks.`,
       context: summary
     },
     {
       title: 'Key Findings',
-      hint: `💡 *bleep* What architectural patterns did you implement? Highlight key services and design decisions.`,
+      hint: `Tip: *bleep* What architectural patterns did you implement? Highlight key services and design decisions.`,
       placeholder: `• Implemented [pattern] for [benefit]\n• Used [services] for [purpose]\n• Ensured [non-functional requirement]`,
       context: 'Architectural patterns and services'
     },
     {
       title: 'Design Decisions',
-      hint: `💡 *bleep* Explain why you chose specific services. What alternatives did you consider?`,
+      hint: `Tip: *bleep* Explain why you chose specific services. What alternatives did you consider?`,
       placeholder: `Chose [service] over [alternative] because [reason]. Design prioritizes [requirement] while maintaining [quality attribute].`,
       context: 'Architecture decision rationale'
     },
     {
       title: 'Recommendations',
-      hint: `💡 *bleep* What improvements or next steps would you recommend for these architectures?`,
+      hint: `Tip: *bleep* What improvements or next steps would you recommend for these architectures?`,
       placeholder: `Consider adding [service] for [benefit]. Implement [practice] to improve [aspect]. Monitor [metric] for operational excellence.`,
       context: 'Architecture improvements'
     }

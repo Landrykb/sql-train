@@ -24,11 +24,11 @@ const initSql = require('sql.js');
   const CASE_PATTERN = path.join(CASES_DIR, '*', '*.yaml');
 
   if (!fs.existsSync(SOL_PATH)) {
-    console.error(`❌ solutions.yaml not found at ${SOL_PATH}`);
+    console.error(`[ERROR] solutions.yaml not found at ${SOL_PATH}`);
     process.exit(1);
   }
   if (!fs.existsSync(DATASETS_DIR)) {
-    console.error(`❌ datasets dir not found at ${DATASETS_DIR}`);
+    console.error(`[ERROR] datasets dir not found at ${DATASETS_DIR}`);
     process.exit(1);
   }
 
@@ -86,7 +86,7 @@ const initSql = require('sql.js');
     for (const [caseId, entry] of Object.entries(cases)) {
       const sql = entry.solutionQuery?.trim();
       if (!sql) {
-        console.warn(`⚠️  Skipping ${domain}/${caseId} (no solutionQuery)`);
+        console.warn(`[WARN]  Skipping ${domain}/${caseId} (no solutionQuery)`);
         continue;
       }
       process.stdout.write(`⏳  Running ${domain}/${caseId}… `);
@@ -94,9 +94,9 @@ const initSql = require('sql.js');
         const rows = await getActualRows(domain, caseId, sql);
         // Overwrite expected
         central[domain][caseId].expected = rows;
-        console.log(`✔️  ${rows.length} rows`);
+        console.log(`[OK]  ${rows.length} rows`);
       } catch (err) {
-        console.error(`❌  Failed: ${err.message}`);
+        console.error(`[ERROR]  Failed: ${err.message}`);
       }
     }
   }
@@ -107,7 +107,7 @@ const initSql = require('sql.js');
     lineWidth: 120,
   });
   fs.writeFileSync(SOL_PATH, yamlStr, 'utf8');
-  console.log(`\n✅ Wrote updated solutions to ${SOL_PATH}`);
+  console.log(`\n[OK] Wrote updated solutions to ${SOL_PATH}`);
 })().catch(err => {
   console.error('Fatal error:', err);
   process.exit(1);

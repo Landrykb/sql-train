@@ -19,13 +19,13 @@ def load_csv_to_sqlite(conn, table_name, csv_path):
         reader = csv.DictReader(f)
         fields = reader.fieldnames
         if not fields:
-            print(f"  ⚠ No fields in {csv_path}")
+            print(f"  [WARN] No fields in {csv_path}")
             return
         
         # Infer types from first row
         rows = list(reader)
         if not rows:
-            print(f"  ⚠ No data in {csv_path}")
+            print(f"  [WARN] No data in {csv_path}")
             return
         
         col_defs = []
@@ -58,7 +58,7 @@ def load_csv_to_sqlite(conn, table_name, csv_path):
             conn.execute(insert_sql, values)
         
         conn.commit()
-        print(f"  ✓ Loaded {table_name}: {len(rows)} rows, columns: {fields}")
+        print(f"  [OK] Loaded {table_name}: {len(rows)} rows, columns: {fields}")
 
 def run_solution_query(conn, solution_query):
     """Run a solution query and return results as list of dicts."""
@@ -100,7 +100,7 @@ def main():
             doc = yaml.safe_load(f)
         
         if not doc:
-            print("  ⚠ Empty YAML")
+            print("  [WARN] Empty YAML")
             continue
         
         datasets = doc.get('datasets', [])
@@ -108,7 +108,7 @@ def main():
         current_expected = doc.get('expected', [])
         
         if not solution_query:
-            print("  ⚠ No solutionQuery")
+            print("  [WARN] No solutionQuery")
             continue
         
         # Create fresh DB for each case
@@ -119,7 +119,7 @@ def main():
         for ds in datasets:
             csv_path = os.path.join(DATASETS_DIR, ds['file'])
             if not os.path.exists(csv_path):
-                print(f"  ✗ CSV not found: {csv_path}")
+                print(f"  [FAIL] CSV not found: {csv_path}")
                 all_loaded = False
                 continue
             load_csv_to_sqlite(conn, ds['name'], csv_path)
@@ -132,10 +132,10 @@ def main():
         columns, rows, error = run_solution_query(conn, solution_query)
         
         if error:
-            print(f"  ✗ QUERY FAILED: {error}")
+            print(f"  [FAIL] QUERY FAILED: {error}")
             results[case_name] = {'status': 'FAILED', 'error': error}
         else:
-            print(f"  ✓ Query OK: {len(rows)} rows, columns: {columns}")
+            print(f"  [OK] Query OK: {len(rows)} rows, columns: {columns}")
             if current_expected:
                 print(f"  Current expected: {len(current_expected)} rows")
             else:
@@ -163,10 +163,10 @@ def main():
     print(f"{'='*60}")
     ok = [k for k, v in results.items() if v['status'] == 'OK']
     failed = [k for k, v in results.items() if v['status'] == 'FAILED']
-    print(f"✓ OK: {len(ok)} cases")
+    print(f"[OK] OK: {len(ok)} cases")
     for k in ok:
         print(f"  {k}: {results[k]['row_count']} rows")
-    print(f"✗ FAILED: {len(failed)} cases")
+    print(f"[FAIL] FAILED: {len(failed)} cases")
     for k in failed:
         print(f"  {k}: {results[k]['error'][:80]}")
     
@@ -194,7 +194,7 @@ def main():
                     break
         
         if exp_start is None:
-            print(f"  ⚠ {case_name}: no expected: line found, skipping")
+            print(f"  [WARN] {case_name}: no expected: line found, skipping")
             continue
         
         if exp_end is None:
@@ -225,7 +225,7 @@ def main():
         with open(yaml_path, 'w') as f:
             f.writelines(new_lines)
         
-        print(f"  ✓ {case_name}: wrote {len(expected_rows)} expected rows")
+        print(f"  [OK] {case_name}: wrote {len(expected_rows)} expected rows")
     
     print("\nDone!")
 

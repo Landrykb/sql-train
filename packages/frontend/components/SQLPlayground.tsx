@@ -9,6 +9,7 @@ import DataGrid from './DataGrid';
 import DiffGrid from './DiffGrid';
 import SqlDiff from './SqlDiff';
 import { BleepxTrophy, BleepxLock, BleepxGhost } from '@/components/BleepxIcons';
+import { DifficultyIcon, LockIcon, LockOpenIcon, BoltIcon, ClockIcon, BrainIcon, FlaskIcon, CheckBadge, ErrorIcon, StarRating, FileTextIcon, TargetIcon, HistoryIcon, FolderIcon, ChartBarIcon, SearchIcon, CircleIcon, GuideIcon, BulbIcon } from '@/components/AppIcons';
 import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { compareResults } from '@/lib/compare';
 import { useProgress } from '@/lib/useProgress';
@@ -428,7 +429,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
         const allCompleted = currentOrder.length > 0 && currentOrder.every((caseId) => completed.has(caseId) || caseId === id);
 
         if (isTrial) {
-          setNextDestination({ url: `/cases/${domain}/${id}/quiz`, label: '🧠 Take Quiz' });
+          setNextDestination({ url: `/cases/${domain}/${id}/quiz`, label: 'Take Quiz' });
         } else if (allCompleted && currentOrder.length > 0) {
           setNextDestination({ url: `/cases/${domain}/dashboard`, label: 'View Dashboard' });
         } else if (nextCaseId) {
@@ -516,7 +517,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 canSkip ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
               }`}
             >
-              {canSkip ? `⚡ Skip Prerequisite (${skipCost} pts)` : `🔒 Need ${skipCost} pts to skip`}
+              {canSkip ? <span className="inline-flex items-center gap-1"><BoltIcon size={14} /> Skip Prerequisite ({skipCost} pts)</span> : <span className="inline-flex items-center gap-1"><LockIcon size={14} /> Need {skipCost} pts to skip</span>}
             </button>
           </div>
         </div>
@@ -615,7 +616,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               className="w-full p-4 rounded-xl border-2 border-blue-400 dark:border-blue-600 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 hover:shadow-lg hover:scale-[1.01] transition-all text-left"
             >
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-xl">📝</span>
+                <span className="text-bleepx-text"><FileTextIcon size={22} /></span>
                 <span className="font-bold text-bleepx-gray">Practice Mode</span>
                 <span className="ml-auto text-xs font-mono font-bold text-blue-600 dark:text-blue-400">No timer</span>
               </div>
@@ -625,7 +626,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
 
           {/* Test Mode — timed difficulties */}
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-bleepx-gray mb-2">🧪 Test Mode</h2>
+            <h2 className="text-lg font-bold text-bleepx-gray mb-2 flex items-center gap-2"><FlaskIcon size={22} /> Test Mode</h2>
             <p className="text-xs text-bleepx-text-secondary mb-4">Start with a countdown. Higher difficulty = less time, more glory. You can also switch to test mode anytime during practice.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {trialDifficulties.map((diff) => {
@@ -662,7 +663,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xl">{isDiffUnlocked ? diff.emoji : '🔒'}</span>
+                      <span className="text-xl">{isDiffUnlocked ? <DifficultyIcon id={diff.id} size={20} /> : <LockIcon size={20} />}</span>
                       <span className="font-bold text-bleepx-gray">{diff.label}</span>
                       <span className="ml-auto text-xs font-mono font-bold text-bleepx-text-secondary">
                         {isDiffUnlocked ? fmtTime(diff.timeLimitSeconds) : `${unlockCost} pts to unlock`}
@@ -682,7 +683,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               <button className="px-4 py-2 rounded-full border border-bleepx-border text-sm text-bleepx-text-secondary hover:bg-bleepx-blue/5 transition-colors">← Back to Trials</button>
             </Link>
             <Link href={`/cases/${domain}/${id}/quiz`}>
-              <button className="px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm">🧠 Take Quiz</button>
+              <button className="px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm inline-flex items-center gap-1"><BrainIcon size={14} /> Take Quiz</button>
             </Link>
           </div>
         </div>
@@ -715,7 +716,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       {completed.has(id) && !showSuccess && (
         <div className="flex items-center justify-between p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
           <div className="flex items-center gap-2">
-            <span className="text-green-600 font-bold text-sm">✓ Completed</span>
+            <span className="text-green-600 font-bold text-sm inline-flex items-center gap-1"><CheckBadge size={14} className="text-green-600" /> Completed</span>
             {prevCaseId && (
               <Link href={`/cases/${domain}/${prevCaseId}`}>
                 <button className="px-3 py-1 rounded-full text-xs border border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800/30 transition-colors">← Previous</button>
@@ -725,7 +726,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           <div className="flex items-center gap-2">
             {isTrial && (
               <Link href={`/cases/${domain}/${id}/quiz`}>
-                <button className="px-4 py-1.5 rounded-full bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm">🧠 Quiz</button>
+                <button className="px-4 py-1.5 rounded-full bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm inline-flex items-center gap-1"><BrainIcon size={14} /> Quiz</button>
               </Link>
             )}
             {nextCaseId ? (
@@ -745,7 +746,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       <div className="flex items-center justify-end gap-2 text-xs relative">
         {isTrial && (
           <Link href={`/cases/${domain}/${id}/quiz`}>
-            <button className="px-3 py-1.5 rounded-full bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors shadow-sm">🧠 Quiz</button>
+            <button className="px-3 py-1.5 rounded-full bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors shadow-sm inline-flex items-center gap-1"><BrainIcon size={14} /> Quiz</button>
           </Link>
         )}
         {!isTrial && (
@@ -753,7 +754,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             if (timerEnabled) { setTimerEnabled(false); setTimeLimit(0); setTimerSeconds(0); }
             else { setTimerSeconds(0); setTimerEnabled(true); }
           }} className={`px-2 py-1 rounded-full border transition-colors border-bleepx-border bg-bleepx-white text-bleepx-text-secondary ${timerEnabled ? 'ring-2 ring-bleepx-blue' : ''}`}>
-            ⏱️ {timerEnabled ? fmtTime(timerSeconds) : 'Timer'}
+            <span className="inline-flex items-center gap-1"><ClockIcon size={14} /> {timerEnabled ? fmtTime(timerSeconds) : 'Timer'}</span>
           </button>
         )}
         {/* Trial: test mode toggle + countdown display */}
@@ -765,7 +766,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               : 'border-bleepx-border bg-bleepx-white text-bleepx-text-secondary hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/10'
             }`}
           >
-            🧪 Test Mode
+            <span className="inline-flex items-center gap-1"><FlaskIcon size={14} /> Test Mode</span>
           </button>
         )}
         {isTrial && timerEnabled && (
@@ -775,14 +776,14 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               timerSeconds <= 60 ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300' :
               'bg-bleepx-blue/10 text-bleepx-blue'
             }`}>
-              ⏱ {fmtTime(timerSeconds)} {selectedDifficulty && <span className="text-xs ml-1">{selectedDifficulty.emoji} {selectedDifficulty.label}</span>}
+              <span className="inline-flex items-center gap-1"><ClockIcon size={14} /> {fmtTime(timerSeconds)} {selectedDifficulty && <span className="text-xs ml-1 inline-flex items-center gap-1"><DifficultyIcon id={selectedDifficulty.id} size={12} /> {selectedDifficulty.label}</span>}</span>
             </span>
             <button
               onClick={deactivateTestMode}
               className="px-2 py-1 rounded-full border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium"
               title="Stop test mode"
             >
-              ✕ Stop
+              <span className="inline-flex items-center gap-1"><ErrorIcon size={12} /> Stop</span>
             </button>
             <button
               onClick={() => setShowTestModePicker((v) => !v)}
@@ -822,7 +823,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                     : 'border-bleepx-border hover:border-bleepx-blue hover:bg-bleepx-blue/5'
                   }`}
                 >
-                  <span className="font-bold">{isDiffUnlocked ? diff.emoji : '🔒'} {diff.label}</span>
+                  <span className="font-bold inline-flex items-center gap-1">{isDiffUnlocked ? <DifficultyIcon id={diff.id} size={14} /> : <LockIcon size={14} />} {diff.label}</span>
                   <span className="ml-auto float-right font-mono">{isDiffUnlocked ? fmtTime(diff.timeLimitSeconds) : `${unlockCost} pts`}</span>
                 </button>
               );
@@ -834,7 +835,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           <span className={`px-2 py-1 rounded-full text-xs font-bold ${
             timerSeconds <= 60 ? 'bg-red-600 text-white animate-pulse' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
           }`}>
-            🧪 TEST MODE — {fmtTime(timerSeconds)}
+            <span className="inline-flex items-center gap-1"><FlaskIcon size={12} /> TEST MODE — {fmtTime(timerSeconds)}</span>
           </span>
         )}
         <span className="hidden sm:inline px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">⌘/Ctrl+Enter = Run · ⌘/Ctrl+Shift+C = Clear</span>
@@ -858,7 +859,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             <img src="/bleepx-icon.png" alt="Bleepx" className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse-logo" />
             <h1 className="text-xl sm:text-3xl font-bold text-bleepx-gray">{name}</h1>
           </div>
-          <span className="text-xs sm:text-sm text-bleepx-gray">Mission {currentIndex >= 0 ? currentIndex + 1 : '?'} of {currentOrder.length || '?'} — {tier <= 1 ? 'Beginner' : tier === 2 ? 'Intermediate' : tier === 3 ? 'Advanced' : tier === 4 ? 'Expert' : 'Master'} {'⭐'.repeat(Math.min(tier || 1, 5))}</span>
+          <span className="text-xs sm:text-sm text-bleepx-gray inline-flex items-center gap-1">Mission {currentIndex >= 0 ? currentIndex + 1 : '?'} of {currentOrder.length || '?'} — {tier <= 1 ? 'Beginner' : tier === 2 ? 'Intermediate' : tier === 3 ? 'Advanced' : tier === 4 ? 'Expert' : 'Master'} <StarRating stars={Math.min(tier || 1, 5)} size={12} /></span>
         </div>
         <p className="mt-2 text-bleepx-gray">{instructions || description}</p>
         {skills.length > 0 && (
@@ -885,16 +886,16 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             className="border rounded-lg border-bleepx-border"
           />
           <div className="mt-3 flex gap-2">
-            <button onClick={() => setShowSchema((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showSchema ? 'bg-bleepx-blue text-white border-bleepx-blue' : 'border-bleepx-border text-bleepx-text-secondary hover:bg-bleepx-blue/5'}`}>
-              {showSchema ? '✕ Hide Schema' : '📋 Schema Explorer'}
+            <button onClick={() => setShowSchema((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors inline-flex items-center gap-1 ${showSchema ? 'bg-bleepx-blue text-white border-bleepx-blue' : 'border-bleepx-border text-bleepx-text-secondary hover:bg-bleepx-blue/5'}`}>
+              {showSchema ? <><ErrorIcon size={10} /> Hide Schema</> : <><FileTextIcon size={10} /> Schema Explorer</>}
             </button>
             {expected.length > 0 && (
-              <button onClick={() => setShowExpected((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showExpected ? 'bg-green-600 text-white border-green-600' : 'border-bleepx-border text-bleepx-text-secondary hover:bg-bleepx-blue/5'}`}>
-                {showExpected ? '✕ Hide Expected' : '🎯 Expected Output'}
+              <button onClick={() => setShowExpected((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors inline-flex items-center gap-1 ${showExpected ? 'bg-green-600 text-white border-green-600' : 'border-bleepx-border text-bleepx-text-secondary hover:bg-bleepx-blue/5'}`}>
+                {showExpected ? <><ErrorIcon size={10} /> Hide Expected</> : <><TargetIcon size={10} /> Expected Output</>}
               </button>
             )}
-            <button onClick={() => setShowHistory((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showHistory ? 'bg-purple-600 text-white border-purple-600' : 'border-bleepx-border text-bleepx-text-secondary hover:bg-bleepx-blue/5'}`}>
-              {showHistory ? '✕ Hide History' : `📜 History (${queryHistory.length})`}
+            <button onClick={() => setShowHistory((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors inline-flex items-center gap-1 ${showHistory ? 'bg-purple-600 text-white border-purple-600' : 'border-bleepx-border text-bleepx-text-secondary hover:bg-bleepx-blue/5'}`}>
+              {showHistory ? <><ErrorIcon size={10} /> Hide History</> : <><HistoryIcon size={10} /> History ({queryHistory.length})</>}
             </button>
           </div>
           {/* Schema Explorer */}
@@ -903,7 +904,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               {tables.map((table) => (
                 <div key={table.name} className="mb-3 last:mb-0">
                   <div className="font-semibold text-sm mb-1 flex items-center gap-1">
-                    <span>🗂️</span>
+                    <FolderIcon size={14} />
                     <button onClick={() => insertAtCursor(table.name + ' ')} className="hover:text-bleepx-blue cursor-pointer">
                       {table.name}
                     </button>
@@ -923,7 +924,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           {/* Expected Output Preview */}
           {showExpected && expected.length > 0 && (
             <div className="mt-3 rounded-lg border p-3 text-xs bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
-              <p className="font-semibold text-sm mb-2">🎯 Expected Output Shape</p>
+              <p className="font-semibold text-sm mb-2 flex items-center gap-1"><TargetIcon size={14} /> Expected Output Shape</p>
               <p><strong>Columns:</strong> {expected.length > 0 ? Object.keys((expected as Record<string, any>[])[0]).join(', ') : '—'}</p>
               <p><strong>Rows:</strong> {expected.length}</p>
               <p className="mt-1 italic text-bleepx-text-secondary">Match these columns and row count to pass.</p>
@@ -932,14 +933,14 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           {/* Query History */}
           {showHistory && (
             <div className="mt-3 rounded-lg border p-3 text-xs max-h-[200px] overflow-y-auto bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800">
-              <p className="font-semibold text-sm mb-2">📜 Query History</p>
+              <p className="font-semibold text-sm mb-2 flex items-center gap-1"><HistoryIcon size={14} /> Query History</p>
               {queryHistory.length === 0 ? (
                 <p className="text-bleepx-text-secondary">No queries yet.</p>
               ) : (
                 <div className="space-y-1.5">
                   {queryHistory.map((h, i) => (
                     <div key={i} className="flex items-start gap-2 p-1.5 rounded cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30" onClick={() => { setQuery(h.query); setShowHistory(false); }}>
-                      <span className="flex-shrink-0 mt-0.5">{h.success === true ? '✅' : h.success === false ? '❌' : '⚪'}</span>
+                      <span className="flex-shrink-0 mt-0.5">{h.success === true ? <CheckBadge size={12} className="text-green-600" /> : h.success === false ? <ErrorIcon size={12} className="text-red-500" /> : <CircleIcon size={12} className="text-gray-400" />}</span>
                       <pre className="truncate flex-1 font-mono text-bleepx-text">{h.query}</pre>
                       <span className="flex-shrink-0 text-[10px] text-bleepx-text-secondary">{new Date(h.ts).toLocaleTimeString()}</span>
                     </div>
@@ -998,8 +999,8 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               </button>
             )}
             <Link href={`/cases/${domain}/${id}/visualizations`}>
-              <button className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-indigo-600 text-white text-sm sm:text-base hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-all duration-200">
-                📊 Visualizations
+              <button className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-indigo-600 text-white text-sm sm:text-base hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-all duration-200 inline-flex items-center gap-1">
+                <ChartBarIcon size={16} /> Visualizations
               </button>
             </Link>
           </div>
@@ -1023,7 +1024,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           {errorHelp && (
             <div className="mt-3 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 shadow-sm animate-fade-in">
               <h3 className="text-sm font-bold text-red-800 dark:text-red-200 flex items-center gap-2 mb-2">
-                <span>🔍</span> {errorHelp.title}
+                <SearchIcon size={16} /> {errorHelp.title}
               </h3>
               <p className="text-xs text-red-700 dark:text-red-300 mb-3 leading-relaxed">{errorHelp.explanation}</p>
               <div className="space-y-1.5">
@@ -1040,7 +1041,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                   onClick={() => { setGuideSection(errorHelp.guideSection); setGuideOpen(true); }}
                   className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/60 transition-colors"
                 >
-                  <span>📖</span> Open {errorHelp.guideSection.toUpperCase()} in GuideBook
+                  <GuideIcon size={14} /> Open {errorHelp.guideSection.toUpperCase()} in GuideBook
                 </button>
               )}
             </div>
@@ -1135,7 +1136,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                           : 'bg-bleepx-blue/10 hover:bg-bleepx-blue/20'
                       }`}
                     >
-                      {needsPayment ? (canAfford ? `🔓 Unlock Hint (${hintCost} pts)` : `🔒 Need ${hintCost} pts`) : 'Show Next Hint'}
+                      {needsPayment ? (canAfford ? <span className="inline-flex items-center gap-1"><LockOpenIcon size={14} /> Unlock Hint ({hintCost} pts)</span> : <span className="inline-flex items-center gap-1"><LockIcon size={14} /> Need {hintCost} pts</span>) : 'Show Next Hint'}
                     </button>
                   );
                 })()}
@@ -1144,7 +1145,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                     onClick={() => { setGuideSection(undefined); setGuideOpen(true); }}
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
                   >
-                    <span>📖</span> Open SQL GuideBook
+                    <GuideIcon size={14} /> Open SQL GuideBook
                   </button>
                 </div>
               </div>
@@ -1156,7 +1157,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 <button
                   onClick={() => { setGuideSection(undefined); setGuideOpen(true); }}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors w-fit">
-                  <span>📖</span> Open SQL GuideBook
+                  <GuideIcon size={14} /> Open SQL GuideBook
                 </button>
               </div>
             )}
@@ -1171,7 +1172,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                   className="w-full flex items-center justify-between text-left"
                 >
                   <h2 className="text-base font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-2">
-                    <span className="text-lg">💡</span> How to Think About This
+                    <BulbIcon size={22} /> How to Think About This
                   </h2>
                   <span className="text-amber-700 dark:text-amber-300 text-sm font-medium">{showThoughtProcess ? 'Hide' : 'Show'} Guide</span>
                 </button>
@@ -1216,14 +1217,14 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 <p className="text-sm text-green-800 dark:text-green-300 mb-2">
                   You cracked it
                   {timeLimit > 0 && selectedDifficulty
-                    ? ` on ${selectedDifficulty.emoji} ${selectedDifficulty.label} with ${fmtTime(timeLimit - timerSeconds)} remaining`
+                    ? ` on ${selectedDifficulty.label} with ${fmtTime(timeLimit - timerSeconds)} remaining`
                     : timerEnabled && timerSeconds > 0 ? ` in ${fmtTime(timerSeconds)}` : ''}
                   {attempts > 0 ? ` with ${attempts} attempt${attempts !== 1 ? 's' : ''}` : ''}.
                   Your query results are below — take a moment to review them.
                 </p>
                 <div className="flex items-center gap-2 mt-2 mb-3">
                   <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-600 text-white text-sm font-bold shadow-md">
-                    ⏱ {countdown}s
+                    <span className="inline-flex items-center gap-1"><ClockIcon size={14} /> {countdown}s</span>
                   </span>
                   <span className="text-sm font-medium text-green-800 dark:text-green-300">until <strong>{nextDestination.label}</strong></span>
                 </div>
@@ -1274,8 +1275,8 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               {!busy && resultRows.length > 0 && <span className="text-xs font-normal ml-2 text-bleepx-text-secondary">({resultRows.length} row{resultRows.length !== 1 ? 's' : ''})</span>}
             </h2>
             {diffData && (
-              <button onClick={() => setShowDiff((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${showDiff ? 'bg-red-600 text-white border-red-600' : 'border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'}`}>
-                {showDiff ? '✕ Hide Diff' : '🔍 Show Diff'}
+              <button onClick={() => setShowDiff((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors inline-flex items-center gap-1 ${showDiff ? 'bg-red-600 text-white border-red-600' : 'border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'}`}>
+                {showDiff ? <><ErrorIcon size={10} /> Hide Diff</> : <><SearchIcon size={10} /> Show Diff</>}
               </button>
             )}
           </div>
@@ -1287,7 +1288,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               </div>
             ) : !hasRun ? (
               <div className="flex flex-col items-center justify-center py-6 text-bleepx-text-secondary">
-                <span className="text-3xl mb-2">📊</span>
+                <span className="mb-2"><ChartBarIcon size={32} className="text-bleepx-text-secondary" /></span>
                 <p className="text-sm font-medium">Run a query to see results here</p>
                 <p className="text-xs mt-1">Press ⌘/Ctrl+Enter or click Run Query</p>
               </div>

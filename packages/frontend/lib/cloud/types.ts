@@ -74,7 +74,6 @@ export interface CloudScenarioCheck {
 
 /** A node in an architecture flow diagram (rendered as connected cards). */
 export interface ArchNode {
-  icon: string;
   label: string;
   note?: string;
 }
@@ -115,7 +114,6 @@ export interface CloudMission {
 
 export interface CloudProviderMeta {
   key: CloudProvider;
-  icon: string;
   name: string;
   short: string;
   desc: string;

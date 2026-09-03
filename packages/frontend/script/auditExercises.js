@@ -24,11 +24,11 @@ const initSql = require('sql.js');
   const DATASETS_DIR = path.resolve(__dirname, '../public/datasets');
 
   if (!fs.existsSync(CASES_DIR)) {
-    console.error(`❌ Cannot find cases directory at ${CASES_DIR}`);
+    console.error(`[ERROR] Cannot find cases directory at ${CASES_DIR}`);
     process.exit(1);
   }
   if (!fs.existsSync(DATASETS_DIR)) {
-    console.error(`❌ Cannot find datasets directory at ${DATASETS_DIR}`);
+    console.error(`[ERROR] Cannot find datasets directory at ${DATASETS_DIR}`);
     process.exit(1);
   }
 
@@ -60,11 +60,11 @@ const initSql = require('sql.js');
       const expected      = solEntry.expected      || doc.expected;
 
       if (!solutionQuery) {
-        console.warn(`⚠️  No solutionQuery for ${domain}/${exId}`);
+        console.warn(`[WARN]  No solutionQuery for ${domain}/${exId}`);
         continue;
       }
       if (!Array.isArray(expected)) {
-        console.warn(`⚠️  No expected[][] for ${domain}/${exId}`);
+        console.warn(`[WARN]  No expected[][] for ${domain}/${exId}`);
         continue;
       }
 
@@ -73,7 +73,7 @@ const initSql = require('sql.js');
       for (const ds of doc.datasets || []) {
         const csvPath = path.join(DATASETS_DIR, ds.file);
         if (!fs.existsSync(csvPath)) {
-          console.error(`❌ Missing CSV ${ds.file} for ${domain}/${exId}`);
+          console.error(`[ERROR] Missing CSV ${ds.file} for ${domain}/${exId}`);
           continue;
         }
         const raw    = fs.readFileSync(csvPath, 'utf8');
@@ -83,7 +83,7 @@ const initSql = require('sql.js');
           skipEmptyLines: true,
         });
         if (parsed.errors.length) {
-          console.warn(`⚠️  Parse errors in ${ds.file}:`, parsed.errors.slice(0,3));
+          console.warn(`[WARN]  Parse errors in ${ds.file}:`, parsed.errors.slice(0,3));
         }
         const cols    = parsed.meta.fields || [];
         const colDefs = cols.map(c => `"${c}" TEXT`).join(', ');
@@ -101,7 +101,7 @@ const initSql = require('sql.js');
         while (stmt.step()) actualRows.push(stmt.get());
         stmt.free();
       } catch (err) {
-        console.error(`❌ Query error in ${domain}/${exId}:`, err.message);
+        console.error(`[ERROR] Query error in ${domain}/${exId}:`, err.message);
         db.close();
         continue;
       }
@@ -126,9 +126,9 @@ const initSql = require('sql.js');
 
       // 5) Log the result
       if (ok) {
-        console.log(`✅ ${domain}/${exId} OK (${got.length} rows)`);
+        console.log(`[OK] ${domain}/${exId} OK (${got.length} rows)`);
       } else {
-        console.error(`❌ MISMATCH in ${domain}/${exId}`);
+        console.error(`[ERROR] MISMATCH in ${domain}/${exId}`);
         console.log('  Query:\n', solutionQuery);
         console.log('  Expected:\n', JSON.stringify(exp, null, 2));
         console.log('  Got:\n',      JSON.stringify(got, null, 2));

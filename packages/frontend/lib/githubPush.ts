@@ -498,7 +498,7 @@ export async function pushCloudMissionToGitHub(
   const readme = `# ${mission.title}\n\n` +
     `**Provider:** ${providerName} (${provider.toUpperCase()})  \n` +
     `**Section:** ${mission.section}  \n` +
-    `**Level:** ${mission.level} ${'⭐'.repeat(mission.stars)}  \n` +
+    `**Level:** ${mission.level} ${'*'.repeat(mission.stars)}  \n` +
     `**Skills:** ${mission.skills.map((s) => `\`${s}\``).join(', ')}\n\n` +
     `## Mission Briefing\n\n${mission.description}\n\n` +
     (iacCode ? `## Infrastructure as Code\n\nSee the template in this folder.\n\n` : '') +

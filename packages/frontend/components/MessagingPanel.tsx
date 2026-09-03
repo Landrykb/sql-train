@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import type { CloudSandboxState } from '@/lib/cloud/sandbox';
 import { createSNSTopic, createSQSQueue, subscribeQueueToTopic, publishToSNS, sendSQSMessage, receiveSQSMessage } from '@/lib/cloud/sandboxActions';
+import { CheckBadge } from '@/components/AppIcons';
 
 export default function MessagingPanel({ state, onAction }: { state: CloudSandboxState; onAction: (s: CloudSandboxState) => void }) {
   const [active, setActive] = useState<'sns' | 'sqs'>('sns');
@@ -114,7 +115,7 @@ export default function MessagingPanel({ state, onAction }: { state: CloudSandbo
                       <div className="mt-2 space-y-1">
                         {q.messages.map((m) => (
                           <code key={m.id} className={`block text-[10px] px-2 py-1 rounded font-mono ${m.received ? 'bg-gray-100 dark:bg-gray-800 text-bleepx-text' : 'bg-sky-50 dark:bg-sky-900/20 text-sky-700'}`} title={m.body}>
-                            {m.received ? '✓ ' : ''}{m.body}
+                            {m.received ? <span className="inline-flex items-center gap-1"><CheckBadge size={10} /> {m.body}</span> : m.body}
                           </code>
                         ))}
                       </div>

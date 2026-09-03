@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import type { CloudSandboxState, S3BucketPolicy } from '@/lib/cloud/sandbox';
 import { createBleepxBankScenario } from '@/lib/cloud/sandbox';
+import { CheckBadge, SchoolIcon, BuildingBankIcon, RefreshIcon, ToolsIcon } from '@/components/AppIcons';
 import {
   createEmptySandboxState,
   loadSandboxState,
@@ -189,14 +190,14 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
                   {idx + 1}
                 </span>
                 <span className="font-semibold text-bleepx-text">{step.title}</span>
-                {completedSteps[step.id] && <span className="text-green-600 text-xs font-bold">✓ Done</span>}
+                {completedSteps[step.id] && <span className="text-green-600 text-xs font-bold inline-flex items-center gap-1"><CheckBadge size={12} className="text-green-600" /> Done</span>}
               </div>
               <p className="text-xs text-bleepx-text-secondary mt-1 ml-7">{step.instruction}</p>
               {completedSteps[step.id] && step.explanation && (
                 <p className="text-xs text-green-700 dark:text-green-300 mt-1 ml-7 italic">{step.explanation}</p>
               )}
               {completedSteps[step.id] && step.examConcept && (
-                <p className="text-[10px] text-sky-600 dark:text-sky-400 mt-1 ml-7">🎓 {step.examConcept}</p>
+                <p className="text-[10px] text-sky-600 dark:text-sky-400 mt-1 ml-7 inline-flex items-center gap-1"><SchoolIcon size={10} /> {step.examConcept}</p>
               )}
             </div>
           ))}
@@ -210,14 +211,14 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
             onClick={() => { setState(createBleepxBankScenario()); setCompletedSteps({}); setMessage({ text: 'Loaded BleepxBank scenario with real-looking transaction data, DynamoDB customers, Lambda, IAM, and a public website bucket to fix.', type: 'success' }); }}
             className="text-xs px-3 py-1.5 rounded-full bg-sky-600 text-white font-bold hover:bg-sky-700 transition-colors"
           >
-            🏦 Load BleepxBank Scenario
+            <span className="inline-flex items-center gap-1"><BuildingBankIcon size={12} /> Load BleepxBank Scenario</span>
           </button>
         )}
         <button
           onClick={() => { clearSandboxState(); setState(createEmptySandboxState()); setCompletedSteps({}); setMessage(null); }}
           className="text-xs px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
-          🔄 Reset Sandbox
+          <span className="inline-flex items-center gap-1"><RefreshIcon size={12} /> Reset Sandbox</span>
         </button>
       </div>
     </div>
@@ -832,7 +833,7 @@ function TerraformPanel({ state, onAction }: { state: CloudSandboxState; onActio
   return (
     <div className="space-y-4">
       <p className="text-xs text-bleepx-text-secondary">Export the current sandbox state as Terraform HCL. This is the Infrastructure as Code (IaC) that would recreate these resources in a real AWS account.</p>
-      <button onClick={handleExport} className="px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold hover:bg-sky-700">{exported ? '✓ Terraform Exported' : 'Generate & Save Terraform'}</button>
+      <button onClick={handleExport} className="px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 inline-flex items-center gap-1">{exported ? <><CheckBadge size={12} /> Terraform Exported</> : 'Generate & Save Terraform'}</button>
       <div className="relative">
         <button onClick={() => navigator.clipboard?.writeText(tf)} className="absolute top-2 right-2 text-[10px] px-2 py-1 rounded bg-white/10 text-gray-300 hover:bg-white/20">Copy</button>
         <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-xs font-mono overflow-x-auto max-h-96">{tf}</pre>
@@ -866,8 +867,8 @@ function SecurityPanel({ state }: { state: CloudSandboxState }) {
               <span className="font-mono font-bold text-bleepx-text">{f.resource}</span>
             </div>
             <p className="text-xs text-bleepx-text-secondary mt-1"><strong>{f.issue}</strong></p>
-            <p className="text-[10px] text-bleepx-text mt-1">🛠️ {f.remediation}</p>
-            <p className="text-[10px] text-sky-700 dark:text-sky-400 mt-1">🎓 {f.examConcept}</p>
+            <p className="text-[10px] text-bleepx-text mt-1 inline-flex items-center gap-1"><ToolsIcon size={10} /> {f.remediation}</p>
+            <p className="text-[10px] text-sky-700 dark:text-sky-400 mt-1 inline-flex items-center gap-1"><SchoolIcon size={10} /> {f.examConcept}</p>
           </div>
         ))}
         {findings.length === 0 && (
