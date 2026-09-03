@@ -743,7 +743,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       )}
 
       {/* Toolbar */}
-      <div className="flex items-center justify-end gap-2 text-xs relative">
+      <div className="flex flex-wrap items-center justify-end gap-2 text-xs relative">
         {isTrial && (
           <Link href={`/cases/${domain}/${id}/quiz`}>
             <button className="px-3 py-1.5 rounded-full bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors shadow-sm inline-flex items-center gap-1"><BrainIcon size={14} /> Quiz</button>
@@ -796,7 +796,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
         )}
         {/* Test mode difficulty picker dropdown (for trials) */}
         {isTrial && showTestModePicker && (
-          <div className="absolute right-0 top-full mt-2 z-40 w-72 bg-bleepx-white rounded-xl shadow-2xl border border-bleepx-border p-3 space-y-2">
+          <div className="absolute right-0 top-full mt-2 z-40 w-72 max-w-[calc(100vw-1rem)] bg-bleepx-white rounded-xl shadow-2xl border border-bleepx-border p-3 space-y-2">
             <p className="text-xs font-bold text-bleepx-gray mb-2">Select difficulty — countdown starts immediately</p>
             {trialDifficulties.map((diff) => {
               const storeNow = getStoreState();
@@ -885,7 +885,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             aria-label="SQL query editor"
             className="border rounded-lg border-bleepx-border"
           />
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             <button onClick={() => setShowSchema((v) => !v)} className={`text-xs px-2 py-1 rounded-full border transition-colors inline-flex items-center gap-1 ${showSchema ? 'bg-bleepx-blue text-white border-bleepx-blue' : 'border-bleepx-border text-bleepx-text-secondary hover:bg-bleepx-blue/5'}`}>
               {showSchema ? <><ErrorIcon size={10} /> Hide Schema</> : <><FileTextIcon size={10} /> Schema Explorer</>}
             </button>

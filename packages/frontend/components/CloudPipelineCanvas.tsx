@@ -198,7 +198,7 @@ export default function CloudPipelineCanvas() {
 
       {/* Step visualizer */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-4 shadow-sm">
-        <div className="flex items-center justify-between text-sm font-bold">
+        <div className="flex flex-wrap items-center justify-between text-sm font-bold gap-2">
           {[
             { key: 'extract', label: 'Extract' },
             { key: 'sql', label: 'SQL' },

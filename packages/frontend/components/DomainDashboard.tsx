@@ -471,7 +471,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
           <p className="text-sm text-bleepx-text-secondary mb-4">Visualizations built from the {domain} datasets.</p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {domainCharts.map((chart, i) => (
-              <div key={i} className="border border-bleepx-border rounded-lg p-3 overflow-hidden">
+              <div key={i} className="border border-bleepx-border rounded-lg p-3 overflow-x-auto">
                 <Plot
                   data={chart.data}
                   layout={{ ...chart.layout, autosize: true, margin: { t: 50, b: 70, l: 60, r: 30 }, font: { size: 11, color: 'var(--bleepx-text)' }, paper_bgcolor: 'var(--bleepx-white)', plot_bgcolor: 'var(--bleepx-white)' }}

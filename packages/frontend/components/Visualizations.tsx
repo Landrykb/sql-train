@@ -271,7 +271,7 @@ ${getJSCode()}
 
       {/* Tabs */}
       <div className="rounded-xl shadow-sm border overflow-hidden bg-bleepx-white border-bleepx-border">
-        <div className="flex border-b border-bleepx-border">
+        <div className="flex flex-wrap border-b border-bleepx-border">
           {(['chart', 'data', 'code'] as const).map((t) => (
             <button
               key={t}
@@ -333,21 +333,21 @@ ${getJSCode()}
                   <h4 className="text-sm font-bold text-bleepx-text">SQL Query</h4>
                   <button onClick={() => navigator.clipboard.writeText(currentChart.query)} className="text-[10px] text-bleepx-blue hover:underline">Copy</button>
                 </div>
-                <pre className="bg-gray-900 text-green-400 p-3 rounded-lg text-xs overflow-x-auto">{currentChart.query}</pre>
+                <pre className="bg-gray-900 text-green-400 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap break-words">{currentChart.query}</pre>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-bold text-bleepx-text">JavaScript (Plotly.js)</h4>
                   <button onClick={() => navigator.clipboard.writeText(getJSCode())} className="text-[10px] text-bleepx-blue hover:underline">Copy</button>
                 </div>
-                <pre className="bg-gray-900 text-blue-300 p-3 rounded-lg text-xs overflow-x-auto max-h-[300px]">{getJSCode()}</pre>
+                <pre className="bg-gray-900 text-blue-300 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap break-words max-h-[300px]">{getJSCode()}</pre>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-bold text-bleepx-text">Python (Plotly Express)</h4>
                   <button onClick={() => navigator.clipboard.writeText(getPythonCode())} className="text-[10px] text-bleepx-blue hover:underline">Copy</button>
                 </div>
-                <pre className="bg-gray-900 text-yellow-300 p-3 rounded-lg text-xs overflow-x-auto max-h-[300px]">{getPythonCode()}</pre>
+                <pre className="bg-gray-900 text-yellow-300 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap break-words max-h-[300px]">{getPythonCode()}</pre>
               </div>
             </div>
           )}

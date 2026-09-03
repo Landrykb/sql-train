@@ -217,7 +217,7 @@ function SpoilerCodeBlock({
         </div>
       </div>
       <pre className="p-4 overflow-x-auto bg-gray-50 dark:bg-gray-900 text-sm leading-relaxed">
-        <code className="text-bleepx-text font-mono whitespace-pre">{code}</code>
+        <code className="text-bleepx-text font-mono whitespace-pre-wrap break-words">{code}</code>
       </pre>
     </div>
   );
