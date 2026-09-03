@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { playBleep } from '@/lib/audio';
+import { DashboardIcon } from '@/components/NavIcons';
 
 /**
  * Client-side component for the "View Dashboard" button with Bleepx-themed loading messages.
@@ -42,7 +43,7 @@ export default function DashboardButton({ domainKey }: { domainKey: string }) {
         disabled={isLoading}
         title="View BleepxQuery Dashboard"
       >
-        {isLoading ? '...' : 'Dashboard'}
+        {isLoading ? '...' : <span className="flex items-center gap-1"><DashboardIcon size={14} /> Dashboard</span>}
       </button>
       {isLoading && (
         <div className="fixed top-14 sm:top-4 left-1/2 transform -translate-x-1/2 z-50 bg-gradient-to-r from-bleepx-blue/10 to-bleepx-pink/10 text-bleepx-gray px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg flex items-center space-x-2 sm:space-x-3 animate-fade-in transition-opacity duration-300 max-w-[90vw]">

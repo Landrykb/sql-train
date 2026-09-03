@@ -1,16 +1,78 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { ChevronDown } from 'lucide-react';
 import NavAuth from '@/components/NavAuth';
 import { DashboardIcon, TrialsIcon, GuideIcon, ProjectsIcon, VerseIcon } from '@/components/NavIcons';
-import { verseFromPath, setActiveVerse } from '@/lib/verse';
+import { verseFromPath, setActiveVerse, VERSE_THEMES, type Verse } from '@/lib/verse';
+
+const VERSE_OPTIONS: { verse: Verse; href: string }[] = [
+  { verse: 'query', href: '/' },
+  { verse: 'lab', href: '/lab' },
+  { verse: 'cloud', href: '/cloud' },
+];
+
+function VerseSwitcher({ current }: { current: Verse }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (!ref.current || ref.current.contains(e.target as Node)) return;
+      setOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
+
+  const theme = VERSE_THEMES[current];
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`flex items-center gap-1.5 pl-2 pr-1.5 py-1 rounded-full border border-bleepx-border bg-bleepx-bg text-xs sm:text-sm font-semibold transition-colors ${theme.accentText} hover:bg-bleepx-bg/80`}
+        aria-label="Switch verse"
+      >
+        <VerseIcon verse={current} size={16} />
+        <span className="hidden sm:inline">{theme.label}</span>
+        <ChevronDown size={14} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-44 rounded-xl bg-white dark:bg-gray-900 border border-bleepx-border shadow-xl overflow-hidden z-50">
+          {VERSE_OPTIONS.map(({ verse, href }) => {
+            const active = verse === current;
+            const t = VERSE_THEMES[verse];
+            return (
+              <Link
+                key={verse}
+                href={href}
+                onClick={() => setOpen(false)}
+                className={`flex items-center gap-2 px-3 py-2.5 text-sm transition-colors ${
+                  active
+                    ? 'bg-bleepx-bg font-semibold ' + t.accentText
+                    : 'text-bleepx-text-secondary hover:bg-bleepx-bg hover:text-bleepx-text'
+                }`}
+                aria-current={active ? 'page' : undefined}
+              >
+                <VerseIcon verse={verse} size={18} className={t.accentText} />
+                {t.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function NavHeader() {
   const pathname = usePathname();
   const isLab = pathname.startsWith('/lab');
   const isCloud = pathname.startsWith('/cloud');
+  const currentVerse: Verse = isLab ? 'lab' : isCloud ? 'cloud' : 'query';
 
   useEffect(() => {
     const v = verseFromPath(pathname);
@@ -18,12 +80,8 @@ export default function NavHeader() {
   }, [pathname]);
 
   const homeHref = isLab ? '/lab' : isCloud ? '/cloud' : '/';
-  const brand = isLab ? 'BleepxLab' : isCloud ? 'BleepxCloud' : 'BleepxQuery';
-  const brandColor = isLab
-    ? 'text-teal-700 dark:text-teal-400'
-    : isCloud
-      ? 'text-sky-700 dark:text-sky-400'
-      : 'text-bleepx-text';
+  const brand = VERSE_THEMES[currentVerse].label;
+  const brandColor = VERSE_THEMES[currentVerse].accentText;
 
   return (
     <header className="bg-bleepx-white shadow-sm dark:shadow-gray-900/30 sticky top-0 z-40 border-b border-transparent dark:border-bleepx-border">
@@ -39,12 +97,14 @@ export default function NavHeader() {
             {brand}
           </h1>
         </Link>
+
         <nav className="flex items-center gap-3 sm:gap-4">
           <Link href="/dashboard" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-violet-600 font-semibold text-sm sm:text-base transition-colors">
             <DashboardIcon size={20} />
             <span className="hidden sm:inline">Dashboard</span>
           </Link>
-          {isCloud ? (
+
+          {currentVerse === 'cloud' ? (
             <>
               <Link href="/cloud/trials" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-sky-600 font-semibold text-sm sm:text-base transition-colors">
                 <TrialsIcon size={20} />
@@ -54,12 +114,8 @@ export default function NavHeader() {
                 <GuideIcon size={20} />
                 <span className="hidden sm:inline">Guide</span>
               </Link>
-              <Link href="/" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-bleepx-blue font-semibold text-xs transition-colors">
-                <VerseIcon verse="query" size={18} />
-                <span className="hidden sm:inline">SQL</span>
-              </Link>
             </>
-          ) : isLab ? (
+          ) : currentVerse === 'lab' ? (
             <>
               <Link href="/lab" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-teal-600 font-semibold text-sm sm:text-base transition-colors">
                 <ProjectsIcon size={20} />
@@ -69,27 +125,16 @@ export default function NavHeader() {
                 <GuideIcon size={20} />
                 <span className="hidden sm:inline">Guide</span>
               </Link>
-              <Link href="/" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-bleepx-blue font-semibold text-xs transition-colors">
-                <VerseIcon verse="query" size={18} />
-                <span className="hidden sm:inline">SQL</span>
-              </Link>
             </>
           ) : (
-            <>
-              <Link href="/cases/trials" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-bleepx-blue font-semibold text-sm sm:text-base transition-colors">
-                <TrialsIcon size={20} />
-                <span className="hidden sm:inline">Trials</span>
-              </Link>
-              <Link href="/lab" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-teal-600 font-semibold text-xs transition-colors">
-                <VerseIcon verse="lab" size={18} />
-                <span className="hidden sm:inline">Lab</span>
-              </Link>
-              <Link href="/cloud" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-sky-600 font-semibold text-xs transition-colors">
-                <VerseIcon verse="cloud" size={18} />
-                <span className="hidden sm:inline">Cloud</span>
-              </Link>
-            </>
+            <Link href="/cases/trials" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-bleepx-blue font-semibold text-sm sm:text-base transition-colors">
+              <TrialsIcon size={20} />
+              <span className="hidden sm:inline">Trials</span>
+            </Link>
           )}
+
+          <div className="h-6 w-px bg-bleepx-border hidden sm:block" />
+          <VerseSwitcher current={currentVerse} />
           <NavAuth />
         </nav>
       </div>

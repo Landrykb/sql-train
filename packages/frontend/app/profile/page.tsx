@@ -15,7 +15,12 @@ import { track, Events } from '@/lib/analytics';
 import PointsShop from '@/components/PointsShop';
 import { getStoreState, getActivePerks, TITLES, BADGES, type StoreState, REPORT_GENERATION_TIERS, purchaseReportTier } from '@/lib/pointsStore';
 import { BleepxHead, BleepxTrophy, BleepxLock, BleepxSpark, BleepxGitHub } from '@/components/BleepxIcons';
-import { OverviewIcon, ShopIcon, AchievementsIcon, ExportsIcon, SettingsIcon, VerseIcon, LabIcon, CloudIcon } from '@/components/NavIcons';
+import {
+  OverviewIcon, ShopIcon, AchievementsIcon, ExportsIcon, SettingsIcon,
+  VerseIcon, LabIcon, CloudIcon,
+  SunIcon, MoonIcon, LabFlaskIcon, PauseIcon, AlertIcon, TagIcon, CheckIcon,
+  ZapIcon, DumbbellIcon,
+} from '@/components/NavIcons';
 import { FileText, Pencil } from 'lucide-react';
 import { InterpretationEditor } from '@/components/InterpretationEditor';
 import { pushDomainPortfolioToGitHub, pushLabDomainPortfolioToGitHub, pushCloudProviderPortfolioToGitHub } from '@/lib/githubPush';
@@ -337,7 +342,7 @@ export default function ProfilePage() {
           {/* Verse pill */}
           <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-xs font-semibold border border-white/30">
-              {verse === 'lab' ? '🔬' : verse === 'cloud' ? '☁️' : '🔷'} {theme.label}
+              <VerseIcon verse={verse} size={14} /> {theme.label}
             </span>
           </div>
         </div>
@@ -427,7 +432,7 @@ export default function ProfilePage() {
                 <div className="flex flex-wrap items-center gap-2">
                   {isSignedIn && title && (
                     <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">
-                      <span className="text-sm">🏷️</span> {title.name}
+                      <TagIcon size={14} /> {title.name}
                     </span>
                   )}
                   {isSignedIn && badges.length > 0 && (
@@ -918,8 +923,8 @@ export default function ProfilePage() {
 
               {!isSignedIn && (
                 <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                  <p className="text-xs text-amber-800 dark:text-amber-300">
-                    ⚠️ Sign in with GitHub to enable portfolio exports.
+                  <p className="text-xs text-amber-800 dark:text-amber-300 flex items-center gap-1">
+                    <AlertIcon size={14} /> Sign in with GitHub to enable portfolio exports.
                   </p>
                 </div>
               )}
@@ -943,7 +948,7 @@ export default function ProfilePage() {
                 className={`relative w-14 h-7 rounded-full transition-all duration-300 shadow-inner ${dark ? 'bg-bleepx-blue' : 'bg-gray-300 dark:bg-gray-600'}`}
               >
                 <span className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center text-xs transition-all duration-300 ${dark ? 'translate-x-7' : 'translate-x-0.5'}`}>
-                  {dark ? '🌙' : '☀️'}
+                  {dark ? <MoonIcon size={12} className="text-bleepx-text" /> : <SunIcon size={12} className="text-amber-500" />}
                 </span>
               </button>
             </div>
@@ -987,7 +992,7 @@ export default function ProfilePage() {
                 className={`relative w-14 h-7 rounded-full transition-all duration-300 shadow-inner ${profile.testModeEnabled ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'}`}
               >
                 <span className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center text-xs transition-all duration-300 ${profile.testModeEnabled ? 'translate-x-7' : 'translate-x-0.5'}`}>
-                  {profile.testModeEnabled ? '🧪' : '⏸'}
+                  {profile.testModeEnabled ? <LabFlaskIcon size={12} className="text-amber-500" /> : <PauseIcon size={12} className="text-bleepx-text" />}
                 </span>
               </button>
             </div>
@@ -1056,8 +1061,8 @@ export default function ProfilePage() {
               </button>
             ) : (
               <div className="p-4 rounded-lg border bg-red-100 dark:bg-red-900/20 border-red-300 dark:border-red-700">
-                <p className="text-sm font-bold mb-2 text-red-800 dark:text-red-300">
-                  ⚠️ DANGER: This will permanently delete your account
+                <p className="text-sm font-bold mb-2 text-red-800 dark:text-red-300 flex items-center gap-1">
+                  <AlertIcon size={14} /> DANGER: This will permanently delete your account
                 </p>
                 <p className="text-xs text-bleepx-text-secondary mb-3">
                   Your account, all progress, points, achievements, and data will be permanently deleted. This action cannot be undone.

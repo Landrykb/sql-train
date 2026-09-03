@@ -1,18 +1,28 @@
 'use client';
 
 import {
+  AlertTriangle,
+  ArrowLeftRight,
   BarChart3,
   BookOpen,
+  Check,
   Cloud,
   Coins,
+  Compass,
   Database,
+  Dumbbell,
   FlaskConical,
   FolderOpen,
   LayoutDashboard,
+  Moon,
+  Pause,
   Settings,
+  Sun,
+  Tag,
   Target,
   Trophy,
   Upload,
+  Zap,
 } from 'lucide-react';
 
 interface NavIconProps {
@@ -43,3 +53,16 @@ export function VerseIcon({ verse, size = 18, className }: { verse: 'query' | 'l
   if (verse === 'cloud') return <CloudIcon size={size} className={className} />;
   return <QueryIcon size={size} className={className} />;
 }
+
+// Other shared UI icons
+export const JourneyIcon = ({ size = 18, className }: NavIconProps) => <Compass size={size} className={className} />;
+export const CrossVerseIcon = ({ size = 18, className }: NavIconProps) => <ArrowLeftRight size={size} className={className} />;
+export const AlertIcon = ({ size = 18, className }: NavIconProps) => <AlertTriangle size={size} className={className} />;
+export const SunIcon = ({ size = 18, className }: NavIconProps) => <Sun size={size} className={className} />;
+export const MoonIcon = ({ size = 18, className }: NavIconProps) => <Moon size={size} className={className} />;
+export const PauseIcon = ({ size = 18, className }: NavIconProps) => <Pause size={size} className={className} />;
+export const LabFlaskIcon = ({ size = 18, className }: NavIconProps) => <FlaskConical size={size} className={className} />;
+export const TagIcon = ({ size = 18, className }: NavIconProps) => <Tag size={size} className={className} />;
+export const CheckIcon = ({ size = 18, className }: NavIconProps) => <Check size={size} className={className} />;
+export const ZapIcon = ({ size = 18, className }: NavIconProps) => <Zap size={size} className={className} />;
+export const DumbbellIcon = ({ size = 18, className }: NavIconProps) => <Dumbbell size={size} className={className} />;

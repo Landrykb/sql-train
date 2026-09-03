@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { getBridges, getDefaultBridges, VERSE_META, type CrossVerseBridge } from '@/lib/crossVerse';
-import { VerseIcon } from '@/components/NavIcons';
+import { VerseIcon, CrossVerseIcon } from '@/components/NavIcons';
 
 interface CrossVerseNavProps {
   path: string;
@@ -19,7 +19,7 @@ export default function CrossVerseNav({ path, currentVerse, title }: CrossVerseN
   return (
     <div className="rounded-xl border border-dashed border-bleepx-border bg-bleepx-white p-4 shadow-sm">
       <h4 className="text-sm font-bold text-bleepx-text mb-2 flex items-center gap-2">
-        <span>🌉</span> {title || 'Cross-verse learning'}
+        <CrossVerseIcon size={16} /> {title || 'Cross-verse learning'}
       </h4>
       <p className="text-xs text-bleepx-text-secondary mb-3">
         Bleepx skills build on each other. Continue your learning path across Query, Lab, and Cloud.

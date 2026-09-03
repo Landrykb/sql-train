@@ -10,6 +10,7 @@ import { lintInput, BleepxHint } from '@/lib/bleepxLinter';
 import * as voice from '@/lib/bleepxVoice';
 import type { Chunk } from '@/lib/rag';
 import { getProgressSnapshot, formatProgressForPrompt, formatProgressChat, type NextStep } from '@/lib/bleepxProgress';
+import { DashboardIcon, JourneyIcon } from '@/components/NavIcons';
 import {
   BleepxFace,
   BleepxHead,
@@ -87,7 +88,7 @@ const findJourneyGoal = (): string | null => {
 };
 
 type ChatRole = 'user' | 'assistant';
-interface ChatAction { label: string; href: string; }
+interface ChatAction { label: string; href: string; icon?: 'dashboard' | 'journey'; }
 interface ChatMessage { role: ChatRole; text: string; actions?: ChatAction[]; }
 
 /** Local, no-LLM-needed detection for "what should I do next / given my progress" style asks. */
@@ -351,8 +352,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       const snap = getProgressSnapshot(completed);
       const actions: ChatAction[] = [
         { label: `Go: ${snap.recommended.title}`, href: snap.recommended.href },
-        { label: '📊 Dashboard', href: '/dashboard' },
-        { label: '🧭 Edit Journey', href: '/journey' },
+        { label: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
+        { label: 'Edit Journey', href: '/journey', icon: 'journey' },
       ];
       const text2 = voice.signOff(formatProgressChat(snap, points, displayName), displayName);
       setMessages((prev) => [...prev, { role: 'assistant', text: text2, actions }]);
@@ -408,7 +409,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
             if (/next step|recommend|continue|dashboard|journey/i.test(final)) {
               actions = [
                 { label: `Go: ${snap.recommended.title}`, href: snap.recommended.href },
-                { label: '📊 Dashboard', href: '/dashboard' },
+                { label: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
               ];
             }
           } else {
@@ -829,16 +830,20 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
                     <div>{m.text}</div>
                     {m.actions && m.actions.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1.5">
-                        {m.actions.map((a, ai) => (
-                          <Link
-                            key={ai}
-                            href={a.href}
-                            onClick={() => setOpen(false)}
-                            className="text-[10px] px-2.5 py-1.5 rounded-full bg-sky-600 text-white font-bold hover:bg-sky-700 transition-colors"
-                          >
-                            {a.label} →
-                          </Link>
-                        ))}
+                        {m.actions.map((a, ai) => {
+                          const ActionIcon = a.icon === 'dashboard' ? DashboardIcon : a.icon === 'journey' ? JourneyIcon : null;
+                          return (
+                            <Link
+                              key={ai}
+                              href={a.href}
+                              onClick={() => setOpen(false)}
+                              className="text-[10px] px-2.5 py-1.5 rounded-full bg-sky-600 text-white font-bold hover:bg-sky-700 transition-colors flex items-center gap-1"
+                            >
+                              {ActionIcon && <ActionIcon size={12} />}
+                              {a.label} →
+                            </Link>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
