@@ -65,7 +65,7 @@ function CsvOutput({ csv, cell, title }: { csv: string; cell?: number; title: st
 
   return (
     <div className="mt-3 rounded-lg border border-gray-700 overflow-hidden bg-gray-950">
-      <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-900 border-b border-gray-700 text-[10px] font-mono">
+      <div className="flex flex-wrap items-center gap-2 px-3 py-1.5 bg-gray-900 border-b border-gray-700 text-[10px] font-mono">
         <span className="text-emerald-400 font-bold">Out[{cell ?? ' '}]</span>
         <span className="text-gray-400">{title}</span>
       </div>
@@ -190,7 +190,7 @@ export default function CloudPipelineCanvas() {
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-br from-teal-600 to-sky-700 rounded-2xl p-6 text-white">
-        <h1 className="text-2xl font-extrabold flex flex-wrap items-center gap-2"><ToolsIcon size={24} /> Bleepx Pipeline Canvas</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold flex flex-wrap items-center gap-2"><ToolsIcon size={24} /> Bleepx Pipeline Canvas</h1>
         <p className="text-white/80 text-sm mt-1">
           Extract data from Kaggle or data.world, analyze it with SQL and Python, then ship the final CSV to the AWS S3 sandbox.
         </p>
@@ -284,7 +284,7 @@ export default function CloudPipelineCanvas() {
         />
         {sourceInfo && (
           <p className="text-[10px] text-sky-600 dark:text-sky-400 mb-3">
-            <span className="inline-flex items-center gap-1"><ChartBarIcon size={12} /> Detected {sourceInfo.filename} from {pipeline.sourceUrl.includes('kaggle') ? 'Kaggle' : 'data.world'}.</span>
+            <span className="inline-flex flex-wrap items-center gap-1"><ChartBarIcon size={12} /> Detected {sourceInfo.filename} from {pipeline.sourceUrl.includes('kaggle') ? 'Kaggle' : 'data.world'}.</span>
           </p>
         )}
         <textarea
@@ -363,18 +363,18 @@ export default function CloudPipelineCanvas() {
             className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
           />
         </div>
-        <button onClick={uploadToS3} disabled={!pipeline.rawCsv} className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-sky-600 to-teal-600 text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 inline-flex items-center justify-center gap-1">
+        <button onClick={uploadToS3} disabled={!pipeline.rawCsv} className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-sky-600 to-teal-600 text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 inline-flex flex-wrap items-center justify-center gap-1">
           <UploadIcon size={16} /> Upload CSV to S3 Sandbox
         </button>
       </div>
 
       {/* Reset + links */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between">
         <button
           onClick={() => { clearSandboxState(); setSandbox(createEmptySandboxState()); setMessage('Sandbox reset.'); }}
           className="text-xs px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
         >
-          <span className="inline-flex items-center gap-1"><RefreshIcon size={12} /> Reset Pipeline</span>
+          <span className="inline-flex flex-wrap items-center gap-1"><RefreshIcon size={12} /> Reset Pipeline</span>
         </button>
         <Link href="/cloud" className="text-sm text-sky-600 hover:underline font-medium">
           ← Back to BleepxCloud

@@ -35,7 +35,7 @@ export default function MessagingPanel({ state, onAction }: { state: CloudSandbo
           <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
             <h3 className="text-sm font-bold text-bleepx-text mb-3">Create SNS Topic</h3>
             <div className="flex gap-2">
-              <input value={topicName} onChange={(e) => setTopicName(e.target.value)} placeholder="Topic name" className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
+              <input value={topicName} onChange={(e) => setTopicName(e.target.value)} placeholder="Topic name" className="min-w-0 flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
               <button onClick={handleCreateTopic} className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-bold hover:bg-sky-700">Create</button>
             </div>
           </div>
@@ -84,7 +84,7 @@ export default function MessagingPanel({ state, onAction }: { state: CloudSandbo
           <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
             <h3 className="text-sm font-bold text-bleepx-text mb-3">Create SQS Queue</h3>
             <div className="flex gap-2">
-              <input value={queueName} onChange={(e) => setQueueName(e.target.value)} placeholder="Queue name" className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
+              <input value={queueName} onChange={(e) => setQueueName(e.target.value)} placeholder="Queue name" className="min-w-0 flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
               <button onClick={handleCreateQueue} className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-bold hover:bg-sky-700">Create</button>
             </div>
           </div>
@@ -115,7 +115,7 @@ export default function MessagingPanel({ state, onAction }: { state: CloudSandbo
                       <div className="mt-2 space-y-1">
                         {q.messages.map((m) => (
                           <code key={m.id} className={`block text-[10px] px-2 py-1 rounded font-mono whitespace-pre-wrap break-words ${m.received ? 'bg-gray-100 dark:bg-gray-800 text-bleepx-text' : 'bg-sky-50 dark:bg-sky-900/20 text-sky-700'}`} title={m.body}>
-                            {m.received ? <span className="inline-flex items-center gap-1"><CheckBadge size={10} /> {m.body}</span> : m.body}
+                            {m.received ? <span className="inline-flex flex-wrap items-center gap-1"><CheckBadge size={10} /> {m.body}</span> : m.body}
                           </code>
                         ))}
                       </div>

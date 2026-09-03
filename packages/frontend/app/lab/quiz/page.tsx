@@ -62,7 +62,7 @@ export default function LabQuizPage() {
       </div>
 
       {!activeTopic ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           {QUIZ_TOPICS.map((topic) => {
             const prevScore = bestScores[topic.id] || 0;
             return (
@@ -73,7 +73,7 @@ export default function LabQuizPage() {
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${topic.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
                 <div className="p-5">
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex flex-wrap items-center gap-3 mb-2">
                     <span className="text-bleepx-text"><TopicIcon topic={topic.id} size={24} /></span>
                     <h3 className="font-bold text-bleepx-text group-hover:text-teal-600 transition-colors">{topic.name}</h3>
                   </div>
@@ -86,7 +86,7 @@ export default function LabQuizPage() {
                     )}
                   </div>
                   {prevScore > 0 && (
-                    <div className="text-xs text-green-600 dark:text-green-400 font-medium inline-flex items-center gap-1"><CheckBadge size={12} className="text-green-600 dark:text-green-400" /> Best: +{prevScore} pts</div>
+                    <div className="text-xs text-green-600 dark:text-green-400 font-medium inline-flex flex-wrap items-center gap-1"><CheckBadge size={12} className="text-green-600 dark:text-green-400" /> Best: +{prevScore} pts</div>
                   )}
                 </div>
               </button>
@@ -97,7 +97,7 @@ export default function LabQuizPage() {
         <div>
           <button
             onClick={() => setActiveTopic(null)}
-            className="mb-4 text-sm text-teal-600 hover:text-teal-700 font-medium flex items-center gap-1"
+            className="mb-4 text-sm text-teal-600 hover:text-teal-700 font-medium flex flex-wrap items-center gap-1"
           >
             ← Back to Topics
           </button>

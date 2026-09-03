@@ -168,7 +168,7 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
       {activeTab === 'events' && <EventsPanel state={state} />}
 
       <div className="rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50/50 dark:bg-sky-900/10 p-4">
-        <h4 className="text-sm font-bold text-sky-800 dark:text-sky-200 mb-2 flex items-center gap-2">
+        <h4 className="text-sm font-bold text-sky-800 dark:text-sky-200 mb-2 flex flex-wrap items-center gap-2">
           <BleepxFace /> {freePlay ? 'Free Play Console' : 'Mission Steps'}
         </h4>
         {freePlay ? (
@@ -183,21 +183,21 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
                 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
                 : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700'
             }`}>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className={`text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center ${
                   completedSteps[step.id] ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
                 }`}>
                   {idx + 1}
                 </span>
                 <span className="font-semibold text-bleepx-text">{step.title}</span>
-                {completedSteps[step.id] && <span className="text-green-600 text-xs font-bold inline-flex items-center gap-1"><CheckBadge size={12} className="text-green-600" /> Done</span>}
+                {completedSteps[step.id] && <span className="text-green-600 text-xs font-bold inline-flex flex-wrap items-center gap-1"><CheckBadge size={12} className="text-green-600" /> Done</span>}
               </div>
               <p className="text-xs text-bleepx-text-secondary mt-1 ml-7">{step.instruction}</p>
               {completedSteps[step.id] && step.explanation && (
                 <p className="text-xs text-green-700 dark:text-green-300 mt-1 ml-7 italic">{step.explanation}</p>
               )}
               {completedSteps[step.id] && step.examConcept && (
-                <p className="text-[10px] text-sky-600 dark:text-sky-400 mt-1 ml-7 inline-flex items-center gap-1"><SchoolIcon size={10} /> {step.examConcept}</p>
+                <p className="text-[10px] text-sky-600 dark:text-sky-400 mt-1 ml-7 inline-flex flex-wrap items-center gap-1"><SchoolIcon size={10} /> {step.examConcept}</p>
               )}
             </div>
           ))}
@@ -211,14 +211,14 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
             onClick={() => { setState(createBleepxBankScenario()); setCompletedSteps({}); setMessage({ text: 'Loaded BleepxBank scenario with real-looking transaction data, DynamoDB customers, Lambda, IAM, and a public website bucket to fix.', type: 'success' }); }}
             className="text-xs px-3 py-1.5 rounded-full bg-sky-600 text-white font-bold hover:bg-sky-700 transition-colors"
           >
-            <span className="inline-flex items-center gap-1"><BuildingBankIcon size={12} /> Load BleepxBank Scenario</span>
+            <span className="inline-flex flex-wrap items-center gap-1"><BuildingBankIcon size={12} /> Load BleepxBank Scenario</span>
           </button>
         )}
         <button
           onClick={() => { clearSandboxState(); setState(createEmptySandboxState()); setCompletedSteps({}); setMessage(null); }}
           className="text-xs px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
-          <span className="inline-flex items-center gap-1"><RefreshIcon size={12} /> Reset Sandbox</span>
+          <span className="inline-flex flex-wrap items-center gap-1"><RefreshIcon size={12} /> Reset Sandbox</span>
         </button>
       </div>
     </div>
@@ -382,7 +382,7 @@ function S3Panel({ state, onAction }: { state: CloudSandboxState; onAction: (s: 
       <div className="space-y-2">
         {buckets.map((b) => (
           <div key={b.name} className="p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between">
               <span className="font-mono text-sm font-bold text-bleepx-text">{b.name}</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
                 {b.region} · {b.objects.length} objects
@@ -408,7 +408,7 @@ function S3Panel({ state, onAction }: { state: CloudSandboxState; onAction: (s: 
                   const current = editClass[`${b.name}:${o.key}`] ?? o.storageClass;
                   return (
                     <li key={o.key} className="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between">
                         <span className="font-mono text-bleepx-text">{o.key}</span>
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300">{o.storageClass}</span>
                       </div>
@@ -548,7 +548,7 @@ function EC2Panel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
       <div className="space-y-2">
         {instances.map((i) => (
           <div key={i.instanceId} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between">
               <span className="font-mono font-bold">{i.instanceId}</span>
               <span className={`text-[10px] px-2 py-0.5 rounded-full ${i.state === 'running' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{i.state}</span>
             </div>
@@ -599,7 +599,7 @@ function VPCPanel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
           </select>
           <input value={subnetCidr} onChange={(e) => setSubnetCidr(e.target.value)} className="w-full mb-2 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
           <input value={az} onChange={(e) => setAz(e.target.value)} className="w-full mb-2 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
-          <label className="flex items-center gap-2 text-sm mb-2">
+          <label className="flex flex-wrap items-center gap-2 text-sm mb-2">
             <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} /> Public subnet
           </label>
           <button onClick={() => { if (selectedVpc) onAction(createSubnet(state, selectedVpc, subnetCidr, az, isPublic)); }} className="w-full px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 disabled:opacity-50" disabled={!selectedVpc}>Create Subnet</button>
@@ -660,7 +660,7 @@ function EventsPanel({ state }: { state: CloudSandboxState }) {
     <div className="space-y-2 max-h-96 overflow-y-auto">
       {reversed.map((e, i) => (
         <div key={i} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between">
             <span className="font-bold text-sky-700 dark:text-sky-300">{e.service}</span>
             <span className="text-[10px] text-gray-500">{new Date(e.timestamp).toLocaleTimeString()}</span>
           </div>
@@ -833,7 +833,7 @@ function TerraformPanel({ state, onAction }: { state: CloudSandboxState; onActio
   return (
     <div className="space-y-4">
       <p className="text-xs text-bleepx-text-secondary">Export the current sandbox state as Terraform HCL. This is the Infrastructure as Code (IaC) that would recreate these resources in a real AWS account.</p>
-      <button onClick={handleExport} className="px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 inline-flex items-center gap-1">{exported ? <><CheckBadge size={12} /> Terraform Exported</> : 'Generate & Save Terraform'}</button>
+      <button onClick={handleExport} className="px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 inline-flex flex-wrap items-center gap-1">{exported ? <><CheckBadge size={12} /> Terraform Exported</> : 'Generate & Save Terraform'}</button>
       <div className="relative">
         <button onClick={() => navigator.clipboard?.writeText(tf)} className="absolute top-2 right-2 text-[10px] px-2 py-1 rounded bg-white/10 text-gray-300 hover:bg-white/20">Copy</button>
         <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-xs font-mono overflow-x-auto max-h-96">{tf}</pre>
@@ -857,7 +857,7 @@ function SecurityPanel({ state }: { state: CloudSandboxState }) {
             f.severity === 'medium' ? 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800' :
             'bg-sky-50 border-sky-200 dark:bg-sky-900/20 dark:border-sky-800'
           }`}>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase ${
                 f.severity === 'critical' ? 'bg-red-500 text-white' :
                 f.severity === 'high' ? 'bg-orange-500 text-white' :
@@ -867,8 +867,8 @@ function SecurityPanel({ state }: { state: CloudSandboxState }) {
               <span className="font-mono font-bold text-bleepx-text">{f.resource}</span>
             </div>
             <p className="text-xs text-bleepx-text-secondary mt-1"><strong>{f.issue}</strong></p>
-            <p className="text-[10px] text-bleepx-text mt-1 inline-flex items-center gap-1"><ToolsIcon size={10} /> {f.remediation}</p>
-            <p className="text-[10px] text-sky-700 dark:text-sky-400 mt-1 inline-flex items-center gap-1"><SchoolIcon size={10} /> {f.examConcept}</p>
+            <p className="text-[10px] text-bleepx-text mt-1 inline-flex flex-wrap items-center gap-1"><ToolsIcon size={10} /> {f.remediation}</p>
+            <p className="text-[10px] text-sky-700 dark:text-sky-400 mt-1 inline-flex flex-wrap items-center gap-1"><SchoolIcon size={10} /> {f.examConcept}</p>
           </div>
         ))}
         {findings.length === 0 && (
@@ -916,9 +916,9 @@ function RDSPanel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
           <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Master password" className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
         </div>
         <div className="flex flex-wrap gap-4 mb-3 text-sm">
-          <label className="flex items-center gap-2"><input type="checkbox" checked={multiAZ} onChange={(e) => setMultiAZ(e.target.checked)} className="w-4 h-4 text-sky-600" /> Multi-AZ</label>
-          <label className="flex items-center gap-2"><input type="checkbox" checked={encrypted} onChange={(e) => setEncrypted(e.target.checked)} className="w-4 h-4 text-sky-600" /> Storage encrypted</label>
-          <label className="flex items-center gap-2 text-rose-700 dark:text-rose-300"><input type="checkbox" checked={publicly} onChange={(e) => setPublicly(e.target.checked)} className="w-4 h-4 text-rose-600" /> Publicly accessible</label>
+          <label className="flex flex-wrap items-center gap-2"><input type="checkbox" checked={multiAZ} onChange={(e) => setMultiAZ(e.target.checked)} className="w-4 h-4 text-sky-600" /> Multi-AZ</label>
+          <label className="flex flex-wrap items-center gap-2"><input type="checkbox" checked={encrypted} onChange={(e) => setEncrypted(e.target.checked)} className="w-4 h-4 text-sky-600" /> Storage encrypted</label>
+          <label className="flex flex-wrap items-center gap-2 text-rose-700 dark:text-rose-300"><input type="checkbox" checked={publicly} onChange={(e) => setPublicly(e.target.checked)} className="w-4 h-4 text-rose-600" /> Publicly accessible</label>
         </div>
         <button onClick={handleCreate} disabled={!id} className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-bold hover:bg-sky-700 disabled:opacity-50">Create DB Instance</button>
       </div>

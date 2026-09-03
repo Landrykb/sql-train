@@ -45,7 +45,7 @@ export default async function VisualizationsPage({
   return (
     <main className="max-w-4xl mx-auto space-y-4 sm:space-y-6 bg-bleepx-bg min-h-screen pb-20">
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary overflow-x-auto" aria-label="Breadcrumb">
-        <ol className="flex space-x-1.5 sm:space-x-2 items-center whitespace-nowrap">
+        <ol className="flex flex-wrap space-x-1.5 sm:space-x-2 items-center whitespace-nowrap">
           <li><Link href="/" className="hover:text-bleepx-blue">Home</Link></li>
           <li>/</li>
           <li><Link href={`/cases/${domain}`} className="hover:text-bleepx-blue capitalize">{domain}</Link></li>
@@ -57,7 +57,7 @@ export default async function VisualizationsPage({
       </nav>
 
       <header className="bg-gradient-to-r from-bleepx-blue/10 to-bleepx-pink/10 p-4 sm:p-6 rounded-xl">
-        <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text">{caseName} — Visualizations</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text">{caseName} — Visualizations</h1>
         <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-1">*bleep* Charts generated from your SQL query results. View code, learn, and export.</p>
       </header>
 

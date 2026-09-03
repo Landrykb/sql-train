@@ -79,7 +79,7 @@ function ArchitectureFlow({ nodes }: { nodes: { label: string; note?: string }[]
             {n.note && <div className="text-[10px] text-bleepx-text-secondary mt-0.5">{n.note}</div>}
           </div>
           {i < nodes.length - 1 && (
-            <div className="flex items-center text-sky-400 text-lg flex-shrink-0">→</div>
+            <div className="flex flex-wrap items-center text-sky-400 text-lg flex-shrink-0">→</div>
           )}
         </React.Fragment>
       ))}
@@ -212,7 +212,7 @@ export default function CloudMissionPage() {
             <span>/</span>
             <Link href={`/cloud/${p}`} className="hover:underline">{meta.short}</Link>
             <span>/</span>
-            <span className="font-semibold text-bleepx-gray truncate">{mission.title}</span>
+            <span className="font-semibold text-bleepx-gray whitespace-normal break-words">{mission.title}</span>
           </nav>
           <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-8 text-center">
             <p className="text-bleepx-text-secondary">Loading authentication...</p>
@@ -224,26 +224,26 @@ export default function CloudMissionPage() {
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-12">
+    <main className="max-w-3xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-20">
       {/* Breadcrumb */}
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/cloud" className="hover:underline">BleepxCloud</Link>
         <span>/</span>
         <Link href={`/cloud/${p}`} className="hover:underline">{meta.short}</Link>
         <span>/</span>
-        <span className="font-semibold text-bleepx-gray truncate">{mission.title}</span>
+        <span className="font-semibold text-bleepx-gray whitespace-normal break-words">{mission.title}</span>
       </nav>
 
       {/* Header */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-        <div className="flex items-start gap-3">
+        <div className="flex flex-wrap items-start gap-3">
           <span className={`flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br ${meta.color} flex items-center justify-center shadow-md`}><CloudProviderIcon provider={provider} size={24} className="text-white" /></span>
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] uppercase tracking-wide font-bold text-bleepx-text-secondary">{mission.section}</span>
-              {isDone && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1"><CheckBadge size={10} className="text-emerald-700 dark:text-emerald-300" /> COMPLETED</span>}
+              {isDone && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 inline-flex flex-wrap items-center gap-1"><CheckBadge size={10} className="text-emerald-700 dark:text-emerald-300" /> COMPLETED</span>}
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text mt-0.5">{mission.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text mt-0.5">{mission.title}</h1>
             <div className="mt-2 flex items-center gap-2 flex-wrap">
               <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary">{mission.level}</span>
               <StarRating stars={mission.stars} size={12} />
@@ -265,7 +265,7 @@ export default function CloudMissionPage() {
 
         {mission.realWorld && (
           <div className="mt-4 rounded-lg border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-900/15 p-3">
-            <p className="text-xs font-bold text-amber-700 dark:text-amber-300 mb-0.5 flex items-center gap-1"><BuildingIcon size={12} /> Real-world scenario</p>
+            <p className="text-xs font-bold text-amber-700 dark:text-amber-300 mb-0.5 flex flex-wrap items-center gap-1"><BuildingIcon size={12} /> Real-world scenario</p>
             <p className="text-sm text-bleepx-text-secondary leading-relaxed">{wrapWithGlossary(mission.realWorld)}</p>
           </div>
         )}
@@ -275,7 +275,7 @@ export default function CloudMissionPage() {
             <p className="text-xs font-bold text-bleepx-text mb-1.5">By the end you can:</p>
             <ul className="space-y-1">
               {mission.objectives.map((o) => (
-                <li key={o} className="flex items-start gap-2 text-sm text-bleepx-text-secondary">
+                <li key={o} className="flex flex-wrap items-start gap-2 text-sm text-bleepx-text-secondary">
                   <span className="text-sky-500 mt-0.5">▸</span><span>{wrapWithGlossary(o)}</span>
                 </li>
               ))}
@@ -306,7 +306,7 @@ export default function CloudMissionPage() {
         };
         return (
           <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex flex-wrap items-center justify-between mb-1">
               <h2 className="text-base font-bold text-bleepx-text flex flex-wrap items-center gap-2"><GuideIcon size={18} /> Concept Walkthrough</h2>
               <span className="text-xs text-bleepx-text-secondary font-mono">{understood.size}/{learnList.length} understood</span>
             </div>
@@ -331,14 +331,14 @@ export default function CloudMissionPage() {
                         : 'border-bleepx-border text-bleepx-text-secondary hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                 >
-                  {understood.has(l.key) ? <span className="inline-flex items-center gap-1"><CheckBadge size={10} /> {l.concept.name}</span> : l.concept.name}
+                  {understood.has(l.key) ? <span className="inline-flex flex-wrap items-center gap-1"><CheckBadge size={10} /> {l.concept.name}</span> : l.concept.name}
                 </button>
               ))}
             </div>
 
             {/* Current concept card */}
             <div className="rounded-xl border border-bleepx-border overflow-hidden">
-              <div className="bg-gradient-to-r from-sky-50 to-transparent dark:from-sky-900/20 px-4 py-3 flex items-center gap-3">
+              <div className="bg-gradient-to-r from-sky-50 to-transparent dark:from-sky-900/20 px-4 py-3 flex flex-wrap items-center gap-3">
                 <CloudProviderIcon provider={provider} size={24} className="text-sky-600" />
                 <div>
                   <h3 className="font-bold text-bleepx-text leading-tight">{c.name}</h3>
@@ -362,7 +362,7 @@ export default function CloudMissionPage() {
                 )}
                 {c.gotcha && (
                   <div className="rounded-lg border-l-4 border-red-400 bg-red-50 dark:bg-red-900/15 p-3">
-                    <p className="text-[11px] font-bold text-red-600 mb-0.5 flex items-center gap-1"><AlertIcon size={12} /> Gotcha (exam trap)</p>
+                    <p className="text-[11px] font-bold text-red-600 mb-0.5 flex flex-wrap items-center gap-1"><AlertIcon size={12} /> Gotcha (exam trap)</p>
                     <p className="text-sm text-bleepx-text-secondary leading-relaxed">{c.gotcha}</p>
                   </div>
                 )}
@@ -370,7 +370,7 @@ export default function CloudMissionPage() {
             </div>
 
             {/* Nav */}
-            <div className="mt-4 flex items-center justify-between gap-2">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
               <button
                 onClick={() => setStepIdx(Math.max(0, stepIdx - 1))}
                 disabled={stepIdx === 0}
@@ -386,7 +386,7 @@ export default function CloudMissionPage() {
                     : 'bg-sky-600 text-white hover:bg-sky-700'
                 }`}
               >
-                {isUnderstood ? <span className="inline-flex items-center gap-1"><CheckBadge size={14} className="text-emerald-700 dark:text-emerald-300" /> Understood</span> : 'Mark understood →'}
+                {isUnderstood ? <span className="inline-flex flex-wrap items-center gap-1"><CheckBadge size={14} className="text-emerald-700 dark:text-emerald-300" /> Understood</span> : 'Mark understood →'}
               </button>
               <button
                 onClick={() => setStepIdx(Math.min(learnList.length - 1, stepIdx + 1))}
@@ -455,7 +455,7 @@ export default function CloudMissionPage() {
           ) : (
             <div className="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
               <p className={`text-sm font-bold ${quizPassed ? 'text-emerald-600' : 'text-red-500'}`}>
-                Score: {quizScore}/{quizQuestions.length} — {quizPassed ? <span className="inline-flex items-center gap-1"><CheckBadge size={14} className="text-emerald-600" /> Passed!</span> : 'Try again (need 60%)'}
+                Score: {quizScore}/{quizQuestions.length} — {quizPassed ? <span className="inline-flex flex-wrap items-center gap-1"><CheckBadge size={14} className="text-emerald-600" /> Passed!</span> : 'Try again (need 60%)'}
               </p>
               {!quizPassed && (
                 <button onClick={() => { setQuizSubmitted(false); setAnswers({}); }} className="mt-2 text-sm text-sky-600 hover:underline">Retry</button>
@@ -515,7 +515,7 @@ export default function CloudMissionPage() {
               ) : (
                 <div className="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
                   <p className={`text-sm font-bold ${kcPassed ? 'text-emerald-600' : 'text-red-500'}`}>
-                    Score: {kcScore}/{knowledgeCheck.length} — {kcPassed ? <span className="inline-flex items-center gap-1"><CheckBadge size={14} className="text-emerald-600" /> Passed!</span> : 'Try again (need 67%)'}
+                    Score: {kcScore}/{knowledgeCheck.length} — {kcPassed ? <span className="inline-flex flex-wrap items-center gap-1"><CheckBadge size={14} className="text-emerald-600" /> Passed!</span> : 'Try again (need 67%)'}
                   </p>
                   {!kcPassed && (
                     <button onClick={() => { setKcSubmitted(false); setKcAnswers({}); }} className="mt-2 text-sm text-sky-600 hover:underline">Retry</button>
@@ -545,7 +545,7 @@ export default function CloudMissionPage() {
       {/* Design-led missions with no concepts: simple review confirmation */}
       {!isQuiz && !isScenario && learnList.length === 0 && !isDone && (
         <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-          <label className="flex items-start gap-3 cursor-pointer">
+          <label className="flex flex-wrap items-start gap-3 cursor-pointer">
             <input type="checkbox" checked={reviewed} onChange={(e) => setReviewed(e.target.checked)} className="mt-1 w-4 h-4 accent-sky-600" />
             <span className="text-sm text-bleepx-text">I have studied the architecture and the starter code above and understand how the pieces fit together.</span>
           </label>
@@ -564,7 +564,7 @@ export default function CloudMissionPage() {
             className="w-full px-5 py-3 rounded-full bg-gradient-to-r from-sky-600 to-blue-600 text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
           >
             {canComplete
-              ? <span className="inline-flex items-center gap-1"><CheckBadge size={14} className="text-white" /> Complete Mission (+{tier * 10} pts)</span>
+              ? <span className="inline-flex flex-wrap items-center gap-1"><CheckBadge size={14} className="text-white" /> Complete Mission (+{tier * 10} pts)</span>
               : isQuiz
                 ? learnList.length > 0 && !allUnderstood
                   ? 'Work through every concept to continue'
@@ -577,7 +577,7 @@ export default function CloudMissionPage() {
           </button>
         ) : (
           <div className="text-center space-y-3">
-            <div className="text-sm font-semibold text-emerald-600 flex items-center justify-center gap-1"><TrophyIcon size={16} className="text-emerald-600" /> Mission complete — nice work, human.</div>
+            <div className="text-sm font-semibold text-emerald-600 flex flex-wrap items-center justify-center gap-1"><TrophyIcon size={16} className="text-emerald-600" /> Mission complete — nice work, human.</div>
             {nextSlug && (
               <Link href={`/cloud/${p}/${nextSlug}`}>
                 <button className="px-5 py-2.5 rounded-full bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors">
@@ -590,7 +590,7 @@ export default function CloudMissionPage() {
       </div>
 
       {/* Prev / Next */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {prevSlug ? (
           <Link href={`/cloud/${p}/${prevSlug}`} className="text-sm text-sky-600 hover:underline font-medium">← Previous</Link>
         ) : <span />}

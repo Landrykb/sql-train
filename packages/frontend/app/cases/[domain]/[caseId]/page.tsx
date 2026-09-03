@@ -159,10 +159,10 @@ export default async function CasePage({
         <ProgressSummary caseIds={caseIds} />
         <BleepxPointsTracker caseIds={allCaseIds} />
       </Suspense>
-      <div className="flex items-center justify-end gap-4">
+      <div className="flex flex-wrap items-center justify-end gap-4">
         <Link
           href={`/cases/${domainKey}/${caseId}/quiz`}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+          className="inline-flex flex-wrap items-center gap-1.5 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
         >
           <BrainIcon size={16} /> Test Your Knowledge
         </Link>

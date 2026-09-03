@@ -57,7 +57,7 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
             Home
           </Link>
         </nav>
-        <h1 className="text-3xl font-bold text-bleepx-text capitalize">
+        <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text capitalize">
           {decodedDomain} Challenges
         </h1>
         <div className="p-6 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg shadow mt-6">
@@ -129,7 +129,7 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
             Home
           </Link>
         </nav>
-        <h1 className="text-3xl font-bold text-bleepx-text capitalize">
+        <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text capitalize">
           {decodedDomain} Challenges
         </h1>
         <div className="p-6 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg shadow mt-6">
@@ -152,7 +152,7 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <BleepxLogo />
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text capitalize">
+            <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text capitalize">
               {domainKey.charAt(0).toUpperCase() + domainKey.slice(1).replace('_', ' ')} Division
             </h1>
             <p className="text-[10px] sm:text-xs text-bleepx-text-secondary">SwiftLink Training Program</p>
@@ -169,7 +169,7 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
             />
           )}
           {domainKey === 'trials' && (
-            <Link href="/cases/trials/master-quiz" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">
+            <Link href="/cases/trials/master-quiz" className="inline-flex flex-wrap items-center gap-1.5 px-3 py-1.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">
               <BrainIcon size={16} className="text-white" /> Master Quiz
             </Link>
           )}

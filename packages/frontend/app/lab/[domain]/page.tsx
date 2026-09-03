@@ -75,9 +75,9 @@ export default async function LabDomainPage({ params }: { params: Promise<{ doma
       </nav>
 
       {/* Header */}
-      <div className="flex items-start gap-3">
+      <div className="flex flex-wrap items-start gap-3">
         <span className="text-bleepx-text"><LabDomainIcon domain={domain} size={36} /></span>
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text">{meta.name}</h1>
           <p className="text-sm text-bleepx-text-secondary mt-1">{meta.desc}</p>
           <div className="mt-2 flex items-center gap-3 flex-wrap">
@@ -85,7 +85,7 @@ export default async function LabDomainPage({ params }: { params: Promise<{ doma
             <StarRating stars={meta.stars} size={12} />
             <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 font-medium">{meta.language}</span>
             {meta.dataset_url && (
-              <a href={meta.dataset_url} target="_blank" rel="noopener noreferrer" className="text-xs text-teal-600 hover:underline inline-flex items-center gap-1">
+              <a href={meta.dataset_url} target="_blank" rel="noopener noreferrer" className="text-xs text-teal-600 hover:underline inline-flex flex-wrap items-center gap-1">
                 <ChartBarIcon size={12} /> Dataset →
               </a>
             )}
@@ -119,8 +119,8 @@ export default async function LabDomainPage({ params }: { params: Promise<{ doma
               href={`/lab/${domain}/${step.id}`}
               className={`group block bg-bleepx-white border border-bleepx-border border-l-4 ${tierColors[step.tier] || 'border-l-gray-400'} rounded-xl shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5`}
             >
-              <div className="p-4 sm:p-5 flex items-start gap-3">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center text-sm font-bold text-teal-700 dark:text-teal-300">
+              <div className="p-4 sm:p-5 flex flex-wrap items-start gap-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/30 flex flex-wrap items-center justify-center text-sm font-bold text-teal-700 dark:text-teal-300">
                   {step.step_number}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -154,7 +154,7 @@ export default async function LabDomainPage({ params }: { params: Promise<{ doma
       {/* Back */}
       <div className="flex gap-3">
         <Link href="/lab" className="text-sm text-teal-600 hover:underline font-medium">← All Projects</Link>
-        <Link href="/" className="text-sm text-bleepx-blue hover:underline font-medium inline-flex items-center gap-1"><VerseIcon verse="query" size={14} /> BleepxQuery</Link>
+        <Link href="/" className="text-sm text-bleepx-blue hover:underline font-medium inline-flex flex-wrap items-center gap-1"><VerseIcon verse="query" size={14} /> BleepxQuery</Link>
       </div>
 
       <AchievementNotification />

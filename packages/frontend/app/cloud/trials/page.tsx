@@ -20,9 +20,9 @@ function shuffle<T>(arr: T[]): T[] {
 
 const providerLabel = (p: string) =>
   p === 'multi' ? (
-    <span className="inline-flex items-center gap-1"><WorldIcon size={14} /> Multi-Cloud</span>
+    <span className="inline-flex flex-wrap items-center gap-1"><WorldIcon size={14} /> Multi-Cloud</span>
   ) : (
-    <span className="inline-flex items-center gap-1"><CloudProviderIcon provider={p as any} size={14} /> {CLOUD_PROVIDER_META[p as keyof typeof CLOUD_PROVIDER_META]?.short || p}</span>
+    <span className="inline-flex flex-wrap items-center gap-1"><CloudProviderIcon provider={p as any} size={14} /> {CLOUD_PROVIDER_META[p as keyof typeof CLOUD_PROVIDER_META]?.short || p}</span>
   );
 
 export default function CloudTrialsPage() {
@@ -149,9 +149,9 @@ export default function CloudTrialsPage() {
         </div>
       ) : (
         <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between text-xs text-bleepx-text-secondary">
+          <div className="flex flex-wrap items-center justify-between text-xs text-bleepx-text-secondary">
             <span>Question {current + 1} / {questions.length}</span>
-            <span className="flex items-center gap-2">
+            <span className="flex flex-wrap items-center gap-2">
               <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800">{providerLabel(q.provider)}</span>
               <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 capitalize">{q.difficulty}</span>
               {q.examLevel !== 'None' && (
@@ -187,7 +187,7 @@ export default function CloudTrialsPage() {
                     : 'border-bleepx-border text-bleepx-text hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                 >
-                  <span className="flex items-center gap-2">
+                  <span className="flex flex-wrap items-center gap-2">
                     {isMulti && (
                       <span className={`w-4 h-4 rounded border flex items-center justify-center ${
                         isSel ? 'bg-sky-500 border-sky-500 text-white' : 'border-gray-300 dark:border-gray-600'
@@ -207,7 +207,7 @@ export default function CloudTrialsPage() {
               onClick={() => setShowHint(!showHint)}
               className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
             >
-              {showHint ? 'Hide Hint' : <span className="inline-flex items-center gap-1"><BulbIcon size={14} /> Need a hint?</span>}
+              {showHint ? 'Hide Hint' : <span className="inline-flex flex-wrap items-center gap-1"><BulbIcon size={14} /> Need a hint?</span>}
             </button>
           )}
           {showHint && q.hint && !revealed && (

@@ -142,12 +142,12 @@ export default function PathMap({ domain, cases }: PathMapProps) {
 
   return (
     <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl border border-gray-700/50">
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
-        <h3 className="text-sm sm:text-lg font-bold text-white flex items-center gap-1.5 sm:gap-2">
+      <div className="flex flex-wrap items-center justify-between mb-4 sm:mb-6">
+        <h3 className="text-sm sm:text-lg font-bold text-white flex flex-wrap items-center gap-1.5 sm:gap-2">
           <BleepxFace size={22} className="opacity-80" />
           Learning Path
         </h3>
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <div className="w-20 sm:w-32 h-1.5 sm:h-2 bg-gray-700 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full transition-all duration-700"
@@ -206,7 +206,7 @@ export default function PathMap({ domain, cases }: PathMapProps) {
           const label = tierLabels[i] || '';
 
           return (
-            <div key={node.id} className="flex items-start gap-2.5 sm:gap-4 group">
+            <div key={node.id} className="flex flex-wrap items-start gap-2.5 sm:gap-4 group">
               {/* Vertical line + node circle */}
               <div className="flex flex-col items-center flex-shrink-0" style={{ width: 32 }}>
                 <Link
@@ -235,7 +235,7 @@ export default function PathMap({ domain, cases }: PathMapProps) {
                     ${status !== 'locked' ? 'cursor-pointer' : 'cursor-not-allowed'}
                   `}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     {label && (
                       <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
                         status === 'completed' ? 'bg-emerald-500/20 text-emerald-400' :
@@ -264,15 +264,15 @@ export default function PathMap({ domain, cases }: PathMapProps) {
       {/* Hidden path branch */}
       {hiddenNodes.length > 0 && (
         <>
-          <div className="flex items-center gap-3 my-4">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-3 my-4">
+            <div className="h-px min-w-0 flex-1 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest flex flex-wrap items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
               Bonus Missions
             </span>
-            <div className="h-px flex-1 bg-gradient-to-r from-amber-500/30 via-transparent to-transparent" />
+            <div className="h-px min-w-0 flex-1 bg-gradient-to-r from-amber-500/30 via-transparent to-transparent" />
           </div>
 
           <div className="relative pl-2">
@@ -282,7 +282,7 @@ export default function PathMap({ domain, cases }: PathMapProps) {
               const isLast = i === hiddenNodes.length - 1;
 
               return (
-                <div key={node.id} className="flex items-start gap-4 group">
+                <div key={node.id} className="flex flex-wrap items-start gap-4 group">
                   <div className="flex flex-col items-center flex-shrink-0" style={{ width: 32 }}>
                     <Link
                       href={status !== 'locked' ? `/cases/${domain}/${node.id}` : '#'}
@@ -329,16 +329,16 @@ export default function PathMap({ domain, cases }: PathMapProps) {
 
       {/* Legend */}
       <div className="flex flex-wrap gap-3 sm:gap-4 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-700/50">
-        <div className="flex items-center gap-1.5 text-xs text-gray-400">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
           <span className="w-3 h-3 rounded-full bg-emerald-500" /> Completed
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-gray-400">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
           <span className="w-3 h-3 rounded-full bg-blue-500" /> Unlocked
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-gray-400">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
           <span className="w-3 h-3 rounded-full bg-gray-600" /> Locked
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-gray-400">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
           <span className="w-3 h-3 rounded-lg rotate-45 bg-amber-500 inline-block" style={{ width: 12, height: 12 }} /> Bonus
         </div>
       </div>

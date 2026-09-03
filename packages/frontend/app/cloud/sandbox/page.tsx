@@ -205,10 +205,10 @@ export default function CloudSandboxPage() {
 
       {/* Header */}
       <div className="bg-gradient-to-br from-sky-600 to-indigo-700 rounded-2xl p-5 sm:p-6 text-white">
-        <div className="flex items-start gap-3">
+        <div className="flex flex-wrap items-start gap-3">
           <CloudIcon size={40} className="text-white flex-shrink-0" />
           <div>
-            <h1 className="text-2xl font-extrabold">BleepxCloud Sandbox</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold">BleepxCloud Sandbox</h1>
             <p className="text-white/80 text-sm mt-1">
               Browser-native AWS console. Pick a scenario, follow the objectives, and learn by fixing real-looking infrastructure.
             </p>
@@ -285,16 +285,16 @@ export default function CloudSandboxPage() {
                     : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700'
                 }`}
               >
-                <div className="flex items-start gap-2">
+                <div className="flex flex-wrap items-start gap-2">
                   <span className={`text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
                     isDone ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
                   }`}>
                     {idx + 1}
                   </span>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className={`font-semibold ${isDone ? 'text-green-700' : 'text-bleepx-text'}`}>{obj.label}</span>
-                      {isDone && <span className="text-green-600 text-xs font-bold inline-flex items-center gap-1"><CheckBadge size={12} className="text-green-600" /> Done</span>}
+                      {isDone && <span className="text-green-600 text-xs font-bold inline-flex flex-wrap items-center gap-1"><CheckBadge size={12} className="text-green-600" /> Done</span>}
                     </div>
                     <p className="text-[10px] text-bleepx-text-secondary mt-0.5 leading-relaxed">{obj.theory}</p>
                   </div>
@@ -317,7 +317,7 @@ export default function CloudSandboxPage() {
         onStateChange={setState}
       />
 
-      <div className="flex items-center justify-between text-sm text-bleepx-text-secondary">
+      <div className="flex flex-wrap items-center justify-between text-sm text-bleepx-text-secondary">
         <Link href="/cloud/pipelines" className="text-sky-600 hover:underline font-medium">
           → Try the ETL Pipeline Canvas
         </Link>

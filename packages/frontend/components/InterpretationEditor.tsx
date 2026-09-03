@@ -201,9 +201,9 @@ export function InterpretationEditor({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-bleepx-text flex items-center gap-2">
+          <h3 className="text-lg font-bold text-bleepx-text flex flex-wrap items-center gap-2">
             <BleepxFace size={20} />
             {itemName}
           </h3>
@@ -218,7 +218,7 @@ export function InterpretationEditor({
               disabled={generatingGraphs || !reportPerms.allowed}
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 transition-colors"
             >
-              {generatingGraphs ? 'Generating...' : <span className="inline-flex items-center gap-1.5"><ChartBarIcon size={14} className="inline" /> Generate Graphs</span>}
+              {generatingGraphs ? 'Generating...' : <span className="inline-flex flex-wrap items-center gap-1.5"><ChartBarIcon size={14} className="inline" /> Generate Graphs</span>}
             </button>
           )}
           {reportTier?.perks.multipleFormats && (
@@ -251,7 +251,7 @@ export function InterpretationEditor({
 
       {!hasReportTier && (
         <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-          <p className="text-xs text-amber-800 dark:text-amber-300 mb-2 flex items-center gap-1.5">
+          <p className="text-xs text-amber-800 dark:text-amber-300 mb-2 flex flex-wrap items-center gap-1.5">
             <AlertIcon size={14} className="inline" /> Purchase a Report Generation tier to unlock AI-powered reports with graphs
           </p>
           <div className="flex flex-wrap gap-2">
@@ -273,7 +273,7 @@ export function InterpretationEditor({
 
       {reportPerms.error && hasReportTier && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-xs text-red-800 dark:text-red-300 flex items-center gap-1.5">
+          <p className="text-xs text-red-800 dark:text-red-300 flex flex-wrap items-center gap-1.5">
             <AlertIcon size={14} className="inline" /> {reportPerms.error}
           </p>
         </div>
@@ -282,7 +282,7 @@ export function InterpretationEditor({
       <div className="space-y-6">
         {sections.map((section, index) => (
           <div key={section.id} className="border border-bleepx-border rounded-lg p-4 relative">
-            <div className="flex items-start justify-between mb-2">
+            <div className="flex flex-wrap items-start justify-between mb-2">
               <h4 className="font-bold text-bleepx-text">{section.title}</h4>
               <button
                 onClick={() => handleRemoveSection(index)}
@@ -295,7 +295,7 @@ export function InterpretationEditor({
             {section.context && (
               <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 p-3 border-l-4 border-emerald-400 mb-3">
                 <p className="text-xs text-emerald-700 dark:text-emerald-300">
-                  <span className="font-semibold inline-flex items-center gap-1"><ChartBarIcon size={12} className="inline" /> Context:</span> {section.context}
+                  <span className="font-semibold inline-flex flex-wrap items-center gap-1"><ChartBarIcon size={12} className="inline" /> Context:</span> {section.context}
                 </p>
               </div>
             )}
@@ -356,7 +356,7 @@ export function InterpretationEditor({
           <div className="space-y-4">
             {reportData.analysisResults.map((result, idx) => (
               <div key={idx} className="border border-bleepx-border rounded-lg p-3">
-                <div className="flex items-start justify-between mb-2">
+                <div className="flex flex-wrap items-start justify-between mb-2">
                   <h5 className="font-semibold text-bleepx-text text-sm">{result.title}</h5>
                   <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
                     {result.type}
@@ -441,7 +441,7 @@ export function InterpretationEditor({
             className="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 transition-colors"
           >
             {generatingGraphs ? 'Generating...' : (
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex flex-wrap items-center gap-1.5">
                 <ChartBarIcon size={14} className="inline" />
                 {reportData?.graphs?.length ? 'Regenerate Graphs' : 'Generate Graphs from Your Data'}
               </span>

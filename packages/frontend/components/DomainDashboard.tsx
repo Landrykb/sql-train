@@ -349,7 +349,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex flex-wrap items-center justify-center p-8">
         <Spinner />
         <span className="ml-2 text-bleepx-text-secondary">*bleep* Loading your dashboard...</span>
       </div>
@@ -367,7 +367,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
               <circle cx="50" cy="50" r="42" fill="none" className="stroke-bleepx-border" strokeWidth="8" />
               <circle cx="50" cy="50" r="42" fill="none" className="stroke-bleepx-blue" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${pct * 2.64} 264`} style={{transition: 'all 1s'}} />
             </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex flex-wrap items-center justify-center">
               <span className="text-2xl font-bold text-bleepx-text">{pct}%</span>
             </div>
           </div>
@@ -378,10 +378,10 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
             </h2>
             <p className="text-bleepx-text-secondary mt-1">{completedCount} of {totalCases} challenges completed</p>
             <div className="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium">{solvedEntries.length} solved</span>
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-medium">{totalCases - completedCount} remaining</span>
+              <span className="inline-flex flex-wrap items-center gap-1 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium">{solvedEntries.length} solved</span>
+              <span className="inline-flex flex-wrap items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-medium">{totalCases - completedCount} remaining</span>
               {solvedEntries.some((e) => e.time) && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs font-medium">
+                <span className="inline-flex flex-wrap items-center gap-1 px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs font-medium">
                   Avg time: {Math.round(solvedEntries.filter((e) => e.time).reduce((s, e) => s + (e.time || 0), 0) / solvedEntries.filter((e) => e.time).length)}s
                 </span>
               )}
@@ -411,9 +411,9 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
       {/* Domain Completion Congratulations */}
       {pct === 100 && (
         <section className="p-6 rounded-xl shadow-xl bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 border-2 border-green-400 dark:border-green-600 ring-2 ring-green-300 dark:ring-green-700">
-          <div className="flex items-start gap-4">
+          <div className="flex flex-wrap items-start gap-4">
             <span className="animate-bounce"><TrophyIcon size={40} className="text-amber-500" /></span>
-            <div className="flex-1">
+            <div className="min-w-0 flex-1">
               <h2 className="text-xl font-bold text-green-900 dark:text-green-200 mb-1">*bleep* Domain Complete!</h2>
               <p className="text-sm text-green-800 dark:text-green-300 mb-3">
                 Congratulations, human. You&apos;ve conquered every challenge in the <strong>{domain.charAt(0).toUpperCase() + domain.slice(1)}</strong> domain.
@@ -432,22 +432,22 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
                       setPushing(false);
                       setPushMsg(null);
                     }}
-                    className="px-5 py-2.5 rounded-full bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors shadow-md flex items-center gap-2 disabled:opacity-50"
+                    className="px-5 py-2.5 rounded-full bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors shadow-md flex flex-wrap items-center gap-2 disabled:opacity-50"
                   >
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                     {pushing ? pushMsg || 'Pushing...' : 'Push Portfolio to GitHub'}
                   </button>
                   {pushResult?.success && (
                     <p className="mt-2 text-sm text-green-800 dark:text-green-300">
-                      <span className="inline-flex items-center gap-1"><CheckBadge size={14} className="text-green-700" /> Pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline">{pushResult.repoUrl}</a></span>
+                      <span className="inline-flex flex-wrap items-center gap-1"><CheckBadge size={14} className="text-green-700" /> Pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline">{pushResult.repoUrl}</a></span>
                     </p>
                   )}
-                  {pushResult?.error && <p className="mt-2 text-sm text-red-700 inline-flex items-center gap-1"><ErrorIcon size={14} /> {pushResult.error}</p>}
+                  {pushResult?.error && <p className="mt-2 text-sm text-red-700 inline-flex flex-wrap items-center gap-1"><ErrorIcon size={14} /> {pushResult.error}</p>}
                 </div>
               ) : (
                 <button
                   onClick={() => startGitHubLogin()}
-                  className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 transition-colors flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 transition-colors flex flex-wrap items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                   Sign In with GitHub to Push
@@ -524,11 +524,11 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
           <div className="space-y-3">
             {solvedEntries.map((e) => (
               <div key={e.id} className="border border-bleepx-border rounded-lg p-3">
-                <div className="flex justify-between items-center mb-1">
+                <div className="flex flex-wrap justify-between items-center mb-1">
                   <span className="text-sm font-medium text-bleepx-text">{e.name}</span>
-                  <span className="text-xs text-green-600 dark:text-green-400 font-semibold inline-flex items-center gap-1"><CheckBadge size={12} className="text-green-600" /> Solved</span>
+                  <span className="text-xs text-green-600 dark:text-green-400 font-semibold inline-flex flex-wrap items-center gap-1"><CheckBadge size={12} className="text-green-600" /> Solved</span>
                 </div>
-                <pre className="text-xs text-bleepx-text-secondary bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded overflow-x-auto whitespace-pre-wrap">{e.query}</pre>
+                <pre className="text-xs text-bleepx-text-secondary bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded overflow-x-auto whitespace-pre-wrap break-words">{e.query}</pre>
               </div>
             ))}
           </div>
@@ -543,7 +543,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
           <h2 className="text-xl font-semibold text-bleepx-text mb-4">Datasets</h2>
           {tables.map((table) => (
             <div key={table.name} className="mb-6">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <h3 className="font-medium text-lg">{table.name}</h3>
                 <span className="text-xs text-bleepx-text-secondary">({table.rowCount} rows, {table.columns.length} columns)</span>
               </div>
@@ -574,7 +574,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
                     setPushing(false);
                     setPushMsg(null);
                   }}
-                  className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                  className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors flex flex-wrap items-center gap-1.5 disabled:opacity-50"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                   {pushing ? pushMsg || 'Pushing...' : 'Push to GitHub'}
@@ -582,7 +582,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
               ) : (
                 <button
                   onClick={() => startGitHubLogin()}
-                  className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors flex flex-wrap items-center gap-1.5"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                   Sign In to Push to GitHub
@@ -600,7 +600,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
                 }}
                 className="px-4 py-2 rounded-full bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors"
               >
-                <span className="inline-flex items-center gap-1"><FileTextIcon size={14} /> Progress Report</span>
+                <span className="inline-flex flex-wrap items-center gap-1"><FileTextIcon size={14} /> Progress Report</span>
               </button>
               <button
                 onClick={() => {
@@ -613,15 +613,15 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
                 }}
                 className="px-4 py-2 rounded-full bg-gray-700 text-white text-sm hover:bg-gray-600 transition-colors"
               >
-                <span className="inline-flex items-center gap-1"><PrinterIcon size={14} /> Print / PDF</span>
+                <span className="inline-flex flex-wrap items-center gap-1"><PrinterIcon size={14} /> Print / PDF</span>
               </button>
             </div>
             {pushResult?.success && (
               <p className="text-sm text-green-700 dark:text-green-400">
-                <span className="inline-flex items-center gap-1"><CheckBadge size={14} className="text-green-700" /> Portfolio pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline text-bleepx-blue">{pushResult.repoUrl}</a></span>
+                <span className="inline-flex flex-wrap items-center gap-1"><CheckBadge size={14} className="text-green-700" /> Portfolio pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline text-bleepx-blue">{pushResult.repoUrl}</a></span>
               </p>
             )}
-            {pushResult?.error && <p className="text-sm text-red-600 inline-flex items-center gap-1"><ErrorIcon size={14} /> {pushResult.error}</p>}
+            {pushResult?.error && <p className="text-sm text-red-600 inline-flex flex-wrap items-center gap-1"><ErrorIcon size={14} /> {pushResult.error}</p>}
             <p className="text-xs text-bleepx-text-secondary">Push creates a <code>sql-portfolio-{domain}</code> repo with README, SQL queries, per-case READMEs, Python visualization scripts, sample CSV datasets, and a run_all.py script.</p>
           </div>
         ) : (

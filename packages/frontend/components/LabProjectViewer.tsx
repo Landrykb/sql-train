@@ -76,9 +76,9 @@ function CopyInline({ value }: { value: string }) {
     <button
       onClick={copy}
       title={`Copy ${value}`}
-      className="w-full text-left flex items-center gap-1.5 group"
+      className="w-full text-left flex flex-wrap items-center gap-1.5 group"
     >
-      <code className="text-[11px] font-mono text-bleepx-text break-all flex-1">{value}</code>
+      <code className="text-[11px] font-mono text-bleepx-text break-all min-w-0 flex-1">{value}</code>
       <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold transition-colors flex-shrink-0 ${copied ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 group-hover:bg-teal-500 group-hover:text-white'}`}>
         {copied ? <IconCheck size={10} /> : <CopyIcon size={10} />}
       </span>
@@ -109,10 +109,10 @@ function HowItWorksBanner() {
     <div className="rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50/60 dark:bg-teal-900/10">
       <button
         onClick={toggle}
-        className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 text-left"
+        className="w-full flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5 text-left"
         aria-expanded={!collapsed}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <BleepxFace size={22} />
           <h3 className="text-sm font-bold text-teal-800 dark:text-teal-200">
             How this step works
@@ -165,7 +165,7 @@ function SpoilerCodeBlock({
     return (
       <div className="relative rounded-xl overflow-hidden border border-teal-200 dark:border-teal-800 bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20">
         <div className="p-6 flex flex-col items-center justify-center text-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900/40 flex flex-wrap items-center justify-center">
             <svg className="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -187,12 +187,12 @@ function SpoilerCodeBlock({
 
   return (
     <div className="relative group rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 animate-in fade-in duration-300">
-      <div className="flex items-center justify-between bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-mono text-bleepx-text-secondary uppercase">{language}</span>
           <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-medium">Reference</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setRevealed(false)}
             className="text-[10px] px-2 py-1 rounded-md text-bleepx-text-secondary hover:text-bleepx-text transition-colors"
@@ -205,14 +205,14 @@ function SpoilerCodeBlock({
               className="text-xs px-2.5 py-1 rounded-md bg-teal-600 text-white hover:bg-teal-700 transition-colors font-medium"
               title="Append this snippet to the Try It Yourself editor above"
             >
-              {sent ? <span className="inline-flex items-center gap-1"><IconCheck size={12} /> Sent!</span> : <span className="inline-flex items-center gap-1"><SendIcon size={12} className="inline" /> Send to editor</span>}
+              {sent ? <span className="inline-flex flex-wrap items-center gap-1"><IconCheck size={12} /> Sent!</span> : <span className="inline-flex flex-wrap items-center gap-1"><SendIcon size={12} className="inline" /> Send to editor</span>}
             </button>
           )}
           <button
             onClick={handleCopy}
             className="text-xs px-2.5 py-1 rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-bleepx-text-secondary hover:text-bleepx-text hover:border-teal-400 transition-colors"
           >
-            {copied ? <span className="inline-flex items-center gap-1"><IconCheck size={12} /> Copied!</span> : <span className="inline-flex items-center gap-1"><CopyIcon size={12} className="inline" /> Copy</span>}
+            {copied ? <span className="inline-flex flex-wrap items-center gap-1"><IconCheck size={12} /> Copied!</span> : <span className="inline-flex flex-wrap items-center gap-1"><CopyIcon size={12} className="inline" /> Copy</span>}
           </button>
         </div>
       </div>
@@ -428,7 +428,7 @@ export default function LabProjectViewer({
     <div className="max-w-3xl mx-auto space-y-5">
       {/* Time expired overlay */}
       {timeExpired && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/60 flex flex-wrap items-center justify-center p-4">
           <div className="bg-bleepx-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full text-center">
             <BleepxFace size={48} />
             <h2 className="text-2xl font-bold text-red-600 mt-4 mb-2">Time&apos;s Up!</h2>
@@ -453,11 +453,11 @@ export default function LabProjectViewer({
       <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border overflow-hidden">
         {/* Branded top bar — stacks on mobile, single row on sm+ */}
         <div className="bg-gradient-to-r from-teal-600 to-emerald-600 px-4 sm:px-5 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5 min-w-0">
             <BleepxFace size={22} />
             <span className="text-white text-xs font-bold tracking-wide uppercase whitespace-nowrap">BleepxLab</span>
             <span className="text-teal-200 text-[10px] hidden sm:inline">•</span>
-            <span className="text-teal-100 text-xs truncate">{project}</span>
+            <span className="text-teal-100 text-xs whitespace-normal break-words">{project}</span>
           </div>
           {/* Action chips — wrap on narrow screens, never push Run/Quiz off-screen */}
           <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 sm:justify-end">
@@ -493,20 +493,20 @@ export default function LabProjectViewer({
               }`}
               title={timerEnabled ? 'Stop timer' : 'Start test-mode timer'}
             >
-              {timerEnabled ? <span className="inline-flex items-center gap-1"><ClockIcon size={10} /> Stop</span> : <span className="inline-flex items-center gap-1"><ClockIcon size={10} /> Timer</span>}
+              {timerEnabled ? <span className="inline-flex flex-wrap items-center gap-1"><ClockIcon size={10} /> Stop</span> : <span className="inline-flex flex-wrap items-center gap-1"><ClockIcon size={10} /> Timer</span>}
             </button>
-            <Link href="/lab/quiz" className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-100 hover:bg-purple-500/50 transition-colors font-medium whitespace-nowrap inline-flex items-center gap-1">
+            <Link href="/lab/quiz" className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-100 hover:bg-purple-500/50 transition-colors font-medium whitespace-nowrap inline-flex flex-wrap items-center gap-1">
               <BrainIcon size={10} /> Quiz
             </Link>
-            <Link href={`/lab/${domain}`} className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors font-medium whitespace-nowrap inline-flex items-center gap-1">
+            <Link href={`/lab/${domain}`} className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors font-medium whitespace-nowrap inline-flex flex-wrap items-center gap-1">
               <FileTextIcon size={10} /> Steps
             </Link>
           </div>
         </div>
 
         <div className="p-5 sm:p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center text-sm font-bold text-teal-700 dark:text-teal-300 shadow-sm">
+          <div className="flex flex-wrap items-center gap-3 mb-3">
+            <div className="w-9 h-9 rounded-full bg-teal-100 dark:bg-teal-900/30 flex flex-wrap items-center justify-center text-sm font-bold text-teal-700 dark:text-teal-300 shadow-sm">
               {stepNumber}
             </div>
             <div>
@@ -528,12 +528,12 @@ export default function LabProjectViewer({
           {/* Learning objectives */}
           {learningObjectives.length > 0 && (
             <div className="mt-4 p-3 rounded-xl bg-teal-50 dark:bg-teal-900/10 border border-teal-200 dark:border-teal-800">
-              <h4 className="text-xs font-bold text-teal-700 dark:text-teal-300 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-teal-700 dark:text-teal-300 uppercase tracking-wide mb-2 flex flex-wrap items-center gap-1.5">
                 <TargetIcon size={12} /> Learning Objectives
               </h4>
               <ul className="space-y-1">
                 {learningObjectives.map((obj, i) => (
-                  <li key={i} className="text-xs text-teal-800 dark:text-teal-200 flex items-start gap-1.5">
+                  <li key={i} className="text-xs text-teal-800 dark:text-teal-200 flex flex-wrap items-start gap-1.5">
                     <span className="text-teal-500 mt-0.5">→</span>
                     {obj}
                   </li>
@@ -546,14 +546,14 @@ export default function LabProjectViewer({
           {datasetUrl && (
             <div className="mt-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
               <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-                <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide flex items-center gap-1.5">
+                <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide flex flex-wrap items-center gap-1.5">
                   <ChartBarIcon size={12} /> Dataset
                 </h4>
                 <a
                   href={datasetUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[10px] px-2.5 py-1 rounded-full bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors inline-flex items-center gap-1"
+                  className="text-[10px] px-2.5 py-1 rounded-full bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors inline-flex flex-wrap items-center gap-1"
                 >
                   <ExternalLinkIcon size={10} /> View on {sourceName}
                 </a>
@@ -561,8 +561,8 @@ export default function LabProjectViewer({
 
               {/* Filename panel. */}
               {sourceMatchesPath ? (
-                <div className="mb-2 p-2.5 rounded-lg bg-white dark:bg-gray-900 border border-green-300 dark:border-green-800 flex items-center gap-2.5">
-                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 font-bold whitespace-nowrap flex-shrink-0 inline-flex items-center gap-1"><IconCheck size={10} /> Matches {sourceName}</span>
+                <div className="mb-2 p-2.5 rounded-lg bg-white dark:bg-gray-900 border border-green-300 dark:border-green-800 flex flex-wrap items-center gap-2.5">
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 font-bold whitespace-nowrap flex-shrink-0 inline-flex flex-wrap items-center gap-1"><IconCheck size={10} /> Matches {sourceName}</span>
                   <div className="flex-1 min-w-0">
                     <CopyInline value={sourceFilename} />
                   </div>
@@ -612,7 +612,7 @@ export default function LabProjectViewer({
           {/* Schema columns */}
           {schema && schema.length > 0 && (
             <div className="mt-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-              <h4 className="text-xs font-bold text-bleepx-text-secondary uppercase tracking-wide mb-2 flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-bleepx-text-secondary uppercase tracking-wide mb-2 flex flex-wrap items-center gap-1.5">
                 <FolderIcon size={12} /> Dataset Columns
               </h4>
               <div className="flex flex-wrap gap-1.5">
@@ -628,8 +628,8 @@ export default function LabProjectViewer({
       {/* Python/R language toggle for dual-language domains */}
       {isDualLang && (
         <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border p-4">
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold text-bleepx-text uppercase tracking-wide flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center justify-between">
+            <h4 className="text-xs font-bold text-bleepx-text uppercase tracking-wide flex flex-wrap items-center gap-1.5">
               <CodeIcon size={12} /> Code Language
             </h4>
             <div className="inline-flex rounded-full bg-gray-100 dark:bg-gray-800 p-0.5 border border-gray-200 dark:border-gray-700">
@@ -668,11 +668,11 @@ export default function LabProjectViewer({
 
       {/* Python Terminal — Try It Yourself */}
       <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border overflow-hidden">
-        <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-5 py-3 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+        <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-5 py-3 flex flex-wrap items-center justify-between">
+          <h3 className="text-sm font-bold text-white flex flex-wrap items-center gap-2">
             <span className="text-lg">{codeLang === 'r' ? <IconLetterR size={20} /> : <IconBrandPython size={20} />}</span> Try It Yourself {codeLang === 'r' ? '(R reference — run Python in editor)' : ''}
           </h3>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {stepSolved && (
               <span className="text-[10px] font-bold text-green-400 px-2 py-0.5 rounded-full bg-green-900/40 border border-green-700">
                 Solved
@@ -704,7 +704,7 @@ import numpy as np
           />
           {codeLang === 'r' && rSolutionCode && (
             <div className="mt-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
-              <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 mb-2 flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 mb-2 flex flex-wrap items-center gap-1.5">
                 <IconLetterR size={12} /> R Solution Reference
               </h4>
               <pre className="text-xs bg-gray-900 text-gray-100 rounded-lg p-3 overflow-x-auto font-mono"><code>{rSolutionCode}</code></pre>
@@ -717,9 +717,9 @@ import numpy as np
       </div>
 
       {/* Progress bar */}
-      <div className="flex items-center gap-3 px-1">
+      <div className="flex flex-wrap items-center gap-3 px-1">
         <BleepxFace size={16} />
-        <div className="flex-1 h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div className="min-w-0 flex-1 h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full transition-all duration-500"
             style={{ width: `${sections.length > 0 ? (completedSections.size / sections.length) * 100 : 0}%` }}
@@ -746,7 +746,7 @@ import numpy as np
             {/* Section header — compact */}
             <button
               onClick={() => toggleSection(idx)}
-              className="w-full px-4 py-3 flex items-center gap-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors rounded-t-2xl"
+              className="w-full px-4 py-3 flex flex-wrap items-center gap-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors rounded-t-2xl"
             >
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 transition-colors ${
                 isComplete
@@ -755,7 +755,7 @@ import numpy as np
               }`}>
                 {isComplete ? <IconCheck size={12} /> : idx + 1}
               </div>
-              <h3 className="flex-1 min-w-0 font-bold text-bleepx-text text-sm truncate">{section.title}</h3>
+              <h3 className="flex-1 min-w-0 font-bold text-bleepx-text text-sm whitespace-normal break-words">{section.title}</h3>
               <svg
                 className={`w-3.5 h-3.5 text-bleepx-text-secondary transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`}
                 fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
@@ -778,7 +778,7 @@ import numpy as np
                     <SpoilerCodeBlock code={section.r_code.trim()} language="R" />
                   ) : (
                     <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 text-center">
-                      <p className="text-xs text-blue-600 dark:text-blue-400 font-medium inline-flex items-center gap-1">
+                      <p className="text-xs text-blue-600 dark:text-blue-400 font-medium inline-flex flex-wrap items-center gap-1">
                         <IconLetterR size={12} /> R code not yet available for this section — showing Python below
                       </p>
                       <SpoilerCodeBlock code={section.code.trim()} language={language} onSendToEditor={sendToEditor} />
@@ -790,7 +790,7 @@ import numpy as np
 
                 {/* Bleepx explanation */}
                 <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800">
-                  <div className="flex items-start gap-2">
+                  <div className="flex flex-wrap items-start gap-2">
                     <BleepxFace size={20} />
                     <div>
                       <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Bleepx says:</span>
@@ -803,13 +803,13 @@ import numpy as np
                 {!isComplete ? (
                   <button
                     onClick={() => markSectionComplete(idx)}
-                    className="px-5 py-2 rounded-full bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-all shadow-sm hover:shadow-md active:scale-95 flex items-center gap-2"
+                    className="px-5 py-2 rounded-full bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-all shadow-sm hover:shadow-md active:scale-95 flex flex-wrap items-center gap-2"
                   >
                     <BleepxFace size={14} />
                     Mark as Complete
                   </button>
                 ) : (
-                  <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
                     <IconCheck size={14} /> Section complete — *bleep*
                   </div>
                 )}
@@ -824,7 +824,7 @@ import numpy as np
         <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border p-4 sm:p-5">
           <button
             onClick={() => setShowThoughtProcess(!showThoughtProcess)}
-            className="flex items-center gap-2 w-full text-left group"
+            className="flex flex-wrap items-center gap-2 w-full text-left group"
           >
             <BrainIcon size={20} className="inline" />
             <span className="text-sm font-bold text-bleepx-text group-hover:text-teal-600 transition-colors">
@@ -840,8 +840,8 @@ import numpy as np
           {showThoughtProcess && (
             <ol className="mt-3 space-y-2">
               {thoughtProcess.map((step, i) => (
-                <li key={i} className="text-xs text-bleepx-text-secondary flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center text-[10px] font-bold text-teal-700 dark:text-teal-300 flex-shrink-0 mt-0.5">{i + 1}</span>
+                <li key={i} className="text-xs text-bleepx-text-secondary flex flex-wrap items-start gap-2">
+                  <span className="w-5 h-5 rounded-full bg-teal-100 dark:bg-teal-900/30 flex flex-wrap items-center justify-center text-[10px] font-bold text-teal-700 dark:text-teal-300 flex-shrink-0 mt-0.5">{i + 1}</span>
                   <span>{step}</span>
                 </li>
               ))}
@@ -855,7 +855,7 @@ import numpy as np
         <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border p-4 sm:p-5">
           <button
             onClick={() => setShowHints(!showHints)}
-            className="flex items-center gap-2 w-full text-left group"
+            className="flex flex-wrap items-center gap-2 w-full text-left group"
           >
             <BleepxGhost size={20} />
             <span className="text-sm font-bold text-bleepx-text group-hover:text-amber-600 transition-colors">
@@ -871,7 +871,7 @@ import numpy as np
           {showHints && (
             <ul className="mt-3 space-y-2">
               {hints.map((hint, i) => (
-                <li key={i} className="text-xs text-bleepx-text-secondary flex items-start gap-2">
+                <li key={i} className="text-xs text-bleepx-text-secondary flex flex-wrap items-start gap-2">
                   <BulbIcon size={12} className="text-amber-500 mt-0.5" />
                   <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-[11px]">{hint}</code>
                 </li>
@@ -885,7 +885,7 @@ import numpy as np
       <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border p-4 sm:p-5">
         <button
           onClick={() => setShowVizGuide(!showVizGuide)}
-          className="flex items-center gap-2 w-full text-left group"
+          className="flex flex-wrap items-center gap-2 w-full text-left group"
         >
           <ChartBarIcon size={20} className="inline" />
           <span className="text-sm font-bold text-bleepx-text group-hover:text-indigo-600 transition-colors">
@@ -944,15 +944,15 @@ import numpy as np
 
       {/* GitHub Export */}
       <div className="bg-bleepx-white rounded-2xl shadow-sm border border-bleepx-border p-4 sm:p-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between">
+          <div className="flex flex-wrap items-center gap-2">
             <BleepxGitHub size={20} />
             <span className="text-sm font-bold text-bleepx-text">Export to GitHub</span>
           </div>
           <button
             onClick={handleGitHubPush}
             disabled={pushStatus === 'Pushing...'}
-            className="text-xs px-3 py-1.5 rounded-full bg-gray-900 text-white font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+            className="text-xs px-3 py-1.5 rounded-full bg-gray-900 text-white font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 flex flex-wrap items-center gap-1.5"
           >
             <BleepxGitHub size={14} />
             {pushStatus === 'Pushing...' ? 'Pushing...' : 'Push to GitHub'}
@@ -981,19 +981,19 @@ import numpy as np
             <div className="mt-4 space-y-3">
               <Link
                 href={`/lab/${domain}/${nextStep.id}`}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-all shadow-md hover:shadow-lg active:scale-95"
+                className="inline-flex flex-wrap items-center gap-2 px-6 py-2.5 rounded-full bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-all shadow-md hover:shadow-lg active:scale-95"
               >
                 <BleepxFace size={16} />
                 Continue to {nextStep.name} →
               </Link>
               {countdown !== null && countdown > 0 && (
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex flex-wrap items-center justify-center gap-2">
                   <div className="relative w-8 h-8">
                     <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
                       <circle cx="18" cy="18" r="15" fill="none" className="stroke-gray-200 dark:stroke-gray-700" strokeWidth="3" />
                       <circle cx="18" cy="18" r="15" fill="none" className="stroke-teal-500" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${(countdown / 10) * 94.2} 94.2`} />
                     </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-teal-700 dark:text-teal-300">{countdown}</span>
+                    <span className="absolute inset-0 flex flex-wrap items-center justify-center text-[10px] font-bold text-teal-700 dark:text-teal-300">{countdown}</span>
                   </div>
                   <span className="text-xs text-teal-600 dark:text-teal-400">Auto-advancing...</span>
                   <button
@@ -1017,7 +1017,7 @@ import numpy as np
       {/* Sections read — gentle nudge to try the code */}
       {allComplete && !stepSolved && (
         <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/10 dark:to-yellow-900/10 rounded-2xl border border-amber-200 dark:border-amber-700 p-4 text-center">
-          <p className="text-sm text-amber-700 dark:text-amber-300 font-medium flex items-center justify-center gap-2">
+          <p className="text-sm text-amber-700 dark:text-amber-300 font-medium flex flex-wrap items-center justify-center gap-2">
             <BleepxFace size={16} />
             *bleep* Sections reviewed! Now run your solution in the editor above to earn points.
           </p>
@@ -1029,36 +1029,36 @@ import numpy as np
         {prevStep ? (
           <Link
             href={`/lab/${domain}/${prevStep.id}`}
-            className="flex-1 min-w-0 max-w-[48%] px-3 sm:px-4 py-2 rounded-full border-2 border-bleepx-border text-xs sm:text-sm font-bold text-bleepx-text-secondary hover:bg-teal-50 dark:hover:bg-teal-900/10 transition-colors flex items-center gap-1"
+            className="flex-1 min-w-0 max-w-[48%] px-3 sm:px-4 py-2 rounded-full border-2 border-bleepx-border text-xs sm:text-sm font-bold text-bleepx-text-secondary hover:bg-teal-50 dark:hover:bg-teal-900/10 transition-colors flex flex-wrap items-center gap-1"
             title={prevStep.name}
           >
             <span className="flex-shrink-0">←</span>
-            <span className="truncate"><span className="hidden sm:inline">Prev: </span>{prevStep.name}</span>
+            <span className="whitespace-normal break-words"><span className="hidden sm:inline">Prev: </span>{prevStep.name}</span>
           </Link>
         ) : (
           <Link
             href={`/lab/${domain}`}
-            className="flex-1 min-w-0 max-w-[48%] px-3 sm:px-4 py-2 rounded-full border-2 border-bleepx-border text-xs sm:text-sm font-bold text-bleepx-text-secondary hover:bg-teal-50 dark:hover:bg-teal-900/10 transition-colors flex items-center gap-1"
+            className="flex-1 min-w-0 max-w-[48%] px-3 sm:px-4 py-2 rounded-full border-2 border-bleepx-border text-xs sm:text-sm font-bold text-bleepx-text-secondary hover:bg-teal-50 dark:hover:bg-teal-900/10 transition-colors flex flex-wrap items-center gap-1"
           >
             <span className="flex-shrink-0">←</span>
-            <span className="truncate">All Steps</span>
+            <span className="whitespace-normal break-words">All Steps</span>
           </Link>
         )}
         {nextStep ? (
           <Link
             href={`/lab/${domain}/${nextStep.id}`}
-            className="flex-1 min-w-0 max-w-[48%] px-3 sm:px-4 py-2 rounded-full bg-teal-600 text-white text-xs sm:text-sm font-bold hover:bg-teal-700 transition-all shadow-sm hover:shadow-md flex items-center justify-end gap-1"
+            className="flex-1 min-w-0 max-w-[48%] px-3 sm:px-4 py-2 rounded-full bg-teal-600 text-white text-xs sm:text-sm font-bold hover:bg-teal-700 transition-all shadow-sm hover:shadow-md flex flex-wrap items-center justify-end gap-1"
             title={nextStep.name}
           >
-            <span className="truncate"><span className="hidden sm:inline">Next: </span>{nextStep.name}</span>
+            <span className="whitespace-normal break-words"><span className="hidden sm:inline">Next: </span>{nextStep.name}</span>
             <span className="flex-shrink-0">→</span>
           </Link>
         ) : (
           <Link
             href={`/lab/${domain}`}
-            className="flex-1 min-w-0 max-w-[48%] px-3 sm:px-4 py-2 rounded-full bg-teal-600 text-white text-xs sm:text-sm font-bold hover:bg-teal-700 transition-all shadow-sm hover:shadow-md flex items-center justify-end gap-1"
+            className="flex-1 min-w-0 max-w-[48%] px-3 sm:px-4 py-2 rounded-full bg-teal-600 text-white text-xs sm:text-sm font-bold hover:bg-teal-700 transition-all shadow-sm hover:shadow-md flex flex-wrap items-center justify-end gap-1"
           >
-            <span className="truncate">Back to Project</span>
+            <span className="whitespace-normal break-words">Back to Project</span>
             <span className="flex-shrink-0">→</span>
           </Link>
         )}

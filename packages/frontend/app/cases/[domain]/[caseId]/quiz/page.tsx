@@ -60,7 +60,7 @@ export default async function QuizPage({
   const allCaseIds = fullCaseOrder[domainKey] || caseOrder[domainKey] || [];
 
   return (
-    <main className="max-w-4xl mx-auto px-2 md:px-4 lg:px-6 py-4 space-y-6 bg-bleepx-bg min-h-screen">
+    <main className="max-w-4xl mx-auto px-2 md:px-4 lg:px-6 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-20">
       {/* Breadcrumb */}
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/" className="hover:underline">Home</Link>
@@ -72,7 +72,7 @@ export default async function QuizPage({
         <span className="font-semibold text-bleepx-gray">Quiz</span>
       </nav>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <BleepxLogo />
         <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text">SQL Knowledge Quiz</h1>
       </div>

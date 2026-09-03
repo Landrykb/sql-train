@@ -217,7 +217,7 @@ ${getJSCode()}
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-6 sm:p-8" aria-live="polite">
+      <div className="flex flex-wrap items-center justify-center p-6 sm:p-8" aria-live="polite">
         <Spinner />
         <span className="ml-2 text-sm text-bleepx-gray">*bleep* Generating visualizations...</span>
       </div>
@@ -226,7 +226,7 @@ ${getJSCode()}
 
   if (error) {
     return (
-      <div className="p-4 sm:p-6 rounded-xl shadow-lg text-sm bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200" role="alert">
+      <div className="p-4 sm:p-6 rounded-xl shadow-lg text-sm bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 max-w-[calc(100vw-1rem)]" role="alert">
         *bleep* Visualization error: {error}
       </div>
     );
@@ -282,7 +282,7 @@ ${getJSCode()}
                   : 'text-bleepx-text-secondary hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
-              {t === 'chart' ? <span className="inline-flex items-center gap-1.5"><ChartBarIcon size={14} className="inline" /> Chart</span> : t === 'data' ? <span className="inline-flex items-center gap-1.5"><FileTextIcon size={14} className="inline" /> Data</span> : <span className="inline-flex items-center gap-1.5"><CodeIcon size={14} className="inline" /> Code</span>}
+              {t === 'chart' ? <span className="inline-flex flex-wrap items-center gap-1.5"><ChartBarIcon size={14} className="inline" /> Chart</span> : t === 'data' ? <span className="inline-flex flex-wrap items-center gap-1.5"><FileTextIcon size={14} className="inline" /> Data</span> : <span className="inline-flex flex-wrap items-center gap-1.5"><CodeIcon size={14} className="inline" /> Code</span>}
             </button>
           ))}
         </div>
@@ -316,7 +316,7 @@ ${getJSCode()}
 
           {tab === 'data' && currentChart && (
             <div>
-              <div className="flex justify-between items-center mb-3">
+              <div className="flex flex-wrap justify-between items-center mb-3">
                 <h3 className="text-base font-bold text-bleepx-text">Query Results</h3>
                 <span className="text-xs text-bleepx-text-secondary">{currentChart.rows.length} rows</span>
               </div>
@@ -329,21 +329,21 @@ ${getJSCode()}
           {tab === 'code' && currentChart && (
             <div className="space-y-4">
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between mb-2">
                   <h4 className="text-sm font-bold text-bleepx-text">SQL Query</h4>
                   <button onClick={() => navigator.clipboard.writeText(currentChart.query)} className="text-[10px] text-bleepx-blue hover:underline">Copy</button>
                 </div>
                 <pre className="bg-gray-900 text-green-400 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap break-words">{currentChart.query}</pre>
               </div>
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between mb-2">
                   <h4 className="text-sm font-bold text-bleepx-text">JavaScript (Plotly.js)</h4>
                   <button onClick={() => navigator.clipboard.writeText(getJSCode())} className="text-[10px] text-bleepx-blue hover:underline">Copy</button>
                 </div>
                 <pre className="bg-gray-900 text-blue-300 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap break-words max-h-[300px]">{getJSCode()}</pre>
               </div>
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between mb-2">
                   <h4 className="text-sm font-bold text-bleepx-text">Python (Plotly Express)</h4>
                   <button onClick={() => navigator.clipboard.writeText(getPythonCode())} className="text-[10px] text-bleepx-blue hover:underline">Copy</button>
                 </div>
@@ -359,7 +359,7 @@ ${getJSCode()}
         <div className="rounded-xl shadow-sm border p-4 sm:p-6 bg-bleepx-white border-bleepx-border">
           <h3 className="text-base font-bold mb-2 text-bleepx-text">Your SQL Query</h3>
           <p className="text-xs mb-2 text-bleepx-text-secondary">This is the query you wrote to solve this challenge.</p>
-          <pre className="bg-gray-900 text-green-400 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap">{userQuery}</pre>
+          <pre className="bg-gray-900 text-green-400 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap break-words">{userQuery}</pre>
         </div>
       )}
 
@@ -413,7 +413,7 @@ ${getJSCode()}
                 setPushing(false);
                 setPushMsg(null);
               }}
-              className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors flex flex-wrap items-center gap-1.5 disabled:opacity-50"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
               {pushing ? pushMsg || 'Pushing...' : 'Push to GitHub'}
@@ -421,7 +421,7 @@ ${getJSCode()}
           ) : (
             <button
               onClick={() => startGitHubLogin()}
-              className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-1.5"
+              className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors flex flex-wrap items-center gap-1.5"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
               Sign In to Push to GitHub
@@ -445,7 +445,7 @@ ${getJSCode()}
             <IconCheck size={16} className="inline" /> Pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline text-bleepx-blue">{pushResult.repoUrl}</a>
           </p>
         )}
-        {pushResult?.error && <p className="mt-2 text-sm text-red-600 inline-flex items-center gap-1.5"><IconX size={16} className="inline" /> {pushResult.error}</p>}
+        {pushResult?.error && <p className="mt-2 text-sm text-red-600 inline-flex flex-wrap items-center gap-1.5"><IconX size={16} className="inline" /> {pushResult.error}</p>}
         <p className="text-xs mt-2 text-bleepx-text-secondary">
           Push creates a <code>sql-portfolio</code> repo organized as <code>{domain}/{caseId}/</code> with your query, visualizations, and data.
         </p>

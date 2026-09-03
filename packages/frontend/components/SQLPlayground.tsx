@@ -81,7 +81,7 @@ const CodeMirror = dynamic(
       return CodeMirrorFallback;
     }
   },
-  { ssr: false, loading: () => <div className="flex items-center justify-center p-4"><Spinner /><span className="ml-2 text-bleepx-gray">Bleepx is loading the editor...</span></div> }
+  { ssr: false, loading: () => <div className="flex flex-wrap items-center justify-center p-4"><Spinner /><span className="ml-2 text-bleepx-gray">Bleepx is loading the editor...</span></div> }
 );
 
 const Chip: React.FC<{ label: string; onClick(): void }> = ({ label, onClick }) => (
@@ -492,8 +492,8 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
     const canSkip = points >= skipCost;
     return (
       <div className="max-w-6xl mx-auto p-8 bg-bleepx-bg min-h-screen">
-        <div className="p-6 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded-xl shadow-lg" role="alert">
-          <div className="flex items-center gap-2">
+        <div className="p-6 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded-xl shadow-lg max-w-[calc(100vw-1rem)]" role="alert">
+          <div className="flex flex-wrap items-center gap-2">
             <img src="/bleepx-icon.png" alt="Bleepx" className="h-5 w-5" />
             <span>{getLockedMessage(prerequisites)}</span>
           </div>
@@ -517,7 +517,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 canSkip ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
               }`}
             >
-              {canSkip ? <span className="inline-flex items-center gap-1"><BoltIcon size={14} /> Skip Prerequisite ({skipCost} pts)</span> : <span className="inline-flex items-center gap-1"><LockIcon size={14} /> Need {skipCost} pts to skip</span>}
+              {canSkip ? <span className="inline-flex flex-wrap items-center gap-1"><BoltIcon size={14} /> Skip Prerequisite ({skipCost} pts)</span> : <span className="inline-flex flex-wrap items-center gap-1"><LockIcon size={14} /> Need {skipCost} pts to skip</span>}
             </button>
           </div>
         </div>
@@ -528,7 +528,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
   if (loadError) {
     return (
       <div className="max-w-6xl mx-auto p-8 bg-bleepx-bg min-h-screen">
-        <div className="p-6 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded-xl shadow-lg" role="alert">{loadError}</div>
+        <div className="p-6 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded-xl shadow-lg max-w-[calc(100vw-1rem)]" role="alert">{loadError}</div>
       </div>
     );
   }
@@ -537,8 +537,8 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
 
   if (!dbReady && !trialBriefing) {
     return (
-      <Suspense fallback={<div className="flex items-center justify-center p-8"><Spinner /><span className="ml-2 text-bleepx-gray">Loading...</span></div>}>
-        <div className="flex items-center justify-center p-8" aria-live="polite">
+      <Suspense fallback={<div className="flex flex-wrap items-center justify-center p-8"><Spinner /><span className="ml-2 text-bleepx-gray">Loading...</span></div>}>
+        <div className="flex flex-wrap items-center justify-center p-8" aria-live="polite">
           <Spinner />
           <span className="ml-2 text-bleepx-gray">{pickRandom(loadingMessages)}</span>
         </div>
@@ -597,7 +597,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
     return (
       <div className="max-w-3xl mx-auto px-4 sm:px-8 py-8 sm:py-16 min-h-screen flex flex-col items-center justify-center bg-bleepx-bg text-bleepx-text">
         <div className="w-full bg-bleepx-white rounded-2xl shadow-2xl p-6 sm:p-10 border border-bleepx-border">
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex flex-wrap items-center gap-3 mb-6">
             <div className="animate-pulse-logo"><BleepxGhost size={40} /></div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-gray">{name}</h1>
@@ -615,7 +615,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               onClick={() => { playBleep(); startPractice(); }}
               className="w-full p-4 rounded-xl border-2 border-blue-400 dark:border-blue-600 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 hover:shadow-lg hover:scale-[1.01] transition-all text-left"
             >
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
                 <span className="text-bleepx-text"><FileTextIcon size={22} /></span>
                 <span className="font-bold text-bleepx-gray">Practice Mode</span>
                 <span className="ml-auto text-xs font-mono font-bold text-blue-600 dark:text-blue-400">No timer</span>
@@ -662,7 +662,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                       : 'border-green-300 dark:border-green-700 hover:border-green-400 bg-green-50/50 dark:bg-green-900/10 hover:shadow-lg hover:scale-[1.02]'
                     }`}
                   >
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
                       <span className="text-xl">{isDiffUnlocked ? <DifficultyIcon id={diff.id} size={20} /> : <LockIcon size={20} />}</span>
                       <span className="font-bold text-bleepx-gray">{diff.label}</span>
                       <span className="ml-auto text-xs font-mono font-bold text-bleepx-text-secondary">
@@ -678,12 +678,12 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between">
             <Link href={`/cases/${domain}`}>
               <button className="px-4 py-2 rounded-full border border-bleepx-border text-sm text-bleepx-text-secondary hover:bg-bleepx-blue/5 transition-colors">← Back to Trials</button>
             </Link>
             <Link href={`/cases/${domain}/${id}/quiz`}>
-              <button className="px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm inline-flex items-center gap-1"><BrainIcon size={14} /> Take Quiz</button>
+              <button className="px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm inline-flex flex-wrap items-center gap-1"><BrainIcon size={14} /> Take Quiz</button>
             </Link>
           </div>
         </div>
@@ -696,7 +696,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
     <div className="max-w-6xl mx-auto px-3 sm:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6 min-h-screen transition-colors bg-bleepx-bg text-bleepx-text">
       {/* Time expired overlay */}
       {timeExpired && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/60 flex flex-wrap items-center justify-center p-4">
           <div className="bg-bleepx-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full text-center">
             <img src="/bleepx-icon.png" alt="Bleepx" className="h-12 w-12 mx-auto mb-4 opacity-60" />
             <h2 className="text-2xl font-bold text-red-600 mb-2">Time&apos;s Up!</h2>
@@ -714,19 +714,19 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
 
       {/* Next Case bar for completed challenges */}
       {completed.has(id) && !showSuccess && (
-        <div className="flex items-center justify-between p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-          <div className="flex items-center gap-2">
-            <span className="text-green-600 font-bold text-sm inline-flex items-center gap-1"><CheckBadge size={14} className="text-green-600" /> Completed</span>
+        <div className="flex flex-wrap items-center justify-between p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-green-600 font-bold text-sm inline-flex flex-wrap items-center gap-1"><CheckBadge size={14} className="text-green-600" /> Completed</span>
             {prevCaseId && (
               <Link href={`/cases/${domain}/${prevCaseId}`}>
                 <button className="px-3 py-1 rounded-full text-xs border border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800/30 transition-colors">← Previous</button>
               </Link>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isTrial && (
               <Link href={`/cases/${domain}/${id}/quiz`}>
-                <button className="px-4 py-1.5 rounded-full bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm inline-flex items-center gap-1"><BrainIcon size={14} /> Quiz</button>
+                <button className="px-4 py-1.5 rounded-full bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm inline-flex flex-wrap items-center gap-1"><BrainIcon size={14} /> Quiz</button>
               </Link>
             )}
             {nextCaseId ? (
@@ -746,7 +746,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       <div className="flex flex-wrap items-center justify-end gap-2 text-xs relative">
         {isTrial && (
           <Link href={`/cases/${domain}/${id}/quiz`}>
-            <button className="px-3 py-1.5 rounded-full bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors shadow-sm inline-flex items-center gap-1"><BrainIcon size={14} /> Quiz</button>
+            <button className="px-3 py-1.5 rounded-full bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors shadow-sm inline-flex flex-wrap items-center gap-1"><BrainIcon size={14} /> Quiz</button>
           </Link>
         )}
         {!isTrial && (
@@ -754,7 +754,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             if (timerEnabled) { setTimerEnabled(false); setTimeLimit(0); setTimerSeconds(0); }
             else { setTimerSeconds(0); setTimerEnabled(true); }
           }} className={`px-2 py-1 rounded-full border transition-colors border-bleepx-border bg-bleepx-white text-bleepx-text-secondary ${timerEnabled ? 'ring-2 ring-bleepx-blue' : ''}`}>
-            <span className="inline-flex items-center gap-1"><ClockIcon size={14} /> {timerEnabled ? fmtTime(timerSeconds) : 'Timer'}</span>
+            <span className="inline-flex flex-wrap items-center gap-1"><ClockIcon size={14} /> {timerEnabled ? fmtTime(timerSeconds) : 'Timer'}</span>
           </button>
         )}
         {/* Trial: test mode toggle + countdown display */}
@@ -766,24 +766,24 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               : 'border-bleepx-border bg-bleepx-white text-bleepx-text-secondary hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/10'
             }`}
           >
-            <span className="inline-flex items-center gap-1"><FlaskIcon size={14} /> Test Mode</span>
+            <span className="inline-flex flex-wrap items-center gap-1"><FlaskIcon size={14} /> Test Mode</span>
           </button>
         )}
         {isTrial && timerEnabled && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className={`px-3 py-1 rounded-full text-sm font-bold font-mono shadow-sm ${
               timerSeconds <= 30 ? 'bg-red-600 text-white animate-pulse' :
               timerSeconds <= 60 ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300' :
               'bg-bleepx-blue/10 text-bleepx-blue'
             }`}>
-              <span className="inline-flex items-center gap-1"><ClockIcon size={14} /> {fmtTime(timerSeconds)} {selectedDifficulty && <span className="text-xs ml-1 inline-flex items-center gap-1"><DifficultyIcon id={selectedDifficulty.id} size={12} /> {selectedDifficulty.label}</span>}</span>
+              <span className="inline-flex flex-wrap items-center gap-1"><ClockIcon size={14} /> {fmtTime(timerSeconds)} {selectedDifficulty && <span className="text-xs ml-1 inline-flex flex-wrap items-center gap-1"><DifficultyIcon id={selectedDifficulty.id} size={12} /> {selectedDifficulty.label}</span>}</span>
             </span>
             <button
               onClick={deactivateTestMode}
               className="px-2 py-1 rounded-full border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium"
               title="Stop test mode"
             >
-              <span className="inline-flex items-center gap-1"><ErrorIcon size={12} /> Stop</span>
+              <span className="inline-flex flex-wrap items-center gap-1"><ErrorIcon size={12} /> Stop</span>
             </button>
             <button
               onClick={() => setShowTestModePicker((v) => !v)}
@@ -823,7 +823,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                     : 'border-bleepx-border hover:border-bleepx-blue hover:bg-bleepx-blue/5'
                   }`}
                 >
-                  <span className="font-bold inline-flex items-center gap-1">{isDiffUnlocked ? <DifficultyIcon id={diff.id} size={14} /> : <LockIcon size={14} />} {diff.label}</span>
+                  <span className="font-bold inline-flex flex-wrap items-center gap-1">{isDiffUnlocked ? <DifficultyIcon id={diff.id} size={14} /> : <LockIcon size={14} />} {diff.label}</span>
                   <span className="ml-auto float-right font-mono">{isDiffUnlocked ? fmtTime(diff.timeLimitSeconds) : `${unlockCost} pts`}</span>
                 </button>
               );
@@ -835,14 +835,14 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           <span className={`px-2 py-1 rounded-full text-xs font-bold ${
             timerSeconds <= 60 ? 'bg-red-600 text-white animate-pulse' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
           }`}>
-            <span className="inline-flex items-center gap-1"><FlaskIcon size={12} /> TEST MODE — {fmtTime(timerSeconds)}</span>
+            <span className="inline-flex flex-wrap items-center gap-1"><FlaskIcon size={12} /> TEST MODE — {fmtTime(timerSeconds)}</span>
           </span>
         )}
         <span className="hidden sm:inline px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">⌘/Ctrl+Enter = Run · ⌘/Ctrl+Shift+C = Clear</span>
       </div>
 
       <nav className="text-xs sm:text-sm font-medium text-bleepx-blue overflow-x-auto" aria-label="Breadcrumb">
-        <ol className="flex space-x-1.5 sm:space-x-2 items-center whitespace-nowrap">
+        <ol className="flex flex-wrap space-x-1.5 sm:space-x-2 items-center whitespace-nowrap">
           <li><Link href="/" className="hover:underline">Home</Link></li>
           <li className="text-gray-400">/</li>
           <li className="hidden sm:block"><Link href="/cases" className="hover:underline">Challenges</Link></li>
@@ -855,11 +855,11 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
 
       <header className="bg-gradient-to-r from-bleepx-blue/10 to-bleepx-pink/10 p-4 sm:p-6 rounded-xl shadow-lg">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <img src="/bleepx-icon.png" alt="Bleepx" className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse-logo" />
-            <h1 className="text-xl sm:text-3xl font-bold text-bleepx-gray">{name}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-gray">{name}</h1>
           </div>
-          <span className="text-xs sm:text-sm text-bleepx-gray inline-flex items-center gap-1">Mission {currentIndex >= 0 ? currentIndex + 1 : '?'} of {currentOrder.length || '?'} — {tier <= 1 ? 'Beginner' : tier === 2 ? 'Intermediate' : tier === 3 ? 'Advanced' : tier === 4 ? 'Expert' : 'Master'} <StarRating stars={Math.min(tier || 1, 5)} size={12} /></span>
+          <span className="text-xs sm:text-sm text-bleepx-gray inline-flex flex-wrap items-center gap-1">Mission {currentIndex >= 0 ? currentIndex + 1 : '?'} of {currentOrder.length || '?'} — {tier <= 1 ? 'Beginner' : tier === 2 ? 'Intermediate' : tier === 3 ? 'Advanced' : tier === 4 ? 'Expert' : 'Master'} <StarRating stars={Math.min(tier || 1, 5)} size={12} /></span>
         </div>
         <p className="mt-2 text-bleepx-gray">{instructions || description}</p>
         {skills.length > 0 && (
@@ -900,10 +900,10 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           </div>
           {/* Schema Explorer */}
           {showSchema && tables.length > 0 && (
-            <div className="mt-3 rounded-lg border p-3 text-xs bg-bleepx-bg border-bleepx-border">
+            <div className="mt-3 rounded-lg border p-3 text-xs bg-bleepx-bg border-bleepx-border overflow-x-auto">
               {tables.map((table) => (
                 <div key={table.name} className="mb-3 last:mb-0">
-                  <div className="font-semibold text-sm mb-1 flex items-center gap-1">
+                  <div className="font-semibold text-sm mb-1 flex flex-wrap items-center gap-1">
                     <FolderIcon size={14} />
                     <button onClick={() => insertAtCursor(table.name + ' ')} className="hover:text-bleepx-blue cursor-pointer">
                       {table.name}
@@ -923,8 +923,8 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           )}
           {/* Expected Output Preview */}
           {showExpected && expected.length > 0 && (
-            <div className="mt-3 rounded-lg border p-3 text-xs bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
-              <p className="font-semibold text-sm mb-2 flex items-center gap-1"><TargetIcon size={14} /> Expected Output Shape</p>
+            <div className="mt-3 rounded-lg border p-3 text-xs bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 overflow-x-auto">
+              <p className="font-semibold text-sm mb-2 flex flex-wrap items-center gap-1"><TargetIcon size={14} /> Expected Output Shape</p>
               <p><strong>Columns:</strong> {expected.length > 0 ? Object.keys((expected as Record<string, any>[])[0]).join(', ') : '—'}</p>
               <p><strong>Rows:</strong> {expected.length}</p>
               <p className="mt-1 italic text-bleepx-text-secondary">Match these columns and row count to pass.</p>
@@ -933,15 +933,15 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           {/* Query History */}
           {showHistory && (
             <div className="mt-3 rounded-lg border p-3 text-xs max-h-[200px] overflow-y-auto bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800">
-              <p className="font-semibold text-sm mb-2 flex items-center gap-1"><HistoryIcon size={14} /> Query History</p>
+              <p className="font-semibold text-sm mb-2 flex flex-wrap items-center gap-1"><HistoryIcon size={14} /> Query History</p>
               {queryHistory.length === 0 ? (
                 <p className="text-bleepx-text-secondary">No queries yet.</p>
               ) : (
                 <div className="space-y-1.5">
                   {queryHistory.map((h, i) => (
-                    <div key={i} className="flex items-start gap-2 p-1.5 rounded cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30" onClick={() => { setQuery(h.query); setShowHistory(false); }}>
+                    <div key={i} className="flex flex-wrap items-start gap-2 p-1.5 rounded cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30" onClick={() => { setQuery(h.query); setShowHistory(false); }}>
                       <span className="flex-shrink-0 mt-0.5">{h.success === true ? <CheckBadge size={12} className="text-green-600" /> : h.success === false ? <ErrorIcon size={12} className="text-red-500" /> : <CircleIcon size={12} className="text-gray-400" />}</span>
-                      <pre className="whitespace-pre-wrap break-words flex-1 font-mono text-bleepx-text">{h.query}</pre>
+                      <pre className="whitespace-pre-wrap break-words min-w-0 flex-1 font-mono text-bleepx-text">{h.query}</pre>
                       <span className="flex-shrink-0 text-[10px] text-bleepx-text-secondary">{new Date(h.ts).toLocaleTimeString()}</span>
                     </div>
                   ))}
@@ -999,13 +999,13 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               </button>
             )}
             <Link href={`/cases/${domain}/${id}/visualizations`}>
-              <button className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-indigo-600 text-white text-sm sm:text-base hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-all duration-200 inline-flex items-center gap-1">
+              <button className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-indigo-600 text-white text-sm sm:text-base hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-all duration-200 inline-flex flex-wrap items-center gap-1">
                 <ChartBarIcon size={16} /> Visualizations
               </button>
             </Link>
           </div>
           {message && (
-            <div className="mt-4 flex items-start gap-2.5" role="status">
+            <div className="mt-4 flex flex-wrap items-start gap-2.5" role="status">
               <img src="/bleepx-icon.png" alt="Bleepx" className="h-7 w-7 rounded-full ring-2 ring-bleepx-blue/30 flex-shrink-0 mt-0.5" />
               <div
                 className={`relative px-4 py-3 rounded-2xl rounded-tl-sm shadow-md max-w-[90%] text-sm font-medium transition-all duration-500 ${
@@ -1023,15 +1023,15 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           )}
           {errorHelp && (
             <div className="mt-3 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 shadow-sm animate-fade-in">
-              <h3 className="text-sm font-bold text-red-800 dark:text-red-200 flex items-center gap-2 mb-2">
+              <h3 className="text-sm font-bold text-red-800 dark:text-red-200 flex flex-wrap items-center gap-2 mb-2">
                 <SearchIcon size={16} /> {errorHelp.title}
               </h3>
               <p className="text-xs text-red-700 dark:text-red-300 mb-3 leading-relaxed">{errorHelp.explanation}</p>
               <div className="space-y-1.5">
                 <p className="text-xs font-semibold text-red-800 dark:text-red-200">How to fix:</p>
                 {errorHelp.suggestions.map((s, i) => (
-                  <div key={i} className="flex items-start gap-2 text-xs text-red-700 dark:text-red-300">
-                    <span className="flex-shrink-0 w-4 h-4 rounded-full bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200 text-[10px] font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
+                  <div key={i} className="flex flex-wrap items-start gap-2 text-xs text-red-700 dark:text-red-300">
+                    <span className="flex-shrink-0 w-4 h-4 rounded-full bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200 text-[10px] font-bold flex flex-wrap items-center justify-center mt-0.5">{i + 1}</span>
                     <span className="leading-relaxed">{s}</span>
                   </div>
                 ))}
@@ -1039,7 +1039,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               {errorHelp.guideSection && guideData && (
                 <button
                   onClick={() => { setGuideSection(errorHelp.guideSection); setGuideOpen(true); }}
-                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/60 transition-colors"
+                  className="mt-3 inline-flex flex-wrap items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/60 transition-colors"
                 >
                   <GuideIcon size={14} /> Open {errorHelp.guideSection.toUpperCase()} in GuideBook
                 </button>
@@ -1048,7 +1048,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           )}
           {showSolution && (
             <div className="mt-4 bg-bleepx-gray/5 p-4 rounded-xl shadow-sm">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex flex-wrap items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold text-bleepx-gray">*bleep* Fine. Here&apos;s how I&apos;d do it:</h3>
                 {solutionQuery && (
                   <div className="flex rounded-full bg-gray-200 dark:bg-gray-700 p-0.5 text-[11px] font-medium">
@@ -1073,12 +1073,12 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                     <>
                       <SqlDiff userQuery={query} solutionQuery={solutionQuery} />
                       <div className="mt-2 flex gap-3 text-[10px] text-bleepx-text-secondary">
-                        <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-green-200 dark:bg-green-900/50" /> Missing from your query</span>
-                        <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-red-200 dark:bg-red-900/50" /> Extra in your query</span>
+                        <span className="flex flex-wrap items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-green-200 dark:bg-green-900/50" /> Missing from your query</span>
+                        <span className="flex flex-wrap items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-red-200 dark:bg-red-900/50" /> Extra in your query</span>
                       </div>
                     </>
                   ) : (
-                    <pre className="text-sm whitespace-pre-wrap leading-relaxed text-bleepx-gray bg-gray-900 dark:bg-gray-950 text-green-400 p-3 rounded-lg overflow-x-auto">{solutionQuery}</pre>
+                    <pre className="text-sm whitespace-pre-wrap break-words leading-relaxed text-bleepx-gray bg-gray-900 dark:bg-gray-950 text-green-400 p-3 rounded-lg overflow-x-auto">{solutionQuery}</pre>
                   )}
                 </>
               ) : (
@@ -1136,14 +1136,14 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                           : 'bg-bleepx-blue/10 hover:bg-bleepx-blue/20'
                       }`}
                     >
-                      {needsPayment ? (canAfford ? <span className="inline-flex items-center gap-1"><LockOpenIcon size={14} /> Unlock Hint ({hintCost} pts)</span> : <span className="inline-flex items-center gap-1"><LockIcon size={14} /> Need {hintCost} pts</span>) : 'Show Next Hint'}
+                      {needsPayment ? (canAfford ? <span className="inline-flex flex-wrap items-center gap-1"><LockOpenIcon size={14} /> Unlock Hint ({hintCost} pts)</span> : <span className="inline-flex flex-wrap items-center gap-1"><LockIcon size={14} /> Need {hintCost} pts</span>) : 'Show Next Hint'}
                     </button>
                   );
                 })()}
                 <div className="mt-4 pt-3 border-t border-bleepx-border">
                   <button
                     onClick={() => { setGuideSection(undefined); setGuideOpen(true); }}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+                    className="inline-flex flex-wrap items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
                   >
                     <GuideIcon size={14} /> Open SQL GuideBook
                   </button>
@@ -1156,7 +1156,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 <p className="text-sm text-bleepx-text-secondary mb-3">Need help with SQL syntax?</p>
                 <button
                   onClick={() => { setGuideSection(undefined); setGuideOpen(true); }}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors w-fit">
+                  className="inline-flex flex-wrap items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors w-fit">
                   <GuideIcon size={14} /> Open SQL GuideBook
                 </button>
               </div>
@@ -1169,7 +1169,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                     playBleep();
                     setShowThoughtProcess((v) => !v);
                   }}
-                  className="w-full flex items-center justify-between text-left"
+                  className="w-full flex flex-wrap items-center justify-between text-left"
                 >
                   <h2 className="text-base font-semibold text-amber-900 dark:text-amber-200 flex flex-wrap items-center gap-2">
                     <BulbIcon size={22} /> How to Think About This
@@ -1179,8 +1179,8 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 {showThoughtProcess && (
                   <div className="mt-4 space-y-3">
                     {thoughtProcess.slice(0, visibleSteps).map((step, i) => (
-                      <div key={i} className="flex gap-3 items-start">
-                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-200 text-xs font-bold flex items-center justify-center mt-0.5">
+                      <div key={i} className="flex flex-wrap gap-3 items-start">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-200 text-xs font-bold flex flex-wrap items-center justify-center mt-0.5">
                           {i + 1}
                         </span>
                         <p className="text-sm text-amber-900 dark:text-amber-200 leading-relaxed">{step}</p>
@@ -1210,9 +1210,9 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
         {/* 3. Success / Transition Panel */}
         {showSuccess && nextDestination && (
           <div ref={successRef} className="p-4 sm:p-6 rounded-xl shadow-xl bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 border-2 border-green-400 dark:border-green-600 animate-fade-in ring-2 ring-green-300 dark:ring-green-700">
-            <div className="flex items-start gap-3">
+            <div className="flex flex-wrap items-start gap-3">
               <div className="flex-shrink-0 animate-bounce"><BleepxTrophy size={48} /></div>
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <h2 className="text-lg sm:text-xl font-bold text-green-900 dark:text-green-200 mb-2">*bleep* Outstanding work, human!</h2>
                 <p className="text-sm text-green-800 dark:text-green-300 mb-2">
                   You cracked it
@@ -1222,9 +1222,9 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                   {attempts > 0 ? ` with ${attempts} attempt${attempts !== 1 ? 's' : ''}` : ''}.
                   Your query results are below — take a moment to review them.
                 </p>
-                <div className="flex items-center gap-2 mt-2 mb-3">
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-600 text-white text-sm font-bold shadow-md">
-                    <span className="inline-flex items-center gap-1"><ClockIcon size={14} /> {countdown}s</span>
+                <div className="flex flex-wrap items-center gap-2 mt-2 mb-3">
+                  <span className="inline-flex flex-wrap items-center gap-1 px-3 py-1 rounded-full bg-green-600 text-white text-sm font-bold shadow-md">
+                    <span className="inline-flex flex-wrap items-center gap-1"><ClockIcon size={14} /> {countdown}s</span>
                   </span>
                   <span className="text-sm font-medium text-green-800 dark:text-green-300">until <strong>{nextDestination.label}</strong></span>
                 </div>
@@ -1269,7 +1269,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
 
         {/* 4. Query Results — always visible */}
         <div ref={resultsRef} className={`p-3 sm:p-6 rounded-xl shadow-lg transition-all bg-bleepx-white ${!hasRun && !busy ? 'opacity-60' : ''}`}>
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <div className="flex flex-wrap items-center justify-between mb-3 sm:mb-4">
             <h2 className="text-base sm:text-lg font-semibold text-bleepx-gray">
               Query Results
               {!busy && resultRows.length > 0 && <span className="text-xs font-normal ml-2 text-bleepx-text-secondary">({resultRows.length} row{resultRows.length !== 1 ? 's' : ''})</span>}
@@ -1282,7 +1282,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           </div>
           <div className="min-h-[80px] sm:min-h-[120px] overflow-x-auto">
             {busy ? (
-              <div className="flex items-center" aria-live="polite">
+              <div className="flex flex-wrap items-center" aria-live="polite">
                 <Spinner />
                 <span className="ml-2 text-bleepx-gray">{queryMessages.processing}</span>
               </div>
