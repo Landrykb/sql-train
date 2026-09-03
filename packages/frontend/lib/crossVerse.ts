@@ -78,8 +78,8 @@ export function getDefaultBridges(verse: 'query' | 'lab' | 'cloud'): CrossVerseB
 }
 
 /** Verse metadata for rendering badges. */
-export const VERSE_META: Record<CrossVerseBridge['verse'], { name: string; color: string; icon: string }> = {
-  query: { name: 'BleepxQuery', color: 'bg-purple-100 text-purple-700', icon: '🔍' },
-  lab: { name: 'BleepxLab', color: 'bg-teal-100 text-teal-700', icon: '🧪' },
-  cloud: { name: 'BleepxCloud', color: 'bg-sky-100 text-sky-700', icon: '☁️' },
+export const VERSE_META: Record<CrossVerseBridge['verse'], { name: string; color: string }> = {
+  query: { name: 'BleepxQuery', color: 'bg-purple-100 text-purple-700' },
+  lab: { name: 'BleepxLab', color: 'bg-teal-100 text-teal-700' },
+  cloud: { name: 'BleepxCloud', color: 'bg-sky-100 text-sky-700' },
 };

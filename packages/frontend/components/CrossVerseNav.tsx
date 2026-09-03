@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { getBridges, getDefaultBridges, VERSE_META, type CrossVerseBridge } from '@/lib/crossVerse';
+import { VerseIcon } from '@/components/NavIcons';
 
 interface CrossVerseNavProps {
   path: string;
@@ -33,7 +34,7 @@ export default function CrossVerseNav({ path, currentVerse, title }: CrossVerseN
               className="group flex items-start gap-3 p-3 rounded-lg border border-bleepx-border hover:border-bleepx-blue hover:bg-sky-50 dark:hover:bg-sky-900/10 transition-colors"
             >
               <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${meta.color}`}>
-                {meta.icon}
+                <VerseIcon verse={bridge.verse} size={16} />
               </span>
               <div className="min-w-0">
                 <div className="text-xs font-bold text-bleepx-text group-hover:text-bleepx-blue transition-colors">

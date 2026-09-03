@@ -15,6 +15,8 @@ import { track, Events } from '@/lib/analytics';
 import PointsShop from '@/components/PointsShop';
 import { getStoreState, getActivePerks, TITLES, BADGES, type StoreState, REPORT_GENERATION_TIERS, purchaseReportTier } from '@/lib/pointsStore';
 import { BleepxHead, BleepxTrophy, BleepxLock, BleepxSpark, BleepxGitHub } from '@/components/BleepxIcons';
+import { OverviewIcon, ShopIcon, AchievementsIcon, ExportsIcon, SettingsIcon, VerseIcon, LabIcon, CloudIcon } from '@/components/NavIcons';
+import { FileText, Pencil } from 'lucide-react';
 import { InterpretationEditor } from '@/components/InterpretationEditor';
 import { pushDomainPortfolioToGitHub, pushLabDomainPortfolioToGitHub, pushCloudProviderPortfolioToGitHub } from '@/lib/githubPush';
 
@@ -471,17 +473,24 @@ export default function ProfilePage() {
 
       {/* Tab Navigation — 5-column grid so every tab is always visible on a phone. */}
       <div className="grid grid-cols-5 gap-1 border-b border-bleepx-border items-end">
-        {(['overview', 'shop', 'achievements', 'exports', 'settings'] as const).map((t) => (
+        {([
+          { id: 'overview', label: 'Overview', Icon: OverviewIcon },
+          { id: 'shop', label: 'Shop', Icon: ShopIcon },
+          { id: 'achievements', label: 'Achievements', Icon: AchievementsIcon },
+          { id: 'exports', label: 'Exports', Icon: ExportsIcon },
+          { id: 'settings', label: 'Settings', Icon: SettingsIcon },
+        ] as const).map(({ id: t, label, Icon }) => (
           <button
             key={t}
             onClick={() => { playBleep(); setTab(t); }}
-            className={`flex flex-col items-center justify-end text-center min-h-[3rem] px-1 sm:px-3 py-2 text-[10px] sm:text-xs font-medium leading-tight whitespace-normal break-words transition-colors border-b-2 -mb-px ${
+            className={`flex flex-col items-center justify-end gap-0.5 text-center min-h-[3.5rem] px-1 sm:px-3 py-2 text-[10px] sm:text-xs font-medium leading-tight whitespace-normal break-words transition-colors border-b-2 -mb-px ${
               tab === t
                 ? 'border-bleepx-blue text-bleepx-blue'
                 : 'border-transparent text-bleepx-text-secondary hover:text-bleepx-text'
             }`}
           >
-            {t === 'overview' ? '📊 Overview' : t === 'shop' ? '🛒 Shop' : t === 'achievements' ? '🏆 Achievements' : t === 'exports' ? '📤 Exports' : '⚙️ Settings'}
+            <Icon size={18} className={tab === t ? 'text-bleepx-blue' : 'currentColor'} />
+            {label}
           </button>
         ))}
       </div>
@@ -536,7 +545,7 @@ export default function ProfilePage() {
           {/* Lab Progress */}
           <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
             <h2 className="text-lg font-bold mb-4 text-bleepx-text flex items-center gap-2">
-              <span>🔬</span> BleepxLab Progress
+              <LabIcon size={22} className="text-teal-500" /> BleepxLab Progress
             </h2>
             <div className="space-y-3">
               {Object.entries(LAB_CASE_ORDER).map(([domain, cases]) => {
@@ -576,7 +585,7 @@ export default function ProfilePage() {
           {/* Cloud Progress */}
           <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
             <h2 className="text-lg font-bold mb-4 text-bleepx-text flex items-center gap-2">
-              <span>☁️</span> BleepxCloud Progress
+              <CloudIcon size={22} className="text-sky-500" /> BleepxCloud Progress
               <span className="ml-auto text-xs font-medium text-bleepx-text-secondary">{stats.completedTracks}/{stats.cloudStats.length} tracks done</span>
             </h2>
             <div className="space-y-3">
@@ -693,7 +702,7 @@ export default function ProfilePage() {
           ) : (
             <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
               <h2 className="text-lg font-bold mb-4 text-bleepx-text flex items-center gap-2">
-                <span>📤</span> Portfolio Exports
+                <ExportsIcon size={22} /> Portfolio Exports
               </h2>
               <p className="text-sm text-bleepx-text-secondary mb-6">
                 Export your completed work to GitHub as professional portfolios. Add interpretations to create executive-ready reports.
@@ -703,7 +712,7 @@ export default function ProfilePage() {
                 {/* Report Generation Tiers */}
                 <div className="border border-bleepx-border rounded-lg p-4 bg-purple-50 dark:bg-purple-900/20">
                   <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
-                    <span className="text-purple-600">📊</span> Report Generation
+                    <FileText size={18} className="text-purple-600" /> Report Generation
                   </h3>
                   <p className="text-xs text-bleepx-text-secondary mb-3">Purchase tiers to unlock AI-powered portfolio reports with graphs.</p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -744,7 +753,7 @@ export default function ProfilePage() {
                 {/* BleepxQuery Exports */}
                 <div className="border border-bleepx-border rounded-lg p-4">
                   <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
-                    <span className="text-bleepx-blue">💠</span> BleepxQuery
+                    <VerseIcon verse="query" size={20} className="text-bleepx-blue" /> BleepxQuery
                   </h3>
                   <p className="text-xs text-bleepx-text-secondary mb-3">Export SQL challenges to your GitHub portfolio.</p>
                   <div className="space-y-3">
@@ -777,9 +786,9 @@ export default function ProfilePage() {
                                   playBleep();
                                   setEditingItem({ verse: 'query', itemId: `query-${domain}`, itemName: `${domainMeta[domain]?.label || domain} Portfolio`, domain });
                                 }}
-                                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
                               >
-                                📝 Write
+                                <Pencil size={14} /> Write
                               </button>
                             )}
                           </div>
@@ -801,7 +810,7 @@ export default function ProfilePage() {
                 {/* BleepxLab Exports */}
                 <div className="border border-bleepx-border rounded-lg p-4">
                   <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
-                    <span className="text-teal-500">🔬</span> BleepxLab
+                    <VerseIcon verse="lab" size={20} className="text-teal-500" /> BleepxLab
                   </h3>
                   <p className="text-xs text-bleepx-text-secondary mb-3">Export data science projects to your GitHub portfolio.</p>
                   <div className="space-y-3">
@@ -845,9 +854,9 @@ export default function ProfilePage() {
                                   playBleep();
                                   setEditingItem({ verse: 'lab', itemId: `lab-${domain}`, itemName: `${meta?.name || domain} Portfolio`, domain });
                                 }}
-                                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
                               >
-                                📝 Write
+                                <Pencil size={14} /> Write
                               </button>
                             )}
                           </div>
@@ -860,7 +869,7 @@ export default function ProfilePage() {
                 {/* BleepxCloud Exports */}
                 <div className="border border-bleepx-border rounded-lg p-4">
                   <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
-                    <span className="text-sky-500">☁️</span> BleepxCloud
+                    <VerseIcon verse="cloud" size={20} className="text-sky-500" /> BleepxCloud
                   </h3>
                   <p className="text-xs text-bleepx-text-secondary mb-3">Export cloud architecture missions to your GitHub portfolio.</p>
                   <div className="space-y-3">
@@ -894,9 +903,9 @@ export default function ProfilePage() {
                                   playBleep();
                                   setEditingItem({ verse: 'cloud', itemId: `cloud-${provider}`, itemName: `${meta?.name} Portfolio`, domain: provider });
                                 }}
-                                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
                               >
-                                📝 Write
+                                <Pencil size={14} /> Write
                               </button>
                             )}
                           </div>
