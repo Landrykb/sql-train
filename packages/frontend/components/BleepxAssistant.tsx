@@ -135,10 +135,13 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [dock, setDock] = useState<{ right: number; bottom: number }>({ right: 16, bottom: 16 });
-  const chatMaxHeight = useMemo(() => {
-    if (typeof window === 'undefined') return 288;
-    return Math.max(200, window.innerHeight - dock.bottom - 96);
-  }, [dock.bottom]);
+  const [viewport, setViewport] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    const update = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
   const [dockedHint, setDockedHint] = useState<BleepxHint | null>(null);
   const [dragging, setDragging] = useState(false);
   const lintTimer = useRef<NodeJS.Timeout | null>(null);
@@ -155,10 +158,36 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const rafId = useRef<number | null>(null);
   const downAt = useRef(0);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const assistantRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [isDark, setIsDark] = useState(false);
   const [manualMode, setManualMode] = useState<'auto' | Mode>('auto');
   const [teaser, setTeaser] = useState<{ text: string; command: string } | null>(null);
+
+  const safeDock = useMemo(() => {
+    const { width, height } = viewport;
+    if (!width || !height) return dock;
+    const baseChatWidth = width >= 768 ? 448 : width >= 640 ? 384 : 320;
+    const chatWidth = Math.min(baseChatWidth, width - 24);
+    const hintWidth = Math.min(width >= 640 ? 288 : 256, width - 24);
+    const visibleWidth = open ? chatWidth : (dockedHint || teaser) ? hintWidth : 64;
+    const maxRight = Math.max(8, width - visibleWidth - 8);
+    const desiredChatHeight = Math.min(height * 0.55, 352);
+    const maxOpenBottom = Math.max(64, height - 64 - desiredChatHeight - 8);
+    const maxHintBottom = Math.max(64, height - 64 - 160 - 8);
+    const bottom = open
+      ? Math.max(8, Math.min(dock.bottom, maxOpenBottom))
+      : (dockedHint || teaser)
+      ? Math.max(8, Math.min(dock.bottom, maxHintBottom))
+      : Math.max(8, Math.min(dock.bottom, height - 64));
+    return { right: Math.max(8, Math.min(dock.right, maxRight)), bottom };
+  }, [dock, open, dockedHint, teaser, viewport]);
+
+  const chatMaxHeight = useMemo(() => {
+    if (!viewport.height) return 288;
+    return Math.max(200, viewport.height - safeDock.bottom - 96);
+  }, [safeDock.bottom, viewport.height]);
+
   const [teaserHover, setTeaserHover] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
@@ -763,14 +792,27 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     };
   }, [dragging, pathname]);
 
+  useEffect(() => {
+    const onDocPointerDown = (e: PointerEvent) => {
+      if (dragging) return;
+      if (!assistantRef.current || assistantRef.current.contains(e.target as Node)) return;
+      if (open) setOpen(false);
+      if (dockedHint) setDockedHint(null);
+      if (teaser) setTeaser(null);
+    };
+    document.addEventListener('pointerdown', onDocPointerDown);
+    return () => document.removeEventListener('pointerdown', onDocPointerDown);
+  }, [open, dockedHint, teaser, dragging]);
+
   return (
     <div
       id="bleepx-assistant"
+      ref={assistantRef}
       className="fixed z-50 flex flex-col items-end gap-2 transition-all duration-500"
-      style={{ right: dock.right, bottom: dock.bottom, transition: dragging ? 'none' : undefined }}
+      style={{ right: safeDock.right, bottom: safeDock.bottom, transition: dragging ? 'none' : undefined }}
     >
       {!open && dockedHint && (
-        <div className="relative mb-2 p-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-rose-300 dark:border-rose-700 shadow-2xl text-sm w-64 sm:w-72">
+        <div className="relative mb-2 p-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-rose-300 dark:border-rose-700 shadow-2xl text-sm w-64 sm:w-72 max-w-[calc(100vw-1.5rem)]">
           <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-rose-300 dark:border-t-rose-700" />
           <div className="flex items-center gap-2 mb-2">
             <BleepxFace size={20} />
@@ -785,7 +827,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       )}
       {!open && teaser && !dockedHint && (
         <div
-          className={`relative mb-2 p-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-cyan-300 dark:border-cyan-600 shadow-2xl text-sm w-64 sm:w-72 cursor-pointer ${teaserHover ? '' : 'animate-bounce'}`}
+          className={`relative mb-2 p-3 rounded-2xl bg-white dark:bg-gray-900 border-2 border-cyan-300 dark:border-cyan-600 shadow-2xl text-sm w-64 sm:w-72 max-w-[calc(100vw-1.5rem)] cursor-pointer ${teaserHover ? '' : 'animate-bounce'}`}
           onClick={() => { setOpen(true); setTeaser(null); }}
           onMouseEnter={() => setTeaserHover(true)}
           onMouseLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setTeaserHover(false); }}
@@ -915,7 +957,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         }}
         onMouseEnter={() => setMood('wave')}
         onMouseLeave={() => setMood(dockedHint ? (dockedHint.severity === 'error' ? 'error' : dockedHint.severity === 'warning' ? 'think' : 'signal') : (pathname?.startsWith('/lab/') ? 'code' : 'idle'))}
-        className={`group relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 focus:scale-110 focus:-translate-y-1 focus:bg-white/95 dark:focus:bg-gray-900/95 active:scale-110 active:-translate-y-1 hover:bg-white/95 dark:hover:bg-gray-900/95 active:bg-white/95 dark:active:bg-gray-900/95 border border-white/20 dark:border-gray-700/30 focus:border-sky-300 dark:focus:border-sky-500 active:border-sky-300 hover:border-sky-300 ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        className={`group relative w-14 h-14 sm:w-16 sm:h-16 touch-none rounded-full overflow-hidden bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 focus:scale-110 focus:-translate-y-1 focus:bg-white/95 dark:focus:bg-gray-900/95 active:scale-110 active:-translate-y-1 hover:bg-white/95 dark:hover:bg-gray-900/95 active:bg-white/95 dark:active:bg-gray-900/95 border border-white/20 dark:border-gray-700/30 focus:border-sky-300 dark:focus:border-sky-500 active:border-sky-300 hover:border-sky-300 ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         aria-label="Open Bleepx assistant"
       >
         <div className="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">

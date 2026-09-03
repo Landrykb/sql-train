@@ -20,7 +20,7 @@ import {
   SunIcon, MoonIcon, LabFlaskIcon, PauseIcon, AlertIcon, TagIcon,
 } from '@/components/NavIcons';
 import {
-  ProfileIcon, DomainIcon, LabDomainIcon, CloudProviderIcon,
+  DomainIcon, LabDomainIcon, CloudProviderIcon,
   AchievementIcon, StarRating, CheckBadge, BadgeIcon, CoinIcon,
   EditIcon, ErrorIcon,
 } from '@/components/AppIcons';
@@ -345,12 +345,6 @@ export default function ProfilePage() {
           <div className="absolute top-0 right-0 w-56 h-56 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
           <div className="absolute bottom-0 left-12 w-40 h-40 bg-white/5 rounded-full translate-y-1/2" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.18)_1px,transparent_0)] [background-size:22px_22px] opacity-40" />
-          {/* Verse pill */}
-          <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-xs font-semibold border border-white/30">
-              <ProfileIcon size={14} /> {theme.label}
-            </span>
-          </div>
         </div>
 
         <div className="relative z-10 px-4 sm:px-6 pb-6 sm:pb-7">

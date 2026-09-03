@@ -70,18 +70,16 @@ function VerseSwitcher({ current }: { current: Verse }) {
 
 export default function NavHeader() {
   const pathname = usePathname();
-  const isLab = pathname.startsWith('/lab');
-  const isCloud = pathname.startsWith('/cloud');
-  const currentVerse: Verse = isLab ? 'lab' : isCloud ? 'cloud' : 'query';
+  const currentVerse = verseFromPath(pathname);
 
   useEffect(() => {
     const v = verseFromPath(pathname);
     if (v) setActiveVerse(v);
   }, [pathname]);
 
-  const homeHref = isLab ? '/lab' : isCloud ? '/cloud' : '/';
-  const brand = VERSE_THEMES[currentVerse].label;
-  const brandColor = VERSE_THEMES[currentVerse].accentText;
+  const homeHref = currentVerse === 'lab' ? '/lab' : currentVerse === 'cloud' ? '/cloud' : '/';
+  const brand = currentVerse ? VERSE_THEMES[currentVerse].label : 'Profile';
+  const brandColor = currentVerse ? VERSE_THEMES[currentVerse].accentText : 'text-bleepx-text';
 
   return (
     <header className="bg-bleepx-white shadow-sm dark:shadow-gray-900/30 sticky top-0 z-40 border-b border-transparent dark:border-bleepx-border">
@@ -126,15 +124,14 @@ export default function NavHeader() {
                 <span className="hidden sm:inline">Guide</span>
               </Link>
             </>
-          ) : (
+          ) : currentVerse === 'query' ? (
             <Link href="/cases/trials" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-bleepx-blue font-semibold text-sm sm:text-base transition-colors">
               <TrialsIcon size={20} />
               <span className="hidden sm:inline">Trials</span>
             </Link>
-          )}
+          ) : null}
 
-          <div className="h-6 w-px bg-bleepx-border hidden sm:block" />
-          <VerseSwitcher current={currentVerse} />
+          {currentVerse && <><div className="h-6 w-px bg-bleepx-border hidden sm:block" /><VerseSwitcher current={currentVerse} /></>}
           <NavAuth />
         </nav>
       </div>
