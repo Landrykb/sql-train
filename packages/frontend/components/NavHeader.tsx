@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ChevronDown } from 'lucide-react';
 import NavAuth from '@/components/NavAuth';
 import { DashboardIcon, TrialsIcon, GuideIcon, ProjectsIcon, VerseIcon } from '@/components/NavIcons';
-import { verseFromPath, setActiveVerse, VERSE_THEMES, type Verse } from '@/lib/verse';
+import { verseFromPath, setActiveVerse, getActiveVerse, VERSE_THEMES, type Verse } from '@/lib/verse';
 
 const VERSE_OPTIONS: { verse: Verse; href: string }[] = [
   { verse: 'query', href: '/' },
@@ -70,16 +70,20 @@ function VerseSwitcher({ current }: { current: Verse }) {
 
 export default function NavHeader() {
   const pathname = usePathname();
-  const currentVerse = verseFromPath(pathname);
+  const pathVerse = verseFromPath(pathname);
+  const [activeVerse, setActiveVerseState] = useState<Verse>(() => (typeof window !== 'undefined' ? getActiveVerse() : 'query'));
 
   useEffect(() => {
     const v = verseFromPath(pathname);
     if (v) setActiveVerse(v);
+    setActiveVerseState(getActiveVerse());
   }, [pathname]);
 
+  const currentVerse: Verse = pathVerse ?? activeVerse;
+
   const homeHref = currentVerse === 'lab' ? '/lab' : currentVerse === 'cloud' ? '/cloud' : '/';
-  const brand = currentVerse ? VERSE_THEMES[currentVerse].label : 'Profile';
-  const brandColor = currentVerse ? VERSE_THEMES[currentVerse].accentText : 'text-bleepx-text';
+  const brand = VERSE_THEMES[currentVerse].label;
+  const brandColor = VERSE_THEMES[currentVerse].accentText;
 
   return (
     <header className="bg-bleepx-white shadow-sm dark:shadow-gray-900/30 sticky top-0 z-40 border-b border-transparent dark:border-bleepx-border">

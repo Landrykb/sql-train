@@ -27,6 +27,7 @@ import {
 import { FileText } from 'lucide-react';
 import { InterpretationEditor } from '@/components/InterpretationEditor';
 import { pushDomainPortfolioToGitHub, pushLabDomainPortfolioToGitHub, pushCloudProviderPortfolioToGitHub } from '@/lib/githubPush';
+import { getActiveVerse, VERSE_THEMES, type Verse } from '@/lib/verse';
 
 const DOMAINS = ['business', 'crime', 'farming', 'finance', 'healthcare', 'social', 'space', 'sports'] as const;
 
@@ -59,16 +60,10 @@ const DEFAULT_PROFILE: UserProfile = {
   testModeEnabled: false,
 };
 
-const PROFILE_THEME = {
-  label: 'Bleepx',
-  gradient: 'from-bleepx-blue via-violet-600 to-bleepx-pink',
-  accentBg: 'bg-bleepx-blue/10 dark:bg-bleepx-blue/20',
-  accentText: 'text-bleepx-blue dark:text-blue-400',
-  accentHover: 'hover:bg-bleepx-blue/20 dark:hover:bg-bleepx-blue/30',
-};
-
 export default function ProfilePage() {
-  const theme = PROFILE_THEME;
+  const [activeVerse, setActiveVerseState] = useState<Verse>(() => (typeof window !== 'undefined' ? getActiveVerse() : 'query'));
+  useEffect(() => { setActiveVerseState(getActiveVerse()); }, []);
+  const theme = VERSE_THEMES[activeVerse];
   const { completed, points, resetProgress } = useProgress();
   const { dark, toggle: toggleDark } = useTheme();
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
