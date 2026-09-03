@@ -165,7 +165,7 @@ export default function PointsShop() {
               }`}
             >
               <Icon size={18} className="mb-0.5" />
-              <span>{label}</span>
+              <span className="whitespace-normal break-words leading-tight">{label}</span>
             </button>
           ))}
         </div>

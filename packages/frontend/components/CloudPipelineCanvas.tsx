@@ -190,7 +190,7 @@ export default function CloudPipelineCanvas() {
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-br from-teal-600 to-sky-700 rounded-2xl p-6 text-white">
-        <h1 className="text-2xl font-extrabold flex items-center gap-2"><ToolsIcon size={24} /> Bleepx Pipeline Canvas</h1>
+        <h1 className="text-2xl font-extrabold flex flex-wrap items-center gap-2"><ToolsIcon size={24} /> Bleepx Pipeline Canvas</h1>
         <p className="text-white/80 text-sm mt-1">
           Extract data from Kaggle or data.world, analyze it with SQL and Python, then ship the final CSV to the AWS S3 sandbox.
         </p>
@@ -228,7 +228,7 @@ export default function CloudPipelineCanvas() {
 
       {/* Project picker */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-        <h2 className="text-base font-bold text-bleepx-text mb-2 flex items-center gap-2"><RocketIcon size={18} /> Load a Project</h2>
+        <h2 className="text-base font-bold text-bleepx-text mb-2 flex flex-wrap items-center gap-2"><RocketIcon size={18} /> Load a Project</h2>
         <p className="text-xs text-bleepx-text-secondary mb-3">
           Pick a SQLverse lab, a data.world dataset, or a carbon-credit / regenerative agriculture ML project. It pre-fills the source URL, SQL, Python, and S3 destination.
         </p>

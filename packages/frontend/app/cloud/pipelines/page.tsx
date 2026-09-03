@@ -7,7 +7,7 @@ import BleepxLogo from '@/components/BleepxLogo';
 
 export default function CloudPipelinesPage() {
   return (
-    <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-12">
+    <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-20">
       {/* Breadcrumb */}
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/" className="hover:underline">Home</Link>

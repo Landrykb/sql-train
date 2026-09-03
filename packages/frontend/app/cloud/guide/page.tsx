@@ -28,7 +28,7 @@ export default function CloudGuidePage() {
   }, [filtered]);
 
   return (
-    <main className="max-w-3xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-12">
+    <main className="max-w-3xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-20">
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/cloud" className="hover:underline">BleepxCloud</Link>
         <span>/</span>
@@ -38,7 +38,7 @@ export default function CloudGuidePage() {
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700 to-sky-700 p-6 text-white">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] [background-size:22px_22px] opacity-40" />
         <div className="relative z-10">
-          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2"><GuideIcon size={28} className="text-white" /> Cloud Reference Guide</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold flex flex-wrap items-center gap-2"><GuideIcon size={28} className="text-white" /> Cloud Reference Guide</h1>
           <p className="text-white/85 text-sm mt-1">Every concept you need — searchable, plain-English, exam-aligned.</p>
         </div>
       </div>

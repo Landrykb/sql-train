@@ -50,7 +50,7 @@ export default async function GuidePage() {
   const allCaseIds = Object.values(caseOrder).flat();
 
   return (
-    <main className="p-8 max-w-4xl mx-auto space-y-8 bg-bleepx-bg">
+    <main className="p-8 max-w-4xl mx-auto space-y-8 bg-bleepx-bg min-h-screen pb-20">
       <nav className="text-sm text-bleepx-text-secondary" aria-label="Breadcrumb">
         <ol className="flex space-x-2">
           <li>
@@ -69,9 +69,9 @@ export default async function GuidePage() {
         </ol>
       </nav>
       <div className="bg-bleepx-white border-l-4 border-bleepx-blue p-6 rounded-lg shadow-sm">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex flex-wrap items-center gap-2 mb-2">
           <BleepxLogo />
-          <h1 className="text-3xl font-bold text-bleepx-text">BleepxQuery Guide: {guideData.title}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text">BleepxQuery Guide: {guideData.title}</h1>
         </div>
         <p className="text-bleepx-text-secondary mb-4">{guideData.description}</p>
         <Link href={backLink} className="text-bleepx-blue hover:text-bleepx-blue-hover">
@@ -82,7 +82,7 @@ export default async function GuidePage() {
       <GuideContent guideData={guideData} />
       <section className="space-y-4">
         <h2 className="text-xl font-semibold text-bleepx-text">All SwiftLink Challenges by Domain</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {Object.entries(caseOrder).map(([domainKey, caseList]) => (
             <details key={domainKey} className="border border-bleepx-border rounded-lg shadow-sm overflow-hidden">
               <summary className="cursor-pointer bg-bleepx-white px-3 py-2 font-medium hover:bg-bleepx-blue hover:text-bleepx-white capitalize text-bleepx-text transition-colors duration-300">

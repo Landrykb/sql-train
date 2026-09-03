@@ -87,7 +87,7 @@ export default function SaaPracticeExamPage() {
   const remaining = TIME_LIMIT_MS - elapsed;
 
   return (
-    <main className="max-w-4xl mx-auto px-2 md:px-4 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-12">
+    <main className="max-w-4xl mx-auto px-2 md:px-4 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-20">
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/" className="hover:underline">Home</Link>
         <span>/</span>

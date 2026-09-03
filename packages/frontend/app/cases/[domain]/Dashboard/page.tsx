@@ -1,7 +1,7 @@
 import DomainDashboard from '@/components/DomainDashboard';
 import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
-import BleepxLogo from '@/components/BleepxLogo';
+import { DomainIcon } from '@/components/AppIcons';
 import { domainFolderMap, DOMAIN_DATASETS } from '@/lib/constants';
 
 export async function generateStaticParams() {
@@ -26,10 +26,12 @@ export default async function DashboardPage({
   const plots: any[] = [];
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-6 bg-bleepx-bg">
-      <div className="flex items-center gap-2 mb-6">
-        <BleepxLogo />
-        <h1 className="text-3xl font-bold text-bleepx-text">BleepxQuery: {normalizedDomain} Dashboard</h1>
+    <main className="max-w-4xl mx-auto px-4 py-6 bg-bleepx-bg min-h-screen pb-20">
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <DomainIcon domain={normalizedDomain} size={32} className="text-bleepx-blue flex-shrink-0" />
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-bleepx-text min-w-0">
+          BleepxQuery: <span className="capitalize">{normalizedDomain}</span> Dashboard
+        </h1>
       </div>
       <BleepxPointsTracker />
       <DomainDashboard domain={normalizedDomain} datasets={datasets} plots={plots} />

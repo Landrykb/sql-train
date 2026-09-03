@@ -42,7 +42,7 @@ export default function LabQuizPage() {
   }, []);
 
   return (
-    <main className="max-w-5xl mx-auto px-2 md:px-4 lg:px-6 py-4 space-y-6 bg-bleepx-bg min-h-screen">
+    <main className="max-w-5xl mx-auto px-2 md:px-4 lg:px-6 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-20">
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/" className="hover:underline">Home</Link>
         <span>/</span>
@@ -51,10 +51,10 @@ export default function LabQuizPage() {
         <span className="font-semibold text-bleepx-gray">Quizzes</span>
       </nav>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <BleepxLogo />
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-bleepx-text flex items-center gap-2"><BrainIcon size={28} /> Data Science Quizzes</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-bleepx-text flex flex-wrap items-center gap-2"><BrainIcon size={28} /> Data Science Quizzes</h1>
           <p className="text-xs sm:text-sm text-bleepx-text-secondary">
             Test your knowledge across statistics, probability, ML, Python, and more.
           </p>

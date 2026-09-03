@@ -205,7 +205,7 @@ export default function CloudMissionPage() {
   if (!ghUser?.login) {
     return (
       <>
-        <main className="max-w-3xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-12">
+        <main className="max-w-3xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-20">
           {/* Breadcrumb */}
           <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
             <Link href="/cloud" className="hover:underline">BleepxCloud</Link>
@@ -258,7 +258,7 @@ export default function CloudMissionPage() {
 
       {/* Briefing */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-        <h2 className="text-base font-bold text-bleepx-text mb-2 flex items-center gap-2"><GuideIcon size={18} /> Mission Briefing</h2>
+        <h2 className="text-base font-bold text-bleepx-text mb-2 flex flex-wrap items-center gap-2"><GuideIcon size={18} /> Mission Briefing</h2>
         <div className="text-sm text-bleepx-text-secondary leading-relaxed whitespace-pre-line">
           {wrapWithGlossary(mission.description)}
         </div>
@@ -287,7 +287,7 @@ export default function CloudMissionPage() {
       {/* Architecture flow */}
       {archNodes.length > 1 && (
         <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-          <h2 className="text-base font-bold text-bleepx-text mb-1 flex items-center gap-2"><MapIcon size={18} /> How it fits together</h2>
+          <h2 className="text-base font-bold text-bleepx-text mb-1 flex flex-wrap items-center gap-2"><MapIcon size={18} /> How it fits together</h2>
           <p className="text-xs text-bleepx-text-secondary mb-3">Follow the request/data flow through the architecture.</p>
           <ArchitectureFlow nodes={archNodes} />
         </div>
@@ -307,7 +307,7 @@ export default function CloudMissionPage() {
         return (
           <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
             <div className="flex items-center justify-between mb-1">
-              <h2 className="text-base font-bold text-bleepx-text flex items-center gap-2"><GuideIcon size={18} /> Concept Walkthrough</h2>
+              <h2 className="text-base font-bold text-bleepx-text flex flex-wrap items-center gap-2"><GuideIcon size={18} /> Concept Walkthrough</h2>
               <span className="text-xs text-bleepx-text-secondary font-mono">{understood.size}/{learnList.length} understood</span>
             </div>
             <p className="text-xs text-bleepx-text-secondary mb-3">Work through each concept and mark it understood. This unlocks the knowledge check.</p>
@@ -403,7 +403,7 @@ export default function CloudMissionPage() {
       {/* Hands-on code (IaC missions) */}
       {!isQuiz && template && (
         <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-          <h2 className="text-base font-bold text-bleepx-text mb-1 flex items-center gap-2"><ToolsIcon size={18} /> Hands-on: Infrastructure as Code</h2>
+          <h2 className="text-base font-bold text-bleepx-text mb-1 flex flex-wrap items-center gap-2"><ToolsIcon size={18} /> Hands-on: Infrastructure as Code</h2>
           <p className="text-xs text-bleepx-text-secondary mb-3">A realistic <code className="font-mono">{template.filename}</code> for this mission. Read it top to bottom — it mirrors the concepts above.</p>
           <CodeBlock code={template.code} lang={template.language} />
         </div>
@@ -412,7 +412,7 @@ export default function CloudMissionPage() {
       {/* Quiz (quiz missions) */}
       {isQuiz && (
         <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-          <h2 className="text-base font-bold text-bleepx-text mb-1 flex items-center gap-2"><FormsIcon size={18} /> {mission.isBonus ? 'Exam Simulator' : 'Knowledge Check'}</h2>
+          <h2 className="text-base font-bold text-bleepx-text mb-1 flex flex-wrap items-center gap-2"><FormsIcon size={18} /> {mission.isBonus ? 'Exam Simulator' : 'Knowledge Check'}</h2>
           <p className="text-xs text-bleepx-text-secondary mb-4">Answer at least 60% correctly to complete this mission.</p>
           <div className="space-y-4">
             {quizQuestions.map((q, qi) => (
@@ -468,7 +468,7 @@ export default function CloudMissionPage() {
       {/* Knowledge check (diagram/iac missions) */}
       {!isQuiz && knowledgeCheck.length > 0 && (
         <div className={`bg-bleepx-white rounded-xl border p-5 shadow-sm transition-opacity ${allUnderstood ? 'border-bleepx-border' : 'border-dashed border-bleepx-border opacity-60'}`}>
-          <h2 className="text-base font-bold text-bleepx-text mb-1 flex items-center gap-2"><BrainIcon size={18} /> Knowledge Check</h2>
+          <h2 className="text-base font-bold text-bleepx-text mb-1 flex flex-wrap items-center gap-2"><BrainIcon size={18} /> Knowledge Check</h2>
           <p className="text-xs text-bleepx-text-secondary mb-4">
             {allUnderstood ? 'Match each description to the right concept (67% to pass).' : 'Finish the walkthrough above to unlock the check.'}
           </p>
@@ -530,7 +530,7 @@ export default function CloudMissionPage() {
       {/* Scenario / Sandbox missions: hands-on cloud simulator */}
       {isScenario && !isDone && (
         <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-          <h2 className="text-base font-bold text-bleepx-text mb-1 flex items-center gap-2"><FlaskIcon size={18} /> Hands-on Cloud Sandbox</h2>
+          <h2 className="text-base font-bold text-bleepx-text mb-1 flex flex-wrap items-center gap-2"><FlaskIcon size={18} /> Hands-on Cloud Sandbox</h2>
           <p className="text-xs text-bleepx-text-secondary mb-4">
             Use the simulated AWS console below to complete each mission step. No real AWS account is required.
           </p>

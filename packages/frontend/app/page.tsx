@@ -44,7 +44,7 @@ export default function HomePage() {
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
         <div className="absolute -bottom-2 right-4 sm:right-10 opacity-20 hidden sm:block"><BleepxWave size={120} /></div>
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex flex-wrap items-center gap-3 mb-4">
             <BleepxLogo />
             <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">BleepxQuery</h1>
           </div>
@@ -63,7 +63,7 @@ export default function HomePage() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-bleepx-white rounded-xl p-4 text-center shadow-sm border border-bleepx-border">
           <div className="text-2xl font-bold text-bleepx-text">{domains.length}</div>
           <div className="text-xs text-bleepx-text-secondary mt-0.5">Domains</div>
@@ -233,7 +233,7 @@ export default function HomePage() {
       {/* Features */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 sm:p-6">
         <h2 className="text-lg font-bold text-bleepx-text mb-4">What You Get</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
           <div>
             <div className="flex justify-center mb-1"><BleepxSignal size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">Progressive Difficulty</div>

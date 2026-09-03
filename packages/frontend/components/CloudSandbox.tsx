@@ -617,7 +617,7 @@ function VPCPanel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
             <option value="icmp">icmp</option>
             <option value="-1">all</option>
           </select>
-          <div className="grid grid-cols-2 gap-2 mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
             <input type="number" value={fromPort} onChange={(e) => setFromPort(Number(e.target.value))} className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
             <input type="number" value={toPort} onChange={(e) => setToPort(Number(e.target.value))} className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
           </div>

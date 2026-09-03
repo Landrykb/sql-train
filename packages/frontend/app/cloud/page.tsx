@@ -51,14 +51,14 @@ export default function CloudHomePage() {
   }, [completed]);
 
   return (
-    <main className="max-w-5xl mx-auto space-y-6 sm:space-y-10 bg-bleepx-bg min-h-screen pb-12">
+    <main className="max-w-5xl mx-auto space-y-6 sm:space-y-10 bg-bleepx-bg min-h-screen pb-20">
       {/* Hero */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-600 via-blue-600 to-indigo-700 p-6 sm:p-10 text-white">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
         <div className="absolute bottom-0 left-10 w-44 h-44 bg-white/5 rounded-full translate-y-1/2" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] [background-size:24px_24px] opacity-40" />
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex flex-wrap items-center gap-3 mb-4">
             <BleepxLogo />
             <div>
               <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">BleepxCloud</h1>
@@ -80,7 +80,7 @@ export default function CloudHomePage() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-bleepx-white rounded-xl p-4 text-center shadow-sm border border-bleepx-border">
           <div className="text-2xl font-bold text-bleepx-text">{CLOUD_PROVIDERS.length}</div>
           <div className="text-xs text-bleepx-text-secondary mt-0.5">Tracks</div>
@@ -215,7 +215,7 @@ export default function CloudHomePage() {
 
       {/* Transversal callout */}
       <div className="rounded-xl border border-bleepx-border bg-bleepx-white p-5 sm:p-6">
-        <h2 className="text-lg font-bold text-bleepx-text mb-2 flex items-center gap-2"><WorldIcon size={22} /> Transversal by design</h2>
+        <h2 className="text-lg font-bold text-bleepx-text mb-2 flex flex-wrap items-center gap-2"><WorldIcon size={22} /> Transversal by design</h2>
         <p className="text-sm text-bleepx-text-secondary leading-relaxed">
           BleepxCloud isn&apos;t just buttons in a console. The <strong className="text-bleepx-text">ESG &amp; Decarbonization</strong> track connects to the BleepxLab carbon &amp; farming projects, while <strong className="text-bleepx-text">Finance &amp; Industry</strong> brings FinOps, real-time fraud, retail, healthcare, media and gaming blueprints. You learn the service <em>and</em> the business problem it solves.
         </p>

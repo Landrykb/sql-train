@@ -129,7 +129,7 @@ export default function CertificationsPage() {
   const pct = Math.round((completed / allSteps.length) * 100);
 
   return (
-    <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-12">
+    <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-20">
       {/* Breadcrumb */}
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/" className="hover:underline">Home</Link>
@@ -178,7 +178,7 @@ export default function CertificationsPage() {
 
       {/* Foundation track */}
       <div className="bg-bleepx-white rounded-xl p-5 border border-bleepx-border shadow-sm">
-        <h2 className="text-lg font-bold text-bleepx-text mb-3 flex items-center gap-2"><MapIcon size={20} /> Master Plan: From Zero to SAA</h2>
+        <h2 className="text-lg font-bold text-bleepx-text mb-3 flex flex-wrap items-center gap-2"><MapIcon size={20} /> Master Plan: From Zero to SAA</h2>
         <p className="text-sm text-bleepx-text-secondary mb-4">Follow this sequence. Each step unlocks the vocabulary and skills needed for the next.</p>
         <div className="grid gap-2">
           {FOUNDATION_TRACK.map((step, idx) => (
@@ -252,7 +252,7 @@ export default function CertificationsPage() {
 
       {/* Exam tips */}
       <div className="bg-bleepx-white rounded-xl p-5 border border-bleepx-border shadow-sm">
-        <h2 className="text-lg font-bold text-bleepx-text mb-2 flex items-center gap-2"><FormsIcon size={20} /> Exam Strategy</h2>
+        <h2 className="text-lg font-bold text-bleepx-text mb-2 flex flex-wrap items-center gap-2"><FormsIcon size={20} /> Exam Strategy</h2>
         <ul className="text-sm text-bleepx-text-secondary space-y-2 list-disc pl-4">
           <li><strong>Start with scenarios, not facts.</strong> SAA questions are scenario-based. The BleepxCloud missions put you in the architect's seat.</li>
           <li><strong>Master the pillars.</strong> Every answer should balance security, resilience, performance, and cost.</li>

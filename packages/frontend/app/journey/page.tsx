@@ -139,7 +139,7 @@ export default function JourneyPage() {
   ];
 
   return (
-    <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-12">
+    <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-20">
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/" className="hover:underline">Home</Link>
         <span>/</span>
@@ -147,7 +147,7 @@ export default function JourneyPage() {
       </nav>
 
       <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-sky-700 rounded-2xl p-6 sm:p-10 text-white">
-        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-3 flex items-center gap-2"><MapIcon size={28} /> Bleepx Journey</h1>
+        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-3 flex flex-wrap items-center gap-2"><MapIcon size={28} /> Bleepx Journey</h1>
         <p className="text-white/80 text-sm sm:text-lg max-w-2xl leading-relaxed">
           Tell Bleepx what you want to learn and how much time you have. We will build a personalized path across SQL, Python, data science, machine learning, AI/LLMs, cloud, and certifications — with hints and the right resources.
         </p>
@@ -243,7 +243,7 @@ export default function JourneyPage() {
       )}
 
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-        <h2 className="text-lg font-bold text-bleepx-text mb-3 flex items-center gap-2"><BrainIcon size={20} /> Bleepx Assistant Hints</h2>
+        <h2 className="text-lg font-bold text-bleepx-text mb-3 flex flex-wrap items-center gap-2"><BrainIcon size={20} /> Bleepx Assistant Hints</h2>
         <ul className="text-sm text-bleepx-text-secondary space-y-2 list-disc pl-4">
           <li><strong>Start small.</strong> Pick one SQL case and one Python lab before taking on cloud or ML.</li>
           <li><strong>Do the sandbox scenarios.</strong> BleepxBank, BleepxRetail, and BleepxHealth are built to teach real AWS decisions.</li>

@@ -595,7 +595,7 @@ export default function LabProjectViewer({
                 *bleep* Load the dataset in the browser terminal:
               </p>
               <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto">
-                <code className="text-[11px] text-green-400 font-mono whitespace-pre">{`from pyodide.http import open_url\nimport pandas as pd\n\ndf = pd.read_csv(open_url("${datasetPath || '/datasets/YOUR_FILE.csv'}"))\nprint(df.shape)\nprint(df.columns.tolist())`}</code>
+                <code className="text-[11px] text-green-400 font-mono whitespace-pre-wrap break-words">{`from pyodide.http import open_url\nimport pandas as pd\n\ndf = pd.read_csv(open_url("${datasetPath || '/datasets/YOUR_FILE.csv'}"))\nprint(df.shape)\nprint(df.columns.tolist())`}</code>
               </div>
               {sourceFilename && datasetPath && sourceFilename === labBasename ? (
                 <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
@@ -907,31 +907,31 @@ import numpy as np
               <div>
                 <h5 className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Histogram</h5>
                 <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto">
-                  <code className="text-[11px] text-green-400 font-mono whitespace-pre">{`import matplotlib.pyplot as plt\ndf['column_name'].hist(bins=30, edgecolor='black')\nplt.title('Distribution')\nplt.xlabel('Value')\nplt.ylabel('Count')\nplt.show()`}</code>
+                  <code className="text-[11px] text-green-400 font-mono whitespace-pre-wrap break-words">{`import matplotlib.pyplot as plt\ndf['column_name'].hist(bins=30, edgecolor='black')\nplt.title('Distribution')\nplt.xlabel('Value')\nplt.ylabel('Count')\nplt.show()`}</code>
                 </div>
               </div>
               <div>
                 <h5 className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Scatter Plot</h5>
                 <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto">
-                  <code className="text-[11px] text-green-400 font-mono whitespace-pre">{`import matplotlib.pyplot as plt\nplt.scatter(df['x_col'], df['y_col'], alpha=0.5)\nplt.title('X vs Y')\nplt.xlabel('X')\nplt.ylabel('Y')\nplt.show()`}</code>
+                  <code className="text-[11px] text-green-400 font-mono whitespace-pre-wrap break-words">{`import matplotlib.pyplot as plt\nplt.scatter(df['x_col'], df['y_col'], alpha=0.5)\nplt.title('X vs Y')\nplt.xlabel('X')\nplt.ylabel('Y')\nplt.show()`}</code>
                 </div>
               </div>
               <div>
                 <h5 className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Correlation Heatmap</h5>
                 <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto">
-                  <code className="text-[11px] text-green-400 font-mono whitespace-pre">{`import seaborn as sns\nimport matplotlib.pyplot as plt\nsns.heatmap(df.select_dtypes('number').corr(),\n  annot=True, cmap='coolwarm', fmt='.2f')\nplt.title('Correlation Matrix')\nplt.tight_layout()\nplt.show()`}</code>
+                  <code className="text-[11px] text-green-400 font-mono whitespace-pre-wrap break-words">{`import seaborn as sns\nimport matplotlib.pyplot as plt\nsns.heatmap(df.select_dtypes('number').corr(),\n  annot=True, cmap='coolwarm', fmt='.2f')\nplt.title('Correlation Matrix')\nplt.tight_layout()\nplt.show()`}</code>
                 </div>
               </div>
               <div>
                 <h5 className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Box Plot</h5>
                 <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto">
-                  <code className="text-[11px] text-green-400 font-mono whitespace-pre">{`import seaborn as sns\nimport matplotlib.pyplot as plt\nsns.boxplot(data=df, x='category_col', y='value_col')\nplt.xticks(rotation=45)\nplt.tight_layout()\nplt.show()`}</code>
+                  <code className="text-[11px] text-green-400 font-mono whitespace-pre-wrap break-words">{`import seaborn as sns\nimport matplotlib.pyplot as plt\nsns.boxplot(data=df, x='category_col', y='value_col')\nplt.xticks(rotation=45)\nplt.tight_layout()\nplt.show()`}</code>
                 </div>
               </div>
               <div>
                 <h5 className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Line Chart (Time Series)</h5>
                 <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto">
-                  <code className="text-[11px] text-green-400 font-mono whitespace-pre">{`import matplotlib.pyplot as plt\ndf.plot(x='date_col', y='value_col', figsize=(10,4))\nplt.title('Trend Over Time')\nplt.tight_layout()\nplt.show()`}</code>
+                  <code className="text-[11px] text-green-400 font-mono whitespace-pre-wrap break-words">{`import matplotlib.pyplot as plt\ndf.plot(x='date_col', y='value_col', figsize=(10,4))\nplt.title('Trend Over Time')\nplt.tight_layout()\nplt.show()`}</code>
                 </div>
               </div>
             </div>

@@ -193,7 +193,7 @@ export default function CloudSandboxPage() {
   const criticalCount = useMemo(() => findings.filter((f) => f.severity === 'critical' || f.severity === 'high').length, [findings]);
 
   return (
-    <main className="max-w-4xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-12">
+    <main className="max-w-4xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-20">
       {/* Breadcrumb */}
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/" className="hover:underline">Home</Link>
@@ -237,7 +237,7 @@ export default function CloudSandboxPage() {
       {/* Mission brief */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2 rounded-xl border border-bleepx-border bg-bleepx-white p-5 shadow-sm">
-          <h2 className="text-lg font-extrabold text-bleepx-text flex items-center gap-2">
+          <h2 className="text-lg font-extrabold text-bleepx-text flex flex-wrap items-center gap-2">
             <ScenarioIcon scenario={current.key} size={22} /> {current.title} — Mission Brief
           </h2>
           <p className="text-sm text-bleepx-text-secondary mt-2 leading-relaxed">{current.description}</p>

@@ -49,7 +49,7 @@ export default async function MasterQuizPage() {
   const allCaseIds = fullCaseOrder['trials'] || caseOrder['trials'] || [];
 
   return (
-    <main className="max-w-4xl mx-auto px-2 md:px-4 lg:px-6 py-4 space-y-6 bg-bleepx-bg min-h-screen">
+    <main className="max-w-4xl mx-auto px-2 md:px-4 lg:px-6 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-20">
       {/* Breadcrumb */}
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/" className="hover:underline">Home</Link>
@@ -59,10 +59,10 @@ export default async function MasterQuizPage() {
         <span className="font-semibold text-bleepx-gray">Master Quiz</span>
       </nav>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <BleepxLogo />
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text flex items-center gap-2"><BrainIcon size={26} /> Master SQL Quiz</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text flex flex-wrap items-center gap-2"><BrainIcon size={26} /> Master SQL Quiz</h1>
           <p className="text-xs sm:text-sm text-bleepx-text-secondary">All skills, all trials — one mega quiz. No locks.</p>
         </div>
       </div>

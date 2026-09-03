@@ -145,7 +145,7 @@ export default function LabGuidePage() {
   const topic = activeTopic ? GUIDE_TOPICS.find((t) => t.id === activeTopic) : null;
 
   return (
-    <main className="max-w-5xl mx-auto px-2 md:px-4 lg:px-6 py-4 space-y-6 bg-bleepx-bg min-h-screen">
+    <main className="max-w-5xl mx-auto px-2 md:px-4 lg:px-6 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-20">
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/" className="hover:underline">Home</Link>
         <span>/</span>
@@ -157,7 +157,7 @@ export default function LabGuidePage() {
       <div className="flex items-center gap-3">
         <BleepxLogo />
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-bleepx-text flex items-center gap-2"><GuideIcon size={28} /> Data Science Guide</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-bleepx-text flex flex-wrap items-center gap-2"><GuideIcon size={28} /> Data Science Guide</h1>
           <p className="text-xs sm:text-sm text-bleepx-text-secondary">
             Reference guide for Python, R, pandas, statistics, ML, and more.
           </p>
@@ -220,7 +220,7 @@ export default function LabGuidePage() {
 
           <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
             <h3 className="font-bold text-bleepx-text mb-3">All Topics</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
               {GUIDE_TOPICS.map((t) => (
                 <button
                   key={t.id}

@@ -626,7 +626,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
 
           {/* Test Mode — timed difficulties */}
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-bleepx-gray mb-2 flex items-center gap-2"><FlaskIcon size={22} /> Test Mode</h2>
+            <h2 className="text-lg font-bold text-bleepx-gray mb-2 flex flex-wrap items-center gap-2"><FlaskIcon size={22} /> Test Mode</h2>
             <p className="text-xs text-bleepx-text-secondary mb-4">Start with a countdown. Higher difficulty = less time, more glory. You can also switch to test mode anytime during practice.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {trialDifficulties.map((diff) => {
@@ -941,7 +941,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                   {queryHistory.map((h, i) => (
                     <div key={i} className="flex items-start gap-2 p-1.5 rounded cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30" onClick={() => { setQuery(h.query); setShowHistory(false); }}>
                       <span className="flex-shrink-0 mt-0.5">{h.success === true ? <CheckBadge size={12} className="text-green-600" /> : h.success === false ? <ErrorIcon size={12} className="text-red-500" /> : <CircleIcon size={12} className="text-gray-400" />}</span>
-                      <pre className="truncate flex-1 font-mono text-bleepx-text">{h.query}</pre>
+                      <pre className="whitespace-pre-wrap break-words flex-1 font-mono text-bleepx-text">{h.query}</pre>
                       <span className="flex-shrink-0 text-[10px] text-bleepx-text-secondary">{new Date(h.ts).toLocaleTimeString()}</span>
                     </div>
                   ))}
@@ -1171,7 +1171,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                   }}
                   className="w-full flex items-center justify-between text-left"
                 >
-                  <h2 className="text-base font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-2">
+                  <h2 className="text-base font-semibold text-amber-900 dark:text-amber-200 flex flex-wrap items-center gap-2">
                     <BulbIcon size={22} /> How to Think About This
                   </h2>
                   <span className="text-amber-700 dark:text-amber-300 text-sm font-medium">{showThoughtProcess ? 'Hide' : 'Show'} Guide</span>
