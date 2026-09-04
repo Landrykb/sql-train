@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { Send } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useProgress } from '@/lib/useProgress';
 import { getSupabaseBrowserClient } from '@/lib/supabase';
@@ -165,6 +166,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const [isDark, setIsDark] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
   const [manualMode, setManualMode] = useState<'auto' | Mode>('auto');
   const [teaser, setTeaser] = useState<{ text: string; command: string } | null>(null);
 
@@ -259,6 +261,15 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     const observer = new MutationObserver(updateDark);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const detectTouch = () => {
+      setIsTouch(window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window);
+    };
+    detectTouch();
+    window.addEventListener('pointerchange', detectTouch);
+    return () => window.removeEventListener('pointerchange', detectTouch);
   }, []);
 
   useEffect(() => {
@@ -966,12 +977,27 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
                   data-bleepx-ignore
                   value={input}
                   rows={1}
+                  enterKeyHint={isTouch ? 'enter' : 'send'}
                   onChange={(e) => { setInput(e.target.value); if (inputRef.current) autoResize(inputRef.current); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input); } }}
+                  onKeyDown={(e) => {
+                    // On desktop, Enter sends; on phones the keyboard gives a return key for new lines
+                    // and the user presses the Send button, matching phone chat apps.
+                    if (!isTouch && e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      send(input);
+                    }
+                  }}
                   placeholder="Ask Bleepx..."
                   className="flex-1 min-w-0 px-3 py-2 resize-none rounded-2xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-sky-500 max-h-40 min-h-[2.5rem]"
                 />
-                <button onClick={() => send(input)} className="shrink-0 px-3 py-2 rounded-full bg-sky-600 text-white text-xs font-bold hover:bg-sky-700">Send</button>
+                <button
+                  onClick={() => send(input)}
+                  disabled={!input.trim()}
+                  aria-label="Send"
+                  className="shrink-0 flex items-center justify-center min-h-[44px] min-w-[44px] rounded-full bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Send size={18} />
+                </button>
               </div>
               <div className="mt-2 flex items-center justify-between gap-2 min-w-0">
                 <Link href={hint.href} onClick={() => setOpen(false)} className="min-w-0 whitespace-normal break-words text-xs px-3 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">{hint.cta}</Link>
