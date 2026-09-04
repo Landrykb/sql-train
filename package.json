@@ -12,7 +12,7 @@
     "turbo": ">=2.9.14"
   },
   "dependencies": {
-    "@duckdb/duckdb-wasm": "1.33.1-dev18.0",
+    "@duckdb/duckdb-wasm": "1.33.1-dev57.0",
     "copy-webpack-plugin": "^13.0.1"
   },
   "overrides": {
