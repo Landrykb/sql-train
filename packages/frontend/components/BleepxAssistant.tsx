@@ -449,7 +449,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
     (async () => {
       try {
-        const known = TOPIC_HINTS[clean];
+        const isShortDefinition = messages.length <= 2 && text.trim().length < 60;
+        const known = TOPIC_HINTS[clean] ?? (isShortDefinition ? voice.known(text, activeContext) : null);
         let final: string;
         let actions: ChatAction[] | undefined;
         let nextMood: Mood = 'chat';
