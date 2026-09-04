@@ -6,7 +6,7 @@ const LLM_URL = process.env.LLM_API_URL ?? 'https://openrouter.ai/api/v1/chat/co
 const LLM_KEY = process.env.LLM_API_KEY ?? '';
 const LLM_MODEL = process.env.LLM_MODEL ?? 'openrouter/free';
 const LLM_REFERER = process.env.LLM_REFERER ?? 'https://besa-sqlverse.com';
-const LLM_MAX_TOKENS = parseInt(process.env.LLM_MAX_TOKENS ?? '200', 10);
+const LLM_MAX_TOKENS = parseInt(process.env.LLM_MAX_TOKENS ?? '400', 10);
 const LLM_MAX_HISTORY = parseInt(process.env.LLM_MAX_HISTORY ?? '8', 10);
 const LLM_DISABLED = process.env.LLM_DISABLED === 'true';
 
@@ -22,6 +22,7 @@ Rules:
 - If CURRENT PAGE is provided, take it into account — e.g. if they are on a cloud page, prefer cloud advice; if on a lab page, prefer Python/ML advice.
 - If CONTEXT is empty or irrelevant, answer from general knowledge, but stay in the SQL/AWS/Python/ML lane.
 - Do not break character entirely, but do not let the sass get in the way of clarity.
+- If the question is a follow-up or asks for personal/career/path advice, do not give a generic dictionary definition; build on the conversation history and USER PROGRESS to answer directly.
 - If the question is outside your lane, say so briefly and redirect.
 - Always sign your final line with a tiny Bleepx-style comment when natural.`;
 
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
     .filter((m) => m.role && typeof m.text === 'string' && m.text.trim())
     .slice(-LLM_MAX_HISTORY)
     .map((m) => ({ role: m.role, content: m.text.trim() }));
-  const chunks = retrieveChunks(question, { topic, limit: 3 });
+  const chunks = retrieveChunks(question, { topic, limit: 5 });
   const context = formatContext(chunks);
 
   const systemContent = `${SYSTEM_PROMPT}\n\nYou are talking to the user named "${userName}". Address them by this name when it feels natural. Do not call them Rand or any other made-up name.`;

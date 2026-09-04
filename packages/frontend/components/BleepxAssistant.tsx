@@ -449,7 +449,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
     (async () => {
       try {
-        const known = TOPIC_HINTS[clean] ?? voice.known(text, activeContext);
+        const known = TOPIC_HINTS[clean];
         let final: string;
         let actions: ChatAction[] | undefined;
         let nextMood: Mood = 'chat';
