@@ -481,6 +481,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
                 : undefined,
               progress: formatProgressForPrompt(snap, points),
               page: pathname,
+              history: messages,
             }),
           });
           if (res.ok) {
