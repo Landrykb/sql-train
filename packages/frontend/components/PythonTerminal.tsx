@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import DOMPurify from 'dompurify';
 import { getPyErrorHelp } from '@/lib/pyErrorHelper';
 import { useTheme } from '@/lib/useTheme';
+import type { BleepxHint } from '@/lib/bleepxLinter';
 import { BleepxFace } from '@/components/BleepxIcons';
 import { CodeIcon, RefreshIcon, MoonIcon, SunIcon, BulbIcon, EyeIcon, EyeOffIcon, EraserIcon, ErrorIcon, ClockIcon, PlayIcon, ResetIcon } from '@/components/AppIcons';
 import { useAuthGate } from '@/components/SignInGate';
@@ -208,7 +209,17 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
         { type: 'stderr', text: rawError, cell: nextCell },
         ...partialImages.map((img) => ({ type: 'image', mime: img.mime, data: img.data, cell: nextCell } as OutputLine)),
       ]);
-      setErrorHelp(getPyErrorHelp(rawError, code));
+      const help = getPyErrorHelp(rawError, code);
+      setErrorHelp(help);
+      const hint: BleepxHint = {
+        message: `${help.title}: ${help.explanation}`,
+        fix: help.suggestions.slice(0, 3).join(' '),
+        severity: 'error',
+        snippet: help.suggestions[0],
+      };
+      if (typeof document !== 'undefined') {
+        document.dispatchEvent(new CustomEvent('bleepx:hint', { detail: { hint, value: rawError } }));
+      }
     } finally {
       setRunning(false);
     }

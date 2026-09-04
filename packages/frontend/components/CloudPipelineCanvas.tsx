@@ -44,8 +44,13 @@ LIMIT 10;`;
 const DEFAULT_PYTHON = `import pandas as pd
 from io import StringIO
 
-# Read the raw CSV (it is already in the 'raw_csv' variable)
-df = pd.read_csv(StringIO(raw_csv))
+# Use the SQL result if it exists, otherwise the original raw CSV
+input_csv = sql_result if 'sql_result' in globals() and sql_result else raw_csv
+df = pd.read_csv(StringIO(input_csv))
+
+# Bleepx tip: inspect your data before changing it
+# print(df.head())
+# print(df.columns)
 
 # Try a transformation of your own, for example:
 # - filter rows:  df = df[df['year'] >= 2015]
@@ -197,7 +202,11 @@ export default function CloudPipelineCanvas() {
       const csv = Papa.unparse({ fields: columns, data });
       setExecCount(nextCell);
       setPipeline((p) => ({ ...p, sqlResult: csv, sqlCell: nextCell, activeStep: 'python' }));
-      setMessage(`SQL ran successfully — ${data.length} row(s) returned.`);
+      const cols = columns.join(', ');
+      setMessage(
+        `SQL returned ${data.length} row(s) with columns: ${cols}. ` +
+        `Try filtering, grouping, or adding a calculated column. Then run Python to transform the result before S3.`
+      );
     } catch (err: any) {
       setMessage(`SQL error: ${err?.message || String(err)}`);
     } finally {
@@ -219,14 +228,21 @@ export default function CloudPipelineCanvas() {
       }
       const { stdout, stderr } = await runPythonCode(pyodideRef.current, {
         code: pipeline.pythonCode || DEFAULT_PYTHON,
-        globals: { raw_csv: pipeline.rawCsv },
+        globals: { raw_csv: pipeline.rawCsv, sql_result: pipeline.sqlResult || '' },
         timeoutMs: 30000,
         onProgress: (msg) => setMessage(msg),
       });
       const combined = stderr ? `${stdout}\n${stderr}` : stdout;
+      const preview = Papa.parse(combined.trim(), { header: true, skipEmptyLines: true });
+      const rows = preview.data.length;
+      const cols = preview.meta.fields?.length ?? 0;
+      const colList = preview.meta.fields?.join(', ') ?? '';
       setExecCount(nextCell);
       setPipeline((p) => ({ ...p, transformedCsv: combined.trim(), pythonCell: nextCell, activeStep: 'csv' }));
-      setMessage('Python transformation complete — output is ready for S3.');
+      setMessage(
+        `Python produced ${rows} row(s) and ${cols} column(s)${colList ? `: ${colList}` : ''}. ` +
+        `You can now upload the CSV to the S3 sandbox, or tweak the code and run again.`
+      );
     } catch (err: any) {
       const detail = err?.stdout ? `${err.stdout}\n${err.message}` : err?.message || String(err);
       setPipeline((p) => ({ ...p, transformedCsv: detail.trim(), pythonCell: nextCell, activeStep: 'csv' }));

@@ -788,14 +788,22 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       if (isEditable(active)) lintFocused(active);
     };
 
+    const onBleepxHint = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail?.hint) return;
+      applyHint(detail.hint as BleepxHint, detail.value as string | undefined);
+    };
+
     document.addEventListener('focusin', onFocus);
     document.addEventListener('input', onInput);
+    document.addEventListener('bleepx:hint', onBleepxHint);
     window.addEventListener('scroll', onScrollResize, true);
     window.addEventListener('resize', onScrollResize);
 
     return () => {
       document.removeEventListener('focusin', onFocus);
       document.removeEventListener('input', onInput);
+      document.removeEventListener('bleepx:hint', onBleepxHint);
       window.removeEventListener('scroll', onScrollResize, true);
       window.removeEventListener('resize', onScrollResize);
       if (lintTimer.current) clearTimeout(lintTimer.current);

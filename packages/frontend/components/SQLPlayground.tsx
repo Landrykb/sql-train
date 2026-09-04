@@ -20,6 +20,7 @@ import { loadingMessages, queryMessages, getLockedMessage, getDomainCompleteMess
 import { playBleep } from '@/lib/audio';
 import { useTheme } from '@/lib/useTheme';
 import { getSqlErrorHelp } from '@/lib/sqlErrorHelper';
+import type { BleepxHint } from '@/lib/bleepxLinter';
 import GuideModal from './GuideModal';
 import { FREE_HINTS, HINT_COST, SKIP_COST, TRIAL_UNLOCK_COST, getStoreState, getActivePerks, purchaseSkip as purchaseSkipFn, unlockTrial as unlockTrialFn } from '@/lib/pointsStore';
 import { useAuthGate } from '@/components/SignInGate';
@@ -454,6 +455,15 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       addHistory(query, false);
       const help = getSqlErrorHelp(msg, query);
       setErrorHelp(help);
+      const hint: BleepxHint = {
+        message: `${help.title}: ${help.explanation}`,
+        fix: help.suggestions.slice(0, 3).join(' '),
+        severity: 'error',
+        snippet: help.suggestions[0],
+      };
+      if (typeof document !== 'undefined') {
+        document.dispatchEvent(new CustomEvent('bleepx:hint', { detail: { hint, value: msg } }));
+      }
       setMessage(`${pickRandom(queryMessages.error)} — ${msg}`);
       setAttempts((a) => a + 1);
       if (attempts + 1 < hints.length) setVisibleHints((v) => Math.min(v + 1, hints.length));

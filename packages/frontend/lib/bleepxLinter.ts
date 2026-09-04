@@ -106,6 +106,21 @@ function sqlLint(value: string, el: Element | null, pathname?: string): BleepxHi
   return errors[0] ?? null;
 }
 
+const pyImports: { re: RegExp; need: string; msg: string; fix: string; snippet: string }[] = [
+  { re: /\bpd\./, need: 'pandas', msg: 'You are using `pd.` but `pandas` has not been imported.', fix: 'Add `import pandas as pd` at the top.', snippet: 'import pandas as pd\nimport numpy as np' },
+  { re: /\bnp\./, need: 'numpy', msg: 'You are using `np.` but `numpy` has not been imported.', fix: 'Add `import numpy as np` at the top.', snippet: 'import numpy as np' },
+  { re: /\bplt\./, need: 'matplotlib', msg: 'You are using `plt.` but `matplotlib.pyplot` has not been imported.', fix: 'Add `import matplotlib.pyplot as plt` at the top.', snippet: 'import matplotlib.pyplot as plt' },
+  { re: /\bsns\./, need: 'seaborn', msg: 'You are using `sns.` but `seaborn` has not been imported.', fix: 'Add `import seaborn as sns` at the top.', snippet: 'import seaborn as sns' },
+  { re: /\bsklearn\./, need: 'sklearn', msg: 'You are using `sklearn.` without importing.', fix: 'Import from sklearn, e.g. `from sklearn.ensemble import IsolationForest`.', snippet: 'from sklearn.ensemble import IsolationForest' },
+];
+
+const pyPackages: { re: RegExp; alt: string }[] = [
+  { re: /\bprophet\b|from\s+prophet\s+import/, alt: 'Prophet is not available in Pyodide. Use `statsmodels.tsa.holtwinters.ExponentialSmoothing` or `statsmodels.tsa.arima.model.ARIMA`.' },
+  { re: /\btensorflow\b|\bkeras\b|from\s+tensorflow/, alt: 'TensorFlow/Keras cannot run in the browser. Use `sklearn` for machine learning instead.' },
+  { re: /\bpmdarima\b|from\s+pmdarima/, alt: 'pmdarima is not in Pyodide. Use `statsmodels.tsa.arima.model.ARIMA` and a small grid search.' },
+  { re: /\btorch\b|\bpytorch\b/, alt: 'PyTorch is not available in browser Python. Use `sklearn` or `statsmodels`.' },
+];
+
 function pythonLint(value: string): BleepxHint | null {
   const errors: BleepxHint[] = [];
 
@@ -145,17 +160,39 @@ function pythonLint(value: string): BleepxHint | null {
     });
   }
 
-  if (/\bpd\./.test(value) && !/import\s+pandas/.test(value)) {
+  for (const { re, need, msg, fix, snippet } of pyImports) {
+    if (re.test(value) && !new RegExp(`import\\s+${need}|from\\s+${need}`).test(value)) {
+      errors.push({ message: msg, fix, severity: 'error', snippet });
+    }
+  }
+
+  for (const { re, alt } of pyPackages) {
+    if (re.test(value)) {
+      errors.push({
+        message: `That package will not load in the browser Python environment.`,
+        fix: alt,
+        severity: 'error',
+        snippet: 'from statsmodels.tsa.arima.model import ARIMA',
+      });
+    }
+  }
+
+  if (/\bpd\.read_csv\s*\(\s*["'][^"'\/]*\.(csv|txt)/.test(value) && !/open_url/.test(value)) {
     errors.push({
-      message: 'You are using `pd.` but `pandas` has not been imported.',
-      fix: 'Add `import pandas as pd` at the top.',
+      message: 'Browser Python cannot access your local filesystem.',
+      fix: 'Use `from pyodide.http import open_url` and a public URL, or the pre-hosted `/datasets/` path.',
       severity: 'error',
-      snippet: 'import pandas as pd\nimport numpy as np',
+      snippet: 'from pyodide.http import open_url\nimport pandas as pd\ndf = pd.read_csv(open_url("/datasets/train.csv"))',
     });
   }
 
-  if (/\b\w+\s*=\s*\[\]/.test(value) && /\bfor\b/.test(value) && !/\.extend\s*\(/.test(value)) {
-    // too noisy, skip
+  if (/\bdf\.\w+\s*==/.test(value) && !/df\[['"]/.test(value)) {
+    errors.push({
+      message: 'Column selection with a dot only works when the name has no spaces.',
+      fix: 'Use bracket notation for safety: `df["column_name"]` instead of `df.column_name`.',
+      severity: 'warning',
+      snippet: 'df["Order Date"]',
+    });
   }
 
   return errors[0] ?? null;
