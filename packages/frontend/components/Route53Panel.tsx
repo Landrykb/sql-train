@@ -58,22 +58,22 @@ export default function Route53Panel({ state, onAction }: { state: CloudSandboxS
       {Object.values(state.route53.hostedZones).map((zone) => (
         <div key={zone.id} className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm" id={zone.id}>
           <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
-            <h3 className="text-sm font-bold text-bleepx-text">{zone.name} <span className="font-mono text-xs text-bleepx-text-secondary">{zone.id}</span></h3>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold">{zone.isPrivate ? 'Private' : 'Public'}</span>
+            <h3 className="text-sm font-bold text-bleepx-text min-w-0 break-words">{zone.name} <span className="font-mono text-xs text-bleepx-text-secondary">{zone.id}</span></h3>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold flex-shrink-0">{zone.isPrivate ? 'Private' : 'Public'}</span>
           </div>
 
           {zone.records.length > 0 && (
             <div className="space-y-2 mb-4">
               {zone.records.map((r) => (
                 <div key={r.name} className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-xs flex items-center justify-between flex-wrap gap-2">
-                  <div>
+                  <div className="min-w-0 break-words">
                     <strong className="text-bleepx-text">{r.name}</strong> <span className="text-bleepx-text-secondary">{r.type}</span>
-                    <div className="text-bleepx-text-secondary">→ {r.value} {r.ttl > 0 && `TTL ${r.ttl}`}</div>
+                    <div className="text-bleepx-text-secondary break-words">→ {r.value} {r.ttl > 0 && `TTL ${r.ttl}`}</div>
                     {r.weight !== undefined && <div className="text-sky-700 dark:text-sky-400">Weight: {r.weight}</div>}
                     {r.failover && <div className="text-sky-700 dark:text-sky-400">Failover: {r.failover}</div>}
                     {r.region && <div className="text-sky-700 dark:text-sky-400">Region: {r.region}</div>}
                   </div>
-                  <button onClick={() => onAction(deleteRoute53Record(state, zone.id, r.name))} className="text-[10px] px-2 py-1 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 font-bold hover:bg-rose-200 transition-colors">Delete</button>
+                  <button onClick={() => onAction(deleteRoute53Record(state, zone.id, r.name))} className="text-[10px] px-2 py-1 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 font-bold hover:bg-rose-200 transition-colors flex-shrink-0">Delete</button>
                 </div>
               ))}
             </div>

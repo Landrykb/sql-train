@@ -99,7 +99,7 @@ export default function SaaPracticeExamPage() {
       </nav>
 
       <div className="bg-gradient-to-br from-violet-600 via-indigo-600 to-sky-600 rounded-2xl p-6 sm:p-10 text-white">
-        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">SAA-C03 Practice Exam</h1>
+        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2 break-words">SAA-C03 Practice Exam</h1>
         <p className="text-white/80 text-sm sm:text-lg max-w-2xl leading-relaxed">
           {submitted ? 'Review your results and drill weak domains.' : 'Scenario-based questions across all 4 SAA domains.'}
         </p>

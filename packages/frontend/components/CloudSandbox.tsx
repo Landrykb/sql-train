@@ -131,7 +131,7 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
         </div>
       )}
 
-      <div className="flex gap-1 overflow-x-auto pb-2 -mx-2 px-2 scroll-smooth snap-x">
+      <div className="flex gap-1 overflow-x-auto max-w-full pb-2 -mx-2 px-2 scroll-smooth snap-x">
         {(['s3', 'iam', 'ec2', 'vpc', 'dynamodb', 'rds', 'elb', 'asg', 'kms', 'cloudwatch', 'route53', 'cloudfront', 'secretsmanager', 'elasticache', 'messaging', 'stepfunctions', 'storage', 'lambda', 'terraform', 'security', 'events'] as const).map((tab) => (
           <button
             key={tab}
@@ -722,7 +722,7 @@ function DynamoDBPanel({ state, onAction }: { state: CloudSandboxState; onAction
             setQueryResult(JSON.stringify(res.items, null, 2) + '\n// ' + res.message);
           }
         }} className="w-full px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 disabled:opacity-50" disabled={!tableName}>Query</button>
-        {queryResult && <pre className="mt-2 p-2 rounded-lg bg-gray-900 text-green-400 text-[11px] font-mono overflow-x-auto">{queryResult}</pre>}
+        {queryResult && <pre className="mt-2 p-2 rounded-lg bg-gray-900 text-green-400 text-[11px] font-mono overflow-x-auto whitespace-pre-wrap break-words max-w-full">{queryResult}</pre>}
       </div>
 
       <div className="p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
@@ -737,8 +737,8 @@ function DynamoDBPanel({ state, onAction }: { state: CloudSandboxState; onAction
         <div className="space-y-2">
           {Object.values(state.dynamodb.dax).map((c) => (
             <div key={c.clusterName} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
-              <div className="font-mono font-bold">{c.clusterName}</div>
-              <div className="text-[10px] text-gray-500">{c.nodeType} × {c.nodes} nodes · {c.status}</div>
+              <div className="font-mono font-bold min-w-0 break-words">{c.clusterName}</div>
+              <div className="text-[10px] text-gray-500 break-words">{c.nodeType} × {c.nodes} nodes · {c.status}</div>
               <button onClick={() => onAction(deleteDAXCluster(state, c.clusterName))} className="mt-2 text-[10px] px-2 py-1 rounded bg-rose-100 text-rose-700 hover:bg-rose-200 font-bold">Delete</button>
             </div>
           ))}
@@ -802,7 +802,7 @@ function LambdaPanel({ state, onAction, onInvoke }: { state: CloudSandboxState; 
             } catch { setInvokeResult('Invalid JSON payload'); }
           }
         }} className="w-full px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 disabled:opacity-50" disabled={!selectedFn}>Invoke</button>
-        {invokeResult && <pre className="mt-2 p-2 rounded-lg bg-gray-900 text-green-400 text-[11px] font-mono overflow-x-auto">{invokeResult}</pre>}
+        {invokeResult && <pre className="mt-2 p-2 rounded-lg bg-gray-900 text-green-400 text-[11px] font-mono overflow-x-auto whitespace-pre-wrap break-words max-w-full">{invokeResult}</pre>}
       </div>
 
       <div className="space-y-2">
@@ -836,7 +836,7 @@ function TerraformPanel({ state, onAction }: { state: CloudSandboxState; onActio
       <button onClick={handleExport} className="px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 inline-flex flex-wrap items-center gap-1">{exported ? <><CheckBadge size={12} /> Terraform Exported</> : 'Generate & Save Terraform'}</button>
       <div className="relative">
         <button onClick={() => navigator.clipboard?.writeText(tf)} className="absolute top-2 right-2 text-[10px] px-2 py-1 rounded bg-white/10 text-gray-300 hover:bg-white/20">Copy</button>
-        <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-xs font-mono overflow-x-auto max-h-96">{tf}</pre>
+        <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-xs font-mono overflow-x-auto whitespace-pre-wrap break-words max-h-96 max-w-full">{tf}</pre>
       </div>
     </div>
   );
@@ -866,9 +866,9 @@ function SecurityPanel({ state }: { state: CloudSandboxState }) {
               }`}>{f.severity}</span>
               <span className="font-mono font-bold text-bleepx-text min-w-0 whitespace-normal break-words">{f.resource}</span>
             </div>
-            <p className="text-xs text-bleepx-text-secondary mt-1"><strong>{f.issue}</strong></p>
-            <p className="text-[10px] text-bleepx-text mt-1 inline-flex flex-wrap items-center gap-1"><ToolsIcon size={10} /> {f.remediation}</p>
-            <p className="text-[10px] text-sky-700 dark:text-sky-400 mt-1 inline-flex flex-wrap items-center gap-1"><SchoolIcon size={10} /> {f.examConcept}</p>
+            <p className="text-xs text-bleepx-text-secondary mt-1 break-words"><strong>{f.issue}</strong></p>
+            <p className="text-[10px] text-bleepx-text mt-1 inline-flex flex-wrap items-center gap-1 min-w-0"><ToolsIcon size={10} /> <span className="break-words min-w-0">{f.remediation}</span></p>
+            <p className="text-[10px] text-sky-700 dark:text-sky-400 mt-1 inline-flex flex-wrap items-center gap-1 min-w-0"><SchoolIcon size={10} /> <span className="break-words min-w-0">{f.examConcept}</span></p>
           </div>
         ))}
         {findings.length === 0 && (

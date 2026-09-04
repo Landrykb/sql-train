@@ -600,13 +600,13 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           <div className="flex flex-wrap items-center gap-3 mb-6">
             <div className="animate-pulse-logo"><BleepxGhost size={40} /></div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-gray">{name}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-gray break-words">{name}</h1>
               <p className="text-sm text-bleepx-text-secondary">Trial Challenge</p>
             </div>
           </div>
 
           <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-bleepx-blue/10 to-bleepx-pink/10">
-            <p className="text-sm text-bleepx-gray">{instructions || description}</p>
+            <p className="text-sm text-bleepx-gray break-words">{instructions || description}</p>
           </div>
 
           {/* Practice Mode — always available */}
@@ -841,8 +841,8 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
         <span className="hidden sm:inline px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">⌘/Ctrl+Enter = Run · ⌘/Ctrl+Shift+C = Clear</span>
       </div>
 
-      <nav className="text-xs sm:text-sm font-medium text-bleepx-blue overflow-x-auto" aria-label="Breadcrumb">
-        <ol className="flex flex-wrap space-x-1.5 sm:space-x-2 items-center whitespace-nowrap">
+      <nav className="text-xs sm:text-sm font-medium text-bleepx-blue overflow-x-auto max-w-full" aria-label="Breadcrumb">
+        <ol className="flex flex-wrap space-x-1.5 sm:space-x-2 items-center">
           <li><Link href="/" className="hover:underline">Home</Link></li>
           <li className="text-gray-400">/</li>
           <li className="hidden sm:block"><Link href="/cases" className="hover:underline">Challenges</Link></li>
@@ -903,7 +903,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           </div>
           {/* Schema Explorer */}
           {showSchema && tables.length > 0 && (
-            <div className="mt-3 rounded-lg border p-3 text-xs bg-bleepx-bg border-bleepx-border overflow-x-auto">
+            <div className="mt-3 rounded-lg border p-3 text-xs bg-bleepx-bg border-bleepx-border overflow-x-auto max-w-full">
               {tables.map((table) => (
                 <div key={table.name} className="mb-3 last:mb-0">
                   <div className="font-semibold text-sm mb-1 flex flex-wrap items-center gap-1">
@@ -926,7 +926,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           )}
           {/* Expected Output Preview */}
           {showExpected && expected.length > 0 && (
-            <div className="mt-3 rounded-lg border p-3 text-xs bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 overflow-x-auto">
+            <div className="mt-3 rounded-lg border p-3 text-xs bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 overflow-x-auto max-w-full">
               <p className="font-semibold text-sm mb-2 flex flex-wrap items-center gap-1"><TargetIcon size={14} /> Expected Output Shape</p>
               <p><strong>Columns:</strong> {expected.length > 0 ? Object.keys((expected as Record<string, any>[])[0]).join(', ') : '—'}</p>
               <p><strong>Rows:</strong> {expected.length}</p>
@@ -1283,7 +1283,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               </button>
             )}
           </div>
-          <div className="min-h-[80px] sm:min-h-[120px] overflow-x-auto">
+          <div className="min-h-[80px] sm:min-h-[120px] overflow-x-auto max-w-full">
             {busy ? (
               <div className="flex flex-wrap items-center" aria-live="polite">
                 <Spinner />
@@ -1322,7 +1322,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               </select>
             </div>
           )}
-          <div className="min-h-[120px] sm:min-h-[200px] overflow-x-auto">
+          <div className="min-h-[120px] sm:min-h-[200px] overflow-x-auto max-w-full">
             <DataGrid data={tables.find((t) => t.name === selectedTable)?.previewRows || []} />
           </div>
           <div className="mt-4 text-sm text-bleepx-text-secondary">

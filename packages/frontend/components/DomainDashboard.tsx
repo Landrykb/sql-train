@@ -439,10 +439,10 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
                   </button>
                   {pushResult?.success && (
                     <p className="mt-2 text-sm text-green-800 dark:text-green-300">
-                      <span className="inline-flex flex-wrap items-center gap-1"><CheckBadge size={14} className="text-green-700" /> Pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline">{pushResult.repoUrl}</a></span>
+                      <span className="inline-flex flex-wrap items-center gap-1 min-w-0"><CheckBadge size={14} className="text-green-700" /> Pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline break-all">{pushResult.repoUrl}</a></span>
                     </p>
                   )}
-                  {pushResult?.error && <p className="mt-2 text-sm text-red-700 inline-flex flex-wrap items-center gap-1"><ErrorIcon size={14} /> {pushResult.error}</p>}
+                  {pushResult?.error && <p className="mt-2 text-sm text-red-700 inline-flex flex-wrap items-center gap-1 min-w-0"><ErrorIcon size={14} className="flex-shrink-0" /> <span className="break-words min-w-0">{pushResult.error}</span></p>}
                 </div>
               ) : (
                 <button
@@ -471,7 +471,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
           <p className="text-sm text-bleepx-text-secondary mb-4">Visualizations built from the {domain} datasets.</p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {domainCharts.map((chart, i) => (
-              <div key={i} className="border border-bleepx-border rounded-lg p-3 overflow-x-auto">
+              <div key={i} className="border border-bleepx-border rounded-lg p-3 overflow-x-auto max-w-full min-w-0">
                 <Plot
                   data={chart.data}
                   layout={{ ...chart.layout, autosize: true, margin: { t: 50, b: 70, l: 60, r: 30 }, font: { size: 11, color: 'var(--bleepx-text)' }, paper_bgcolor: 'var(--bleepx-white)', plot_bgcolor: 'var(--bleepx-white)' }}
@@ -489,7 +489,7 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
       {solvedEntries.length > 0 && (
         <section className="bg-bleepx-white p-6 rounded-xl shadow-lg">
           <h2 className="text-xl font-semibold text-bleepx-text mb-4">Performance by Challenge</h2>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-w-full">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="border-b border-bleepx-border">
@@ -524,11 +524,11 @@ export default function DomainDashboard({ domain, datasets }: DomainDashboardPro
           <div className="space-y-3">
             {solvedEntries.map((e) => (
               <div key={e.id} className="border border-bleepx-border rounded-lg p-3">
-                <div className="flex flex-wrap justify-between items-center mb-1">
-                  <span className="text-sm font-medium text-bleepx-text">{e.name}</span>
-                  <span className="text-xs text-green-600 dark:text-green-400 font-semibold inline-flex flex-wrap items-center gap-1"><CheckBadge size={12} className="text-green-600" /> Solved</span>
+                <div className="flex flex-wrap justify-between items-center mb-1 gap-2">
+                  <span className="text-sm font-medium text-bleepx-text min-w-0 break-words">{e.name}</span>
+                  <span className="text-xs text-green-600 dark:text-green-400 font-semibold inline-flex flex-wrap items-center gap-1 flex-shrink-0"><CheckBadge size={12} className="text-green-600" /> Solved</span>
                 </div>
-                <pre className="text-xs text-bleepx-text-secondary bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded overflow-x-auto whitespace-pre-wrap break-words">{e.query}</pre>
+                <pre className="text-xs text-bleepx-text-secondary bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded overflow-x-auto whitespace-pre-wrap break-words max-w-full">{e.query}</pre>
               </div>
             ))}
           </div>

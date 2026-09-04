@@ -62,7 +62,7 @@ export default function CloudProviderPage() {
         <div className="relative z-10 flex flex-wrap items-start gap-4">
           <span className="text-white"><CloudProviderIcon provider={provider} size={44} className="text-white" /></span>
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold">{meta.name}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold break-words">{meta.name}</h1>
             <p className="text-sm text-white/85 mt-1">{meta.desc}</p>
             <div className="mt-3 flex items-center gap-3 flex-wrap">
               {meta.cert && <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-medium inline-flex flex-wrap items-center gap-1"><SchoolIcon size={12} /> {meta.cert}</span>}

@@ -157,7 +157,7 @@ export default function LabGuidePage() {
       <div className="flex items-center gap-3">
         <BleepxLogo />
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-bleepx-text flex flex-wrap items-center gap-2"><GuideIcon size={28} /> Data Science Guide</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-bleepx-text flex flex-wrap items-center gap-2 break-words"><GuideIcon size={28} /> Data Science Guide</h1>
           <p className="text-xs sm:text-sm text-bleepx-text-secondary">
             Reference guide for Python, R, pandas, statistics, ML, and more.
           </p>
@@ -210,8 +210,8 @@ export default function LabGuidePage() {
                   >
                     {copiedCode === section.code ? <><CheckBadge size={10} className="text-gray-300" /> Copied</> : <><CopyIcon size={10} /> Copy</>}
                   </button>
-                  <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto leading-relaxed">
-                    <code>{section.code}</code>
+                  <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto whitespace-pre-wrap break-words max-w-full leading-relaxed">
+                    <code className="break-words">{section.code}</code>
                   </pre>
                 </div>
               )}

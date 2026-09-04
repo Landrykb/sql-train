@@ -61,7 +61,7 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-1 -mx-1 px-1">
+      <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto max-w-full pb-1 -mx-1 px-1">
         <button
           onClick={() => setFilter('all')}
           className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm whitespace-nowrap flex-shrink-0 ${filter === 'all' ? 'bg-bleepx-blue text-white' : 'bg-gray-200 dark:bg-gray-700 text-bleepx-text'}`}
@@ -149,9 +149,9 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
               `}
               aria-disabled={isEffectivelyLocked}
             >
-              <div className="flex justify-between items-start">
-                <h3 className="text-base sm:text-lg font-semibold text-bleepx-gray">{c.name}</h3>
-                <div className="flex items-center gap-2">
+              <div className="flex justify-between items-start gap-2">
+                <h3 className="text-base sm:text-lg font-semibold text-bleepx-gray min-w-0 break-words flex-1">{c.name}</h3>
+                <div className="flex items-center gap-2 flex-shrink-0">
                   {isHidden && (
                     <span className="text-amber-500 text-xs font-bold px-2 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-full">BONUS</span>
                   )}

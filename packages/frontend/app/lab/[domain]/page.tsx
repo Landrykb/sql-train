@@ -78,7 +78,7 @@ export default async function LabDomainPage({ params }: { params: Promise<{ doma
       <div className="flex flex-wrap items-start gap-3">
         <span className="text-bleepx-text"><LabDomainIcon domain={domain} size={36} /></span>
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text">{meta.name}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text break-words">{meta.name}</h1>
           <p className="text-sm text-bleepx-text-secondary mt-1">{meta.desc}</p>
           <div className="mt-2 flex items-center gap-3 flex-wrap">
             <span className="text-xs text-bleepx-text-secondary">{meta.difficulty}</span>

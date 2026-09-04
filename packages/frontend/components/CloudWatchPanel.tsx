@@ -41,11 +41,11 @@ export default function CloudWatchPanel({ state, onAction }: { state: CloudSandb
           <div className="space-y-2">
             {Object.values(state.cloudwatch.alarms).map((a) => (
               <div key={a.alarmName} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-sm flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <strong className="text-bleepx-text">{a.alarmName}</strong>
-                  <div className="text-xs text-bleepx-text-secondary">{a.namespace}/{a.metricName} {a.statistic} {a.comparisonOperator} {a.threshold} for {a.evaluationPeriods} periods</div>
+                <div className="min-w-0">
+                  <strong className="text-bleepx-text min-w-0 break-words">{a.alarmName}</strong>
+                  <div className="text-xs text-bleepx-text-secondary break-words">{a.namespace}/{a.metricName} {a.statistic} {a.comparisonOperator} {a.threshold} for {a.evaluationPeriods} periods</div>
                 </div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">OK</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold flex-shrink-0">OK</span>
               </div>
             ))}
           </div>

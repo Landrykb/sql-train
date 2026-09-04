@@ -102,7 +102,7 @@ export function GlossaryTooltip({ term, children, className = '' }: GlossaryTool
       {isOpen && (
         <div
           ref={tooltipRef}
-          className="fixed z-50 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-2 duration-200"
+          className="fixed z-50 w-80 max-w-[calc(100vw-1rem)] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-2 duration-200"
           style={{
             top: `${position.top}px`,
             left: `${position.left}px`,

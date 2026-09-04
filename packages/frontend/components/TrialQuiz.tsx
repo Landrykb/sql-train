@@ -388,7 +388,7 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
           <p className="text-lg text-bleepx-text-secondary mb-1">{caseName}</p>
 
           <div className="my-6 p-4 rounded-xl bg-gradient-to-r from-bleepx-blue/10 to-indigo-500/10 border border-bleepx-blue/20">
-            <div className="text-4xl font-bold text-bleepx-blue mb-1">+{score} pts</div>
+            <div className="text-3xl sm:text-4xl font-bold text-bleepx-blue mb-1">+{score} pts</div>
             <p className="text-sm text-bleepx-text-secondary">
               {score}/{maxScore} possible points ({pct}%)
               {isPerfect && <span className="ml-1 text-yellow-500 inline-flex items-center gap-1"><IconSparkles size={14} /> Perfect Bonus!</span>}
@@ -477,7 +477,7 @@ export default function TrialQuiz({ caseId, caseName, skills, domain }: TrialQui
             {currentQ.options?.map((opt) => {
               const isSelected = selected === opt;
               const isAnswer = opt === currentQ.answer;
-              let classes = 'w-full text-left p-3.5 sm:p-4 rounded-xl border-2 text-sm sm:text-base font-medium transition-all duration-200 ';
+              let classes = 'w-full text-left p-3.5 sm:p-4 rounded-xl border-2 text-sm sm:text-base font-medium transition-all duration-200 break-words ';
 
               if (answered) {
                 if (isAnswer) {

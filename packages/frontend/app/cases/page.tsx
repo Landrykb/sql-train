@@ -38,7 +38,7 @@ export default function CasesPage() {
       <div className="flex flex-wrap items-center gap-3">
         <BleepxLogo />
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text">SwiftLink Training Program</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text break-words">SwiftLink Training Program</h1>
           <p className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1"><BleepxFace size={16} /> *bleep* Pick a domain. Show me what you&apos;ve got.</p>
         </div>
       </div>
@@ -60,7 +60,7 @@ export default function CasesPage() {
                 <div className="relative flex items-start gap-3">
                   <div className="text-bleepx-text flex-shrink-0"><DomainIcon domain={domain} size={28} /></div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="capitalize font-bold text-bleepx-text text-base sm:text-lg group-hover:text-bleepx-blue transition-colors">
+                    <h3 className="capitalize font-bold text-bleepx-text text-base sm:text-lg group-hover:text-bleepx-blue transition-colors min-w-0 break-words">
                       {domain}
                     </h3>
                     {info && <p className="text-xs text-bleepx-text-secondary mt-0.5 line-clamp-1">{info.desc}</p>}

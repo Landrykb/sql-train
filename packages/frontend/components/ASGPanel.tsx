@@ -42,12 +42,12 @@ export default function ASGPanel({ state, onAction }: { state: CloudSandboxState
             {Object.values(state.asg.autoScalingGroups).map((asg) => (
               <div key={asg.name} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-sm">
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <strong className="text-bleepx-text">{asg.name}</strong>
-                  <span className="text-xs text-bleepx-text-secondary">{asg.desiredCapacity} desired · {asg.minSize}-{asg.maxSize}</span>
+                  <strong className="text-bleepx-text min-w-0 break-words">{asg.name}</strong>
+                  <span className="text-xs text-bleepx-text-secondary flex-shrink-0">{asg.desiredCapacity} desired · {asg.minSize}-{asg.maxSize}</span>
                 </div>
-                <div className="text-xs text-bleepx-text-secondary mt-1">Template: {asg.launchTemplate} | Subnets: {asg.vpcZoneIdentifier.join(', ')} | TGs: {asg.targetGroupARNs.join(', ') || 'none'}</div>
+                <div className="text-xs text-bleepx-text-secondary mt-1 break-words">Template: {asg.launchTemplate} | Subnets: {asg.vpcZoneIdentifier.join(', ')} | TGs: {asg.targetGroupARNs.join(', ') || 'none'}</div>
                 {asg.scalingPolicies.length > 0 && (
-                  <div className="mt-2 text-xs text-sky-700 dark:text-sky-400">
+                  <div className="mt-2 text-xs text-sky-700 dark:text-sky-400 break-words">
                     {asg.scalingPolicies.map((p) => <div key={p.name}>{p.name}: {p.metricType} target {p.targetValue}</div>)}
                   </div>
                 )}

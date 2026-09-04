@@ -63,7 +63,7 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
       >
         {copied ? 'Copied' : 'Copy'}
       </button>
-      <pre className="bg-gray-900 text-green-300 p-3 pt-8 rounded-lg text-xs overflow-x-auto whitespace-pre leading-relaxed">{code}</pre>
+      <pre className="bg-gray-900 text-green-300 p-3 pt-8 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap break-words leading-relaxed max-w-full">{code}</pre>
     </div>
   );
 }
@@ -71,12 +71,12 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
 // Architecture flow: connected cards with arrows between them.
 function ArchitectureFlow({ nodes }: { nodes: { label: string; note?: string }[] }) {
   return (
-    <div className="flex items-stretch gap-1.5 overflow-x-auto pb-2">
+    <div className="flex items-stretch gap-1.5 overflow-x-auto max-w-full pb-2">
       {nodes.map((n, i) => (
         <React.Fragment key={i}>
           <div className="flex-shrink-0 min-w-[110px] max-w-[150px] rounded-lg border border-bleepx-border bg-gradient-to-b from-bleepx-bg to-bleepx-white p-3 text-center">
-            <div className="text-xs font-bold text-bleepx-text leading-tight">{n.label}</div>
-            {n.note && <div className="text-[10px] text-bleepx-text-secondary mt-0.5">{n.note}</div>}
+            <div className="text-xs font-bold text-bleepx-text leading-tight break-words">{n.label}</div>
+            {n.note && <div className="text-[10px] text-bleepx-text-secondary mt-0.5 break-words">{n.note}</div>}
           </div>
           {i < nodes.length - 1 && (
             <div className="flex flex-wrap items-center text-sky-400 text-lg flex-shrink-0">→</div>
@@ -243,7 +243,7 @@ export default function CloudMissionPage() {
               <span className="text-[10px] uppercase tracking-wide font-bold text-bleepx-text-secondary">{mission.section}</span>
               {isDone && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 inline-flex flex-wrap items-center gap-1"><CheckBadge size={10} className="text-emerald-700 dark:text-emerald-300" /> COMPLETED</span>}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text mt-0.5">{mission.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text mt-0.5 break-words">{mission.title}</h1>
             <div className="mt-2 flex items-center gap-2 flex-wrap">
               <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary">{mission.level}</span>
               <StarRating stars={mission.stars} size={12} />
@@ -259,14 +259,14 @@ export default function CloudMissionPage() {
       {/* Briefing */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
         <h2 className="text-base font-bold text-bleepx-text mb-2 flex flex-wrap items-center gap-2"><GuideIcon size={18} /> Mission Briefing</h2>
-        <div className="text-sm text-bleepx-text-secondary leading-relaxed whitespace-pre-line">
+        <div className="text-sm text-bleepx-text-secondary leading-relaxed whitespace-pre-line break-words">
           {wrapWithGlossary(mission.description)}
         </div>
 
         {mission.realWorld && (
           <div className="mt-4 rounded-lg border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-900/15 p-3">
             <p className="text-xs font-bold text-amber-700 dark:text-amber-300 mb-0.5 flex flex-wrap items-center gap-1"><BuildingIcon size={12} /> Real-world scenario</p>
-            <p className="text-sm text-bleepx-text-secondary leading-relaxed">{wrapWithGlossary(mission.realWorld)}</p>
+            <p className="text-sm text-bleepx-text-secondary leading-relaxed break-words">{wrapWithGlossary(mission.realWorld)}</p>
           </div>
         )}
 
@@ -276,7 +276,7 @@ export default function CloudMissionPage() {
             <ul className="space-y-1">
               {mission.objectives.map((o) => (
                 <li key={o} className="flex flex-wrap items-start gap-2 text-sm text-bleepx-text-secondary">
-                  <span className="text-sky-500 mt-0.5">▸</span><span>{wrapWithGlossary(o)}</span>
+                  <span className="text-sky-500 mt-0.5">▸</span><span className="break-words">{wrapWithGlossary(o)}</span>
                 </li>
               ))}
             </ul>
@@ -340,19 +340,19 @@ export default function CloudMissionPage() {
             <div className="rounded-xl border border-bleepx-border overflow-hidden">
               <div className="bg-gradient-to-r from-sky-50 to-transparent dark:from-sky-900/20 px-4 py-3 flex flex-wrap items-center gap-3">
                 <CloudProviderIcon provider={provider} size={24} className="text-sky-600" />
-                <div>
-                  <h3 className="font-bold text-bleepx-text leading-tight">{c.name}</h3>
-                  <p className="text-xs text-bleepx-text-secondary">{wrapWithGlossary(c.what)}</p>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-bleepx-text leading-tight break-words">{c.name}</h3>
+                  <p className="text-xs text-bleepx-text-secondary break-words">{wrapWithGlossary(c.what)}</p>
                 </div>
               </div>
               <div className="p-4 space-y-3">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-wide text-sky-600 mb-0.5">Why it matters</p>
-                  <p className="text-sm text-bleepx-text-secondary leading-relaxed">{c.why}</p>
+                  <p className="text-sm text-bleepx-text-secondary leading-relaxed break-words">{c.why}</p>
                 </div>
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-wide text-indigo-500 mb-0.5">When to use it</p>
-                  <p className="text-sm text-bleepx-text-secondary leading-relaxed">{c.when}</p>
+                  <p className="text-sm text-bleepx-text-secondary leading-relaxed break-words">{c.when}</p>
                 </div>
                 {c.example && (
                   <div>
@@ -363,7 +363,7 @@ export default function CloudMissionPage() {
                 {c.gotcha && (
                   <div className="rounded-lg border-l-4 border-red-400 bg-red-50 dark:bg-red-900/15 p-3">
                     <p className="text-[11px] font-bold text-red-600 mb-0.5 flex flex-wrap items-center gap-1"><AlertIcon size={12} /> Gotcha (exam trap)</p>
-                    <p className="text-sm text-bleepx-text-secondary leading-relaxed">{c.gotcha}</p>
+                    <p className="text-sm text-bleepx-text-secondary leading-relaxed break-words">{c.gotcha}</p>
                   </div>
                 )}
               </div>
@@ -417,7 +417,7 @@ export default function CloudMissionPage() {
           <div className="space-y-4">
             {quizQuestions.map((q, qi) => (
               <div key={q.id} className="border border-bleepx-border rounded-lg p-3">
-                <p className="text-sm font-medium text-bleepx-text mb-2">{qi + 1}. {q.question}</p>
+                <p className="text-sm font-medium text-bleepx-text mb-2 break-words">{qi + 1}. {q.question}</p>
                 <div className="space-y-1.5">
                   {q.options.map((opt) => {
                     const selected = answers[q.id] === opt;
@@ -428,7 +428,7 @@ export default function CloudMissionPage() {
                         key={opt}
                         disabled={quizSubmitted}
                         onClick={() => setAnswers((a) => ({ ...a, [q.id]: opt }))}
-                        className={`w-full text-left text-sm px-3 py-2 rounded-lg border transition-colors ${
+                        className={`w-full text-left text-sm px-3 py-2 rounded-lg border transition-colors break-words ${
                           showCorrect ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'
                           : showWrong ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-600'
                           : selected ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300'
@@ -440,7 +440,7 @@ export default function CloudMissionPage() {
                     );
                   })}
                 </div>
-                {quizSubmitted && <p className="text-xs text-bleepx-text-secondary mt-2 italic">{q.explanation}</p>}
+                {quizSubmitted && <p className="text-xs text-bleepx-text-secondary mt-2 italic break-words">{q.explanation}</p>}
               </div>
             ))}
           </div>
@@ -477,7 +477,7 @@ export default function CloudMissionPage() {
               <div className="space-y-4">
                 {knowledgeCheck.map((q, qi) => (
                   <div key={q.id} className="border border-bleepx-border rounded-lg p-3">
-                    <p className="text-sm font-medium text-bleepx-text mb-2">{qi + 1}. Which is described as: <span className="italic text-bleepx-text-secondary">&ldquo;{q.what}&rdquo;</span></p>
+                    <p className="text-sm font-medium text-bleepx-text mb-2 break-words">{qi + 1}. Which is described as: <span className="italic text-bleepx-text-secondary break-words">&ldquo;{q.what}&rdquo;</span></p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                       {q.options.map((opt) => {
                         const selected = kcAnswers[q.id] === opt;
@@ -488,7 +488,7 @@ export default function CloudMissionPage() {
                             key={opt}
                             disabled={kcSubmitted}
                             onClick={() => setKcAnswers((a) => ({ ...a, [q.id]: opt }))}
-                            className={`text-left text-sm px-3 py-2 rounded-lg border transition-colors ${
+                            className={`text-left text-sm px-3 py-2 rounded-lg border transition-colors break-words ${
                               showCorrect ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'
                               : showWrong ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-600'
                               : selected ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300'
@@ -500,7 +500,7 @@ export default function CloudMissionPage() {
                         );
                       })}
                     </div>
-                    {kcSubmitted && <p className="text-xs text-bleepx-text-secondary mt-2 italic">{q.why}</p>}
+                    {kcSubmitted && <p className="text-xs text-bleepx-text-secondary mt-2 italic break-words">{q.why}</p>}
                   </div>
                 ))}
               </div>

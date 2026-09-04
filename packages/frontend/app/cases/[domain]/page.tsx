@@ -57,10 +57,10 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
             Home
           </Link>
         </nav>
-        <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text capitalize">
+        <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text capitalize break-words">
           {decodedDomain} Challenges
         </h1>
-        <div className="p-6 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg shadow mt-6">
+        <div className="p-6 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg shadow mt-6 break-words">
           Invalid domain: {decodedDomain}. Bleepx says pick a valid challenge!
           <div className="mt-2">
             <Link href="/cases">
@@ -129,10 +129,10 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
             Home
           </Link>
         </nav>
-        <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text capitalize">
+        <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text capitalize break-words">
           {decodedDomain} Challenges
         </h1>
-        <div className="p-6 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg shadow mt-6">
+        <div className="p-6 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg shadow mt-6 break-words">
           No cases found for domain: {decodedDomain}. Bleepx is disappointed, human!
           <div className="mt-2">
             <Link href="/cases">
@@ -152,7 +152,7 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <BleepxLogo />
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text capitalize">
+            <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text capitalize break-words">
               {domainKey.charAt(0).toUpperCase() + domainKey.slice(1).replace('_', ' ')} Division
             </h1>
             <p className="text-[10px] sm:text-xs text-bleepx-text-secondary">SwiftLink Training Program</p>

@@ -67,14 +67,14 @@ export default async function QuizPage({
         <span>/</span>
         <Link href={`/cases/${domainKey}`} className="hover:underline">Trials</Link>
         <span>/</span>
-        <Link href={`/cases/${domainKey}/${caseId}`} className="hover:underline truncate max-w-[120px]">{caseName}</Link>
+        <Link href={`/cases/${domainKey}/${caseId}`} className="hover:underline min-w-0 whitespace-normal break-words">{caseName}</Link>
         <span>/</span>
         <span className="font-semibold text-bleepx-gray">Quiz</span>
       </nav>
 
       <div className="flex flex-wrap items-center gap-2">
         <BleepxLogo />
-        <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text">SQL Knowledge Quiz</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text break-words">SQL Knowledge Quiz</h1>
       </div>
 
       <Suspense fallback={<div>Loading...</div>}>

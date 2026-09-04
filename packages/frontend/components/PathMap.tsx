@@ -181,7 +181,7 @@ export default function PathMap({ domain, cases }: PathMapProps) {
                 `}>
                   {status === 'completed' ? <StatusIcon status={status} isHidden={false} /> : <span className="text-[10px]">{i + 1}</span>}
                 </span>
-                <span className={`text-sm font-medium truncate flex-1 ${
+                <span className={`text-sm font-medium min-w-0 whitespace-normal break-words flex-1 ${
                   status === 'completed' ? 'text-emerald-300' :
                   status === 'unlocked' ? 'text-blue-300' :
                   'text-gray-500'
@@ -245,7 +245,7 @@ export default function PathMap({ domain, cases }: PathMapProps) {
                         {label}
                       </span>
                     )}
-                    <span className={`text-sm font-medium truncate ${
+                    <span className={`text-sm font-medium min-w-0 whitespace-normal break-words ${
                       status === 'completed' ? 'text-emerald-300' :
                       status === 'unlocked' ? 'text-blue-300' :
                       'text-gray-500'
@@ -311,7 +311,7 @@ export default function PathMap({ domain, cases }: PathMapProps) {
                         ${status !== 'locked' ? 'cursor-pointer' : 'cursor-not-allowed'}
                       `}
                     >
-                      <span className={`text-sm font-medium truncate ${
+                      <span className={`text-sm font-medium min-w-0 whitespace-normal break-words ${
                         status === 'completed' ? 'text-amber-300' :
                         status === 'unlocked' ? 'text-purple-300' :
                         'text-gray-500'

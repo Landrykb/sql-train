@@ -143,7 +143,7 @@ export default function CertificationsPage() {
       <div className="bg-gradient-to-br from-sky-600 via-indigo-600 to-violet-700 rounded-2xl p-6 sm:p-10 text-white">
         <div className="flex items-center gap-3 mb-3">
           <SchoolIcon size={40} className="text-white" />
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">AWS Solutions Architect – Associate</h1>
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight break-words">AWS Solutions Architect – Associate</h1>
         </div>
         <p className="text-white/80 text-sm sm:text-lg max-w-2xl leading-relaxed">
           Bleepx is building a fully integrated learning journey: SQL → Python → Data Science → ML → ETL → Cloud → SAA. Use this page as your master plan. It maps every SAA-C03 domain to hands-on labs, sandbox exercises, and missions.
@@ -191,10 +191,10 @@ export default function CertificationsPage() {
               />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold w-5 h-5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 flex items-center justify-center">{idx + 1}</span>
-                  <span className="font-semibold text-sm text-bleepx-text">{step.label}</span>
+                  <span className="text-xs font-bold w-5 h-5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 flex items-center justify-center flex-shrink-0">{idx + 1}</span>
+                  <span className="font-semibold text-sm text-bleepx-text min-w-0 break-words">{step.label}</span>
                 </div>
-                <Link href={step.href} className="text-[10px] text-sky-600 hover:underline">{step.resource} →</Link>
+                <Link href={step.href} className="text-[10px] text-sky-600 hover:underline break-words min-w-0">{step.resource} →</Link>
               </div>
             </label>
           ))}
@@ -207,8 +207,8 @@ export default function CertificationsPage() {
         {SAA_DOMAINS.map((domain) => (
           <div key={domain.id} className="bg-bleepx-white rounded-xl p-5 border border-bleepx-border shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-              <h3 className="text-base font-bold text-bleepx-text">{domain.title}</h3>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 font-medium">{domain.weight}</span>
+              <h3 className="text-base font-bold text-bleepx-text min-w-0 break-words">{domain.title}</h3>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 font-medium flex-shrink-0">{domain.weight}</span>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
@@ -237,10 +237,10 @@ export default function CertificationsPage() {
                       onChange={() => toggle(step.id)}
                       className="mt-0.5 w-4 h-4 text-sky-600 rounded"
                     />
-                    <div className="flex-1">
-                      <span className="text-sm text-bleepx-text">{step.label}</span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm text-bleepx-text break-words">{step.label}</span>
                       <br/>
-                      <Link href={step.href} className="text-[10px] text-sky-600 hover:underline">{step.resource}</Link>
+                      <Link href={step.href} className="text-[10px] text-sky-600 hover:underline break-words">{step.resource}</Link>
                     </div>
                   </label>
                 ))}

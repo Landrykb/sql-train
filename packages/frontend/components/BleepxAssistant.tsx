@@ -853,14 +853,14 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               <div className="shrink-0 w-10 h-10 relative">
                 <Sprite size={40} />
               </div>
-              <div className="flex-1">
-                <div className="font-extrabold text-bleepx-text flex items-center gap-2">
-                  Bleepx
+              <div className="flex-1 min-w-0">
+                <div className="font-extrabold text-bleepx-text flex flex-wrap items-center gap-2">
+                  <span className="min-w-0">Bleepx</span>
                   <span className={`px-1.5 py-0.5 rounded text-[9px] border ${MODES[activeMode].badge}`}>{MODES[activeMode].label}</span>
                 </div>
                 <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{completedCount} steps done · {points} pts</div>
               </div>
-              <button onClick={() => setOpen(false)} className="text-xs text-bleepx-text-secondary hover:text-bleepx-text">Close</button>
+              <button onClick={() => setOpen(false)} className="text-xs text-bleepx-text-secondary hover:text-bleepx-text flex-shrink-0">Close</button>
             </div>
           </div>
           <div className="flex flex-col relative" style={{ maxHeight: chatMaxHeight, height: 'min(55vh, 22rem)' }}>
@@ -868,8 +868,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
             <div className="flex-1 overflow-y-auto overscroll-y-contain p-4 space-y-3" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed ${m.role === 'user' ? 'bg-sky-600 text-white rounded-br-none' : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text rounded-bl-none'}`}>
-                    <div>{m.text}</div>
+                  <div className={`max-w-[85%] min-w-0 p-3 rounded-2xl text-sm leading-relaxed ${m.role === 'user' ? 'bg-sky-600 text-white rounded-br-none' : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text rounded-bl-none'}`}>
+                    <div className="break-words">{m.text}</div>
                     {m.actions && m.actions.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {m.actions.map((a, ai) => {
@@ -915,7 +915,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               <div ref={messagesEndRef} />
             </div>
             <div className="p-3 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex flex-nowrap gap-2 mb-2 overflow-x-auto overscroll-x-contain no-scrollbar pb-1">
+              <div className="flex flex-nowrap gap-2 mb-2 overflow-x-auto max-w-full overscroll-x-contain no-scrollbar pb-1">
                 {QUICK_REPLIES.map((q) => (
                   <button key={q} onClick={() => handleQuick(q)} className="shrink-0 whitespace-nowrap text-[10px] px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors">{q}</button>
                 ))}
@@ -932,7 +932,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
                 <button onClick={() => send(input)} className="shrink-0 px-3 py-2 rounded-full bg-sky-600 text-white text-xs font-bold hover:bg-sky-700">Send</button>
               </div>
               <div className="mt-2 flex items-center justify-between gap-2 min-w-0">
-                <Link href={hint.href} onClick={() => setOpen(false)} className="min-w-0 truncate text-[10px] px-3 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">{hint.cta}</Link>
+                <Link href={hint.href} onClick={() => setOpen(false)} className="min-w-0 whitespace-normal break-words text-[10px] px-3 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">{hint.cta}</Link>
                 <button onClick={startChat} className="shrink-0 text-[10px] text-bleepx-text-secondary hover:text-bleepx-text underline">Clear chat</button>
               </div>
             </div>

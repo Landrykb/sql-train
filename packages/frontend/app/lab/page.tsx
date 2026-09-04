@@ -31,8 +31,8 @@ export default function LabHomePage() {
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <BleepxLogo />
             <div>
-              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">BleepxLab</h1>
-              <span className="text-xs sm:text-sm bg-white/20 px-2 py-0.5 rounded-full font-medium">Python · R · Data Science</span>
+              <h1 className="text-2xl sm:text-5xl font-extrabold tracking-tight break-words">BleepxLab</h1>
+              <span className="text-xs sm:text-sm bg-white/20 px-2 py-0.5 rounded-full font-medium break-words">Python · R · Data Science</span>
             </div>
           </div>
           <p className="text-white/80 text-sm sm:text-lg max-w-lg leading-relaxed">
@@ -85,7 +85,7 @@ export default function LabHomePage() {
         <div className="p-5 flex items-center gap-4">
           <div className="text-purple-300 flex-shrink-0"><BrainIcon size={32} /></div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-extrabold text-white text-lg group-hover:text-purple-300 transition-colors">Data Science Quizzes</h3>
+            <h3 className="font-extrabold text-white text-lg group-hover:text-purple-300 transition-colors break-words min-w-0">Data Science Quizzes</h3>
             <p className="text-sm text-gray-400 mt-0.5">Test your knowledge — statistics, ML, Python, LLMs, AWS & more.</p>
             <div className="mt-2 flex items-center gap-3">
               <span className="text-xs text-gray-500">Per-project quizzes</span>
@@ -119,8 +119,8 @@ export default function LabHomePage() {
                 <div className="p-4 sm:p-5 flex items-start gap-3 sm:gap-4">
                   <div className="text-bleepx-text flex-shrink-0 pt-0.5"><LabDomainIcon domain={d} size={26} /></div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-bleepx-text text-base sm:text-lg group-hover:text-teal-600 transition-colors">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-bold text-bleepx-text text-base sm:text-lg group-hover:text-teal-600 transition-colors min-w-0 break-words">
                         {meta.name}
                       </h3>
                     </div>

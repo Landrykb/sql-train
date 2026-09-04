@@ -252,7 +252,7 @@ ${getJSCode()}
     <div className="space-y-4 sm:space-y-6">
       {/* Chart selector */}
       {charts.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-2 overflow-x-auto pb-1 max-w-full">
           {charts.map((c, i) => (
             <button
               key={i}
@@ -291,7 +291,7 @@ ${getJSCode()}
           {tab === 'chart' && currentChart && (
             <div>
               <h3 className="text-base sm:text-lg font-bold mb-3 text-bleepx-text">{currentChart.title}</h3>
-              <div className="w-full overflow-x-auto" style={{ minHeight: 300 }}>
+              <div className="w-full overflow-x-auto max-w-full min-w-0" style={{ minHeight: 300 }}>
                 <Plot
                   data={currentChart.plotData}
                   layout={{
@@ -320,7 +320,7 @@ ${getJSCode()}
                 <h3 className="text-base font-bold text-bleepx-text">Query Results</h3>
                 <span className="text-xs text-bleepx-text-secondary">{currentChart.rows.length} rows</span>
               </div>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-w-full">
                 <DataGrid data={currentChart.rows} />
               </div>
             </div>
@@ -442,10 +442,10 @@ ${getJSCode()}
         </div>
         {pushResult?.success && (
           <p className="mt-2 text-sm text-green-700 dark:text-green-400">
-            <IconCheck size={16} className="inline" /> Pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline text-bleepx-blue">{pushResult.repoUrl}</a>
+            <IconCheck size={16} className="inline" /> Pushed! <a href={pushResult.repoUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline text-bleepx-blue break-all">{pushResult.repoUrl}</a>
           </p>
         )}
-        {pushResult?.error && <p className="mt-2 text-sm text-red-600 inline-flex flex-wrap items-center gap-1.5"><IconX size={16} className="inline" /> {pushResult.error}</p>}
+        {pushResult?.error && <p className="mt-2 text-sm text-red-600 inline-flex flex-wrap items-center gap-1.5 min-w-0"><IconX size={16} className="inline flex-shrink-0" /> <span className="break-words min-w-0">{pushResult.error}</span></p>}
         <p className="text-xs mt-2 text-bleepx-text-secondary">
           Push creates a <code>sql-portfolio</code> repo organized as <code>{domain}/{caseId}/</code> with your query, visualizations, and data.
         </p>

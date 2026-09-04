@@ -124,14 +124,14 @@ export default function DashboardPage() {
       {next && (
         <Link href={next.href} className="block p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-sky-50 dark:hover:bg-sky-900/10 transition-colors text-sm">
           <span className="text-xs font-bold text-sky-600 uppercase">Next step</span>
-          <div className="font-semibold text-bleepx-text">{next.title}</div>
+          <div className="font-semibold text-bleepx-text break-words">{next.title}</div>
         </Link>
       )}
     </div>
   );
 
   return (
-    <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-12">
+    <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-20">
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/" className="hover:underline">Home</Link>
         <span>/</span>
@@ -139,7 +139,7 @@ export default function DashboardPage() {
       </nav>
 
       <div className="bg-gradient-to-br from-sky-600 via-indigo-600 to-violet-700 rounded-2xl p-6 sm:p-10 text-white">
-        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2 flex flex-wrap items-center gap-3">
+        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2 flex flex-wrap items-center gap-3 break-words">
           <CrossVerseIcon size={32} className="text-white flex-shrink-0" /> Cross-Verse Dashboard
         </h1>
         <p className="text-white/80 text-sm sm:text-lg max-w-2xl">All your progress in one place — SQL, Python, Data Science, Cloud, and SAA.</p>
@@ -153,8 +153,8 @@ export default function DashboardPage() {
           <p className="text-sm text-bleepx-text-secondary mb-3">
             Based on your {journey?.plan?.suggested ? 'journey goals' : 'current progress'}, the best next step is:
           </p>
-          <Link href={recommended.href} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-sky-600 text-white text-sm font-bold hover:bg-sky-700 transition-colors">
-            {recommended.verse} → {recommended.title}
+          <Link href={recommended.href} className="inline-flex flex-wrap items-center gap-2 px-5 py-2.5 rounded-full bg-sky-600 text-white text-sm font-bold hover:bg-sky-700 transition-colors min-w-0">
+            <span className="break-words min-w-0">{recommended.verse} → {recommended.title}</span>
           </Link>
         </div>
       </div>

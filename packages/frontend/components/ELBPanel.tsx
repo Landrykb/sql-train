@@ -61,12 +61,12 @@ export default function ELBPanel({ state, onAction }: { state: CloudSandboxState
           <div className="space-y-2">
             {Object.values(state.elb.loadBalancers).map((lb) => (
               <div key={lb.name} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-sm">
-                <strong className="text-bleepx-text">{lb.name}</strong> <span className="text-xs text-bleepx-text-secondary">({lb.type} · {lb.scheme})</span>
-                <div className="text-xs text-bleepx-text-secondary mt-1">Subnets: {lb.subnets.join(', ')} | SGs: {lb.securityGroups.join(', ') || 'none'}</div>
+                <strong className="text-bleepx-text min-w-0 break-words">{lb.name}</strong> <span className="text-xs text-bleepx-text-secondary">({lb.type} · {lb.scheme})</span>
+                <div className="text-xs text-bleepx-text-secondary mt-1 break-words">Subnets: {lb.subnets.join(', ')} | SGs: {lb.securityGroups.join(', ') || 'none'}</div>
                 {lb.listeners.length > 0 ? (
                   <div className="mt-2 space-y-1">
                     {lb.listeners.map((l, i) => (
-                      <div key={i} className="text-xs text-sky-700 dark:text-sky-400">{l.protocol}:{l.port} → {l.targetGroupName}</div>
+                      <div key={i} className="text-xs text-sky-700 dark:text-sky-400 break-words">{l.protocol}:{l.port} → {l.targetGroupName}</div>
                     ))}
                   </div>
                 ) : (

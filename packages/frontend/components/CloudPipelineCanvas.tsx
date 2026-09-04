@@ -70,7 +70,7 @@ function CsvOutput({ csv, cell, title }: { csv: string; cell?: number; title: st
         <span className="text-gray-400">{title}</span>
       </div>
       {parsed ? (
-        <div className="overflow-x-auto max-h-80">
+        <div className="overflow-x-auto max-w-full max-h-80">
           <table className="w-full text-[10px] font-mono">
             <thead className="bg-gray-900 text-gray-300 sticky top-0">
               <tr>
@@ -91,7 +91,7 @@ function CsvOutput({ csv, cell, title }: { csv: string; cell?: number; title: st
           </table>
         </div>
       ) : (
-        <pre className="p-3 text-xs text-gray-300 font-mono overflow-x-auto">{csv}</pre>
+        <pre className="p-3 text-xs text-gray-300 font-mono overflow-x-auto whitespace-pre-wrap break-words max-w-full">{csv}</pre>
       )}
     </div>
   );

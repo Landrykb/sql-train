@@ -107,7 +107,7 @@ export default function CloudTrialsPage() {
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-600 p-6 text-white">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
         <div className="relative z-10">
-          <h1 className="text-2xl sm:text-3xl font-bold flex flex-wrap items-center gap-2"><BoltIcon size={26} /> Trials Arena</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold flex flex-wrap items-center gap-2 break-words"><BoltIcon size={26} /> Trials Arena</h1>
           <p className="text-white/85 text-sm mt-1">Rapid-fire scenario questions across every cloud track. Score 70%+ to earn points.</p>
         </div>
       </div>

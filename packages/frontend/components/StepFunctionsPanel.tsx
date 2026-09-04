@@ -62,10 +62,10 @@ export default function StepFunctionsPanel({ state, onAction }: { state: CloudSa
             {machines.map((m) => (
               <div key={m.name} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-sm">
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <strong className="text-bleepx-text">{m.name}</strong>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 font-bold">{m.type}</span>
+                  <strong className="text-bleepx-text min-w-0 break-words">{m.name}</strong>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 font-bold flex-shrink-0">{m.type}</span>
                 </div>
-                <pre className="mt-2 p-2 rounded-lg bg-gray-900 text-green-400 text-[10px] font-mono overflow-x-auto">{m.definition}</pre>
+                <pre className="mt-2 p-2 rounded-lg bg-gray-900 text-green-400 text-[10px] font-mono overflow-x-auto whitespace-pre-wrap break-words max-w-full">{m.definition}</pre>
                 {m.executions.length > 0 && (
                   <div className="mt-2 text-xs text-bleepx-text-secondary">
                     Executions: {m.executions.length} · latest {m.executions[m.executions.length - 1].status}

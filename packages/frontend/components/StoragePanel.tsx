@@ -60,11 +60,11 @@ export default function StoragePanel({ state, onAction }: { state: CloudSandboxS
               <div className="space-y-2">
                 {volumes.map((v) => (
                   <div key={v.volumeId} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-sm">
-                    <div className="flex items-center justify-between">
-                      <strong>{v.volumeId}</strong>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700">{v.volumeType}</span>
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <strong className="min-w-0 break-words">{v.volumeId}</strong>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 flex-shrink-0">{v.volumeType}</span>
                     </div>
-                    <div className="text-xs text-bleepx-text-secondary mt-1">{v.size} GB · {v.availabilityZone} · {v.attachedTo ? `attached to ${v.attachedTo}` : 'unattached'}</div>
+                    <div className="text-xs text-bleepx-text-secondary mt-1 break-words">{v.size} GB · {v.availabilityZone} · {v.attachedTo ? `attached to ${v.attachedTo}` : 'unattached'}</div>
                     <div className="flex gap-2 mt-2">
                       {!v.attachedTo && attachTarget && <button onClick={() => onAction(attachEBSVolume(state, v.volumeId, attachTarget))} className="text-[10px] px-2 py-1 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold">Attach</button>}
                       {!v.attachedTo && <button onClick={() => onAction(deleteEBSVolume(state, v.volumeId))} className="text-[10px] px-2 py-1 rounded bg-rose-100 text-rose-700 hover:bg-rose-200 font-bold">Delete</button>}
@@ -104,12 +104,12 @@ export default function StoragePanel({ state, onAction }: { state: CloudSandboxS
               <div className="space-y-3">
                 {fss.map((fs) => (
                   <div key={fs.creationToken} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-sm">
-                    <div className="flex items-center justify-between">
-                      <strong>{fs.creationToken}</strong>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">{fs.performanceMode}</span>
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <strong className="min-w-0 break-words">{fs.creationToken}</strong>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 flex-shrink-0">{fs.performanceMode}</span>
                     </div>
-                    <div className="text-xs text-bleepx-text-secondary mt-1">{fs.fileSystemId} · {fs.throughputMode} · {fs.lifeCyclePolicies.length} lifecycle policies</div>
-                    {fs.lifeCyclePolicies.length > 0 && <div className="text-xs text-bleepx-text-secondary mt-1">{fs.lifeCyclePolicies.join(', ')}</div>}
+                    <div className="text-xs text-bleepx-text-secondary mt-1 break-words">{fs.fileSystemId} · {fs.throughputMode} · {fs.lifeCyclePolicies.length} lifecycle policies</div>
+                    {fs.lifeCyclePolicies.length > 0 && <div className="text-xs text-bleepx-text-secondary mt-1 break-words">{fs.lifeCyclePolicies.join(', ')}</div>}
                     <div className="flex gap-2 mt-2">
                       <input value={efsPolicy} onChange={(e) => setEfsPolicy(e.target.value)} placeholder="e.g. AFTER_90_DAYS" className="flex-1 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-xs" />
                       <button onClick={() => efsPolicy && onAction(addEFSLifecyclePolicy(state, fs.creationToken, efsPolicy))} className="text-[10px] px-2 py-1 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold">Add</button>

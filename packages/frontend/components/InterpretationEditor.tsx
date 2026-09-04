@@ -368,15 +368,15 @@ export function InterpretationEditor({
                 {result.query && (
                   <div className="mb-2">
                     <p className="text-xs font-semibold text-bleepx-text mb-1">Query:</p>
-                    <pre className="text-xs bg-gray-50 dark:bg-gray-900 p-2 rounded overflow-x-auto">
-                      <code>{result.query}</code>
+                    <pre className="text-xs bg-gray-50 dark:bg-gray-900 p-2 rounded overflow-x-auto whitespace-pre-wrap break-words max-w-full">
+                      <code className="break-words">{result.query}</code>
                     </pre>
                   </div>
                 )}
                 {result.data && Array.isArray(result.data) && result.data.length > 0 && (
                   <div>
                     <p className="text-xs font-semibold text-bleepx-text mb-1">Data Preview ({result.data.length} rows):</p>
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto max-w-full">
                       <table className="text-xs w-full border-collapse">
                         <thead>
                           <tr className="border-b border-bleepx-border">

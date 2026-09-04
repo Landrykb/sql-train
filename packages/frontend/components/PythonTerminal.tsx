@@ -337,7 +337,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
               Copy to Editor
             </button>
           </div>
-          <pre className="text-xs bg-gray-900 text-gray-100 rounded p-2 overflow-x-auto font-mono"><code>{solutionCode}</code></pre>
+          <pre className="text-xs bg-gray-900 text-gray-100 rounded p-2 overflow-x-auto whitespace-pre-wrap break-words font-mono max-w-full"><code>{solutionCode}</code></pre>
         </div>
       )}
 
@@ -481,7 +481,7 @@ import numpy as np"
           isDark ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-gray-50 border-gray-300 text-gray-500'
         }`}>
           <strong>Expected output:</strong>
-          <pre className={`mt-1 text-[11px] p-2 rounded overflow-x-auto font-mono ${
+          <pre className={`mt-1 text-[11px] p-2 rounded overflow-x-auto whitespace-pre-wrap break-words font-mono max-w-full ${
             isDark ? 'bg-gray-900 text-gray-300' : 'bg-gray-100 text-gray-700'
           }`}>{expectedOutput}</pre>
         </div>

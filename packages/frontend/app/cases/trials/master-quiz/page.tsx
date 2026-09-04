@@ -62,7 +62,7 @@ export default async function MasterQuizPage() {
       <div className="flex flex-wrap items-center gap-2">
         <BleepxLogo />
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text flex flex-wrap items-center gap-2"><BrainIcon size={26} /> Master SQL Quiz</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text flex flex-wrap items-center gap-2 break-words"><BrainIcon size={26} /> Master SQL Quiz</h1>
           <p className="text-xs sm:text-sm text-bleepx-text-secondary">All skills, all trials — one mega quiz. No locks.</p>
         </div>
       </div>

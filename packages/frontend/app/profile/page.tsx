@@ -376,7 +376,7 @@ export default function ProfilePage() {
           {/* Name + identity row, below avatar */}
           <div className="mt-3">
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text truncate">
+              <h1 className="text-xl sm:text-2xl font-bold text-bleepx-text min-w-0 break-words">
                 {isSignedIn ? (ghUser?.name || profile.displayName) : profile.displayName}
               </h1>
               {isSignedIn && (
@@ -524,7 +524,7 @@ export default function ProfilePage() {
                     <span className="flex-shrink-0 text-bleepx-text"><DomainIcon domain={d.domain} size={20} /></span>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline">
-                        <p className="text-sm font-medium truncate group-hover:text-bleepx-blue transition-colors text-bleepx-text">
+                        <p className="text-sm font-medium min-w-0 whitespace-normal break-words group-hover:text-bleepx-blue transition-colors text-bleepx-text">
                           {domainMeta[d.domain]?.label || d.domain}
                         </p>
                         <span className="text-xs text-bleepx-text-secondary ml-2 flex-shrink-0">{d.solved}/{d.total}</span>
@@ -560,7 +560,7 @@ export default function ProfilePage() {
                       <span className="flex-shrink-0 text-bleepx-text"><LabDomainIcon domain={domain} size={20} /></span>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-baseline">
-                          <p className="text-sm font-medium truncate group-hover:text-teal-500 transition-colors text-bleepx-text">
+                          <p className="text-sm font-medium min-w-0 whitespace-normal break-words group-hover:text-teal-500 transition-colors text-bleepx-text">
                             {meta?.name || domain}
                           </p>
                           <span className="text-xs text-bleepx-text-secondary ml-2 flex-shrink-0">{solved}/{total}</span>
@@ -595,7 +595,7 @@ export default function ProfilePage() {
                     <span className="flex-shrink-0 text-bleepx-text"><CloudProviderIcon provider={c.provider} size={20} /></span>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline">
-                        <p className="text-sm font-medium truncate group-hover:text-sky-500 transition-colors text-bleepx-text">
+                        <p className="text-sm font-medium min-w-0 whitespace-normal break-words group-hover:text-sky-500 transition-colors text-bleepx-text">
                           {c.meta.name}
                         </p>
                         <span className="text-xs text-bleepx-text-secondary ml-2 flex-shrink-0">{c.solved}/{c.total}</span>
@@ -933,8 +933,8 @@ export default function ProfilePage() {
           {/* Appearance */}
           <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
             <h2 className="text-lg font-bold mb-4 text-bleepx-text">Appearance</h2>
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-bleepx-text">Dark Mode</p>
                 <p className="text-xs text-bleepx-text-secondary">*bleep* For those who prefer the shadows.</p>
               </div>
@@ -953,15 +953,15 @@ export default function ProfilePage() {
           <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
             <h2 className="text-lg font-bold mb-4 text-bleepx-text">GitHub Connection</h2>
             {isSignedIn && githubUsername ? (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {ghUser?.avatar && <img src={ghUser.avatar} alt="" className="w-8 h-8 rounded-full" />}
-                  <div>
-                    <p className="text-sm font-medium text-bleepx-text">Connected as <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noopener noreferrer" className="text-bleepx-blue hover:underline">@{githubUsername}</a></p>
-                    <p className="text-xs text-bleepx-text-secondary">*bleep* Good. Your portfolio exports will use this account.</p>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  {ghUser?.avatar && <img src={ghUser.avatar} alt="" className="w-8 h-8 rounded-full flex-shrink-0" />}
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-bleepx-text break-words">Connected as <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noopener noreferrer" className="text-bleepx-blue hover:underline break-all">@{githubUsername}</a></p>
+                    <p className="text-xs text-bleepx-text-secondary break-words">*bleep* Good. Your portfolio exports will use this account.</p>
                   </div>
                 </div>
-                <button onClick={handleLogout} className="text-xs text-red-500 hover:underline">Sign Out</button>
+                <button onClick={handleLogout} className="text-xs text-red-500 hover:underline flex-shrink-0">Sign Out</button>
               </div>
             ) : (
               <div>
@@ -977,8 +977,8 @@ export default function ProfilePage() {
           {/* Test Mode */}
           <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
             <h2 className="text-lg font-bold mb-4 text-bleepx-text">Test Mode</h2>
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-bleepx-text">Enable Test Mode</p>
                 <p className="text-xs text-bleepx-text-secondary">*bleep* Think you're fast? Timed challenges across both BleepxQuery (30min capstone, 1hr regular) and BleepxLab (30min–1hr based on tier).</p>
               </div>

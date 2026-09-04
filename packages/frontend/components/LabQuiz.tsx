@@ -328,7 +328,7 @@ export default function LabQuiz({ quizId, quizName, skills, backLink, backLabel,
           </h2>
           <p className="text-lg text-bleepx-text-secondary mb-1">{quizName}</p>
           <div className="my-6 p-4 rounded-xl bg-gradient-to-r from-teal-500/10 to-emerald-500/10 border border-teal-500/20">
-            <div className="text-4xl font-bold text-teal-600 mb-1">+{score} pts</div>
+            <div className="text-3xl sm:text-4xl font-bold text-teal-600 mb-1">+{score} pts</div>
             <p className="text-sm text-bleepx-text-secondary">
               {score}/{maxScore} possible points ({pct}%)
               {isPerfect && <span className="ml-1 text-yellow-500 inline-flex items-center gap-1"><IconSparkles size={14} /> Perfect Bonus!</span>}
@@ -397,7 +397,7 @@ export default function LabQuiz({ quizId, quizName, skills, backLink, backLabel,
             {currentQ.options?.map((opt) => {
               const isSelected = selected === opt;
               const isAnswer = opt === currentQ.answer;
-              let classes = 'w-full text-left p-3.5 sm:p-4 rounded-xl border-2 text-sm sm:text-base font-medium transition-all duration-200 ';
+              let classes = 'w-full text-left p-3.5 sm:p-4 rounded-xl border-2 text-sm sm:text-base font-medium transition-all duration-200 break-words ';
               if (answered) {
                 if (isAnswer) classes += 'border-green-500 bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-200 ring-2 ring-green-400';
                 else if (isSelected && !isAnswer) classes += 'border-red-400 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300';

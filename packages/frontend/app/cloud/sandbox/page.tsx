@@ -240,11 +240,11 @@ export default function CloudSandboxPage() {
           <h2 className="text-lg font-extrabold text-bleepx-text flex flex-wrap items-center gap-2 min-w-0">
             <ScenarioIcon scenario={current.key} size={22} className="flex-shrink-0" /> <span className="min-w-0 break-words">{current.title} — Mission Brief</span>
           </h2>
-          <p className="text-sm text-bleepx-text-secondary mt-2 leading-relaxed">{current.description}</p>
-          <div className="mt-3 p-3 rounded-lg bg-sky-50 dark:bg-sky-900/10 border border-sky-100 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-200">
+          <p className="text-sm text-bleepx-text-secondary mt-2 leading-relaxed break-words">{current.description}</p>
+          <div className="mt-3 p-3 rounded-lg bg-sky-50 dark:bg-sky-900/10 border border-sky-100 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-200 break-words">
             <strong>Real-world context:</strong> {current.realWorld}
           </div>
-          <div className="mt-2 text-xs text-bleepx-text-secondary">
+          <div className="mt-2 text-xs text-bleepx-text-secondary break-words">
             <strong>Data included:</strong> {current.dataNote}
           </div>
         </div>
@@ -296,7 +296,7 @@ export default function CloudSandboxPage() {
                       <span className={`font-semibold min-w-0 break-words ${isDone ? 'text-green-700' : 'text-bleepx-text'}`}>{obj.label}</span>
                       {isDone && <span className="text-green-600 text-xs font-bold inline-flex flex-wrap items-center gap-1"><CheckBadge size={12} className="text-green-600" /> Done</span>}
                     </div>
-                    <p className="text-[10px] text-bleepx-text-secondary mt-0.5 leading-relaxed">{obj.theory}</p>
+                    <p className="text-[10px] text-bleepx-text-secondary mt-0.5 leading-relaxed break-words">{obj.theory}</p>
                   </div>
                 </div>
               </div>

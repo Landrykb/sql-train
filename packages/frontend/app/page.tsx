@@ -37,7 +37,7 @@ export default function HomePage() {
   const labPct = allLabIds.length > 0 ? Math.round((labCompleted / allLabIds.length) * 100) : 0;
 
   return (
-    <main className="max-w-5xl mx-auto space-y-6 sm:space-y-10 bg-bleepx-bg min-h-screen pb-12">
+    <main className="max-w-5xl mx-auto space-y-6 sm:space-y-10 bg-bleepx-bg min-h-screen pb-20">
       {/* Hero */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-bleepx-blue via-indigo-600 to-bleepx-pink p-6 sm:p-10 text-white">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -46,7 +46,7 @@ export default function HomePage() {
         <div className="relative z-10">
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <BleepxLogo />
-            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">BleepxQuery</h1>
+            <h1 className="text-2xl sm:text-5xl font-extrabold tracking-tight break-words">BleepxQuery</h1>
           </div>
           <p className="text-white/80 text-sm sm:text-lg max-w-lg leading-relaxed">
             Master SQL through <strong className="text-white">real-world data challenges</strong>. Progress from beginner to expert across 8 industry domains, tackle timed trials, unlock hidden bonus missions, and build a GitHub portfolio.
@@ -102,8 +102,8 @@ export default function HomePage() {
           <div className="relative p-5 sm:p-6 flex items-center gap-4">
             <div className="flex-shrink-0"><BleepxGhost size={48} /></div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-white text-lg sm:text-xl group-hover:text-indigo-300 transition-colors">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-extrabold text-white text-lg sm:text-xl group-hover:text-indigo-300 transition-colors break-words min-w-0">
                   Trials Arena
                 </h3>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider">
@@ -154,12 +154,12 @@ export default function HomePage() {
                 <div className="p-4 sm:p-5 flex items-start gap-3 sm:gap-4">
                   <div className="text-bleepx-text flex-shrink-0 pt-0.5"><DomainIcon domain={d} size={26} /></div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-bleepx-text capitalize text-base sm:text-lg group-hover:text-bleepx-blue transition-colors">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-bold text-bleepx-text capitalize text-base sm:text-lg group-hover:text-bleepx-blue transition-colors min-w-0 break-words">
                         {d}
                       </h3>
                       {done === total && total > 0 && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">COMPLETE</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 flex-shrink-0">COMPLETE</span>
                       )}
                     </div>
                     <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-0.5 line-clamp-2">{meta.desc}</p>
@@ -199,8 +199,8 @@ export default function HomePage() {
           <div className="relative p-5 sm:p-6 flex items-center gap-4">
             <div className="flex-shrink-0 text-teal-300"><FlaskIcon size={32} /></div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-white text-lg sm:text-xl group-hover:text-teal-300 transition-colors">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-extrabold text-white text-lg sm:text-xl group-hover:text-teal-300 transition-colors min-w-0 break-words">
                   BleepxLab
                 </h3>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 uppercase tracking-wider">

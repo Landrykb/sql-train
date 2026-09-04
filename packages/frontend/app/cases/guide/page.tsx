@@ -71,7 +71,7 @@ export default async function GuidePage() {
       <div className="bg-bleepx-white border-l-4 border-bleepx-blue p-6 rounded-lg shadow-sm">
         <div className="flex flex-wrap items-center gap-2 mb-2">
           <BleepxLogo />
-          <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text">BleepxQuery Guide: {guideData.title}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text break-words">BleepxQuery Guide: {guideData.title}</h1>
         </div>
         <p className="text-bleepx-text-secondary mb-4">{guideData.description}</p>
         <Link href={backLink} className="text-bleepx-blue hover:text-bleepx-blue-hover">

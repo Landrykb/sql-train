@@ -48,19 +48,19 @@ export default function SecretsManagerPanel({ state, onAction }: { state: CloudS
             {Object.values(state.secretsmanager.secrets).map((s) => (
               <div key={s.name} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-sm">
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <strong className="text-bleepx-text">{s.name}</strong>
-                  <div className="flex gap-2">
+                  <strong className="text-bleepx-text min-w-0 break-words">{s.name}</strong>
+                  <div className="flex gap-2 flex-shrink-0">
                     <button onClick={() => onAction(rotateSecret(state, s.name))} className="text-[10px] px-2.5 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">Rotate</button>
                     <button onClick={() => onAction(deleteSecret(state, s.name, true))} className="text-[10px] px-2.5 py-1.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 font-bold hover:bg-rose-200 transition-colors">Delete</button>
                   </div>
                 </div>
                 <div className="text-xs text-bleepx-text-secondary mt-1">{s.description}</div>
                 <div className="text-xs text-bleepx-text-secondary mt-1">KMS: {s.kmsKeyId || 'AWS default'} | Rotation: {s.rotationEnabled ? `${s.rotationRule?.automaticallyAfterDays} days` : 'Off'}</div>
-                <div className="mt-2 flex items-center gap-2">
-                  <code className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-bleepx-text font-mono">
+                <div className="mt-2 flex items-center gap-2 min-w-0">
+                  <code className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-bleepx-text font-mono min-w-0 break-all">
                     {reveal[s.name] ? s.value : '•'.repeat(Math.min(s.value.length, 24))}
                   </code>
-                  <button onClick={() => setReveal((prev) => ({ ...prev, [s.name]: !prev[s.name] }))} className="text-[10px] px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-300 transition-colors">
+                  <button onClick={() => setReveal((prev) => ({ ...prev, [s.name]: !prev[s.name] }))} className="text-[10px] px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-300 transition-colors flex-shrink-0">
                     {reveal[s.name] ? 'Hide' : 'Reveal'}
                   </button>
                 </div>

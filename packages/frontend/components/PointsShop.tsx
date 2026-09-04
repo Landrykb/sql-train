@@ -191,10 +191,10 @@ export default function PointsShop() {
                         : 'border-bleepx-border hover:border-bleepx-blue/50'
                       }`}
                     >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-bold text-sm text-bleepx-text">{title.name}</p>
-                          <p className="text-xs text-bleepx-text-secondary mt-0.5">{title.description}</p>
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="min-w-0">
+                          <p className="font-bold text-sm text-bleepx-text break-words">{title.name}</p>
+                          <p className="text-xs text-bleepx-text-secondary mt-0.5 break-words">{title.description}</p>
                           <div className="mt-1 flex flex-wrap gap-1">
                             {title.perks.pointMultiplier > 1 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">{title.perks.pointMultiplier}x pts</span>}
                             {title.perks.extraFreeHints > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">+{title.perks.extraFreeHints} free hints</span>}

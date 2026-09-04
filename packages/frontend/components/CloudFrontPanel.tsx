@@ -79,14 +79,14 @@ export default function CloudFrontPanel({ state, onAction }: { state: CloudSandb
             {Object.values(state.cloudfront.distributions).map((dist) => (
               <div key={dist.id} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-sm">
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <strong className="text-bleepx-text">{dist.id}</strong>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-bold">{dist.status}</span>
+                  <strong className="text-bleepx-text min-w-0 break-words">{dist.id}</strong>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-bold flex-shrink-0">{dist.status}</span>
                 </div>
-                <div className="text-xs text-bleepx-text-secondary mt-1">Domain: {dist.domainName}</div>
-                <div className="text-xs text-bleepx-text-secondary mt-0.5">Origins: {dist.origins.map((o) => `${o.type}:${o.domainName}`).join(', ')}</div>
-                <div className="text-xs text-bleepx-text-secondary mt-0.5">Price class: {dist.priceClass} | Default object: {dist.defaultRootObject}</div>
-                {dist.aliases.length > 0 && <div className="text-xs text-sky-700 dark:text-sky-400 mt-0.5">Aliases: {dist.aliases.join(', ')}</div>}
-                {dist.invalidations.length > 0 && <div className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">Invalidations: {dist.invalidations.join(', ')}</div>}
+                <div className="text-xs text-bleepx-text-secondary mt-1 break-words">Domain: {dist.domainName}</div>
+                <div className="text-xs text-bleepx-text-secondary mt-0.5 break-words">Origins: {dist.origins.map((o) => `${o.type}:${o.domainName}`).join(', ')}</div>
+                <div className="text-xs text-bleepx-text-secondary mt-0.5 break-words">Price class: {dist.priceClass} | Default object: {dist.defaultRootObject}</div>
+                {dist.aliases.length > 0 && <div className="text-xs text-sky-700 dark:text-sky-400 mt-0.5 break-words">Aliases: {dist.aliases.join(', ')}</div>}
+                {dist.invalidations.length > 0 && <div className="text-xs text-amber-700 dark:text-amber-400 mt-0.5 break-words">Invalidations: {dist.invalidations.join(', ')}</div>}
 
                 <div className="mt-3 space-y-2">
                   <div className="flex flex-wrap gap-2">
@@ -101,7 +101,7 @@ export default function CloudFrontPanel({ state, onAction }: { state: CloudSandb
                 </div>
 
                 {Object.keys(dist.cacheBehaviors).length > 0 && (
-                  <div className="mt-2 text-xs text-sky-700 dark:text-sky-400">
+                  <div className="mt-2 text-xs text-sky-700 dark:text-sky-400 break-words">
                     Behaviors: {Object.keys(dist.cacheBehaviors).join(', ')}
                   </div>
                 )}

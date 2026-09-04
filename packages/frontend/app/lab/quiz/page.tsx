@@ -54,7 +54,7 @@ export default function LabQuizPage() {
       <div className="flex flex-wrap items-center gap-3">
         <BleepxLogo />
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-bleepx-text flex flex-wrap items-center gap-2"><BrainIcon size={28} /> Data Science Quizzes</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-bleepx-text flex flex-wrap items-center gap-2 break-words"><BrainIcon size={28} /> Data Science Quizzes</h1>
           <p className="text-xs sm:text-sm text-bleepx-text-secondary">
             Test your knowledge across statistics, probability, ML, Python, and more.
           </p>
@@ -75,7 +75,7 @@ export default function LabQuizPage() {
                 <div className="p-5">
                   <div className="flex flex-wrap items-center gap-3 mb-2">
                     <span className="text-bleepx-text"><TopicIcon topic={topic.id} size={24} /></span>
-                    <h3 className="font-bold text-bleepx-text group-hover:text-teal-600 transition-colors">{topic.name}</h3>
+                    <h3 className="font-bold text-bleepx-text group-hover:text-teal-600 transition-colors min-w-0 break-words">{topic.name}</h3>
                   </div>
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {topic.skills.slice(0, 3).map((s) => (

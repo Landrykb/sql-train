@@ -39,7 +39,7 @@ export default function GuideContent({ guideData }: { guideData: GuideYaml }) {
               onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
               className="w-full text-left px-4 py-3 bg-bleepx-white hover:bg-bleepx-blue hover:text-bleepx-white flex justify-between items-center font-medium text-bleepx-text transition-colors duration-300"
             >
-              <span className="truncate">{query.name}</span>
+              <span className="min-w-0 whitespace-normal break-words">{query.name}</span>
               <span>{openIndex === idx ? '−' : '+'}</span>
             </button>
             <div
@@ -53,10 +53,10 @@ export default function GuideContent({ guideData }: { guideData: GuideYaml }) {
                   <div key={i} className="space-y-2">
                     <h3 className="font-semibold text-bleepx-text">{variant.name}</h3>
                     <p className="text-bleepx-text-secondary">{variant.description}</p>
-                    <div className="bg-bleepx-white p-3 rounded border border-bleepx-border text-xs font-mono overflow-x-auto whitespace-pre-wrap">
+                    <div className="bg-bleepx-white p-3 rounded border border-bleepx-border text-xs font-mono overflow-x-auto whitespace-pre-wrap break-words max-w-full [&_pre]:whitespace-pre-wrap">
                       <div dangerouslySetInnerHTML={{ __html: marked(variant.example_generic) }} />
                     </div>
-                    <div className="bg-bleepx-white p-3 rounded border border-bleepx-border text-xs font-mono overflow-x-auto whitespace-pre-wrap">
+                    <div className="bg-bleepx-white p-3 rounded border border-bleepx-border text-xs font-mono overflow-x-auto whitespace-pre-wrap break-words max-w-full [&_pre]:whitespace-pre-wrap">
                       <div dangerouslySetInnerHTML={{ __html: marked(variant.example) }} />
                     </div>
                   </div>

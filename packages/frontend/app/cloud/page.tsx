@@ -61,8 +61,8 @@ export default function CloudHomePage() {
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <BleepxLogo />
             <div>
-              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">BleepxCloud</h1>
-              <span className="text-xs sm:text-sm bg-white/20 px-2 py-0.5 rounded-full font-medium">AWS · Azure · GCP · ESG · FinOps</span>
+              <h1 className="text-2xl sm:text-5xl font-extrabold tracking-tight break-words">BleepxCloud</h1>
+              <span className="text-xs sm:text-sm bg-white/20 px-2 py-0.5 rounded-full font-medium break-words">AWS · Azure · GCP · ESG · FinOps</span>
             </div>
           </div>
           <p className="text-white/85 text-sm sm:text-lg max-w-xl leading-relaxed">
@@ -115,7 +115,7 @@ export default function CloudHomePage() {
         <div className="p-5 flex items-center gap-4">
           <div className="text-sky-300 flex-shrink-0"><BoltIcon size={32} /></div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-extrabold text-white text-lg group-hover:text-sky-300 transition-colors">Trials Arena</h3>
+            <h3 className="font-extrabold text-white text-lg group-hover:text-sky-300 transition-colors break-words min-w-0">Trials Arena</h3>
             <p className="text-sm text-gray-400 mt-0.5">Rapid-fire scenario questions across AWS, Azure, GCP, ESG & FinOps — score 70%+ to earn points.</p>
             <div className="mt-2 flex items-center gap-3">
               <span className="text-xs text-gray-500">Pick a track or go multi-cloud</span>
@@ -137,7 +137,7 @@ export default function CloudHomePage() {
           <div className="p-5 flex items-center gap-4">
             <div className="text-sky-300 flex-shrink-0"><FlaskIcon size={32} /></div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-extrabold text-white text-lg group-hover:text-sky-300 transition-colors">Cloud Sandbox</h3>
+              <h3 className="font-extrabold text-white text-lg group-hover:text-sky-300 transition-colors break-words min-w-0">Cloud Sandbox</h3>
               <p className="text-sm text-gray-400 mt-0.5">Hands-on S3, IAM, EC2, and VPC simulation. No AWS account required — inspired by local cloud emulators like Floci.</p>
             </div>
             <svg className="w-5 h-5 text-sky-400 group-hover:translate-x-1 transition-transform flex-shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -153,7 +153,7 @@ export default function CloudHomePage() {
           <div className="p-5 flex items-center gap-4">
             <div className="text-teal-300 flex-shrink-0"><ToolsIcon size={32} /></div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-extrabold text-white text-lg group-hover:text-teal-300 transition-colors">ETL Pipeline Canvas</h3>
+              <h3 className="font-extrabold text-white text-lg group-hover:text-teal-300 transition-colors break-words min-w-0">ETL Pipeline Canvas</h3>
               <p className="text-sm text-gray-400 mt-0.5">Extract from Kaggle / data.world, run SQL and Python transforms, then load the final CSV into the S3 sandbox.</p>
             </div>
             <svg className="w-5 h-5 text-teal-400 group-hover:translate-x-1 transition-transform flex-shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -184,7 +184,7 @@ export default function CloudHomePage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-bold text-bleepx-text text-base sm:text-lg group-hover:text-sky-600 transition-colors">
+                      <h3 className="font-bold text-bleepx-text text-base sm:text-lg group-hover:text-sky-600 transition-colors min-w-0 break-words">
                         {meta.name}
                       </h3>
                       {meta.cert && (
