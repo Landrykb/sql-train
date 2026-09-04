@@ -208,11 +208,13 @@ export interface RunOptions {
   code: string;
   timeoutMs?: number;
   onProgress?: (msg: string) => void;
+  /** Inject JS values into Python globals before running (e.g. raw_csv). */
+  globals?: Record<string, unknown>;
 }
 
 export async function runPythonCode(
   pyodide: any,
-  { code, timeoutMs = 30000, onProgress }: RunOptions,
+  { code, timeoutMs = 30000, onProgress, globals }: RunOptions,
 ): Promise<RunResult> {
   // Lazy-install any required packages first.
   await ensurePackagesForCode(pyodide, code, onProgress);
@@ -231,6 +233,12 @@ export async function runPythonCode(
     pyodide.runPython(WARNINGS_PRELUDE);
     if (usesMatplotlib) {
       pyodide.runPython(MATPLOTLIB_PRELUDE);
+    }
+
+    if (globals) {
+      for (const [key, value] of Object.entries(globals)) {
+        pyodide.globals.set(key, value);
+      }
     }
 
     let result: any;
