@@ -6,9 +6,32 @@ const LLM_URL = process.env.LLM_API_URL ?? 'https://openrouter.ai/api/v1/chat/co
 const LLM_KEY = process.env.LLM_API_KEY ?? '';
 const LLM_MODEL = process.env.LLM_MODEL ?? 'openrouter/free';
 const LLM_REFERER = process.env.LLM_REFERER ?? 'https://besa-sqlverse.com';
-const LLM_MAX_TOKENS = parseInt(process.env.LLM_MAX_TOKENS ?? '400', 10);
-const LLM_MAX_HISTORY = parseInt(process.env.LLM_MAX_HISTORY ?? '8', 10);
+const LLM_MAX_TOKENS = parseInt(process.env.LLM_MAX_TOKENS ?? '300', 10);
+const LLM_MAX_HISTORY = parseInt(process.env.LLM_MAX_HISTORY ?? '5', 10);
+const LLM_RATE_LIMIT = parseInt(process.env.LLM_RATE_LIMIT_PER_MIN ?? '15', 10);
+const LLM_MAX_QUESTION = parseInt(process.env.LLM_MAX_QUESTION_LENGTH ?? '2000', 10);
+const LLM_MAX_BODY = parseInt(process.env.LLM_MAX_BODY_SIZE ?? '50000', 10);
 const LLM_DISABLED = process.env.LLM_DISABLED === 'true';
+
+// In-memory, per-instance rate limiter. Good enough to keep a free OpenRouter tier safe.
+const requestLog = new Map<string, number[]>();
+
+function getClientIp(req: NextRequest): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    ?? req.headers.get('x-real-ip')
+    ?? 'unknown';
+}
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const windowStart = now - 60_000;
+  const log = requestLog.get(ip) ?? [];
+  const recent = log.filter((t) => t > windowStart);
+  requestLog.set(ip, recent);
+  if (recent.length >= LLM_RATE_LIMIT) return true;
+  recent.push(now);
+  return false;
+}
 
 const SYSTEM_PROMPT = `${BLEEPX_BIO}
 
@@ -27,11 +50,21 @@ Rules:
 - Always sign your final line with a tiny Bleepx-style comment when natural.`;
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+
   if (LLM_DISABLED) {
     return NextResponse.json({ answer: '' });
   }
   if (!LLM_KEY) {
     return NextResponse.json({ error: 'Server misconfigured: missing LLM_API_KEY' }, { status: 500 });
+  }
+
+  const contentLength = parseInt(req.headers.get('content-length') ?? '0', 10);
+  if (contentLength > LLM_MAX_BODY) {
+    return NextResponse.json({ error: 'Request body too large' }, { status: 413 });
+  }
+  if (isRateLimited(ip)) {
+    return NextResponse.json({ error: 'Too many messages — slow down' }, { status: 429 });
   }
 
   let question: string | undefined;
@@ -60,10 +93,13 @@ export async function POST(req: NextRequest) {
   if (!question) {
     return NextResponse.json({ error: "Missing 'question'" }, { status: 400 });
   }
+  if (question.length > LLM_MAX_QUESTION) {
+    return NextResponse.json({ error: 'Question too long' }, { status: 413 });
+  }
 
   const userName = name || 'human';
   const safeHistory = (history ?? [])
-    .filter((m) => m.role && typeof m.text === 'string' && m.text.trim())
+    .filter((m) => (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string' && m.text.trim())
     .slice(-LLM_MAX_HISTORY)
     .map((m) => ({ role: m.role, content: m.text.trim() }));
   const chunks = retrieveChunks(question, { topic, limit: 5 });
