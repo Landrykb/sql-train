@@ -205,7 +205,7 @@ export default function CloudMissionPage() {
   if (!ghUser?.login) {
     return (
       <>
-        <main className="max-w-3xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-20 min-w-0">
+        <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-20 min-w-0">
           {/* Breadcrumb */}
           <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
             <Link href="/cloud" className="hover:underline">BleepxCloud</Link>
@@ -224,7 +224,7 @@ export default function CloudMissionPage() {
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-20 min-w-0">
+    <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-20 min-w-0">
       {/* Breadcrumb */}
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/cloud" className="hover:underline">BleepxCloud</Link>

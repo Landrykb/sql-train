@@ -97,7 +97,7 @@ export default function CloudTrialsPage() {
   const finalPct = questions.length ? Math.round((score / questions.length) * 100) : 0;
 
   return (
-    <main className="max-w-2xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-20">
+    <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-20">
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/cloud" className="hover:underline">BleepxCloud</Link>
         <span>/</span>

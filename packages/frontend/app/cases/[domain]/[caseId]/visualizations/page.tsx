@@ -43,7 +43,7 @@ export default async function VisualizationsPage({
   }
 
   return (
-    <main className="max-w-4xl mx-auto space-y-4 sm:space-y-6 bg-bleepx-bg min-h-screen pb-20">
+    <main className="max-w-5xl mx-auto space-y-4 sm:space-y-6 bg-bleepx-bg min-h-screen pb-20">
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary overflow-x-auto max-w-full" aria-label="Breadcrumb">
         <ol className="flex flex-wrap space-x-1.5 sm:space-x-2 items-center">
           <li><Link href="/" className="hover:text-bleepx-blue">Home</Link></li>

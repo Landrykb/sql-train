@@ -51,7 +51,7 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
 
   if (!caseOrder[domainKey] || !domainFolderMap[domainKey]) {
     return (
-      <div className="max-w-4xl mx-auto p-8 bg-bleepx-bg">
+      <div className="max-w-5xl mx-auto p-8 bg-bleepx-bg">
         <nav className="mb-6">
           <Link href="/" className="text-bleepx-blue hover:text-bleepx-blue-hover">
             Home
@@ -123,7 +123,7 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
 
   if (orderedCases.length === 0) {
     return (
-      <div className="max-w-4xl mx-auto p-8 bg-bleepx-bg">
+      <div className="max-w-5xl mx-auto p-8 bg-bleepx-bg">
         <nav className="mb-6">
           <Link href="/" className="text-bleepx-blue hover:text-bleepx-blue-hover">
             Home
@@ -147,7 +147,7 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
   }
 
   return (
-    <div className="max-w-4xl mx-auto bg-bleepx-bg space-y-4 sm:space-y-6">
+    <div className="max-w-5xl mx-auto bg-bleepx-bg space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <BleepxLogo />

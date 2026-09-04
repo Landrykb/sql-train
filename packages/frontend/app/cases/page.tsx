@@ -26,7 +26,7 @@ export default function CasesPage() {
   const domains = Object.keys(domainFolderMap).filter((d) => d !== 'guide');
 
   return (
-    <main className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6 bg-bleepx-bg min-h-screen pb-20">
+    <main className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6 bg-bleepx-bg min-h-screen pb-20">
       <nav className="text-sm text-bleepx-text-secondary" aria-label="Breadcrumb">
         <ol className="flex space-x-2 items-center">
           <li><Link href="/" className="hover:text-bleepx-blue">Home</Link></li>

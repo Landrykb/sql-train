@@ -87,7 +87,7 @@ export default function SaaPracticeExamPage() {
   const remaining = TIME_LIMIT_MS - elapsed;
 
   return (
-    <main className="max-w-4xl mx-auto px-2 md:px-4 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-20">
+    <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-20">
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/" className="hover:underline">Home</Link>
         <span>/</span>
@@ -100,7 +100,7 @@ export default function SaaPracticeExamPage() {
 
       <div className="bg-gradient-to-br from-violet-600 via-indigo-600 to-sky-600 rounded-2xl p-6 sm:p-10 text-white">
         <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2 break-words">SAA-C03 Practice Exam</h1>
-        <p className="text-white/80 text-sm sm:text-lg max-w-2xl leading-relaxed">
+        <p className="text-white/80 text-sm sm:text-lg max-w-5xl leading-relaxed">
           {submitted ? 'Review your results and drill weak domains.' : 'Scenario-based questions across all 4 SAA domains.'}
         </p>
       </div>

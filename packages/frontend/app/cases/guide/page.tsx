@@ -50,7 +50,7 @@ export default async function GuidePage() {
   const allCaseIds = Object.values(caseOrder).flat();
 
   return (
-    <main className="p-8 max-w-4xl mx-auto space-y-8 bg-bleepx-bg min-h-screen pb-20">
+    <main className="p-8 max-w-5xl mx-auto space-y-8 bg-bleepx-bg min-h-screen pb-20">
       <nav className="text-sm text-bleepx-text-secondary" aria-label="Breadcrumb">
         <ol className="flex space-x-2">
           <li>
