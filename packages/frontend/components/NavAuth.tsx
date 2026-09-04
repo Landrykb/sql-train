@@ -20,16 +20,23 @@ export default function NavAuth() {
     return (
       <Link
         href="/profile"
+        title={`Connected to GitHub as ${user.login}`}
         className="flex items-center justify-center gap-1.5 px-2 sm:px-3 py-2 -my-1 rounded-full text-bleepx-blue hover:text-blue-700 dark:hover:text-blue-400 hover:bg-bleepx-blue/5 font-medium text-sm sm:text-base transition-colors min-h-[44px] min-w-[44px]"
       >
         {user.avatar ? (
-          <img src={user.avatar} alt="" className="w-6 h-6 rounded-full" />
+          <span className="relative flex-shrink-0">
+            <img src={user.avatar} alt="" className="w-6 h-6 rounded-full ring-2 ring-emerald-500" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-gray-900 rounded-full" />
+          </span>
         ) : (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
+          <span className="relative flex-shrink-0 text-emerald-600">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-gray-900 rounded-full" />
+          </span>
         )}
-        <span className="hidden sm:inline">Profile</span>
+        <span className="hidden sm:inline max-w-[120px] truncate">{user.login || 'Profile'}</span>
       </Link>
     );
   }
