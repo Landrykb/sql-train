@@ -77,7 +77,7 @@ export async function resetDatabase(): Promise<void> {
 }
 
 function _sanitizeColumnName(name: string) {
-  return name.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^(\d)/, '_$1').slice(0, 64);
+  return name.trim().replace(/[^a-zA-Z0-9_]/g, '_').replace(/^(\d)/, '_$1').slice(0, 64);
 }
 
 function _insertRows(tableName: string, fields: string[], data: Record<string, unknown>[]): void {
@@ -117,6 +117,7 @@ export async function loadCSVString(tableName: string, csvText: string): Promise
     header: true,
     skipEmptyLines: true,
     dynamicTyping: true,
+    transformHeader: (h: string) => h.trim(),
     transform: (value: string) => {
       if (value === '') return null;
       const trimmed = value.trim();
@@ -182,6 +183,7 @@ export async function loadCSV(tableName: string, fileName: string): Promise<void
         header: true,
         skipEmptyLines: true,
         dynamicTyping: true,
+        transformHeader: (h: string) => h.trim(),
         transform: (value: string) => {
           if (value === '') return null;
           const trimmed = value.trim();

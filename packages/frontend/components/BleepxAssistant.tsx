@@ -150,6 +150,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const flyingTimer = useRef<NodeJS.Timeout | null>(null);
   const prevDock = useRef({ right: 16, bottom: 16 });
   const editorValue = useRef<string | null>(null);
+  const lastEditableRef = useRef<HTMLElement | null>(null);
   const isDragging = useRef(false);
   const didDrag = useRef(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
@@ -694,12 +695,26 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable;
   };
 
-  const applyHint = useCallback((hint: BleepxHint | null, value?: string) => {
+  const positionDockForElement = useCallback((el: HTMLElement | null) => {
+    if (!el || typeof window === 'undefined') return;
+    const rect = el.getBoundingClientRect();
+    const top = Math.max(8, Math.min(window.innerHeight - 80, rect.top + rect.height / 2 - 32));
+    const left = Math.max(8, Math.min(window.innerWidth - 80, rect.right + 16));
+    const nextDock = { right: window.innerWidth - left - 64, bottom: window.innerHeight - top - 64 };
+    setDock(nextDock);
+    prevDock.current = nextDock;
+  }, []);
+
+  const applyHint = useCallback((hint: BleepxHint | null, value?: string, options?: { open?: boolean; target?: HTMLElement | null }) => {
     if (!hint) {
       setDockedHint(null);
       setMood(pathname?.startsWith('/lab/') ? 'code' : 'idle');
       return;
     }
+    const openChat = options?.open ?? false;
+    const target = options?.target ?? lastEditableRef.current ?? (document.activeElement as HTMLElement | null);
+    positionDockForElement(target);
+
     const text = hint.message + (hint.fix ? `\n\nFix: ${hint.fix}` : '') + (hint.snippet ? `\n\nExample:\n\`${hint.snippet}\`` : '');
     let autoSwitched = false;
     let autoMode: Mode | null = null;
@@ -713,7 +728,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       playBleep();
       setMessages((prev) => [...prev, { role: 'assistant', text: voice.autoSwitched(autoMode as string, displayName) }]);
     }
-    if (lastHintText.current !== text) {
+    if (openChat && lastHintText.current !== text) {
       playBleep();
       setMessages((prev) => [
         ...prev,
@@ -734,8 +749,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     else if (activeMode === 'mix') nextMood = 'chat';
     else if (activeMode === 'stealth') nextMood = 'stealth';
     setMood(nextMood);
-    setOpen(true);
-  }, [pathname, activeMode, displayName, manualMode]);
+    if (openChat) setOpen(true);
+  }, [pathname, activeMode, displayName, manualMode, positionDockForElement]);
 
   const lintFocused = useCallback((target: EventTarget | null) => {
     if (isDragging.current) return;
@@ -747,28 +762,17 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       return;
     }
     const el = target as HTMLElement;
+    lastEditableRef.current = el;
     const value = (el as HTMLInputElement).value ?? (el as HTMLTextAreaElement).value ?? el.textContent ?? '';
     editorValue.current = value;
 
     if (flyingTimer.current) clearTimeout(flyingTimer.current);
 
     const hint = lintInput(value, el, pathname ?? undefined);
-    if (window.innerWidth < 640) {
-      applyHint(hint, value);
-      return;
-    }
-
-    const rect = el.getBoundingClientRect();
-    const top = Math.max(8, Math.min(window.innerHeight - 80, rect.top + rect.height / 2 - 32));
-    const left = Math.max(8, Math.min(window.innerWidth - 80, rect.right + 16));
-    const nextDock = { right: window.innerWidth - left - 64, bottom: window.innerHeight - top - 64 };
-
     setMood('flying');
-    setDock(nextDock);
-    prevDock.current = nextDock;
 
     flyingTimer.current = setTimeout(() => {
-      applyHint(hint, value);
+      applyHint(hint, value, { open: false, target: el });
       flyingTimer.current = null;
     }, 80);
   }, [applyHint, pathname]);
@@ -791,7 +795,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     const onBleepxHint = (e: Event) => {
       const detail = (e as CustomEvent).detail;
       if (!detail?.hint) return;
-      applyHint(detail.hint as BleepxHint, detail.value as string | undefined);
+      const target = (detail.target as HTMLElement | undefined) ?? lastEditableRef.current ?? (document.activeElement as HTMLElement | null);
+      applyHint(detail.hint as BleepxHint, detail.value as string | undefined, { open: false, target });
     };
 
     document.addEventListener('focusin', onFocus);

@@ -7,7 +7,7 @@ import { BleepxFace } from '@/components/BleepxIcons';
 import { CheckBadge, AlertIcon, ToolsIcon, RocketIcon, ChartBarIcon, UploadIcon, RefreshIcon, BulbIcon } from '@/components/AppIcons';
 import { getKaggleInfo } from '@/lib/kaggleDatasets';
 import { getDataWorldInfo } from '@/lib/dataWorldDatasets';
-import { PIPELINE_PRESETS } from '@/lib/cloud/pipelinePresets';
+import { PIPELINE_PRESETS, DEFAULT_PYTHON } from '@/lib/cloud/pipelinePresets';
 import { initSQL, loadCSVString, runQuery } from '@/lib/sqlClient/browser';
 import { loadPyodide, runPythonCode } from '@/lib/pyodideRuntime';
 import {
@@ -41,39 +41,120 @@ const DEFAULT_QUERY = `SELECT *
 FROM dataset
 LIMIT 10;`;
 
-const DEFAULT_PYTHON = `import pandas as pd
-from io import StringIO
-
-# Use the SQL result if it exists, otherwise the original raw CSV
-input_csv = sql_result if 'sql_result' in globals() and sql_result else raw_csv
-df = pd.read_csv(StringIO(input_csv))
-
-# Bleepx tip: inspect your data before changing it
-# print(df.head())
-# print(df.columns)
-
-# Try a transformation of your own, for example:
-# - filter rows:  df = df[df['year'] >= 2015]
-# - add a column: df['co2_per_capita'] = df['value'] / 1_000_000
-# - compute summary: print(df.groupby('country_name')['value'].mean())
-
-# Print the final CSV so it can continue to S3
-print(df.to_csv(index=False))`;
-
-const SQL_HINTS = [
+const GENERIC_SQL_HINTS = [
   'Try filtering rows with WHERE, e.g. WHERE year >= 2015.',
   'Group results with GROUP BY and use COUNT, SUM, AVG, MIN or MAX.',
   'Compare periods by selecting year ranges and ordering by a calculated column.',
   'Add a meaningful alias so the output column is easy to read, e.g. SELECT country_name, value AS co2_kt.',
 ];
 
-const PYTHON_HINTS = [
+const GENERIC_PYTHON_HINTS = [
   "Inspect the data first with print(df.head()) and print(df.columns).",
   "Create a derived column: df['new_col'] = df['value'] * 2.",
   "Filter rows: df = df[df['year'] >= 2015].",
   "Aggregate: print(df.groupby('country_name')['value'].mean()).",
   "Always end with print(df.to_csv(index=False)) so the next step receives a CSV.",
 ];
+
+interface DataColumn {
+  name: string;
+  type: 'numeric' | 'date' | 'categorical' | 'text';
+  sample?: unknown;
+}
+
+function normalizeCsv(csv: string): string {
+  const text = csv.trim();
+  if (!text) return csv;
+  const parsed = Papa.parse<Record<string, unknown>>(text, {
+    header: true,
+    skipEmptyLines: true,
+    transformHeader: (h) => h.trim(),
+  });
+  const fields = parsed.meta.fields || [];
+  if (fields.length === 0 || parsed.data.length === 0) return csv;
+  return Papa.unparse({ fields, data: parsed.data });
+}
+
+function analyzeCsv(csv: string): DataColumn[] {
+  const text = csv.trim();
+  if (!text) return [];
+  const parsed = Papa.parse<Record<string, unknown>>(text, {
+    header: true,
+    skipEmptyLines: true,
+    dynamicTyping: true,
+    preview: 100,
+    transformHeader: (h) => h.trim(),
+  });
+  const fields = parsed.meta.fields || [];
+  if (fields.length === 0 || parsed.data.length === 0) return [];
+  return fields.map((name) => {
+    const values = parsed.data.map((row) => row[name]).filter((v) => v !== '' && v != null);
+    const nonNull = values.slice(0, 30);
+    const unique = new Set(nonNull);
+    const isNumeric = nonNull.length > 0 && nonNull.every((v) => typeof v === 'number');
+    const isDate = !isNumeric && nonNull.length > 0 && nonNull.every((v) => /^\d{4}-\d{2}-\d{2}/.test(String(v)));
+    const isCategorical = !isNumeric && !isDate && unique.size > 1 && unique.size <= Math.min(8, nonNull.length);
+    return {
+      name,
+      type: isNumeric ? 'numeric' : isDate ? 'date' : isCategorical ? 'categorical' : 'text',
+      sample: nonNull[0],
+    };
+  });
+}
+
+function formatLiteral(value: unknown): string {
+  if (typeof value === 'string') return `'${value.replace(/'/g, "''")}'`;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  return '?';
+}
+
+function generateHints(rawCsv: string, sqlResult: string): { sql: string[]; python: string[]; columns: DataColumn[] } {
+  const input = sqlResult || rawCsv;
+  const cols = analyzeCsv(input);
+  if (cols.length === 0) {
+    return { sql: GENERIC_SQL_HINTS, python: GENERIC_PYTHON_HINTS, columns: [] };
+  }
+  const numeric = cols.filter((c) => c.type === 'numeric').slice(0, 3);
+  const categorical = cols.filter((c) => c.type === 'categorical').slice(0, 3);
+  const text = cols.filter((c) => c.type === 'text' || c.type === 'date').slice(0, 2);
+  const date = cols.filter((c) => c.type === 'date').slice(0, 1);
+  const groupCol = categorical[0] || text[0];
+  const sql: string[] = [];
+  const python: string[] = [];
+
+  sql.push('Use SELECT * FROM dataset LIMIT 10 to preview the table.');
+  python.push("Inspect the data first with print(df.head()) and print(df.columns).");
+
+  if (numeric.length) {
+    const n = numeric[0].name;
+    sql.push(`Filter rows where ${n} is above average: WHERE ${n} > (SELECT AVG(${n}) FROM dataset).`);
+    sql.push(`Order by ${n} DESC and add LIMIT 10 to see the top rows.`);
+    python.push(`Create a derived column: df['scaled_${n}'] = df['${n}'] * 2.`);
+    python.push(`Filter rows: df = df[df['${n}'] >= df['${n}'].mean()].`);
+  }
+
+  if (groupCol) {
+    const cat = groupCol.name;
+    sql.push(`Group by ${cat} and use COUNT(*), AVG, MIN or MAX.`);
+    if (numeric.length) {
+      sql.push(`Group by ${cat} and compute AVG(${numeric[0].name}) with a meaningful alias.`);
+      python.push(`Aggregate: print(df.groupby('${cat}')['${numeric[0].name}'].mean()).`);
+      python.push(`Plot a bar chart: df.groupby('${cat}')['${numeric[0].name}'].mean().plot(kind='bar')`);
+    }
+    if (groupCol.sample != null) {
+      sql.push(`Filter by a category: WHERE ${cat} = ${formatLiteral(groupCol.sample)}.`);
+    }
+  }
+
+  if (date.length) {
+    const d = date[0].name;
+    sql.push(`Filter by date: WHERE ${d} >= '2020-01-01'.`);
+  }
+
+  python.push("Always end with print(df.to_csv(index=False)) so the next step receives a CSV.");
+
+  return { sql, python, columns: cols };
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -152,13 +233,20 @@ export default function CloudPipelineCanvas() {
   const [message, setMessage] = useState<string | null>(null);
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
 
+  const activeRawCsv = useMemo(() => normalizeCsv(pipeline.rawCsv), [pipeline.rawCsv]);
+  const { sql: sqlHints, python: pythonHints, columns: dataColumns } = useMemo(
+    () => generateHints(activeRawCsv, pipeline.sqlResult),
+    [activeRawCsv, pipeline.sqlResult]
+  );
+
   const loadPreset = useCallback((id: string) => {
     const preset = PIPELINE_PRESETS.find((p) => p.id === id);
     if (!preset) return;
+    const clean = normalizeCsv(preset.rawCsv);
     setPipeline((p) => ({
       ...p,
       sourceUrl: preset.sourceUrl,
-      rawCsv: preset.rawCsv,
+      rawCsv: clean,
       sqlQuery: preset.sqlQuery,
       pythonCode: preset.pythonCode,
       s3Key: preset.s3Key,
@@ -166,7 +254,7 @@ export default function CloudPipelineCanvas() {
       activeStep: 'sql',
     }));
     setSelectedPresetId(id);
-    setMessage(`Loaded "${preset.name}". Source: ${preset.sourceUrl}. Run SQL preview next.`);
+    setMessage(`Loaded "${preset.name}" with ${clean.split('\n').length - 1} data row(s). Source: ${preset.sourceUrl}. Run SQL preview next.`);
   }, []);
 
   useEffect(() => {
@@ -183,7 +271,8 @@ export default function CloudPipelineCanvas() {
   }, [pipeline.sourceUrl]);
 
   const loadSample = useCallback((csv: string) => {
-    setPipeline((p) => ({ ...p, rawCsv: csv, activeStep: 'sql' }));
+    const clean = normalizeCsv(csv);
+    setPipeline((p) => ({ ...p, rawCsv: clean, activeStep: 'sql' }));
     setMessage('CSV loaded into the pipeline. Run SQL or Python next.');
   }, []);
 
@@ -371,7 +460,8 @@ export default function CloudPipelineCanvas() {
         )}
         <textarea
           value={pipeline.rawCsv}
-          onChange={(e) => setPipeline((p) => ({ ...p, rawCsv: e.target.value }))}
+          onChange={(e) => setPipeline((p) => ({ ...p, rawCsv: normalizeCsv(e.target.value) }))}
+          onBlur={(e) => setPipeline((p) => ({ ...p, rawCsv: normalizeCsv(e.target.value) }))}
           placeholder="id,name,quantity,price\n1,Alice,2,9.99\n2,Bob,5,4.50\n3,Carol,1,19.99"
           rows={6}
           className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-mono mb-3"
@@ -390,6 +480,18 @@ export default function CloudPipelineCanvas() {
             Load sample IoT CSV
           </button>
         </div>
+        {dataColumns.length > 0 && (
+          <div className="mt-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-700 text-xs">
+            <div className="font-bold text-bleepx-text mb-1.5">Bleepx sees {dataColumns.length} columns:</div>
+            <div className="flex flex-wrap gap-1.5">
+              {dataColumns.map((col) => (
+                <span key={col.name} className="inline-flex items-center px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300" title={`Sample: ${String(col.sample ?? 'n/a')}`}>
+                  {col.name} <span className="opacity-60 ml-1">({col.type})</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* SQL */}
@@ -410,7 +512,7 @@ export default function CloudPipelineCanvas() {
             {sqlLoading ? 'Running…' : 'Run SQL preview'}
           </button>
           <button
-            onClick={() => setSqlHintIdx((i) => (i + 1) % SQL_HINTS.length)}
+            onClick={() => setSqlHintIdx((i) => (i + 1) % sqlHints.length)}
             className="px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-bold hover:bg-amber-200 transition-colors inline-flex items-center gap-1"
           >
             <BulbIcon size={12} /> Hint
@@ -418,7 +520,7 @@ export default function CloudPipelineCanvas() {
         </div>
         {sqlHintIdx >= 0 && (
           <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200 mb-3">
-            <strong>Hint:</strong> {SQL_HINTS[sqlHintIdx]}
+            <strong>Hint:</strong> {sqlHints[sqlHintIdx]}
           </div>
         )}
         {pipeline.sqlResult && (
@@ -444,7 +546,7 @@ export default function CloudPipelineCanvas() {
             {pythonLoading ? 'Running…' : 'Run Python transform'}
           </button>
           <button
-            onClick={() => setPythonHintIdx((i) => (i + 1) % PYTHON_HINTS.length)}
+            onClick={() => setPythonHintIdx((i) => (i + 1) % pythonHints.length)}
             className="px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-bold hover:bg-amber-200 transition-colors inline-flex items-center gap-1"
           >
             <BulbIcon size={12} /> Hint
@@ -452,7 +554,7 @@ export default function CloudPipelineCanvas() {
         </div>
         {pythonHintIdx >= 0 && (
           <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200 mb-3">
-            <strong>Hint:</strong> {PYTHON_HINTS[pythonHintIdx]}
+            <strong>Hint:</strong> {pythonHints[pythonHintIdx]}
           </div>
         )}
         {pipeline.transformedCsv && (

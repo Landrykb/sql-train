@@ -1,9 +1,9 @@
 // ─── ETL Pipeline Presets ─────────────────────────────────────────────────────
 //
 // Pre-baked data, SQL, and Python/ML templates for the CloudPipelineCanvas.
-// These are intentionally small sample CSVs that mirror the shape of the real
-// Kaggle / data.world / SQLverse datasets, so learners can practice the full
-// Extract → SQL → Python/ML → S3 flow without waiting on downloads or auth.
+// Each preset ships with a full multi-row CSV. The Python snippets read the
+// `raw_csv` variable (or `sql_result` when the SQL step has already run), so
+// learners experiment on real data instead of a single-row sample.
 
 export interface PipelinePreset {
   id: string;
@@ -17,19 +17,27 @@ export interface PipelinePreset {
   s3Key: string;
 }
 
-const DEFAULT_SQL = `SELECT *
+export const DEFAULT_SQL = `SELECT *
 FROM dataset
 LIMIT 20;`;
 
-const DEFAULT_PYTHON = `import pandas as pd
+export const DEFAULT_PYTHON = `import pandas as pd
 from io import StringIO
 
-raw = """{{csv}}"""
-df = pd.read_csv(StringIO(raw))
-df = df.dropna()
+# Use the SQL result if it exists, otherwise the original raw CSV
+input_csv = sql_result if 'sql_result' in globals() and sql_result else raw_csv
+df = pd.read_csv(StringIO(input_csv))
 
-print(df.head())
-print(df.describe())
+# Inspect the data before transforming it
+# print(df.head())
+# print(df.columns)
+
+# Try a transformation of your own, for example:
+# - filter rows:  df = df[df['year'] >= 2015]
+# - add a column: df['co2_per_capita'] = df['value'] / 1_000_000
+# - compute summary: print(df.groupby('country_name')['value'].mean())
+
+# Print the final CSV so it can continue to S3
 print(df.to_csv(index=False))`;
 
 export const PIPELINE_PRESETS: PipelinePreset[] = [
@@ -58,7 +66,7 @@ export const PIPELINE_PRESETS: PipelinePreset[] = [
 FROM dataset
 GROUP BY contract
 ORDER BY avg_monthly DESC;`,
-    pythonCode: DEFAULT_PYTHON.replace('{{csv}}', 'customer_id,tenure,monthly_charges,contract,gender,senior_citizen,churn\n3668-QPYBK,2,53.85,Month-to-month,Male,0,Yes'),
+    pythonCode: DEFAULT_PYTHON,
     s3Key: 'sqlverse/churn_prepared.csv',
   },
   {
@@ -88,14 +96,15 @@ ORDER BY class;`,
     pythonCode: `import pandas as pd
 from io import StringIO
 
-raw = """time,v1,v2,v3,v4,amount,class
-0,-1.359807133,-0.072781173,2.536346738,1.378155224,149.62,0"""
-df = pd.read_csv(StringIO(raw))
-# Rescale amount and train a quick Isolation Forest on the sample
+input_csv = sql_result if 'sql_result' in globals() and sql_result else raw_csv
+df = pd.read_csv(StringIO(input_csv))
+
+# Rescale amount and train a quick Isolation Forest on the full data
 from sklearn.ensemble import IsolationForest
 X = df[['v1','v2','v3','v4','amount']]
 model = IsolationForest(random_state=42, contamination=0.1)
 df['anomaly'] = model.fit_predict(X)
+
 print(df[['amount','class','anomaly']].to_csv(index=False))`,
     s3Key: 'sqlverse/fraud_scored.csv',
   },
@@ -119,7 +128,7 @@ print(df[['amount','class','anomaly']].to_csv(index=False))`,
 FROM dataset
 GROUP BY line
 ORDER BY avg_delay DESC;`,
-    pythonCode: DEFAULT_PYTHON.replace('{{csv}}', 'departure,arrival,line,delay_minutes,temperature,rain_mm,event_nearby\n2026-01-01 08:00,2026-01-01 08:32,A,12,4.2,0.0,false'),
+    pythonCode: DEFAULT_PYTHON,
     s3Key: 'sqlverse/transport_delays.csv',
   },
   {
@@ -145,7 +154,7 @@ FROM dataset
 WHERE year >= 1990
 GROUP BY country
 ORDER BY avg_yield DESC;`,
-    pythonCode: DEFAULT_PYTHON.replace('{{csv}}', 'country,year,crop,yield_hg_ha,rainfall_mm,pesticides_tonnes,avg_temp\nArgentina,1990,Wheat,25635.0,761.0,3351.0,18.1'),
+    pythonCode: DEFAULT_PYTHON,
     s3Key: 'sqlverse/crop_yield.csv',
   },
 
@@ -177,7 +186,7 @@ FROM dataset
 WHERE year BETWEEN 2010 AND 2019
 GROUP BY country_name
 ORDER BY growth_kt DESC;`,
-    pythonCode: DEFAULT_PYTHON.replace('{{csv}}', 'country_name,country_code,year,value\nUnited States,USA,2010,5432538.5'),
+    pythonCode: DEFAULT_PYTHON,
     s3Key: 'dataworld/co2_by_country.csv',
   },
   {
@@ -199,7 +208,7 @@ ORDER BY growth_kt DESC;`,
 FROM dataset
 GROUP BY primary_type
 ORDER BY incidents DESC;`,
-    pythonCode: DEFAULT_PYTHON.replace('{{csv}}', 'id,date,primary_type,description,location_description,arrest,latitude,longitude\n12345,2026-01-01,THEFT,POCKET-PICKING,STREET,true,41.8781,-87.6298'),
+    pythonCode: DEFAULT_PYTHON,
     s3Key: 'dataworld/chicago_crimes.csv',
   },
   {
@@ -222,7 +231,7 @@ Miami-Dade,FL,2020,1700,2715658,62.6`,
 FROM dataset
 GROUP BY state
 ORDER BY state_rate DESC;`,
-    pythonCode: DEFAULT_PYTHON.replace('{{csv}}', 'county,state,year,deaths,population,mortality_rate\nCook,IL,2020,4100,5150233,79.6'),
+    pythonCode: DEFAULT_PYTHON,
     s3Key: 'dataworld/cancer_mortality.csv',
   },
 
@@ -233,7 +242,7 @@ ORDER BY state_rate DESC;`,
     tags: ['carbon-credits', 'AWD', 'agriculture'],
     sourceUrl: 'https://data.world/california-chromium/soil-carbon-ratios-for-agricultural-lands',
     description: 'Alternate Wetting and Drying (AWD) water-management field data: estimate methane avoided and carbon credits per hectare.',
-    rawCsv: `field_id,country,season,water_depth_cm,method, methane_kg_ha, credits_tco2e_ha
+    rawCsv: `field_id,country,season,water_depth_cm,method,methane_kg_ha,credits_tco2e_ha
 A-01,Vietnam,2024-1,5.2,AWD,120.4,4.8
 A-02,Vietnam,2024-1,3.8,AWD,98.7,5.1
 A-03,Vietnam,2024-1,15.0,Flooded,245.0,0.0
@@ -250,13 +259,14 @@ ORDER BY avg_methane;`,
     pythonCode: `import pandas as pd
 from io import StringIO
 
-raw = """field_id,country,season,water_depth_cm,method,methane_kg_ha,credits_tco2e_ha
-A-01,Vietnam,2024-1,5.2,AWD,120.4,4.8"""
-df = pd.read_csv(StringIO(raw))
+input_csv = sql_result if 'sql_result' in globals() and sql_result else raw_csv
+df = pd.read_csv(StringIO(input_csv))
+
 # Estimate annual avoided methane as a carbon credit opportunity
 baseline = df[df['method'] == 'Flooded']['methane_kg_ha'].mean()
 df['avoided_methane'] = baseline - df['methane_kg_ha']
 df['estimated_usd'] = df['credits_tco2e_ha'] * 25  # $25/tCO2e
+
 print(df[['field_id','method','credits_tco2e_ha','estimated_usd']].to_csv(index=False))`,
     s3Key: 'carbon/awd_credits.csv',
   },
@@ -283,12 +293,13 @@ ORDER BY avg_carbon DESC;`,
     pythonCode: `import pandas as pd
 from io import StringIO
 
-raw = """farm_id,practice,years_under_practice,soil_carbon_pct,bulk_density_g_cm3,depth_cm,area_ha
-F-001,Conventional,0,1.8,1.4,30,50"""
-df = pd.read_csv(StringIO(raw))
+input_csv = sql_result if 'sql_result' in globals() and sql_result else raw_csv
+df = pd.read_csv(StringIO(input_csv))
+
 # Soil carbon stock (Mg/ha) ≈ carbon% × bulk_density × depth × 10000 / 100
 df['carbon_stock_Mg_ha'] = df['soil_carbon_pct'] * df['bulk_density_g_cm3'] * df['depth_cm'] * 10000 / 100
 df['credits_tco2e_ha'] = df['carbon_stock_Mg_ha'] * 3.67  # CO2 mass ratio
+
 print(df[['farm_id','practice','carbon_stock_Mg_ha','credits_tco2e_ha']].to_csv(index=False))`,
     s3Key: 'carbon/regenerative_soil_carbon.csv',
   },
@@ -312,7 +323,7 @@ P-006,Methane Capture,2022,60000,55000,7.40,United States`,
 FROM dataset
 GROUP BY methodology
 ORDER BY total_issued DESC;`,
-    pythonCode: DEFAULT_PYTHON.replace('{{csv}}', 'project_id,methodology,vintage,issuance_tco2e,retired_tco2e,price_usd,country\nP-001,REDD+,2019,50000,42000,8.50,Brazil'),
+    pythonCode: DEFAULT_PYTHON,
     s3Key: 'carbon/offset_market.csv',
   },
   {
@@ -341,15 +352,17 @@ from io import StringIO
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 
-raw = """project_id,issuance_tco2e,vintage,methodology_encoded,price_usd
-P-001,50000,2019,1,8.50"""
-df = pd.read_csv(StringIO(raw))
+input_csv = sql_result if 'sql_result' in globals() and sql_result else raw_csv
+df = pd.read_csv(StringIO(input_csv))
+
 X = df[['issuance_tco2e','vintage','methodology_encoded']]
 y = df['price_usd']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+
 model = RandomForestRegressor(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 df['predicted_price'] = model.predict(X)
+
 print(f"Feature importance: {dict(zip(X.columns, model.feature_importances_))}")
 print(df[['project_id','price_usd','predicted_price']].to_csv(index=False))`,
     s3Key: 'carbon/carbon_price_ml.csv',
