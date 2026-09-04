@@ -273,7 +273,6 @@ export default function LabProjectViewer({
   const [showThoughtProcess, setShowThoughtProcess] = useState(false);
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
   const [stepSolved, setStepSolved] = useState(false);
-  const [countdown, setCountdown] = useState<number | null>(null);
   const [pushStatus, setPushStatus] = useState<string | null>(null);
   const [showVizGuide, setShowVizGuide] = useState(false);
   const [timerEnabled, setTimerEnabled] = useState(false);
@@ -376,29 +375,6 @@ export default function LabProjectViewer({
       } catch { /* ignore */ }
     }
   }, [stepSolved, projectId, markProgressComplete, domain, stepNumber, language]);
-
-  // Countdown timer for next step after solving
-  useEffect(() => {
-    if (!stepSolved || !nextStep) return;
-    setCountdown(10);
-    const interval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev === null || prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [stepSolved, nextStep]);
-
-  // Auto-navigate when countdown reaches 0
-  useEffect(() => {
-    if (countdown === 0 && nextStep) {
-      window.location.href = `/lab/${domain}/${nextStep.id}`;
-    }
-  }, [countdown, nextStep, domain]);
 
   // GitHub export handler
   const handleGitHubPush = useCallback(async () => {
@@ -988,24 +964,6 @@ import numpy as np
                 <BleepxFace size={16} />
                 Continue to {nextStep.name} →
               </Link>
-              {countdown !== null && countdown > 0 && (
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                  <div className="relative w-8 h-8">
-                    <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                      <circle cx="18" cy="18" r="15" fill="none" className="stroke-gray-200 dark:stroke-gray-700" strokeWidth="3" />
-                      <circle cx="18" cy="18" r="15" fill="none" className="stroke-teal-500" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${(countdown / 10) * 94.2} 94.2`} />
-                    </svg>
-                    <span className="absolute inset-0 flex flex-wrap items-center justify-center text-xs font-bold text-teal-700 dark:text-teal-300">{countdown}</span>
-                  </div>
-                  <span className="text-xs text-teal-600 dark:text-teal-400">Auto-advancing...</span>
-                  <button
-                    onClick={() => setCountdown(null)}
-                    className="text-xs px-2 py-0.5 rounded-full border border-teal-300 dark:border-teal-700 text-teal-600 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/30 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
             </div>
           )}
           <div className="mt-4">

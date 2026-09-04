@@ -186,7 +186,10 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
         const isMatch = expected.split('\n').every((line: string) =>
           actualOutput.includes(line.trim()) || actualOutput.replace(/\s+/g, ' ').includes(line.trim().replace(/\s+/g, ' '))
         );
-        if (isMatch && !solved) {
+        // Don't mark as solved if the code printed an error/traceback to stderr,
+        // even if stdout happens to contain the expected text.
+        const hasError = (stderr || '').trim().length > 0 && /error|traceback|exception|failed/i.test(stderr);
+        if (isMatch && !solved && !hasError) {
           setSolved(true);
           setOutput((prev) => [...prev, { type: 'system', text: '*bleep* Correct! Output matches. Points earned, human.', cell: nextCell }]);
           onSolved?.();
