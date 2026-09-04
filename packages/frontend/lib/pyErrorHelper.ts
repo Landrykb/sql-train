@@ -40,6 +40,8 @@ export function getPyErrorHelp(rawError: string, userCode: string): PyErrorHelp 
     const isPreloaded = preloaded.some(m => modName.includes(m));
     const isSklearn = modName.includes('sklearn') || modName.includes('scikit-learn');
     const isKagglehub = modName.includes('kagglehub');
+    const unsupported = ['prophet', 'pmdarima', 'tensorflow', 'keras', 'torch', 'pytorch'];
+    const isUnsupported = unsupported.some(m => modName.includes(m));
     if (isKagglehub) {
       return {
         title: `"kagglehub" is not available in browser Python`,
@@ -51,6 +53,19 @@ export function getPyErrorHelp(rawError: string, userCode: string): PyErrorHelp 
           'For local Python (pip), kagglehub works fine',
         ],
         guideSection: 'loading-data',
+      };
+    }
+    if (isUnsupported) {
+      return {
+        title: `Module "${modName}" not available in Pyodide`,
+        explanation: `"${modName}" cannot run in the browser because it needs C/C++ libraries or native tools that Pyodide doesn't include. The lab solution should be using pure-Python alternatives instead.`,
+        suggestions: [
+          'Use statsmodels.tsa.holtwinters.ExponentialSmoothing instead of Prophet',
+          'Use statsmodels.tsa.arima.model.ARIMA for autoregressive models',
+          'Use sklearn.linear_model / sklearn.ensemble for ML baselines instead of TensorFlow/Keras',
+          'Pre-installed packages: numpy, pandas, scikit-learn, scipy, matplotlib, statsmodels',
+        ],
+        guideSection: 'imports',
       };
     }
     return {
@@ -259,6 +274,47 @@ export function getPyErrorHelp(rawError: string, userCode: string): PyErrorHelp 
         'Add a proper base case to stop recursion',
         'Consider using iteration instead of recursion',
       ],
+    };
+  }
+
+  // --- Statsmodels / sklearn warnings that look like errors ---
+  if (error.includes('convergencewarning') || error.includes('failed to converge')) {
+    return {
+      title: 'Model did not converge',
+      explanation: 'statsmodels/sklearn found a numerical solution but the optimization did not fully settle. This is a warning, not a fatal error. Your output is still usable, but the coefficients may not be optimal.',
+      suggestions: [
+        'Suppress the warning: import warnings; warnings.filterwarnings("ignore")',
+        'Try simpler ARIMA orders, e.g., (1, 1, 1) or (0, 1, 1)',
+        'Make sure the time series has a clear frequency: df = df.asfreq("D") before fitting',
+        'For ARIMA, pass enforce_stationarity=False or method="css" to reduce warnings',
+      ],
+    };
+  }
+
+  if (error.includes('valuewarning') && error.includes('frequency')) {
+    return {
+      title: 'Time series has no frequency',
+      explanation: 'statsmodels expected the DataFrame index to have a regular frequency (e.g., daily, monthly). A datetime index without a frequency can cause warnings.',
+      suggestions: [
+        'Set a frequency before fitting: df = df.asfreq("D")',
+        'Use the date column as index: df.index = pd.to_datetime(df["date"])',
+        'For ARIMA, pass dates=df.index and freq="D"',
+      ],
+    };
+  }
+
+  // --- SQL errors inside Python (e.g., pandasql / sqlite3) ---
+  if (error.includes('sqlite3') || error.includes('operationalerror') || error.includes('misuse of aggregate') || error.includes('group by')) {
+    return {
+      title: 'SQL error inside Python',
+      explanation: 'Your Python code is running a SQL query (pandasql, sqlite3, etc.) and the SQL has a problem.',
+      suggestions: [
+        'Aggregate functions (SUM, COUNT, AVG, etc.) need GROUP BY when you also select non-aggregated columns',
+        'Example: SELECT region, SUM(sales) FROM table GROUP BY region',
+        'Make sure column names in the query match the DataFrame/table exactly',
+        'If you are just doing data analysis in pandas, use .groupby() and .agg() instead',
+      ],
+      guideSection: 'dataframes',
     };
   }
 

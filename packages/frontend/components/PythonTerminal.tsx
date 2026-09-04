@@ -188,7 +188,8 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
         );
         // Don't mark as solved if the code printed an error/traceback to stderr,
         // even if stdout happens to contain the expected text.
-        const hasError = (stderr || '').trim().length > 0 && /error|traceback|exception|failed/i.test(stderr);
+        // Warnings (e.g. ConvergenceWarning) are not failures.
+        const hasError = (stderr || '').trim().length > 0 && /\b(Error|Exception|Traceback)\b/i.test(stderr);
         if (isMatch && !solved && !hasError) {
           setSolved(true);
           setOutput((prev) => [...prev, { type: 'system', text: '*bleep* Correct! Output matches. Points earned, human.', cell: nextCell }]);

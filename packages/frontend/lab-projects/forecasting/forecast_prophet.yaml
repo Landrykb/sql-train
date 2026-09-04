@@ -1,141 +1,152 @@
 id: forecast_prophet
-name: "Prophet & Advanced Models"
+name: "Advanced Forecasting Models"
 domain: forecasting
 project: "Time Series Forecasting"
 step_number: 4
 tier: 3
-skills: [prophet, lstm, deep_learning, comparison]
+skills: [exponential_smoothing, regression, forecasting, comparison]
 language: python
 dataset_url: "https://www.kaggle.com/datasets/rohitsahoo/sales-forecasting"
-description: "Use Facebook Prophet for automatic trend/seasonality detection and explore LSTM neural networks for complex patterns."
+description: "Use exponential smoothing and a simple regression baseline for trend/seasonality — pure-Python alternatives to Prophet and LSTM that run in the browser."
 prereq_cases: [forecast_arima]
 learning_objectives:
-  - Fit Prophet models with holidays and changepoints
-  - Understand LSTM architecture for sequences
-  - Compare ARIMA vs Prophet vs LSTM
+  - Fit exponential smoothing models with trend and seasonality
+  - Build a regression model with lag features
+  - Compare the models against ARIMA
 sections:
-  - title: "Prophet Forecasting"
-    content: "Prophet handles trend changes, multiple seasonalities, and holidays automatically."
+  - title: "Exponential Smoothing"
+    content: "Exponential smoothing models are a fast, lightweight way to capture trend and weekly seasonality without Prophet."
     code: |
-      from prophet import Prophet
+      from statsmodels.tsa.holtwinters import ExponentialSmoothing
+      import warnings
+      warnings.filterwarnings('ignore')
 
-      prophet_df = df.reset_index().rename(columns={'date': 'ds', 'value': 'y'})
-      m = Prophet(yearly_seasonality=True, weekly_seasonality=True)
-      m.fit(prophet_df)
-
-      future = m.make_future_dataframe(periods=30)
-      forecast = m.predict(future)
-
-      fig = m.plot(forecast)
-      plt.title('Prophet Forecast')
-      plt.show()
-
-      fig2 = m.plot_components(forecast)
-      plt.show()
-    explanation: "Prophet decomposes the forecast into trend + weekly + yearly seasonality. The component plots show each effect independently — very useful for understanding what drives the data."
-  - title: "LSTM Neural Network (Advanced)"
-    content: "For complex non-linear patterns, LSTM networks can capture long-range dependencies."
+      # Ensure a regular daily frequency for statsmodels
+      ts = df['value'].asfreq('D').fillna(0)
+      es = ExponentialSmoothing(ts, trend='add', seasonal='add', seasonal_periods=7)
+      es_fit = es.fit()
+      exp_forecast = es_fit.forecast(30)
+      print(exp_forecast.head())
+    explanation: "Holt-Winters exponential smoothing decomposes the series into level, trend, and seasonal components. It is a pure-Python alternative to Prophet that works in Pyodide."
+  - title: "Regression with Lag Features"
+    content: "A simple linear model can learn from the last few days of values to predict the next one."
     code: |
-      from tensorflow.keras.models import Sequential
-      from tensorflow.keras.layers import LSTM, Dense
-      from sklearn.preprocessing import MinMaxScaler
+      from sklearn.linear_model import LinearRegression
 
-      scaler = MinMaxScaler()
-      scaled = scaler.fit_transform(df[['value']])
+      # Build lag features (last 7 days predict today)
+      reg_df = df['value'].asfreq('D').fillna(0).to_frame('value')
+      for lag in range(1, 8):
+          reg_df[f'lag_{lag}'] = reg_df['value'].shift(lag)
+      reg_df = reg_df.dropna()
 
-      # Create sequences of 30 days to predict next day
-      def create_sequences(data, seq_length=30):
-          X, y = [], []
-          for i in range(len(data) - seq_length):
-              X.append(data[i:i+seq_length])
-              y.append(data[i+seq_length])
-          return np.array(X), np.array(y)
+      X = reg_df[[f'lag_{i}' for i in range(1, 8)]]
+      y = reg_df['value']
+      split = int(0.8 * len(reg_df))
 
-      X, y = create_sequences(scaled)
-      split = int(0.8 * len(X))
-
-      model = Sequential([
-          LSTM(50, return_sequences=True, input_shape=(30, 1)),
-          LSTM(50),
-          Dense(1)
-      ])
-      model.compile(optimizer='adam', loss='mse')
-      model.fit(X[:split], y[:split], epochs=20, batch_size=32, verbose=0)
-      print(f"Test MSE: {model.evaluate(X[split:], y[split:], verbose=0):.6f}")
-    explanation: "LSTM (Long Short-Term Memory) networks remember patterns across long sequences. They excel when data has complex non-linear dependencies that ARIMA and Prophet miss."
+      reg = LinearRegression().fit(X.iloc[:split], y.iloc[:split])
+      r2 = reg.score(X.iloc[split:], y.iloc[split:])
+      print(f"Linear regression R² on test: {r2:.3f}")
+    explanation: "Using lag features turns time series forecasting into a supervised learning problem. Linear regression is a simple, interpretable alternative to an LSTM and runs fully in the browser."
 schema:
   - date
   - value
 thought_process:
-  - "Prepare data in Prophet format: columns must be 'ds' (date) and 'y' (value)"
-  - "Fit Prophet with yearly and weekly seasonality enabled"
-  - "Generate future dates and predict with confidence intervals"
-  - "Plot component decomposition to understand trend and seasonality"
-  - "Compare Prophet vs ARIMA on the same test set"
+  - "Prepare a regular daily time series: df['value'].asfreq('D').fillna(0)"
+  - "Fit exponential smoothing with additive trend and weekly seasonality"
+  - "Generate a 30-day forecast and print the first few values"
+  - "Build a DataFrame of lag-1 through lag-7 values as features"
+  - "Train a linear regression and check R² on the held-out test set"
 solution_code: |
   from pyodide.http import open_url
   import pandas as pd
-  from prophet import Prophet
+  import numpy as np
+  from statsmodels.tsa.holtwinters import ExponentialSmoothing
+  from sklearn.linear_model import LinearRegression
+  import warnings
+  warnings.filterwarnings('ignore')
 
   raw = pd.read_csv(open_url("/datasets/train.csv"))
   raw['Order Date'] = pd.to_datetime(raw['Order Date'])
-  df = raw.groupby('Order Date')['Sales'].sum().reset_index()
-  df.columns = ['ds', 'y']
-  m = Prophet(yearly_seasonality=True, weekly_seasonality=True)
-  m.fit(df)
-  future = m.make_future_dataframe(periods=30)
-  forecast = m.predict(future)
-  print(f"Forecast last 5 rows:\n{forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail()}")
+  df = raw.groupby('Order Date')['Sales'].sum().to_frame('value')
+  df = df.asfreq('D').fillna(0)
+
+  # Exponential Smoothing forecast
+  es = ExponentialSmoothing(df['value'], trend='add', seasonal='add', seasonal_periods=7)
+  es_fit = es.fit()
+  exp_forecast = es_fit.forecast(30)
+
+  # Linear regression with lag features
+  reg_df = df.copy()
+  for lag in range(1, 8):
+      reg_df[f'lag_{lag}'] = reg_df['value'].shift(lag)
+  reg_df = reg_df.dropna()
+  X = reg_df[[f'lag_{i}' for i in range(1, 8)]]
+  y = reg_df['value']
+  split = int(0.8 * len(reg_df))
+  reg = LinearRegression().fit(X.iloc[:split], y.iloc[:split])
+  reg_r2 = reg.score(X.iloc[split:], y.iloc[split:])
+
+  print(f"Exponential Smoothing — last 5 forecasts:")
+  print(exp_forecast.tail())
+  print(f"Linear regression R²: {reg_r2:.3f}")
 expected_output: |
-  Forecast last 5 rows:
+  Exponential Smoothing — last 5 forecasts:
+  Linear regression R²:
 hints:
-  - "Prophet is best for business data with clear weekly/yearly patterns"
-  - "LSTM requires more data and tuning but handles non-linear patterns"
-  - "Always compare simple models first — complexity isn't always better"
+  - "ExponentialSmoothing needs a regular frequency: use df.asfreq('D') first"
+  - "Use warnings.filterwarnings('ignore') to keep statsmodels output clean"
+  - "Lag features shift the series: df['value'].shift(1) is yesterday"
 visualizations:
-  - title: "Prophet Forecast Plot"
-    code: |
-      from prophet import Prophet
-      import matplotlib.pyplot as plt
-      prophet_df = df.reset_index().rename(columns={'date': 'ds', 'value': 'y'})
-      m = Prophet(yearly_seasonality=True, weekly_seasonality=True)
-      m.fit(prophet_df)
-      future = m.make_future_dataframe(periods=30)
-      forecast = m.predict(future)
-      fig = m.plot(forecast)
-      plt.title('Prophet Forecast')
-      plt.show()
-    description: "Prophet's built-in forecast visualization with confidence intervals"
-  - title: "Prophet Component Plots"
-    code: |
-      from prophet import Prophet
-      import matplotlib.pyplot as plt
-      prophet_df = df.reset_index().rename(columns={'date': 'ds', 'value': 'y'})
-      m = Prophet(yearly_seasonality=True, weekly_seasonality=True)
-      m.fit(prophet_df)
-      future = m.make_future_dataframe(periods=30)
-      forecast = m.predict(future)
-      fig2 = m.plot_components(forecast)
-      plt.show()
-    description: "Decomposes forecast into trend, weekly, and yearly components"
-  - title: "Model Comparison: ARIMA vs Prophet"
+  - title: "Exponential Smoothing Forecast"
     code: |
       import matplotlib.pyplot as plt
-      models = ['ARIMA', 'Prophet', 'LSTM']
-      mse_values = [arima_mse, prophet_mse, lstm_mse]
-      plt.bar(models, mse_values, color=['steelblue', 'coral', 'green'])
-      plt.title('Model Comparison (Lower MSE is Better)')
-      plt.ylabel('Mean Squared Error')
-      plt.show()
-    description: "Compare performance of different forecasting models"
-  - title: "LSTM Training Loss"
-    code: |
-      import matplotlib.pyplot as plt
-      plt.plot(history.history['loss'], label='Training Loss')
-      plt.plot(history.history['val_loss'], label='Validation Loss')
-      plt.title('LSTM Training Progress')
-      plt.xlabel('Epoch')
-      plt.ylabel('Loss')
+      import warnings
+      warnings.filterwarnings('ignore')
+      ts = df['value'].asfreq('D').fillna(0)
+      es = ExponentialSmoothing(ts, trend='add', seasonal='add', seasonal_periods=7).fit()
+      fc = es.forecast(30)
+      plt.figure(figsize=(14, 5))
+      plt.plot(ts[-90:], label='Historical', color='steelblue')
+      plt.plot(fc.index, fc.values, label='ES Forecast', color='coral', linewidth=2)
+      plt.title('30-Day Exponential Smoothing Forecast')
       plt.legend()
       plt.show()
-    description: "Shows LSTM model convergence during training"
+    description: "Forecasts from Holt-Winters exponential smoothing"
+  - title: "Actual vs Predicted (Regression)"
+    code: |
+      import matplotlib.pyplot as plt
+      import warnings
+      warnings.filterwarnings('ignore')
+      reg_df = df['value'].asfreq('D').fillna(0).to_frame('value')
+      for lag in range(1, 8):
+          reg_df[f'lag_{lag}'] = reg_df['value'].shift(lag)
+      reg_df = reg_df.dropna()
+      X = reg_df[[f'lag_{i}' for i in range(1, 8)]]
+      y = reg_df['value']
+      split = int(0.8 * len(reg_df))
+      reg = LinearRegression().fit(X.iloc[:split], y.iloc[:split])
+      pred = reg.predict(X.iloc[split:])
+      plt.figure(figsize=(14, 5))
+      plt.plot(y.iloc[split:].index, y.iloc[split:], label='Actual', color='steelblue')
+      plt.plot(y.iloc[split:].index, pred, label='Predicted', color='coral')
+      plt.title('Regression: Actual vs Predicted')
+      plt.legend()
+      plt.show()
+    description: "Compare the regression model's predictions to actual values"
+  - title: "Model Comparison: ARIMA vs ES"
+    code: |
+      import matplotlib.pyplot as plt
+      import warnings
+      warnings.filterwarnings('ignore')
+      arima = ARIMA(df['value'], order=(2, 1, 2)).fit()
+      arima_fc = arima.forecast(30)
+      es = ExponentialSmoothing(df['value'].asfreq('D').fillna(0), trend='add', seasonal='add', seasonal_periods=7).fit()
+      es_fc = es.forecast(30)
+      plt.figure(figsize=(14, 5))
+      plt.plot(df['value'][-90:], label='Historical', color='steelblue')
+      plt.plot(arima_fc.index, arima_fc.values, label='ARIMA', linestyle='--', color='coral')
+      plt.plot(es_fc.index, es_fc.values, label='Exponential Smoothing', linestyle='--', color='green')
+      plt.title('30-Day Forecast Comparison')
+      plt.legend()
+      plt.show()
+    description: "Overlay ARIMA and Exponential Smoothing forecasts"
