@@ -83,6 +83,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
   height = '250px',
 }, ref) {
   const [code, setCode] = useState(initialCode);
+  useEffect(() => { setCode(initialCode); }, [initialCode]);
   const [output, setOutput] = useState<OutputLine[]>([]);
   const [running, setRunning] = useState(false);
   const [pyodideReady, setPyodideReady] = useState(false);

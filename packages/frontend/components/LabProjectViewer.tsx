@@ -10,6 +10,7 @@ import {
 } from '@/components/AppIcons';
 import { IconBrandPython, IconLetterR, IconConfetti, IconCheck } from '@tabler/icons-react';
 import PythonTerminal, { type PythonTerminalHandle } from '@/components/PythonTerminal';
+import { makeScaffold } from '@/lib/pyScaffold';
 import { useProgress } from '@/lib/useProgress';
 import { playBleep } from '@/lib/audio';
 import { getGitHubUser, getGitHubToken } from '@/lib/authClient';
@@ -662,18 +663,13 @@ export default function LabProjectViewer({
         <div className="p-4 sm:p-5" ref={editorSectionRef}>
           <PythonTerminal
             ref={terminalRef}
-            initialCode={`# Write your solution here — or click ‘↑ Send to editor’ on any step below
-# to stack its snippet in here notebook-style, then tweak and ▶ Run.
-#
-# Load data with:
-# from pyodide.http import open_url
-# df = pd.read_csv(open_url("/datasets/YOUR_FILE.csv"))
-#
-# matplotlib / seaborn figures render inline in the output panel.
-
-import pandas as pd
-import numpy as np
-`}
+            initialCode={
+              codeLang === 'r'
+                ? `# R mode is reference-only in the browser.\n# Copy the R solution below into RStudio or an R kernel to run it.`
+                : solutionCode
+                  ? makeScaffold(solutionCode)
+                  : `# Write your solution here — or click ‘↑ Send to editor’ on any step below\n# to stack its snippet in here notebook-style, then tweak and ▶ Run.\n#\n# Load data with:\n# from pyodide.http import open_url\n# df = pd.read_csv(open_url("/datasets/YOUR_FILE.csv"))\n#\n# matplotlib / seaborn figures render inline in the output panel.\n\nimport pandas as pd\nimport numpy as np\n`
+            }
             expectedOutput={codeLang === 'r' && rExpectedOutput ? rExpectedOutput : expectedOutput}
             solutionCode={codeLang === 'r' && rSolutionCode ? rSolutionCode : solutionCode}
             hints={hints}
