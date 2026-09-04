@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronDown } from 'lucide-react';
 import NavAuth from '@/components/NavAuth';
-import { CrossVerseIcon, TrialsIcon, GuideIcon, ProjectsIcon, VerseIcon } from '@/components/NavIcons';
+import { CrossVerseIcon, GuideIcon, VerseIcon } from '@/components/NavIcons';
+import { BrainIcon } from '@/components/AppIcons';
 import { verseFromPath, setActiveVerse, getActiveVerse, VERSE_THEMES, type Verse } from '@/lib/verse';
 
 const VERSE_OPTIONS: { verse: Verse; href: string }[] = [
@@ -85,9 +86,18 @@ export default function NavHeader() {
   const brand = VERSE_THEMES[currentVerse].label;
   const brandColor = VERSE_THEMES[currentVerse].accentText;
 
+  const quizHref = currentVerse === 'lab' ? '/lab/quiz'
+    : currentVerse === 'cloud' ? '/cloud/trials'
+    : '/cases/trials/master-quiz';
+  const quizLabel = currentVerse === 'query' ? 'Master Quiz' : 'Quizzes';
+
+  const guideHref = currentVerse === 'lab' ? '/lab/guide'
+    : currentVerse === 'cloud' ? '/cloud/guide'
+    : '/cases/guide';
+
   return (
     <header className="bg-bleepx-white shadow-sm dark:shadow-gray-900/30 sticky top-0 z-40 border-b border-transparent dark:border-bleepx-border">
-      <div className="max-w-5xl mx-auto px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+      <div className="max-w-5xl mx-auto px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
         <Link href={homeHref} className="flex items-center gap-2 sm:gap-3">
           <picture>
             <source srcSet="/bleepx-logo.png" type="image/svg+xml" />
@@ -100,40 +110,21 @@ export default function NavHeader() {
           </h1>
         </Link>
 
-        <nav className="flex items-center gap-3 sm:gap-4">
-          <Link href="/dashboard" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-violet-600 font-semibold text-sm sm:text-base transition-colors">
+        <nav className="flex items-center gap-2 sm:gap-3">
+          <Link href="/dashboard" className={`flex items-center gap-1 text-bleepx-text-secondary hover:${brandColor} font-semibold text-sm sm:text-base transition-colors`}>
             <CrossVerseIcon size={20} />
             <span className="hidden sm:inline">Dashboard</span>
           </Link>
 
-          {currentVerse === 'cloud' ? (
-            <>
-              <Link href="/cloud/trials" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-sky-600 font-semibold text-sm sm:text-base transition-colors">
-                <TrialsIcon size={20} />
-                <span className="hidden sm:inline">Trials</span>
-              </Link>
-              <Link href="/cloud/guide" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-sky-600 font-semibold text-sm sm:text-base transition-colors">
-                <GuideIcon size={20} />
-                <span className="hidden sm:inline">Guide</span>
-              </Link>
-            </>
-          ) : currentVerse === 'lab' ? (
-            <>
-              <Link href="/lab" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-teal-600 font-semibold text-sm sm:text-base transition-colors">
-                <ProjectsIcon size={20} />
-                <span className="hidden sm:inline">Projects</span>
-              </Link>
-              <Link href="/lab/guide" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-teal-600 font-semibold text-sm sm:text-base transition-colors">
-                <GuideIcon size={20} />
-                <span className="hidden sm:inline">Guide</span>
-              </Link>
-            </>
-          ) : currentVerse === 'query' ? (
-            <Link href="/cases/trials" className="flex items-center gap-1 text-bleepx-text-secondary hover:text-bleepx-blue font-semibold text-sm sm:text-base transition-colors">
-              <TrialsIcon size={20} />
-              <span className="hidden sm:inline">Trials</span>
-            </Link>
-          ) : null}
+          <Link href={quizHref} className={`flex items-center gap-1 text-bleepx-text-secondary hover:${brandColor} font-semibold text-sm sm:text-base transition-colors`}>
+            <BrainIcon size={20} />
+            <span className="hidden sm:inline">{quizLabel}</span>
+          </Link>
+
+          <Link href={guideHref} className={`flex items-center gap-1 text-bleepx-text-secondary hover:${brandColor} font-semibold text-sm sm:text-base transition-colors`}>
+            <GuideIcon size={20} />
+            <span className="hidden sm:inline">Guide</span>
+          </Link>
 
           {currentVerse && <><div className="h-6 w-px bg-bleepx-border hidden sm:block" /><VerseSwitcher current={currentVerse} /></>}
           <NavAuth />

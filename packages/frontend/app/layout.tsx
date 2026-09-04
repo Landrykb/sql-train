@@ -42,11 +42,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ErrorBoundary>
           <AnalyticsProvider>
             <NavHeader />
-            <main className="flex-1 flex flex-col max-w-5xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-8 text-bleepx-text min-w-0">
+            <main className="flex-1 flex flex-col max-w-5xl w-full mx-auto px-2 sm:px-6 py-3 sm:py-6 text-bleepx-text min-w-0">
               {children}
             </main>
             <footer className="bg-bleepx-white text-bleepx-text-secondary py-3 sm:py-4 pb-24 border-t border-bleepx-border min-w-0">
-              <div className="max-w-5xl mx-auto px-3 sm:px-6 text-center text-xs sm:text-sm space-y-1">
+              <div className="max-w-5xl mx-auto px-2 sm:px-6 text-center text-xs sm:text-sm space-y-1">
                 <p>&copy; {new Date().getFullYear()} Bleepx &mdash; All rights reserved.</p>
                 <p className="flex flex-wrap justify-center items-center gap-3 text-xs sm:text-sm">
                   <a
