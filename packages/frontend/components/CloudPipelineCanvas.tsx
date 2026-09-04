@@ -9,7 +9,10 @@ import { getKaggleInfo } from '@/lib/kaggleDatasets';
 import { getDataWorldInfo } from '@/lib/dataWorldDatasets';
 import { PIPELINE_PRESETS, DEFAULT_PYTHON } from '@/lib/cloud/pipelinePresets';
 import { initSQL, loadCSVString, runQuery } from '@/lib/sqlClient/browser';
+import { getSqlErrorHelp } from '@/lib/sqlErrorHelper';
+import { getPyErrorHelp } from '@/lib/pyErrorHelper';
 import { loadPyodide, runPythonCode } from '@/lib/pyodideRuntime';
+import type { BleepxHint } from '@/lib/bleepxLinter';
 import {
   createEmptySandboxState,
   loadSandboxState,
@@ -171,7 +174,7 @@ function generatePythonStarter(rawCsv: string, sqlResult: string): string {
     const n = numeric[0].name;
     body += `\n# Derived column example\ndf['scaled_${n}'] = df['${n}'] * 2\n`;
     if (numeric[1]) {
-      body += `df['${n}_per_${numeric[1].name}'] = df['${n}'] / df['${numeric[1].name}']\n`;
+      body += `df['${n}_per_${numeric[1].name}'] = df['${n}'] / df['${numeric[1].name}'].replace(0, float('nan'))\n`;
     }
     body += `\n# Filter to above-average rows\ndf = df[df['${n}'] >= df['${n}'].mean()]\n`;
   }
@@ -331,6 +334,8 @@ export default function CloudPipelineCanvas() {
   const [sandbox, setSandbox] = useState<CloudSandboxState>(createEmptySandboxState());
   const [message, setMessage] = useState<string | null>(null);
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
+  const [lastSqlError, setLastSqlError] = useState<{ message: string; query: string } | null>(null);
+  const [lastPythonError, setLastPythonError] = useState<{ message: string; code: string } | null>(null);
 
   const activeRawCsv = useMemo(() => normalizeCsv(pipeline.rawCsv), [pipeline.rawCsv]);
   const generatedPythonCode = useMemo(
@@ -363,7 +368,7 @@ export default function CloudPipelineCanvas() {
       sourceUrl: preset.sourceUrl,
       rawCsv: clean,
       sqlQuery: preset.sqlQuery,
-      pythonCode: preset.pythonCode === DEFAULT_PYTHON ? starter : preset.pythonCode,
+      pythonCode: starter,
       s3Key: preset.s3Key,
       s3Bucket: 'bleepx-pipeline-output',
       activeStep: 'sql',
@@ -408,6 +413,7 @@ export default function CloudPipelineCanvas() {
       const { columns, data } = await runQuery(pipeline.sqlQuery || DEFAULT_QUERY);
       const csv = Papa.unparse({ fields: columns, data });
       setExecCount(nextCell);
+      setLastSqlError(null);
       setPipeline((p) => ({ ...p, sqlResult: csv, sqlCell: nextCell, activeStep: 'python' }));
       const cols = columns.join(', ');
       setMessage(
@@ -415,7 +421,9 @@ export default function CloudPipelineCanvas() {
         `Try filtering, grouping, or adding a calculated column. Then run Python to transform the result before S3.`
       );
     } catch (err: any) {
-      setMessage(`SQL error: ${err?.message || String(err)}`);
+      const msg = err?.message || String(err);
+      setLastSqlError({ message: msg, query: pipeline.sqlQuery || DEFAULT_QUERY });
+      setMessage(`SQL error: ${msg}`);
     } finally {
       setSqlLoading(false);
     }
@@ -448,6 +456,7 @@ export default function CloudPipelineCanvas() {
       const cols = preview.meta.fields?.length ?? 0;
       const colList = preview.meta.fields?.join(', ') ?? '';
       setExecCount(nextCell);
+      setLastPythonError(null);
       setPythonImages(images || []);
       setPythonConsole(combined.trim());
       setPipeline((p) => ({ ...p, transformedCsv: csvOut, pythonCell: nextCell, activeStep: 'csv' }));
@@ -457,6 +466,7 @@ export default function CloudPipelineCanvas() {
       );
     } catch (err: any) {
       const detail = err?.stdout ? `${err.stdout}\n${err.message}` : err?.message || String(err);
+      setLastPythonError({ message: detail, code: pipeline.pythonCode });
       setPythonImages(err?.images || []);
       setPythonConsole(detail.trim());
       setPipeline((p) => ({ ...p, transformedCsv: '', pythonCell: nextCell, activeStep: 'csv' }));
@@ -465,6 +475,76 @@ export default function CloudPipelineCanvas() {
       setPythonLoading(false);
     }
   }, [pipeline.rawCsv, pipeline.pythonCode, pipeline.sqlResult, activeRawCsv, generatedPythonCode, execCount]);
+
+  const buildBleepxHint = useCallback((): BleepxHint => {
+    if (lastPythonError) {
+      const help = getPyErrorHelp(lastPythonError.message, lastPythonError.code);
+      const keyMatch = lastPythonError.message.match(/KeyError:\s*['"]([^'"]+)['"]/);
+      if (keyMatch && pipeline.sqlResult) {
+        const key = keyMatch[1];
+        const sqlCols = analyzeCsv(pipeline.sqlResult).map((c) => c.name);
+        const rawCols = analyzeCsv(activeRawCsv).map((c) => c.name);
+        if (!sqlCols.includes(key) && rawCols.includes(key)) {
+          return {
+            message: `${help.title}: ${help.explanation}\n\nThe SQL result no longer contains the column '${key}'. In this ETL step, Python should transform the SQL output, which has columns: ${sqlCols.join(', ')}.`,
+            fix: `Use SQL result columns such as ${sqlCols.slice(0, 3).map((c) => `'${c}'`).join(', ')}. Example: df.groupby('${sqlCols[0]}')['${sqlCols.find((c) => c.toLowerCase().includes('avg')) || sqlCols[1]}'].mean().`,
+            severity: 'error',
+            snippet: help.suggestions[0],
+          };
+        }
+      }
+      return {
+        message: `${help.title}: ${help.explanation}`,
+        fix: help.suggestions.slice(0, 3).join(' '),
+        severity: 'error',
+        snippet: help.suggestions[0],
+      };
+    }
+    if (lastSqlError) {
+      const help = getSqlErrorHelp(lastSqlError.message, lastSqlError.query);
+      return {
+        message: `${help.title}: ${help.explanation}`,
+        fix: help.suggestions.slice(0, 3).join(' '),
+        severity: 'error',
+        snippet: help.suggestions[0],
+      };
+    }
+    if (pipeline.activeStep === 'extract') {
+      return {
+        message: 'Start by loading or pasting a CSV. Bleepx will analyze the columns and suggest SQL/Python next.',
+        fix: 'Pick a preset, paste a CSV, or click one of the sample CSV buttons.',
+        severity: 'tip',
+      };
+    }
+    if (pipeline.activeStep === 'sql') {
+      return {
+        message: 'SQL is for exploring and summarizing the raw data before Python transforms it.',
+        fix: sqlHints[0] || 'SELECT * FROM dataset LIMIT 10',
+        severity: 'tip',
+      };
+    }
+    if (pipeline.activeStep === 'python') {
+      return {
+        message: 'Python transforms the SQL result (sql_result) or the raw CSV (raw_csv) and produces the final CSV.',
+        fix: pythonHints[0] || "Use df['column'] and end with print(df.to_csv(index=False)).",
+        severity: 'tip',
+      };
+    }
+    return {
+      message: 'Bleepx is watching. Run a step or upload the final CSV to S3.',
+      fix: 'Click Run SQL, Run Python transform, or Upload to S3.',
+      severity: 'tip',
+    };
+  }, [lastPythonError, lastSqlError, pipeline.sqlResult, activeRawCsv, pipeline.activeStep, sqlHints, pythonHints]);
+
+  const askBleepx = useCallback((targetId: string) => {
+    const hint = buildBleepxHint();
+    const target = typeof document !== 'undefined' ? document.getElementById(targetId) : null;
+    if (target && target instanceof HTMLElement) target.focus();
+    if (typeof document !== 'undefined') {
+      document.dispatchEvent(new CustomEvent('bleepx:hint', { detail: { hint, value: message || '', target } }));
+    }
+  }, [buildBleepxHint, message]);
 
   const uploadToS3 = useCallback(() => {
     let next = createS3Bucket(sandbox, pipeline.s3Bucket, sandbox.activeRegion);
@@ -627,6 +707,7 @@ export default function CloudPipelineCanvas() {
         </p>
         <div className="mb-2 text-xs font-mono text-emerald-500">In[{pipeline.sqlCell ?? ' '}]</div>
         <textarea
+          id="sql-code"
           value={pipeline.sqlQuery}
           onChange={(e) => setPipeline((p) => ({ ...p, sqlQuery: e.target.value }))}
           rows={5}
@@ -641,6 +722,12 @@ export default function CloudPipelineCanvas() {
             className="px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-bold hover:bg-amber-200 transition-colors inline-flex items-center gap-1"
           >
             <BulbIcon size={12} /> Hint
+          </button>
+          <button
+            onClick={() => askBleepx('sql-code')}
+            className="px-3 py-2 rounded-lg bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-sm font-bold hover:bg-rose-200 transition-colors inline-flex items-center gap-1"
+          >
+            <BleepxFace size={14} /> Stuck? Ask Bleepx
           </button>
         </div>
         {sqlHintIdx >= 0 && (
@@ -661,6 +748,7 @@ export default function CloudPipelineCanvas() {
         </p>
         <div className="mb-2 text-xs font-mono text-emerald-500">In[{pipeline.pythonCell ?? ' '}]</div>
         <textarea
+          id="python-code"
           value={pipeline.pythonCode}
           onChange={(e) => setPipeline((p) => ({ ...p, pythonCode: e.target.value }))}
           rows={8}
@@ -675,6 +763,12 @@ export default function CloudPipelineCanvas() {
             className="px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-bold hover:bg-amber-200 transition-colors inline-flex items-center gap-1"
           >
             <BulbIcon size={12} /> Hint
+          </button>
+          <button
+            onClick={() => askBleepx('python-code')}
+            className="px-3 py-2 rounded-lg bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-sm font-bold hover:bg-rose-200 transition-colors inline-flex items-center gap-1"
+          >
+            <BleepxFace size={14} /> Stuck? Ask Bleepx
           </button>
         </div>
         {pythonHintIdx >= 0 && (
