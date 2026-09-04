@@ -41,6 +41,7 @@ export async function resetDatabase(): Promise<void> {
   if (list.length === 0) return;
   const tables: string[] = list[0].values.map((r: [string]) => r[0]);
   for (const t of tables) {
+    if (!/^[a-zA-Z0-9_]+$/.test(t)) continue;
     db.exec(`DROP TABLE IF EXISTS "${t}";`);
   }
 }

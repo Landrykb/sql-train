@@ -47,6 +47,7 @@ export async function initSQL(): Promise<void> {
 }
 
 function tableExists(name: string): boolean {
+  if (!/^[a-zA-Z0-9_]+$/.test(name)) return false;
   try {
     db.exec(`SELECT 1 FROM "${name}" LIMIT 1;`);
     return true;
@@ -66,6 +67,7 @@ export async function resetDatabase(): Promise<void> {
     const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table';");
     const tableNames = tables.length > 0 ? tables[0].values.map((row: [string]) => row[0]) : [];
     for (const table of tableNames) {
+      if (!/^[a-zA-Z0-9_]+$/.test(table)) continue;
       db.exec(`DROP TABLE IF EXISTS "${table}";`);
     }
     loadingTables.clear();

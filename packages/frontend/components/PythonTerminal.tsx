@@ -164,7 +164,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
       if (stderr) newOutput.push({ type: 'stderr', text: stderr, cell: nextCell });
       // Prefer rich HTML (pandas DataFrame/Series/Styler) over the plain repr.
       if (resultHtml) {
-        // DOMPurify strips scripts / event handlers — pandas HTML contains only
+        // nosemgrep: DOMPurify strips scripts / event handlers — pandas HTML contains only
         // <table>/<thead>/<tr>/<td> so this is safe to render.
         const safe = DOMPurify.sanitize(resultHtml, { USE_PROFILES: { html: true } });
         newOutput.push({ type: 'html', html: safe, cell: nextCell });
@@ -445,9 +445,10 @@ import numpy as np"
               return (
                 <div key={i} className={`p-3 border-l-4 ${border}`}>
                   {label && <div className="text-xs text-blue-300 mb-1">{label}</div>}
+                  {/* nosemgrep: line.html is sanitized with DOMPurify before injection. */}
                   <div
                     className="bleepx-df rounded-md overflow-auto bg-white text-gray-900 p-2 max-w-full"
-                    dangerouslySetInnerHTML={{ __html: line.html }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(line.html) }}
                   />
                 </div>
               );

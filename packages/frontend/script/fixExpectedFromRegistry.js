@@ -98,7 +98,7 @@ const central  = load(fs.readFileSync(SOL_PATH, 'utf8')) || {};
       }
       if (t.filter) {
         if (typeof t.filter === 'string') {
-          // Caution: eval per-row
+          // nosemgrep: t.filter is a build-time expression from trusted solutions.yaml.
           rows = rows.filter(r => eval(t.filter));
         } else {
           rows = rows.filter(r =>

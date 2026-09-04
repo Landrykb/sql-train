@@ -36,6 +36,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* nosemgrep: hardcoded, self-contained hydration-cleanup script. */}
         <script dangerouslySetInnerHTML={{__html: '(function(){document.querySelectorAll("[id*=ton],[id*=tron],[id*=wallet]").forEach(e=>e.remove());setTimeout(()=>document.querySelectorAll("[id*=ton],[id*=tron],[id*=wallet]").forEach(e=>e.remove()),100);const originalError=console.error;console.error=function(...e){if(typeof e[0]==="string"&&(e[0].includes("418")||e[0].includes("hydration")||e[0].includes("Text content")))return;originalError.apply(console,e)}})()'}} />
       </head>
       <body className="bg-bleepx-bg min-h-screen flex flex-col font-sans" suppressHydrationWarning>

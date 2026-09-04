@@ -1,0 +1,36 @@
+name: StackHawk DAST
+
+on:
+  # Trigger after Vercel/Render deploys a preview or production build.
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: 'Target URL to scan (e.g. https://besa-sqlverse.vercel.app)'
+        required: true
+        type: string
+
+env:
+  HAWK_API_KEY: ${{ secrets.HAWK_API_KEY }}
+  HAWK_APP_ID: ${{ secrets.HAWK_APP_ID }}
+  HAWK_HOST: ${{ github.event_name == 'deployment_status' && github.event.deployment_status.environment_url || inputs.host }}
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  stackhawk:
+    name: StackHawk scan
+    runs-on: ubuntu-latest
+    # Only run when the deployment succeeded and the API key is configured.
+    if: env.HAWK_API_KEY != '' && (github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run HawkScan
+        uses: stackhawk/hawkscan-action@v2.2.0
+        with:
+          apiKey: ${{ secrets.HAWK_API_KEY }}
+          configurationFiles: packages/frontend/stackhawk.yml

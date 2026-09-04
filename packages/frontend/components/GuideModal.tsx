@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { marked } from 'marked';
+import SafeMarkdown from '@/components/SafeMarkdown';
 import { GuideIcon } from '@/components/AppIcons';
 
 interface QueryVariant {
@@ -138,14 +138,16 @@ export default function GuideModal({ isOpen, onClose, guideData, scrollToSection
                       <div key={vi} className="space-y-2">
                         <h4 className="text-xs font-bold text-bleepx-text">{variant.name}</h4>
                         <p className="text-xs text-bleepx-text-secondary">{variant.description}</p>
-                        <div className="text-sm font-mono bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded border border-slate-200 dark:border-slate-700 overflow-x-auto whitespace-pre-wrap break-words max-w-full [&_pre]:whitespace-pre-wrap text-slate-700 dark:text-slate-300">
-                          <div dangerouslySetInnerHTML={{ __html: marked(variant.example_generic) }} />
-                        </div>
+                        <SafeMarkdown
+                          source={variant.example_generic}
+                          className="text-sm font-mono bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded border border-slate-200 dark:border-slate-700 overflow-x-auto whitespace-pre-wrap break-words max-w-full [&_pre]:whitespace-pre-wrap text-slate-700 dark:text-slate-300"
+                        />
                         <details className="group">
                           <summary className="text-sm text-bleepx-blue cursor-pointer hover:underline">Show real-world example</summary>
-                          <div className="mt-1 text-sm font-mono bg-blue-50 dark:bg-blue-900/20 p-2.5 rounded border border-blue-200 dark:border-blue-800 overflow-x-auto whitespace-pre-wrap break-words max-w-full [&_pre]:whitespace-pre-wrap text-blue-800 dark:text-blue-200">
-                            <div dangerouslySetInnerHTML={{ __html: marked(variant.example) }} />
-                          </div>
+                          <SafeMarkdown
+                            source={variant.example}
+                            className="mt-1 text-sm font-mono bg-blue-50 dark:bg-blue-900/20 p-2.5 rounded border border-blue-200 dark:border-blue-800 overflow-x-auto whitespace-pre-wrap break-words max-w-full [&_pre]:whitespace-pre-wrap text-blue-800 dark:text-blue-200"
+                          />
                         </details>
                       </div>
                     ))}
