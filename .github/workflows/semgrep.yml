@@ -15,21 +15,31 @@ jobs:
   semgrep:
     name: Semgrep scan
     runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Run Semgrep
-        uses: semgrep/semgrep-action@v1
-        env:
-          SEMGREP_RULES: p/default p/owasp-top-ten p/react p/typescript p/ci
-        with:
-          generateSarif: "1"
-          # Non-blocking while you triage findings. Switch to "true" once clean.
-          failOnError: "false"
+        id: semgrep
+        run: |
+          set +e
+          semgrep scan --config=auto --sarif --output=semgrep.sarif .
+          EXIT_CODE=$?
+          echo "exit=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          # Exit 1 means findings; other non-zero codes are real errors.
+          exit 0
 
       - name: Upload SARIF to GitHub Security tab
-        if: always()
+        # Skip SARIF upload for PRs from forks (token lacks security-events:write).
+        if: |
+          hashFiles('semgrep.sarif') != '' &&
+          (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: semgrep.sarif
+
+      - name: Fail on Semgrep runtime error
+        if: steps.semgrep.outputs.exit != '0' && steps.semgrep.outputs.exit != '1'
+        run: exit 1

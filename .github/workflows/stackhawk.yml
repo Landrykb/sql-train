@@ -10,11 +10,6 @@ on:
         required: true
         type: string
 
-env:
-  HAWK_API_KEY: ${{ secrets.HAWK_API_KEY }}
-  HAWK_APP_ID: ${{ secrets.HAWK_APP_ID }}
-  HAWK_HOST: ${{ github.event_name == 'deployment_status' && github.event.deployment_status.environment_url || inputs.host }}
-
 permissions:
   contents: read
   security-events: write
@@ -23,14 +18,27 @@ jobs:
   stackhawk:
     name: StackHawk scan
     runs-on: ubuntu-latest
-    # Only run when the deployment succeeded and the API key is configured.
-    if: env.HAWK_API_KEY != '' && (github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success')
+    # Only run when the API key / app ID are configured and a target host exists.
+    if: secrets.HAWK_API_KEY != '' && secrets.HAWK_APP_ID != '' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success'))
+    env:
+      HAWK_API_KEY: ${{ secrets.HAWK_API_KEY }}
+      HAWK_APP_ID: ${{ secrets.HAWK_APP_ID }}
+      HAWK_HOST: ${{ github.event_name == 'deployment_status' && github.event.deployment_status.environment_url || inputs.host }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Validate target URL
+        if: env.HAWK_HOST == ''
+        run: |
+          echo "::error::HAWK_HOST is not set. Provide a host input or ensure deployment_status.environment_url is present."
+          exit 1
 
       - name: Run HawkScan
         uses: stackhawk/hawkscan-action@v2.2.0
         with:
           apiKey: ${{ secrets.HAWK_API_KEY }}
           configurationFiles: packages/frontend/stackhawk.yml
+        env:
+          HAWK_APP_ID: ${{ secrets.HAWK_APP_ID }}
+          HAWK_HOST: ${{ env.HAWK_HOST }}
