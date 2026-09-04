@@ -264,6 +264,21 @@ img, svg, video, canvas, iframe {
 .bleepx-git { animation: bleepx-git 1.1s ease-in-out infinite; }
 .bleepx-face { animation: bleepx-face 1s ease-in-out infinite; }
 
+/* ─── Bleepx chat-bubble idle roll: up, down, left, then bungee back home ─── */
+
+@keyframes bleepx-roll {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  12%  { transform: translate(0, -60px) rotate(180deg); }
+  25%  { transform: translate(0, 0) rotate(360deg); }
+  40%  { transform: translate(-90px, 0) rotate(540deg); }
+  55%  { transform: translate(0, 0) rotate(720deg); }
+  70%  { transform: translate(-20px, -20px) rotate(765deg); }
+  85%  { transform: translate(10px, 8px) rotate(735deg); }
+  100% { transform: translate(0, 0) rotate(720deg); }
+}
+
+.bleepx-roll { animation: bleepx-roll 4.5s ease-in-out; }
+
 /* ─── Global page layout ───────────────────────────────────────────────────
    Pages should never leave blank scrollable space below the footer.
    The root <main> already uses Tailwind's flex-1; nested page <main>

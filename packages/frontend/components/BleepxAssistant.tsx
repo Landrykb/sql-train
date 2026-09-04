@@ -157,6 +157,9 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const didAutoAsk = useRef(false);
   const rafId = useRef<number | null>(null);
   const downAt = useRef(0);
+  const rollStartRef = useRef<NodeJS.Timeout | null>(null);
+  const rollEndRef = useRef<NodeJS.Timeout | null>(null);
+  const [rolling, setRolling] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const assistantRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -288,6 +291,32 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   useEffect(() => {
     if (open) messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
   }, [messages, open]);
+
+  // Occasional playful roll: spin, hop up, roll left, then bungee back.
+  useEffect(() => {
+    if (open || dragging) {
+      if (rollStartRef.current) clearTimeout(rollStartRef.current);
+      if (rollEndRef.current) clearTimeout(rollEndRef.current);
+      setRolling(false);
+      return;
+    }
+    const start = setTimeout(() => {
+      if (open || dragging) return;
+      setRolling(true);
+      rollEndRef.current = setTimeout(() => setRolling(false), 4500);
+    }, 4000);
+    rollStartRef.current = start;
+    const interval = setInterval(() => {
+      if (open || dragging) return;
+      setRolling(true);
+      rollEndRef.current = setTimeout(() => setRolling(false), 4500);
+    }, 14000);
+    return () => {
+      clearTimeout(start);
+      clearInterval(interval);
+      if (rollEndRef.current) clearTimeout(rollEndRef.current);
+    };
+  }, [open, dragging]);
 
   const goal = findJourneyGoal();
   const completedCount = completed.size;
@@ -960,7 +989,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         className={`group relative w-14 h-14 sm:w-16 sm:h-16 touch-none rounded-full overflow-hidden bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm shadow-2xl hover:shadow-sky-500/30 transition-all duration-300 flex items-center justify-center hover:-translate-y-1 hover:scale-110 focus:scale-110 focus:-translate-y-1 focus:bg-white/95 dark:focus:bg-gray-900/95 active:scale-110 active:-translate-y-1 hover:bg-white/95 dark:hover:bg-gray-900/95 active:bg-white/95 dark:active:bg-gray-900/95 border border-white/20 dark:border-gray-700/30 focus:border-sky-300 dark:focus:border-sky-500 active:border-sky-300 hover:border-sky-300 ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         aria-label="Open Bleepx assistant"
       >
-        <div className="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+        <div className={`transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 ${rolling ? 'bleepx-roll' : ''}`}>
           <Sprite />
         </div>
         {!open && dockedHint && (
