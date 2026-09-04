@@ -29,7 +29,7 @@ export default async function DashboardPage({
     <main className="max-w-5xl mx-auto px-4 py-6 bg-bleepx-bg min-h-screen pb-20">
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <DomainIcon domain={normalizedDomain} size={32} className="text-bleepx-blue flex-shrink-0" />
-        <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text min-w-0">
+        <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text min-w-0 break-words">
           BleepxQuery: <span className="capitalize">{normalizedDomain}</span> Dashboard
         </h1>
       </div>

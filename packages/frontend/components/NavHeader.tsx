@@ -34,12 +34,12 @@ function VerseSwitcher({ current }: { current: Verse }) {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1.5 pl-2 pr-1.5 py-1 rounded-full border border-bleepx-border bg-bleepx-bg text-xs sm:text-sm font-semibold transition-colors ${theme.accentText} hover:bg-bleepx-bg/80`}
+        className={`flex items-center gap-1.5 pl-2 pr-2 py-1 min-h-[44px] rounded-full border border-bleepx-border bg-bleepx-bg text-xs sm:text-sm font-semibold transition-colors ${theme.accentText} hover:bg-bleepx-bg/80`}
         aria-label="Switch verse"
       >
-        <VerseIcon verse={current} size={16} />
+        <VerseIcon verse={current} size={20} />
         <span className="hidden sm:inline">{theme.label}</span>
-        <ChevronDown size={14} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown size={16} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
         <div className="absolute right-0 top-full mt-2 w-44 rounded-xl bg-white dark:bg-gray-900 border border-bleepx-border shadow-xl overflow-hidden z-50">
@@ -98,31 +98,31 @@ export default function NavHeader() {
   return (
     <header className="bg-bleepx-white shadow-sm dark:shadow-gray-900/30 sticky top-0 z-40 border-b border-transparent dark:border-bleepx-border">
       <div className="max-w-5xl mx-auto px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
-        <Link href={homeHref} className="flex items-center gap-2 sm:gap-3">
+        <Link href={homeHref} className="flex items-center gap-1.5 sm:gap-3 min-w-0">
           <picture>
             <source srcSet="/bleepx-logo.png" type="image/svg+xml" />
-            <span className="text-bleepx-blue font-bold inline-block h-6 leading-6">
+            <span className="text-bleepx-blue font-bold inline-block h-6 leading-6 text-sm sm:text-base whitespace-nowrap">
               Bleepx
             </span>
           </picture>
-          <h1 className={`text-base sm:text-xl font-semibold ${brandColor}`}>
+          <h1 className={`hidden sm:inline text-base sm:text-xl font-semibold ${brandColor}`}>
             {brand}
           </h1>
         </Link>
 
-        <nav className="flex items-center gap-2 sm:gap-3">
-          <Link href="/dashboard" className={`flex items-center gap-1 text-bleepx-text-secondary hover:${brandColor} font-semibold text-sm sm:text-base transition-colors`}>
-            <CrossVerseIcon size={20} />
+        <nav className="flex items-center gap-1.5 sm:gap-3">
+          <Link href="/dashboard" className={`flex items-center justify-center gap-1 p-1.5 min-h-[44px] min-w-[44px] text-bleepx-text-secondary hover:${brandColor} font-semibold text-sm sm:text-base transition-colors`}>
+            <CrossVerseIcon size={24} />
             <span className="hidden sm:inline">Dashboard</span>
           </Link>
 
-          <Link href={quizHref} className={`flex items-center gap-1 text-bleepx-text-secondary hover:${brandColor} font-semibold text-sm sm:text-base transition-colors`}>
-            <BrainIcon size={20} />
+          <Link href={quizHref} className={`flex items-center justify-center gap-1 p-1.5 min-h-[44px] min-w-[44px] text-bleepx-text-secondary hover:${brandColor} font-semibold text-sm sm:text-base transition-colors`}>
+            <BrainIcon size={24} />
             <span className="hidden sm:inline">{quizLabel}</span>
           </Link>
 
-          <Link href={guideHref} className={`flex items-center gap-1 text-bleepx-text-secondary hover:${brandColor} font-semibold text-sm sm:text-base transition-colors`}>
-            <GuideIcon size={20} />
+          <Link href={guideHref} className={`flex items-center justify-center gap-1 p-1.5 min-h-[44px] min-w-[44px] text-bleepx-text-secondary hover:${brandColor} font-semibold text-sm sm:text-base transition-colors`}>
+            <GuideIcon size={24} />
             <span className="hidden sm:inline">Guide</span>
           </Link>
 
