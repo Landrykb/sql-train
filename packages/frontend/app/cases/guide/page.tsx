@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import yaml from 'yaml';
+import { parse } from 'yaml';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import GuideContent from './GuideContent';
@@ -36,7 +36,7 @@ export default async function GuidePage() {
   try {
     const guidePath = path.join(process.cwd(), 'cases', 'guide', 'guide.yaml');
     const raw = await fs.readFile(guidePath, 'utf8');
-    guideData = yaml.parse(raw);
+    guideData = parse(raw);
     if (!guideData.id || !guideData.title || !guideData.description || !Array.isArray(guideData.query_types)) {
       throw new Error('Missing required fields in guide.yaml');
     }
