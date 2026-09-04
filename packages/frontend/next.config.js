@@ -4,6 +4,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 /** @type {import('next').NextConfig} */
 module.exports = {
   turbopack: {},
+  staticPageGenerationTimeout: 180,
   webpack(config, { isServer }) {
     if (!isServer) {
       config.resolve.fallback = {

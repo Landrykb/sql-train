@@ -11,7 +11,7 @@ description: "Build and tune ARIMA models for time series forecasting with prope
 prereq_cases: [forecast_timeseries]
 learning_objectives:
   - Fit ARIMA models with selected (p,d,q) parameters
-  - Use auto_arima for automatic parameter selection
+  - Use a small grid search to pick a good (p,d,q) order
   - Diagnose model residuals
   - Generate forecasts with confidence intervals
 sections:
@@ -24,34 +24,50 @@ sections:
       results = model.fit()
       print(results.summary())
     explanation: "ARIMA(p,d,q): p=AR lags, d=differencing order, q=MA lags. The summary shows coefficient estimates, AIC/BIC for model comparison, and diagnostic test results."
-  - title: "Auto-Select Parameters"
-    content: "Let pmdarima find the best (p,d,q) automatically."
+  - title: "Select Best ARIMA Order"
+    content: "Test a small grid of (p,d,q) orders and pick the one with the lowest AIC. This is the Pyodide-compatible alternative to auto_arima."
     code: |
-      from pmdarima import auto_arima
+      import itertools
+      from statsmodels.tsa.arima.model import ARIMA
 
-      auto_model = auto_arima(
-          df['value'], seasonal=True, m=7,
-          stepwise=True, suppress_warnings=True,
-          information_criterion='aic'
-      )
-      print(auto_model.summary())
-      print(f"\nBest order: {auto_model.order}")
-      print(f"Seasonal order: {auto_model.seasonal_order}")
-    explanation: "auto_arima tests multiple (p,d,q) combinations and picks the one with lowest AIC. Set m=7 for weekly seasonality, m=12 for monthly, m=365 for daily with yearly patterns."
+      best_aic = float('inf')
+      best_order = None
+      best_results = None
+      orders = [(p, 1, q) for p in range(3) for q in range(3)]
+
+      for order in orders:
+          try:
+              candidate = ARIMA(df['value'], order=order).fit()
+              if candidate.aic < best_aic:
+                  best_aic = candidate.aic
+                  best_order = order
+                  best_results = candidate
+          except Exception:
+              pass
+
+      print(f"Best order: {best_order}")
+      print(f"Best AIC: {best_aic:.2f}")
+    explanation: "A small grid search tries several (p,d,q) combinations and keeps the model with the lowest AIC. This avoids the pmdarima dependency while still automating parameter selection."
   - title: "Forecast & Visualize"
-    content: "Generate predictions with confidence intervals."
+    content: "Generate predictions with confidence intervals from the best model."
     code: |
+      import matplotlib.pyplot as plt
+      from statsmodels.tsa.arima.model import ARIMA
+
+      # Fit the best candidate again if you skipped the grid-search step
+      best_results = best_results if 'best_results' in dir() and best_results is not None else ARIMA(df['value'], order=(2, 1, 2)).fit()
+
       forecast_steps = 30
-      forecast = auto_model.predict(n_periods=forecast_steps, return_conf_int=True)
-      fc_values = forecast[0]
-      fc_conf = forecast[1]
+      forecast = best_results.get_forecast(steps=forecast_steps)
+      fc_values = forecast.predicted_mean
+      fc_conf = forecast.conf_int()
 
       fc_index = pd.date_range(df.index[-1], periods=forecast_steps+1, freq='D')[1:]
 
       plt.figure(figsize=(14, 5))
       plt.plot(df['value'][-90:], label='Historical', color='steelblue')
       plt.plot(fc_index, fc_values, label='Forecast', color='coral', linewidth=2)
-      plt.fill_between(fc_index, fc_conf[:, 0], fc_conf[:, 1], alpha=0.2, color='coral')
+      plt.fill_between(fc_index, fc_conf.iloc[:, 0], fc_conf.iloc[:, 1], alpha=0.2, color='coral')
       plt.legend()
       plt.title('30-Day ARIMA Forecast')
       plt.show()
@@ -62,7 +78,7 @@ schema:
 thought_process:
   - "Use ACF/PACF results to pick initial (p,d,q) parameters"
   - "Fit an ARIMA model and examine the summary for AIC and coefficients"
-  - "Use auto_arima for automated parameter search with AIC minimization"
+  - "Run a small (p,d,q) grid search and keep the model with the lowest AIC"
   - "Generate a 30-day forecast with confidence intervals"
   - "Plot forecast alongside historical data for visual validation"
 solution_code: |
@@ -74,6 +90,7 @@ solution_code: |
   raw = pd.read_csv(open_url("/datasets/train.csv"))
   raw['Order Date'] = pd.to_datetime(raw['Order Date'])
   df = raw.groupby('Order Date')['Sales'].sum().to_frame('value')
+  df = df.asfreq('D').fillna(0)
   model = ARIMA(df['value'], order=(2, 1, 2))
   results = model.fit()
   print(f"AIC: {results.aic:.2f}")
@@ -89,12 +106,17 @@ visualizations:
   - title: "ARIMA Forecast with Confidence Intervals"
     code: |
       import matplotlib.pyplot as plt
+      from statsmodels.tsa.arima.model import ARIMA
       forecast_steps = 30
+      results = ARIMA(df['value'], order=(2, 1, 2)).fit()
+      forecast = results.get_forecast(steps=forecast_steps)
+      fc_values = forecast.predicted_mean
+      fc_conf = forecast.conf_int()
       fc_index = pd.date_range(df.index[-1], periods=forecast_steps+1, freq='D')[1:]
       plt.figure(figsize=(14, 5))
       plt.plot(df['value'][-90:], label='Historical', color='steelblue')
       plt.plot(fc_index, fc_values, label='Forecast', color='coral', linewidth=2)
-      plt.fill_between(fc_index, fc_conf[:, 0], fc_conf[:, 1], alpha=0.2, color='coral')
+      plt.fill_between(fc_index, fc_conf.iloc[:, 0], fc_conf.iloc[:, 1], alpha=0.2, color='coral')
       plt.legend()
       plt.title('30-Day ARIMA Forecast')
       plt.show()
@@ -102,12 +124,14 @@ visualizations:
   - title: "Model Residuals Diagnostics"
     code: |
       import matplotlib.pyplot as plt
+      from statsmodels.tsa.arima.model import ARIMA
+      from statsmodels.graphics.tsaplots import plot_acf
+      results = ARIMA(df['value'], order=(2, 1, 2)).fit()
       residuals = results.resid
       fig, axes = plt.subplots(2, 2, figsize=(12, 8))
       residuals.plot(ax=axes[0, 0], title='Residuals Over Time')
       residuals.hist(bins=30, ax=axes[0, 1], edgecolor='black')
       axes[0, 1].set_title('Residual Distribution')
-      from statsmodels.graphics.tsaplots import plot_acf
       plot_acf(residuals, lags=20, ax=axes[1, 0])
       axes[1, 0].set_title('Residual ACF')
       axes[1, 1].axis('off')
@@ -117,8 +141,11 @@ visualizations:
   - title: "Model Comparison Bar Chart"
     code: |
       import matplotlib.pyplot as plt
+      from statsmodels.tsa.arima.model import ARIMA
+      manual_results = ARIMA(df['value'], order=(2, 1, 2)).fit()
+      auto_results = ARIMA(df['value'], order=(1, 1, 1)).fit()
       models = ['Manual ARIMA', 'Auto ARIMA']
-      aic_values = [results.aic, auto_model.aic()]
+      aic_values = [manual_results.aic, auto_results.aic]
       plt.bar(models, aic_values, color=['steelblue', 'coral'])
       plt.title('Model Comparison (Lower AIC is Better)')
       plt.ylabel('AIC Score')
@@ -127,8 +154,8 @@ visualizations:
   - title: "Forecast Accuracy on Test Set"
     code: |
       import matplotlib.pyplot as plt
+      from statsmodels.tsa.arima.model import ARIMA
       from sklearn.metrics import mean_absolute_error
-      # Split data for validation
       train = df['value'][:-30]
       test = df['value'][-30:]
       model_test = ARIMA(train, order=(2, 1, 2))

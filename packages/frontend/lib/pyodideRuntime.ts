@@ -161,6 +161,13 @@ export async function ensurePackagesForCode(
 
 // ─── Code runner ────────────────────────────────────────────────────────────
 
+/** Python preamble that silences noisy package warnings so users see their
+ *  own output, not pages of statsmodels/pandas UserWarnings. */
+const WARNINGS_PRELUDE = `
+import warnings
+warnings.filterwarnings('ignore')
+`;
+
 /** Python preamble that wires matplotlib to a non-interactive backend and
  *  installs a stub `plt.show()` so figures are queued for later capture. */
 const MATPLOTLIB_PRELUDE = `
@@ -221,6 +228,7 @@ export async function runPythonCode(
     pyodide.runPython(
       'import sys\nfrom io import StringIO\n_stdout = StringIO()\n_stderr = StringIO()\nsys.stdout = _stdout\nsys.stderr = _stderr\n',
     );
+    pyodide.runPython(WARNINGS_PRELUDE);
     if (usesMatplotlib) {
       pyodide.runPython(MATPLOTLIB_PRELUDE);
     }

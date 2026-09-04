@@ -4,26 +4,26 @@ domain: fraud
 project: "Fraud Detection"
 step_number: 3
 tier: 2
-skills: [isolation_forest, autoencoder, anomaly_detection]
+skills: [isolation_forest, local_outlier_factor, one_class_svm, anomaly_detection]
 language: python
 dataset_url: "https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud"
-description: "Apply unsupervised anomaly detection methods — Isolation Forest, Local Outlier Factor, and Autoencoders — to detect fraudulent transactions."
+description: "Apply unsupervised anomaly detection methods — Isolation Forest, Local Outlier Factor, and One-Class SVM — to detect fraudulent transactions."
 prereq_cases: [fraud_imbalance]
 learning_objectives:
   - Train Isolation Forest for anomaly detection
   - Use Local Outlier Factor for density-based detection
-  - Build a simple autoencoder for reconstruction-based detection
+  - Build a One-Class SVM for boundary-based detection
+  - Compare all three methods on the same test set
 sections:
   - title: "Isolation Forest"
     content: "Isolation Forest isolates anomalies by randomly partitioning data — outliers are isolated faster."
     code: |
       from sklearn.ensemble import IsolationForest
-      from sklearn.metrics import classification_report
+      from sklearn.metrics import classification_report, recall_score
 
       iso = IsolationForest(contamination=0.002, random_state=42, n_estimators=200)
-      y_pred_iso = iso.fit_predict(X_test)
-      y_pred_iso = (y_pred_iso == -1).astype(int)  # -1 = anomaly → 1
-
+      y_pred_iso = (iso.fit_predict(X_test) == -1).astype(int)
+      recall_iso = recall_score(y_test, y_pred_iso)
       print("Isolation Forest:")
       print(classification_report(y_test, y_pred_iso))
     explanation: "contamination tells the model what fraction of data is anomalous. Set it close to the actual fraud rate. Isolation Forest works well without labels — truly unsupervised."
@@ -31,43 +31,36 @@ sections:
     content: "LOF compares local density of each point to its neighbors."
     code: |
       from sklearn.neighbors import LocalOutlierFactor
+      from sklearn.metrics import classification_report, recall_score
 
       lof = LocalOutlierFactor(n_neighbors=20, contamination=0.002, novelty=False)
-      y_pred_lof = lof.fit_predict(X_test)
-      y_pred_lof = (y_pred_lof == -1).astype(int)
-
+      y_pred_lof = (lof.fit_predict(X_test) == -1).astype(int)
+      recall_lof = recall_score(y_test, y_pred_lof)
       print("Local Outlier Factor:")
       print(classification_report(y_test, y_pred_lof))
     explanation: "LOF measures how isolated a point is compared to its local neighborhood. Points in sparse regions (low density) are flagged as outliers."
-  - title: "Autoencoder (Deep Learning)"
-    content: "Train a neural network to reconstruct normal transactions — high reconstruction error signals fraud."
+  - title: "One-Class SVM"
+    content: "For complex non-linear boundaries, One-Class SVM learns the shape of normal transactions and flags anything outside."
     code: |
-      from tensorflow.keras.models import Model
-      from tensorflow.keras.layers import Input, Dense
+      from sklearn.svm import OneClassSVM
+      from sklearn.metrics import classification_report, recall_score
+      import numpy as np
 
       # Train only on legitimate transactions
       X_normal = X_train[y_train == 0]
 
-      input_dim = X_normal.shape[1]
-      inp = Input(shape=(input_dim,))
-      encoded = Dense(14, activation='relu')(inp)
-      encoded = Dense(7, activation='relu')(encoded)
-      decoded = Dense(14, activation='relu')(encoded)
-      decoded = Dense(input_dim, activation='linear')(decoded)
+      oc_svm = OneClassSVM(nu=0.002, kernel='rbf', gamma='scale')
+      oc_svm.fit(X_normal)
 
-      autoencoder = Model(inp, decoded)
-      autoencoder.compile(optimizer='adam', loss='mse')
-      autoencoder.fit(X_normal, X_normal, epochs=20, batch_size=256, verbose=0)
+      # Distance from the learned boundary — larger = more anomalous
+      svm_scores = -oc_svm.score_samples(X_test)
+      threshold_svm = np.percentile(svm_scores, 99.8)
+      y_pred_svm = (svm_scores > threshold_svm).astype(int)
+      recall_svm = recall_score(y_test, y_pred_svm)
 
-      # Reconstruction error as anomaly score
-      recon = autoencoder.predict(X_test, verbose=0)
-      mse = np.mean((X_test.values - recon) ** 2, axis=1)
-      threshold = np.percentile(mse, 99.8)
-      y_pred_ae = (mse > threshold).astype(int)
-
-      print("Autoencoder:")
-      print(classification_report(y_test, y_pred_ae))
-    explanation: "The autoencoder learns to reconstruct 'normal' patterns. Fraud transactions look different, so their reconstruction error is high. The threshold controls the sensitivity."
+      print("One-Class SVM:")
+      print(classification_report(y_test, y_pred_svm))
+    explanation: "One-Class SVM learns the boundary around normal transactions. Fraud looks different, so its decision-score is far from the normal region. The threshold controls sensitivity."
 schema:
   - V1
   - V2
@@ -79,8 +72,8 @@ schema:
 thought_process:
   - "Train Isolation Forest with contamination matching fraud rate (~0.2%)"
   - "Train LOF to detect points in low-density regions"
-  - "Build an autoencoder trained only on legitimate transactions"
-  - "Use reconstruction error as an anomaly score — high error = fraud"
+  - "Train One-Class SVM on legitimate transactions only"
+  - "Use decision scores as anomaly scores — high score = likely fraud"
   - "Compare all methods on the same test set"
 solution_code: |
   from pyodide.http import open_url
@@ -110,54 +103,106 @@ visualizations:
   - title: "Model Performance Comparison"
     code: |
       import matplotlib.pyplot as plt
-      models = ['Isolation Forest', 'LOF', 'Autoencoder']
-      recall_scores = [recall_iso, recall_lof, recall_ae]
+      import numpy as np
+      from sklearn.ensemble import IsolationForest
+      from sklearn.neighbors import LocalOutlierFactor
+      from sklearn.svm import OneClassSVM
+      from sklearn.metrics import recall_score
+
+      iso = IsolationForest(contamination=0.002, random_state=42, n_estimators=200).fit(X_train)
+      y_pred_iso = (iso.predict(X_test) == -1).astype(int)
+      recall_iso = recall_score(y_test, y_pred_iso)
+
+      lof = LocalOutlierFactor(n_neighbors=20, contamination=0.002, novelty=False)
+      y_pred_lof = (lof.fit_predict(X_test) == -1).astype(int)
+      recall_lof = recall_score(y_test, y_pred_lof)
+
+      X_normal = X_train[y_train == 0]
+      oc_svm = OneClassSVM(nu=0.002, kernel='rbf', gamma='scale').fit(X_normal)
+      svm_scores = -oc_svm.score_samples(X_test)
+      y_pred_svm = (svm_scores > np.percentile(svm_scores, 99.8)).astype(int)
+      recall_svm = recall_score(y_test, y_pred_svm)
+
+      models = ['Isolation Forest', 'LOF', 'One-Class SVM']
+      recall_scores = [recall_iso, recall_lof, recall_svm]
       plt.bar(models, recall_scores, color=['steelblue', 'coral', 'green'])
       plt.title('Fraud Recall Comparison')
       plt.ylabel('Recall Score')
       plt.show()
     description: "Compares recall (fraud detection rate) across models"
-  - title: "Reconstruction Error Distribution"
+  - title: "One-Class SVM Decision Scores"
     code: |
       import matplotlib.pyplot as plt
+      import numpy as np
+      from sklearn.svm import OneClassSVM
+
+      X_normal = X_train[y_train == 0]
+      oc_svm = OneClassSVM(nu=0.002, kernel='rbf', gamma='scale').fit(X_normal)
+      svm_scores = -oc_svm.score_samples(X_test)
+      threshold = np.percentile(svm_scores, 99.8)
+
       fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-      mse[y_test == 0].hist(bins=30, ax=axes[0], alpha=0.6, label='Legit', color='steelblue')
-      mse[y_test == 1].hist(bins=30, ax=axes[0], alpha=0.6, label='Fraud', color='coral')
-      axes[0].set_title('Reconstruction Error Distribution')
+      svm_scores[y_test == 0].hist(bins=30, ax=axes[0], alpha=0.6, label='Legit', color='steelblue')
+      svm_scores[y_test == 1].hist(bins=30, ax=axes[0], alpha=0.6, label='Fraud', color='coral')
+      axes[0].set_title('SVM Decision Score Distribution')
       axes[0].legend()
-      axes[0].axvline(threshold, color='red', linestyle='--', label='Threshold')
-      axes[0].legend()
-      plt.scatter(range(len(mse)), mse, c=y_test, alpha=0.5, cmap='coolwarm')
+      axes[0].axvline(threshold, color='red', linestyle='--')
+
+      axes[1].scatter(range(len(svm_scores)), svm_scores, c=y_test, alpha=0.5, cmap='coolwarm')
       axes[1].axhline(threshold, color='red', linestyle='--')
-      axes[1].set_title('Reconstruction Error by Transaction')
+      axes[1].set_title('SVM Decision Score by Transaction')
       axes[1].set_xlabel('Transaction Index')
-      axes[1].set_ylabel('MSE')
+      axes[1].set_ylabel('Decision Score')
+
       plt.tight_layout()
       plt.show()
-    description: "Shows reconstruction error distribution and threshold"
+    description: "Shows One-Class SVM scores and the fraud threshold"
   - title: "Confusion Matrix Comparison"
     code: |
       import seaborn as sns
       import matplotlib.pyplot as plt
+      import numpy as np
+      from sklearn.ensemble import IsolationForest
+      from sklearn.neighbors import LocalOutlierFactor
+      from sklearn.svm import OneClassSVM
+      from sklearn.metrics import confusion_matrix
+
+      iso = IsolationForest(contamination=0.002, random_state=42, n_estimators=200).fit(X_train)
+      y_pred_iso = (iso.predict(X_test) == -1).astype(int)
+
+      lof = LocalOutlierFactor(n_neighbors=20, contamination=0.002, novelty=False)
+      y_pred_lof = (lof.fit_predict(X_test) == -1).astype(int)
+
+      X_normal = X_train[y_train == 0]
+      oc_svm = OneClassSVM(nu=0.002, kernel='rbf', gamma='scale').fit(X_normal)
+      svm_scores = -oc_svm.score_samples(X_test)
+      y_pred_svm = (svm_scores > np.percentile(svm_scores, 99.8)).astype(int)
+
       fig, axes = plt.subplots(1, 3, figsize=(15, 4))
-      for i, (name, pred) in enumerate([('Isolation Forest', y_pred_iso), ('LOF', y_pred_lof), ('Autoencoder', y_pred_ae)]):
-        cm = confusion_matrix(y_test, pred)
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=axes[i])
-        axes[i].set_title(name)
-        axes[i].set_ylabel('True')
-        axes[i].set_xlabel('Predicted')
+      for i, (name, pred) in enumerate([('Isolation Forest', y_pred_iso), ('LOF', y_pred_lof), ('One-Class SVM', y_pred_svm)]):
+          cm = confusion_matrix(y_test, pred)
+          sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=axes[i])
+          axes[i].set_title(name)
+          axes[i].set_ylabel('True')
+          axes[i].set_xlabel('Predicted')
       plt.tight_layout()
       plt.show()
     description: "Compares confusion matrices across anomaly detection models"
   - title: "Anomaly Score Distribution"
     code: |
       import matplotlib.pyplot as plt
-      anomaly_scores = iso.score_samples(X_test)
+      import numpy as np
+      from sklearn.ensemble import IsolationForest
+
+      iso = IsolationForest(contamination=0.002, random_state=42, n_estimators=200).fit(X_train)
+      anomaly_scores = -iso.score_samples(X_test)
+      threshold = np.percentile(anomaly_scores, 99.8)
+      plt.figure(figsize=(10, 4))
       plt.hist(anomaly_scores, bins=50, edgecolor='black')
       plt.title('Anomaly Score Distribution (Isolation Forest)')
       plt.xlabel('Anomaly Score')
       plt.ylabel('Count')
-      plt.axvline(iso.threshold_, color='red', linestyle='--', label='Threshold')
+      plt.axvline(threshold, color='red', linestyle='--', label='Threshold')
       plt.legend()
       plt.show()
-    description: "Shows distribution of anomaly scores"
+    description: "Shows distribution of Isolation Forest anomaly scores"
