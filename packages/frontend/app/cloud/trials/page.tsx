@@ -7,7 +7,7 @@ import { useProgress } from '@/lib/useProgress';
 import { playBleep } from '@/lib/audio';
 import { cloudTrials, TRIAL_PROVIDERS, type CloudTrialQuestion, isAnswerCorrect } from '@/lib/cloud/trials';
 import { CLOUD_PROVIDER_META } from '@/lib/cloud';
-import { CloudProviderIcon, BoltIcon, TrophyIcon, BarbellIcon, BulbIcon, CheckBadge, DiceIcon, WorldIcon } from '@/components/AppIcons';
+import { CloudProviderIcon, BrainIcon, TrophyIcon, BarbellIcon, BulbIcon, CheckBadge, DiceIcon, WorldIcon } from '@/components/AppIcons';
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -101,13 +101,13 @@ export default function CloudTrialsPage() {
       <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
         <Link href="/cloud" className="hover:underline">BleepxCloud</Link>
         <span>/</span>
-        <span className="font-semibold text-bleepx-gray">Trials Arena</span>
+        <span className="font-semibold text-bleepx-gray">Cloud Quizzes</span>
       </nav>
 
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-600 p-6 text-white">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
         <div className="relative z-10">
-          <h1 className="text-2xl sm:text-3xl font-bold flex flex-wrap items-center gap-2 break-words"><BoltIcon size={26} /> Trials Arena</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold flex flex-wrap items-center gap-2 break-words"><BrainIcon size={26} /> Cloud Quizzes</h1>
           <p className="text-white/85 text-sm mt-1">Rapid-fire scenario questions across every cloud track. Score 70%+ to earn points.</p>
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function CloudTrialsPage() {
             </div>
           </div>
           <button onClick={start} disabled={!pool.length} className="w-full px-5 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-sky-600 text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-md disabled:opacity-50">
-            Start Trial ({filter === 'all' ? pool.length : Math.min(10, pool.length)} questions)
+            Start Quiz ({filter === 'all' ? pool.length : Math.min(10, pool.length)} questions)
           </button>
         </div>
       ) : finished ? (

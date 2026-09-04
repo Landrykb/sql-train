@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { cloudGuide, GUIDE_PROVIDERS } from '@/lib/cloud/guide';
-import { CloudProviderIcon, GuideIcon, BoltIcon } from '@/components/AppIcons';
+import { CloudProviderIcon, GuideIcon, BrainIcon } from '@/components/AppIcons';
 
 export default function CloudGuidePage() {
   const [query, setQuery] = useState('');
@@ -86,7 +86,7 @@ export default function CloudGuidePage() {
 
       <div className="flex gap-4 pt-2">
         <Link href="/cloud" className="text-sm text-sky-600 hover:underline font-medium">← BleepxCloud</Link>
-        <Link href="/cloud/trials" className="text-sm text-bleepx-text-secondary hover:underline font-medium inline-flex items-center gap-1"><BoltIcon size={14} /> Test yourself in Trials</Link>
+        <Link href="/cloud/trials" className="text-sm text-bleepx-text-secondary hover:underline font-medium inline-flex items-center gap-1"><BrainIcon size={14} /> Test yourself in Cloud Quizzes</Link>
       </div>
     </main>
   );

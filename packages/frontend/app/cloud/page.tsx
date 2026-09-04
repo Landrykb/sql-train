@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import Link from 'next/link';
 import BleepxLogo from '@/components/BleepxLogo';
 import AchievementNotification from '@/components/AchievementNotification';
-import { CloudProviderIcon, GuideIcon, BoltIcon, FlaskIcon, ToolsIcon, ChartBarIcon, SendIcon, WorldIcon } from '@/components/AppIcons';
+import { CloudProviderIcon, GuideIcon, BrainIcon, FlaskIcon, ToolsIcon, ChartBarIcon, SendIcon, WorldIcon } from '@/components/AppIcons';
 import { useProgress } from '@/lib/useProgress';
 import {
   CLOUD_PROVIDER_META,
@@ -107,15 +107,15 @@ export default function CloudHomePage() {
         </div>
       </div>
 
-      {/* Trials banner */}
+      {/* Cloud Quizzes banner */}
       <Link
         href="/cloud/trials"
         className="group block bg-gradient-to-br from-indigo-900 via-blue-800 to-sky-900 border-2 border-sky-500/30 rounded-xl shadow-lg hover:shadow-sky-500/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
       >
         <div className="p-5 flex items-center gap-4">
-          <div className="text-sky-300 flex-shrink-0"><BoltIcon size={32} /></div>
+          <div className="text-sky-300 flex-shrink-0"><BrainIcon size={32} /></div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-extrabold text-white text-lg group-hover:text-sky-300 transition-colors break-words min-w-0">Trials Arena</h3>
+            <h3 className="font-extrabold text-white text-lg group-hover:text-sky-300 transition-colors break-words min-w-0">Cloud Quizzes</h3>
             <p className="text-sm text-gray-400 mt-0.5">Rapid-fire scenario questions across AWS, Azure, GCP, ESG & FinOps — score 70%+ to earn points.</p>
             <div className="mt-2 flex items-center gap-3">
               <span className="text-xs text-gray-500">Pick a track or go multi-cloud</span>

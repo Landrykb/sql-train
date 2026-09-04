@@ -13,7 +13,7 @@ import {
   cloudMissionId,
   type CloudProvider,
 } from '@/lib/cloud';
-import { CloudProviderIcon, StarRating, BoltIcon, GuideIcon, CheckBadge, LockIcon, MissionTypeIcon, SchoolIcon } from '@/components/AppIcons';
+import { CloudProviderIcon, StarRating, BrainIcon, GuideIcon, CheckBadge, LockIcon, MissionTypeIcon, SchoolIcon } from '@/components/AppIcons';
 
 const levelColor: Record<string, string> = {
   Beginner: 'border-l-emerald-500',
@@ -133,7 +133,7 @@ export default function CloudProviderPage() {
       {/* Footer nav */}
       <div className="flex gap-4 pt-2">
         <Link href="/cloud" className="text-sm text-sky-600 hover:underline font-medium">← All Tracks</Link>
-        <Link href="/cloud/trials" className="text-sm text-bleepx-text-secondary hover:underline font-medium inline-flex flex-wrap items-center gap-1"><BoltIcon size={14} /> Trials</Link>
+        <Link href="/cloud/trials" className="text-sm text-bleepx-text-secondary hover:underline font-medium inline-flex flex-wrap items-center gap-1"><BrainIcon size={14} /> Cloud Quizzes</Link>
         <Link href="/cloud/guide" className="text-sm text-bleepx-text-secondary hover:underline font-medium inline-flex flex-wrap items-center gap-1"><GuideIcon size={14} /> Guide</Link>
       </div>
 

@@ -6,7 +6,7 @@ import BleepxPointsTracker from '@/components/BleepxPointsTracker';
 import AchievementNotification from '@/components/AchievementNotification';
 import BleepxLogo from '@/components/BleepxLogo';
 import { BleepxWave, BleepxGhost, BleepxSpark, BleepxFace, BleepxGit, BleepxSignal } from '@/components/BleepxIcons';
-import { DomainIcon, StarRating, GuideIcon, BoltIcon, FlaskIcon, CodeIcon } from '@/components/AppIcons';
+import { DomainIcon, StarRating, GuideIcon, BoltIcon, BrainIcon, FlaskIcon, CodeIcon } from '@/components/AppIcons';
 import { useProgress } from '@/lib/useProgress';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
 import { LAB_CASE_ORDER } from '@/lib/labConstants';
@@ -121,6 +121,39 @@ export default function HomePage() {
               </div>
             </div>
             <svg className="w-5 h-5 text-indigo-400 group-hover:translate-x-1 transition-transform flex-shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
+      </div>
+
+      {/* Master SQL Quiz */}
+      <div>
+        <Link
+          href="/cases/trials/master-quiz"
+          className="group block relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-900 border-2 border-fuchsia-500/30 rounded-xl shadow-lg hover:shadow-fuchsia-500/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+        >
+          <div className="absolute inset-0 bg-[url('/bleepx-logo.png')] bg-center bg-no-repeat opacity-5 bg-contain" />
+          <div className="relative p-5 sm:p-6 flex items-center gap-4">
+            <div className="flex-shrink-0 text-fuchsia-300"><BrainIcon size={48} /></div>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-extrabold text-white text-lg sm:text-xl group-hover:text-fuchsia-300 transition-colors break-words min-w-0">
+                  Master SQL Quiz
+                </h3>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30 uppercase tracking-wider">
+                  Master
+                </span>
+              </div>
+              <p className="text-sm text-gray-400 mt-1">
+                A comprehensive SQL quiz covering every domain. No prerequisites. Prove you are the *bleep* SQL master, human.
+              </p>
+              <div className="mt-3 flex items-center gap-3">
+                <span className="text-xs text-gray-500">All domains • No prerequisites</span>
+                <span className="text-fuchsia-300 text-xs inline-flex items-center gap-1"><BrainIcon size={14} /> Quiz Mode</span>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-fuchsia-400 group-hover:translate-x-1 transition-transform flex-shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </div>
