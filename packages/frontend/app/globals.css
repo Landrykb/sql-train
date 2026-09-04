@@ -211,10 +211,18 @@ table {
 .bleepx-face { animation: bleepx-face 1s ease-in-out infinite; }
 
 /* ─── Global page layout ───────────────────────────────────────────────────
-   Pages should never leave blank scrollable space below the footer. */
-body > main {
-  flex: 1 1 auto;
+   Pages should never leave blank scrollable space below the footer.
+   The root <main> already uses Tailwind's flex-1; nested page <main>
+   elements must be allowed to shrink to the viewport, so we only
+   constrain their min-width here, not their flex-basis. */
+main {
+  min-width: 0;
 }
 main > main {
-  flex: 1 1 auto;
+  /* Page shells are nested inside the layout <main>. Give them an explicit
+     width so their children (tables, code blocks, etc.) cannot force the
+     page to become wider than the viewport. max-w-* classes still cap
+     the width on larger screens. */
+  width: 100%;
+  min-width: 0;
 }
