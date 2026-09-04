@@ -693,7 +693,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
 
   return (
     <>
-    <div className="max-w-6xl mx-auto px-3 sm:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6 min-h-screen transition-colors bg-bleepx-bg text-bleepx-text">
+    <div className="max-w-6xl mx-auto px-3 sm:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6 min-h-screen transition-colors bg-bleepx-bg text-bleepx-text min-w-0">
       {/* Time expired overlay */}
       {timeExpired && (
         <div className="fixed inset-0 z-50 bg-black/60 flex flex-wrap items-center justify-center p-4">
@@ -884,7 +884,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             onCreateEditor={(view: any) => { editorViewRef.current = view; }}
             isDark={dark}
             aria-label="SQL query editor"
-            className="border rounded-lg border-bleepx-border max-w-full min-w-0 overflow-hidden"
+            className="border rounded-lg border-bleepx-border max-w-full min-w-0"
             style={{ maxWidth: '100%' }}
             />
           </div>

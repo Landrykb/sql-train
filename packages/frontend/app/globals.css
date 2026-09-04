@@ -71,9 +71,19 @@
    sideways as a whole; wide content must live inside scrollable containers. */
 html, body {
   overflow-x: hidden;
+  min-width: 0;
 }
 body {
   overflow-wrap: break-word;
+}
+main, footer {
+  min-width: 0;
+}
+/* Force CodeMirror 6 to never grow wider than its container */
+.cm-editor,
+.cm-scroller,
+.cm-content {
+  min-width: 0 !important;
 }
 pre, code, .font-mono {
   white-space: pre-wrap;

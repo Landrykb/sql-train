@@ -425,7 +425,7 @@ export default function LabProjectViewer({
   const allComplete = completedSections.size >= sections.length;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
+    <div className="max-w-3xl mx-auto space-y-5 min-w-0">
       {/* Time expired overlay */}
       {timeExpired && (
         <div className="fixed inset-0 z-50 bg-black/60 flex flex-wrap items-center justify-center p-4">

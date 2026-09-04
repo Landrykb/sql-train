@@ -120,7 +120,7 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
   }, [checkSteps, freePlay, steps, onComplete, state]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 min-w-0">
       {message && (
         <div className={`p-3 rounded-xl text-sm font-medium border ${
           message.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' :

@@ -150,7 +150,7 @@ export default async function CasePage({
   const hasVisualizations = visualizationConfigs[domainKey]?.[caseId]?.length > 0;
 
   return (
-    <main className="max-w-4xl mx-auto px-2 md:px-4 lg:px-6 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-20">
+    <main className="max-w-4xl mx-auto px-2 md:px-4 lg:px-6 py-4 space-y-6 bg-bleepx-bg min-h-screen pb-20 min-w-0">
       <div className="flex flex-wrap items-center gap-2">
         <BleepxLogo />
         <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text break-words">{caseData.name}</h1>

@@ -819,9 +819,9 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
             <div className="font-bold text-bleepx-text text-xs uppercase tracking-wide">Bleepx spotted an issue</div>
             {dockedHint.severity === 'tip' ? <BleepxEye size={18} className="ml-auto" /> : dockedHint.severity === 'warning' ? <BleepxThink size={18} className="ml-auto" /> : <BleepxLock size={18} className="ml-auto" />}
           </div>
-          <div className="text-bleepx-text-secondary leading-relaxed">{dockedHint.message}</div>
+          <div className="text-bleepx-text-secondary leading-relaxed break-words">{dockedHint.message}</div>
           {dockedHint.fix && (
-            <div className="mt-2 text-xs text-emerald-700 dark:text-emerald-400 font-medium">Fix: {dockedHint.fix}</div>
+            <div className="mt-2 text-xs text-emerald-700 dark:text-emerald-400 font-medium break-words">Fix: {dockedHint.fix}</div>
           )}
         </div>
       )}
@@ -838,7 +838,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
             <div className="font-bold text-cyan-600 dark:text-cyan-300 text-xs uppercase tracking-wide">Psst...</div>
             <button onClick={(e) => { e.stopPropagation(); setTeaser(null); }} className="ml-auto text-xs text-gray-400 hover:text-gray-600">×</button>
           </div>
-          <div className="text-bleepx-text-secondary leading-relaxed">{teaser.text}</div>
+          <div className="text-bleepx-text-secondary leading-relaxed break-words">{teaser.text}</div>
           {teaser.command && (
             <button onClick={(e) => { e.stopPropagation(); setOpen(true); setTeaser(null); send(teaser.command); }} className="mt-2 text-xs px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 font-bold hover:bg-cyan-200">Try it</button>
           )}
