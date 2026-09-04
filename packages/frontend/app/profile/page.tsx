@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { clearGitHubUser, startGitHubLogin, logoutUser, GitHubUser, getGitHubUser } from '@/lib/authClient';
+import { clearGitHubUser, startGitHubLogin, logoutUser, getGitHubUser } from '@/lib/authClient';
 import { useSupabaseUser } from '@/lib/useSupabaseUser';
 import { useProgress } from '@/lib/useProgress';
 import { useTheme } from '@/lib/useTheme';
@@ -12,7 +12,7 @@ import { CLOUD_MISSIONS, CLOUD_PROVIDERS, CLOUD_PROVIDER_META, cloudMissionId } 
 import { playBleep } from '@/lib/audio';
 import { track, Events } from '@/lib/analytics';
 import PointsShop from '@/components/PointsShop';
-import { getStoreState, getActivePerks, TITLES, BADGES, type StoreState, REPORT_GENERATION_TIERS, purchaseReportTier } from '@/lib/pointsStore';
+import { getStoreState, getActivePerks, TITLES, BADGES, type StoreState } from '@/lib/pointsStore';
 import { BleepxHead, BleepxTrophy, BleepxLock, BleepxSpark, BleepxGitHub } from '@/components/BleepxIcons';
 import {
   OverviewIcon, ShopIcon, AchievementsIcon, ExportsIcon, SettingsIcon,
@@ -22,11 +22,9 @@ import {
 import {
   DomainIcon, LabDomainIcon, CloudProviderIcon,
   AchievementIcon, StarRating, CheckBadge, BadgeIcon, CoinIcon,
-  EditIcon, ErrorIcon,
 } from '@/components/AppIcons';
-import { FileText } from 'lucide-react';
 import { InterpretationEditor } from '@/components/InterpretationEditor';
-import { pushDomainPortfolioToGitHub, pushLabDomainPortfolioToGitHub, pushCloudProviderPortfolioToGitHub } from '@/lib/githubPush';
+import ProfileExportSection from '@/components/ProfileExportSection';
 import { getActiveVerse, VERSE_THEMES, type Verse } from '@/lib/verse';
 
 const DOMAINS = ['business', 'crime', 'farming', 'finance', 'healthcare', 'social', 'space', 'sports'] as const;
@@ -74,8 +72,6 @@ export default function ProfilePage() {
   const [deleting, setDeleting] = useState(false);
   const [storeState, setStoreState] = useState<StoreState>(getStoreState());
   const [editingItem, setEditingItem] = useState<{ verse: 'query' | 'lab' | 'cloud'; itemId: string; itemName: string; domain?: string } | null>(null);
-  const [exporting, setExporting] = useState<string | null>(null);
-  const [exportResult, setExportResult] = useState<{ success: boolean; repoUrl?: string; error?: string } | null>(null);
 
   // Re-read store state whenever it changes (equip badge/title, purchase, etc.)
   const refreshStore = useCallback(() => setStoreState(getStoreState()), []);
@@ -135,111 +131,8 @@ export default function ProfilePage() {
     return { domainStats, totalSolved, totalCases, totalPoints: points, completedDomains, labSolved, labTotal, cloudStats, cloudSolved, cloudTotal, completedTracks };
   }, [completed, points]);
 
-  // Helper variables for portfolio interpretation buttons
-  const hasCompletedQueryCases = stats.totalSolved > 0;
-  const hasCompletedLabCases = stats.labSolved > 0;
-  const hasCompletedCloudMissions = stats.cloudSolved > 0;
-
-  // Export handlers
   const isSignedIn = !!ghUser || !!getGitHubUser();
   
-  const handleExportQueryDomain = async (domain: string) => {
-    const user = ghUser || getGitHubUser();
-    if (!user) return;
-    setExporting(domain);
-    setExportResult(null);
-    try {
-      const all = fullCaseOrder[domain] || [];
-      const solved = all.filter((c) => completed.has(c));
-      const caseData: Record<string, { name: string; query: string; solution: string }> = {};
-      for (const caseId of solved) {
-        try {
-          const saved = localStorage.getItem(`bleepx_solved_${domain}_${caseId}`);
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            caseData[caseId] = {
-              name: caseId,
-              query: parsed.query || '',
-              solution: parsed.solution || ''
-            };
-          }
-        } catch { /* ignore */ }
-      }
-      const result = await pushDomainPortfolioToGitHub(domain, solved, caseData, (msg) => console.log(msg), user);
-      setExportResult(result);
-    } catch (err: any) {
-      setExportResult({ success: false, error: err.message || 'Export failed' });
-    } finally {
-      setExporting(null);
-    }
-  };
-
-  const handleExportLabDomain = async (domain: string) => {
-    const user = ghUser || getGitHubUser();
-    if (!user) return;
-    setExporting(`lab-${domain}`);
-    setExportResult(null);
-    try {
-      const cases = LAB_CASE_ORDER[domain] || [];
-      const solved = cases.filter(c => completed.has(c) || completed.has(`lab_${c}`));
-      const projectData: Record<string, { name: string; code?: string }> = {};
-      for (const projectId of solved) {
-        try {
-          const saved = localStorage.getItem(`bleepx_lab_${domain}_${projectId}`);
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            projectData[projectId] = {
-              name: projectId,
-              code: parsed.solutionCode || ''
-            };
-          }
-        } catch { /* ignore */ }
-      }
-      const result = await pushLabDomainPortfolioToGitHub(domain, solved, projectData, (msg) => console.log(msg));
-      setExportResult(result);
-    } catch (err: any) {
-      setExportResult({ success: false, error: err.message || 'Export failed' });
-    } finally {
-      setExporting(null);
-    }
-  };
-
-  const handleExportCloudProvider = async (provider: string) => {
-    const user = ghUser || getGitHubUser();
-    if (!user) return;
-    setExporting(`cloud-${provider}`);
-    setExportResult(null);
-    try {
-      const missions = CLOUD_MISSIONS[provider as keyof typeof CLOUD_MISSIONS] || [];
-      const solved = missions.filter((m: any) => completed.has(cloudMissionId(provider as any, m.slug)));
-      const missionData: Record<string, { title: string; skills: string[]; description: string; iacCode?: string }> = {};
-      for (const mission of solved) {
-        missionData[mission.slug] = {
-          title: mission.title,
-          skills: mission.skills,
-          description: mission.description,
-          iacCode: mission.labType === 'iac' ? '' : undefined
-        };
-      }
-      const result = await pushCloudProviderPortfolioToGitHub(provider as any, solved.map((m: any) => m.slug), missionData, (msg) => console.log(msg), user);
-      setExportResult(result);
-    } catch (err: any) {
-      setExportResult({ success: false, error: err.message || 'Export failed' });
-    } finally {
-      setExporting(null);
-    }
-  };
-
-  const handlePurchaseReportTier = (tierId: string) => {
-    const result = purchaseReportTier(tierId, points);
-    if (result.success) {
-      refreshStore();
-      // Update points in parent
-      const event = new CustomEvent('points-changed', { detail: result.newBalance });
-      window.dispatchEvent(event);
-    }
-  };
-
   // Solve time stats
   const solveTimeStats = useMemo(() => {
     let totalTime = 0;
@@ -700,230 +593,14 @@ export default function ProfilePage() {
               />
             </div>
           ) : (
-            <div className="rounded-xl shadow-lg p-4 sm:p-6 bg-bleepx-white">
-              <h2 className="text-lg font-bold mb-4 text-bleepx-text flex items-center gap-2">
-                <ExportsIcon size={22} /> Portfolio Exports
-              </h2>
-              <p className="text-sm text-bleepx-text-secondary mb-6">
-                Export your completed work to GitHub as professional portfolios. Add interpretations to create executive-ready reports.
-              </p>
-
-              <div className="space-y-4">
-                {/* Report Generation Tiers */}
-                <div className="border border-bleepx-border rounded-lg p-4 bg-purple-50 dark:bg-purple-900/20">
-                  <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
-                    <FileText size={18} className="text-purple-600" /> Report Generation
-                  </h3>
-                  <p className="text-xs text-bleepx-text-secondary mb-3">Purchase tiers to unlock AI-powered portfolio reports with graphs.</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {REPORT_GENERATION_TIERS.map((tier) => {
-                      const owned = storeState.purchasedTitles.includes(tier.id);
-                      const canAfford = points >= tier.cost;
-                      const meetsRequirement = !tier.minPointsRequired || storeState.totalPointsEarned >= tier.minPointsRequired;
-                      return (
-                        <div key={tier.id} className={`p-3 rounded-lg border ${owned ? 'border-purple-400 bg-purple-100 dark:bg-purple-900/40' : 'border-bleepx-border bg-white dark:bg-gray-800'}`}>
-                          <div className="font-bold text-sm text-bleepx-text">{tier.name}</div>
-                          <div className="text-xs text-bleepx-text-secondary mt-1">{tier.description}</div>
-                          <div className="text-xs text-bleepx-text-secondary mt-1">
-                            {tier.perks.maxReports === Infinity ? 'Unlimited reports' : `${tier.perks.maxReports} reports`}
-                            {tier.perks.includeGraphs && ' • Graphs'}
-                            {tier.perks.multipleFormats && ' • Export'}
-                          </div>
-                          {owned ? (
-                            <div className="mt-2 text-xs font-medium text-purple-600 inline-flex items-center gap-1"><CheckBadge size={12} className="text-purple-600" /> Owned</div>
-                          ) : (
-                            <button
-                              onClick={() => handlePurchaseReportTier(tier.id)}
-                              disabled={!canAfford || !meetsRequirement}
-                              className={`mt-2 w-full px-2 py-1 rounded text-xs font-medium transition-colors ${
-                                canAfford && meetsRequirement
-                                  ? 'bg-purple-600 text-white hover:bg-purple-700'
-                                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-                              }`}
-                            >
-                              {tier.cost} pts
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* BleepxQuery Exports */}
-                <div className="border border-bleepx-border rounded-lg p-4">
-                  <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
-                    <VerseIcon verse="query" size={20} className="text-bleepx-blue" /> BleepxQuery
-                  </h3>
-                  <p className="text-xs text-bleepx-text-secondary mb-3">Export SQL challenges to your GitHub portfolio.</p>
-                  <div className="space-y-3">
-                    {DOMAINS.map((domain) => {
-                      const all = fullCaseOrder[domain] || [];
-                      const solved = all.filter((c) => completed.has(c)).length;
-                      const hasWork = solved > 0;
-                      return (
-                        <div key={domain} className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-bleepx-text"><DomainIcon domain={domain} size={18} /></span>
-                            <span className="text-sm font-medium text-bleepx-text">{domainMeta[domain]?.label || domain}</span>
-                            <span className="text-xs text-bleepx-text-secondary">({solved}/{all.length})</span>
-                          </div>
-                          <div className="flex gap-2 flex-wrap">
-                            <button
-                              disabled={!hasWork || !isSignedIn || exporting === domain}
-                              onClick={() => handleExportQueryDomain(domain)}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                                hasWork && isSignedIn && exporting !== domain
-                                  ? 'bg-bleepx-blue text-white hover:bg-blue-600'
-                                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-                              }`}
-                            >
-                              {exporting === domain ? 'Exporting...' : 'Export'}
-                            </button>
-                            {hasWork && isSignedIn && (
-                              <button
-                                onClick={() => {
-                                  playBleep();
-                                  setEditingItem({ verse: 'query', itemId: `query-${domain}`, itemName: `${domainMeta[domain]?.label || domain} Portfolio`, domain });
-                                }}
-                                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
-                              >
-                                <EditIcon size={14} /> Write
-                              </button>
-                            )}
-                          </div>
-                          {exportResult && exporting === null && (
-                            <div className="col-span-2 mt-2 text-xs">
-                              {exportResult.success ? (
-                                <span className="text-emerald-600 flex items-center gap-1"><CheckBadge size={14} className="text-emerald-600" /> Exported! <a href={exportResult.repoUrl} target="_blank" rel="noopener noreferrer" className="underline">{exportResult.repoUrl}</a></span>
-                              ) : (
-                                <span className="text-red-600 flex items-center gap-1"><ErrorIcon size={14} className="text-red-600" /> {exportResult.error}</span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* BleepxLab Exports */}
-                <div className="border border-bleepx-border rounded-lg p-4">
-                  <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
-                    <VerseIcon verse="lab" size={20} className="text-teal-500" /> BleepxLab
-                  </h3>
-                  <p className="text-xs text-bleepx-text-secondary mb-3">Export data science projects to your GitHub portfolio.</p>
-                  <div className="space-y-3">
-                    {Object.entries(LAB_CASE_ORDER).map(([domain, cases]) => {
-                      const solved = cases.filter(c => {
-                        const hasId = completed.has(c) || completed.has(`lab_${c}`);
-                        if (!hasId && domain === 'transport') {
-                          console.log(`[Lab Progress Debug] Checking ${domain}:`, {
-                            projectId: c,
-                            hasPlain: completed.has(c),
-                            hasLabPrefix: completed.has(`lab_${c}`),
-                            completedSet: Array.from(completed).filter(id => id.includes('transport'))
-                          });
-                        }
-                        return hasId;
-                      }).length;
-                      const hasWork = solved > 0;
-                      const meta = LAB_DOMAIN_META[domain];
-                      return (
-                        <div key={domain} className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-bleepx-text"><LabDomainIcon domain={domain} size={18} /></span>
-                            <span className="text-sm font-medium text-bleepx-text">{meta?.name || domain}</span>
-                            <span className="text-xs text-bleepx-text-secondary">({solved}/{cases.length})</span>
-                          </div>
-                          <div className="flex gap-2 flex-wrap">
-                            <button
-                              disabled={!hasWork || !isSignedIn || exporting === `lab-${domain}`}
-                              onClick={() => handleExportLabDomain(domain)}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                                hasWork && isSignedIn && exporting !== `lab-${domain}`
-                                  ? 'bg-teal-600 text-white hover:bg-teal-700'
-                                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-                              }`}
-                            >
-                              {exporting === `lab-${domain}` ? 'Exporting...' : 'Export'}
-                            </button>
-                            {hasWork && isSignedIn && (
-                              <button
-                                onClick={() => {
-                                  playBleep();
-                                  setEditingItem({ verse: 'lab', itemId: `lab-${domain}`, itemName: `${meta?.name || domain} Portfolio`, domain });
-                                }}
-                                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
-                              >
-                                <EditIcon size={14} /> Write
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* BleepxCloud Exports */}
-                <div className="border border-bleepx-border rounded-lg p-4">
-                  <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
-                    <VerseIcon verse="cloud" size={20} className="text-sky-500" /> BleepxCloud
-                  </h3>
-                  <p className="text-xs text-bleepx-text-secondary mb-3">Export cloud architecture missions to your GitHub portfolio.</p>
-                  <div className="space-y-3">
-                    {CLOUD_PROVIDERS.map((provider) => {
-                      const missions = CLOUD_MISSIONS[provider] || [];
-                      const solved = missions.filter((m) => completed.has(cloudMissionId(provider, m.slug))).length;
-                      const hasWork = solved > 0;
-                      const meta = CLOUD_PROVIDER_META[provider];
-                      return (
-                        <div key={provider} className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-bleepx-text"><CloudProviderIcon provider={provider} size={18} /></span>
-                            <span className="text-sm font-medium text-bleepx-text">{meta?.name}</span>
-                            <span className="text-xs text-bleepx-text-secondary">({solved}/{missions.length})</span>
-                          </div>
-                          <div className="flex gap-2 flex-wrap">
-                            <button
-                              disabled={!hasWork || !isSignedIn || exporting === `cloud-${provider}`}
-                              onClick={() => handleExportCloudProvider(provider)}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                                hasWork && isSignedIn && exporting !== `cloud-${provider}`
-                                  ? 'bg-sky-600 text-white hover:bg-sky-700'
-                                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-                              }`}
-                            >
-                              {exporting === `cloud-${provider}` ? 'Exporting...' : 'Export'}
-                            </button>
-                            {hasWork && isSignedIn && (
-                              <button
-                                onClick={() => {
-                                  playBleep();
-                                  setEditingItem({ verse: 'cloud', itemId: `cloud-${provider}`, itemName: `${meta?.name} Portfolio`, domain: provider });
-                                }}
-                                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-bleepx-border text-bleepx-text hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
-                              >
-                                <EditIcon size={14} /> Write
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {!isSignedIn && (
-                <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                  <p className="text-xs text-amber-800 dark:text-amber-300 flex items-center gap-1">
-                    <AlertIcon size={14} /> Sign in with GitHub to enable portfolio exports.
-                  </p>
-                </div>
-              )}
-            </div>
+            <ProfileExportSection
+              storeState={storeState}
+              refreshStore={refreshStore}
+              onWrite={(item) => {
+                playBleep();
+                setEditingItem(item);
+              }}
+            />
           )}
         </div>
       )}

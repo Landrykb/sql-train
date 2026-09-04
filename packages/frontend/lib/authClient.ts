@@ -25,6 +25,15 @@ function getProviderTokenFromCookie(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+/** Persist the GitHub provider_token in a Secure, SameSite=Lax cookie. */
+export function setProviderTokenCookie(token: string): void {
+  if (typeof document === 'undefined') return;
+  try {
+    const maxAge = 60 * 60 * 24 * 365; // 1 year
+    document.cookie = `${PROVIDER_TOKEN_COOKIE}=${encodeURIComponent(token)}; path=/; max-age=${maxAge}; secure; samesite=lax`;
+  } catch { /* ignore */ }
+}
+
 export interface GitHubUser {
   login: string;
   name: string;
@@ -86,29 +95,40 @@ export function clearGitHubUser(): void {
 }
 
 /**
- * Read the current GitHub `provider_token` from the active Supabase session.
- * Returns null if the user is not signed in, if Supabase is not configured,
- * or if the provider token is unavailable (GitHub provider tokens are not
- * refreshed automatically by Supabase — the user may need to re-authenticate).
+ * Read the current GitHub `provider_token`.
+ *
+ * Order of lookup:
+ *   1. Secure `bleepx_provider_token` cookie (set at OAuth callback or by the
+ *      SIGNED_IN listener). This is the fastest and most reliable source.
+ *   2. Active Supabase session, in case the cookie has not been set yet. When
+ *      found, it is mirrored into the cookie so future calls do not need the
+ *      session.
+ *
+ * Returns null if the user is not signed in or the provider token is
+ * unavailable. GitHub provider tokens are not refreshed automatically by
+ * Supabase — the user must re-authenticate when the token expires.
  */
 export async function getGitHubToken(): Promise<string | null> {
-  // Try the active Supabase session first. If the provider_token was dropped
-  // after a refresh, fall back to the Secure cookie we set at OAuth callback.
+  // 1. Fast path: cookie set by auth/callback or SIGNED_IN listener.
+  const fromCookie = getProviderTokenFromCookie();
+  if (fromCookie) return fromCookie;
+
+  // 2. Fallback to the Supabase session (e.g. immediately after OAuth, before
+  //    the client listener has written the cookie).
   if (supabase) {
     try {
       const { data } = await supabase.auth.getSession();
-      if (data?.session?.provider_token) {
-        return data.session.provider_token;
-      }
-      const { data: refreshData } = await supabase.auth.refreshSession();
-      if (refreshData?.session?.provider_token) {
-        return refreshData.session.provider_token;
+      const token = data?.session?.provider_token;
+      if (token) {
+        setProviderTokenCookie(token);
+        return token;
       }
     } catch {
-      // Fall through to cookie fallback
+      // Supabase not available or session unreadable — nothing to do.
     }
   }
-  return getProviderTokenFromCookie();
+
+  return null;
 }
 
 /**

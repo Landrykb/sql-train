@@ -11,7 +11,7 @@
  * rendering convenience.
  */
 import { useEffect, useState } from 'react';
-import type { GitHubUser } from './authClient';
+import { setGitHubUser, setProviderTokenCookie, type GitHubUser } from './authClient';
 
 export function useSupabaseUser(): GitHubUser | null {
   const [user, setUser] = useState<GitHubUser | null>(null);
@@ -36,6 +36,10 @@ export function useSupabaseUser(): GitHubUser | null {
           email: u.email || '',
         };
         setUser(ghUser);
+        // Keep non-sensitive user info and the provider token in sync across
+        // tabs and page reloads (localStorage for user, secure cookie for token).
+        setGitHubUser(ghUser);
+        if (session.provider_token) setProviderTokenCookie(session.provider_token);
       } else {
         setUser(null);
       }
@@ -58,6 +62,8 @@ export function useSupabaseUser(): GitHubUser | null {
             email: u.email || '',
           };
           setUser(ghUser);
+          setGitHubUser(ghUser);
+          if (session.provider_token) setProviderTokenCookie(session.provider_token);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
         }

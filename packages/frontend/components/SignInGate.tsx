@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { getGitHubUser, startGitHubLogin, AUTH_CHANGE_EVENT } from '@/lib/authClient';
+import { getGitHubUser, startGitHubLogin, setProviderTokenCookie, AUTH_CHANGE_EVENT } from '@/lib/authClient';
 import { track, Events } from '@/lib/analytics';
 import { BleepxFace } from './BleepxIcons';
 import { Skeleton, SkeletonButton } from './Skeleton';
@@ -117,9 +117,11 @@ export function useAuthGate() {
             email: u.email || '',
           };
           setUser(ghUser);
-          // Sync to localStorage for backward compatibility
+          // Sync to localStorage for backward compatibility and to the secure
+          // provider-token cookie so GitHub exports can read it immediately.
           const { setGitHubUser } = await import('@/lib/authClient');
           setGitHubUser(ghUser);
+          if (session.provider_token) setProviderTokenCookie(session.provider_token);
         } else {
           setUser(null);
         }

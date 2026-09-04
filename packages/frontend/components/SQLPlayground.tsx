@@ -424,7 +424,12 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
         setShowSuccess(true);
         setVisibleHints(hints.length);
         if (timerRef.current) clearInterval(timerRef.current);
-        try { localStorage.setItem(`bleepx_solved_${domain}_${id}`, JSON.stringify({ query, ts: Date.now(), time: timerSeconds, attempts: attempts + 1, tier })); } catch { /* ignore */ }
+        try {
+          localStorage.setItem(
+            `bleepx_solved_${domain}_${id}`,
+            JSON.stringify({ query, results: grid.slice(0, 100), ts: Date.now(), time: timerSeconds, attempts: attempts + 1, tier })
+          );
+        } catch { /* ignore */ }
 
         const allCompleted = currentOrder.length > 0 && currentOrder.every((caseId) => completed.has(caseId) || caseId === id);
 

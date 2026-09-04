@@ -3,7 +3,7 @@
 // Encodes them as base64 images for inclusion in GitHub portfolio exports
 
 import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
-import { visualizationConfigs } from '@/lib/constants';
+import { visualizationConfigs, DOMAIN_DATASETS } from '@/lib/constants';
 import { LAB_DOMAIN_META } from '@/lib/labConstants';
 
 export interface GeneratedGraph {
@@ -48,109 +48,61 @@ async function generateSingleGraph(
   config: any
 ): Promise<GeneratedGraph | null> {
   try {
-    // Try to use saved query results from localStorage instead of reloading datasets
+    let rows: Record<string, any>[] = [];
+
+    // 1. Prefer the user's saved query results (set when a case is solved).
     const saved = localStorage.getItem(`bleepx_solved_${domain}_${caseId}`);
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed.results && parsed.results.length > 0) {
-        const rows = parsed.results;
-        const chartType = inferChartType(config.layout);
-        const insights = generateChartInsights(config, caseId, rows);
-        
-        // Generate actual chart from saved data
-        const chartSvg = generateChartFromData(config.layout, rows, chartType);
-        
-        return {
-          title: config.layout?.title?.text || `Analysis for ${caseId}`,
-          chartType,
-          imageData: svgToBase64(chartSvg),
-          description: `Data visualization for ${caseId} showing ${insights.join(', ')}`,
-          insights,
-          query: config.query,
-          rows
-        };
+        rows = parsed.results;
       }
     }
-    
-    console.warn(`No saved results found for ${domain}/${caseId}, skipping graph generation`);
-    return null;
+
+    // 2. Fallback: load the domain CSVs and run the configured query.
+    if (rows.length === 0 && config.query) {
+      rows = await runConfigQuery(domain, config.query);
+    }
+
+    if (rows.length === 0) {
+      console.warn(`No data available for ${domain}/${caseId}, skipping graph generation`);
+      return null;
+    }
+
+    const chartType = inferChartType(config.layout);
+    const insights = generateChartInsights(config, caseId, rows);
+    const chartSvg = generateChartFromData(config.layout, rows, chartType);
+
+    return {
+      title: config.layout?.title?.text || `Analysis for ${caseId}`,
+      chartType,
+      imageData: svgToBase64(chartSvg),
+      description: `Data visualization for ${caseId} showing ${insights.join(', ')}`,
+      insights,
+      query: config.query,
+      rows
+    };
   } catch (err) {
     console.error('Error generating graph:', err);
     return null;
   }
 }
 
-/** Get datasets required for a specific case */
-function getDatasetsForCase(domain: string, caseId: string): { name: string; file: string }[] {
-  // Map domains/cases to their required datasets
-  const datasetMap: Record<string, Record<string, { name: string; file: string }[]>> = {
-    business: {
-      basics_select: [{ name: 'business', file: '/data/business.csv' }],
-      agg_revenue: [{ name: 'business', file: '/data/business.csv' }],
-      joins_return: [{ name: 'business', file: '/data/business.csv' }],
-      window_cumsum: [{ name: 'business', file: '/data/business.csv' }],
-      cte_profit: [{ name: 'business', file: '/data/business.csv' }],
-      capstone: [{ name: 'business', file: '/data/business.csv' }],
-    },
-    crime: {
-      crime_select: [{ name: 'crime', file: '/data/crime.csv' }],
-      crime_by_area: [{ name: 'crime', file: '/data/crime.csv' }],
-      suspect_joins: [{ name: 'crime', file: '/data/crime.csv' }],
-      crime_trend: [{ name: 'crime', file: '/data/crime.csv' }],
-      cte_crime: [{ name: 'crime', file: '/data/crime.csv' }],
-      capstone: [{ name: 'crime', file: '/data/crime.csv' }],
-    },
-    farming: {
-      ndvi_overview: [{ name: 'farming', file: '/data/farming.csv' }],
-      yield_by_crop: [{ name: 'farming', file: '/data/farming.csv' }],
-      soil_joins: [{ name: 'farming', file: '/data/farming.csv' }],
-      yield_trend: [{ name: 'farming', file: '/data/farming.csv' }],
-      cte_soil: [{ name: 'farming', file: '/data/farming.csv' }],
-      capstone: [{ name: 'farming', file: '/data/farming.csv' }],
-    },
-    finance: {
-      transaction_select: [{ name: 'finance', file: '/data/finance.csv' }],
-      balance_by_account: [{ name: 'finance', file: '/data/finance.csv' }],
-      fraud_joins: [{ name: 'finance', file: '/data/finance.csv' }],
-      balance_trend: [{ name: 'finance', file: '/data/finance.csv' }],
-      cte_fraud: [{ name: 'finance', file: '/data/finance.csv' }],
-      capstone: [{ name: 'finance', file: '/data/finance.csv' }],
-    },
-    healthcare: {
-      patient_select: [{ name: 'healthcare', file: '/data/healthcare.csv' }],
-      diagnosis_count: [{ name: 'healthcare', file: '/data/healthcare.csv' }],
-      treatment_joins: [{ name: 'healthcare', file: '/data/healthcare.csv' }],
-      admission_trend: [{ name: 'healthcare', file: '/data/healthcare.csv' }],
-      cte_treatment: [{ name: 'healthcare', file: '/data/healthcare.csv' }],
-      capstone: [{ name: 'healthcare', file: '/data/healthcare.csv' }],
-    },
-    social: {
-      post_select: [{ name: 'social', file: '/data/social.csv' }],
-      engagement_by_type: [{ name: 'social', file: '/data/social.csv' }],
-      user_joins: [{ name: 'social', file: '/data/social.csv' }],
-      likes_trend: [{ name: 'social', file: '/data/social.csv' }],
-      cte_engagement: [{ name: 'social', file: '/data/social.csv' }],
-      capstone: [{ name: 'social', file: '/data/social.csv' }],
-    },
-    space: {
-      orbit_select: [{ name: 'space', file: '/data/space.csv' }],
-      velocity_by_type: [{ name: 'space', file: '/data/space.csv' }],
-      mission_joins: [{ name: 'space', file: '/data/space.csv' }],
-      orbit_trend: [{ name: 'space', file: '/data/space.csv' }],
-      cte_payload: [{ name: 'space', file: '/data/space.csv' }],
-      capstone: [{ name: 'space', file: '/data/space.csv' }],
-    },
-    sports: {
-      match_select: [{ name: 'sports', file: '/data/sports.csv' }],
-      score_by_team: [{ name: 'sports', file: '/data/sports.csv' }],
-      player_joins: [{ name: 'sports', file: '/data/sports.csv' }],
-      score_trend: [{ name: 'sports', file: '/data/sports.csv' }],
-      cte_player: [{ name: 'sports', file: '/data/sports.csv' }],
-      capstone: [{ name: 'sports', file: '/data/sports.csv' }],
-    },
-  };
-
-  return datasetMap[domain]?.[caseId] || [];
+/** Load all CSVs for a domain and run a query, returning rows as objects. */
+async function runConfigQuery(domain: string, query: string): Promise<Record<string, any>[]> {
+  await initSQL();
+  const datasets = DOMAIN_DATASETS[domain] || [];
+  for (const ds of datasets) {
+    try {
+      await loadCSV(ds.name, ds.file);
+    } catch (err) {
+      console.warn(`[GraphGen] Failed to load ${ds.file}:`, err);
+    }
+  }
+  const { columns, data } = await runQuery(query);
+  return data.map((row: any[]) =>
+    Object.fromEntries(columns.map((c, i) => [c, row[i]]))
+  );
 }
 
 /** Generate chart SVG from actual data */

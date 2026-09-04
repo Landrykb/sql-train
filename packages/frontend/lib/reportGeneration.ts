@@ -3,6 +3,8 @@
 // Bleepx provides hints and guidance for writing executive-ready reports
 
 import { generateContextHints } from './portfolioData';
+import { fullCaseOrder } from './constants';
+import { LAB_CASE_ORDER } from './labConstants';
 
 export interface InterpretationSection {
   id: string;
@@ -200,42 +202,42 @@ export function deleteInterpretation(verse: 'query' | 'lab' | 'cloud', itemId: s
   }
 }
 
-/** Pull analysis results from localStorage for a completed item */
+/** Pull analysis results from localStorage for a completed portfolio (domain/provider). */
 export function pullAnalysisResults(verse: 'query' | 'lab' | 'cloud', itemId: string, domain?: string): AnalysisResult[] {
   const results: AnalysisResult[] = [];
 
   try {
     if (verse === 'query' && domain) {
-      // Pull saved query results from localStorage
-      const savedKey = `bleepx_solved_${domain}_${itemId}`;
-      const savedData = localStorage.getItem(savedKey);
-      
-      if (savedData) {
-        const parsed = JSON.parse(savedData);
+      // Aggregate saved query results for every case in the domain.
+      const cases = fullCaseOrder[domain] || [];
+      for (const caseId of cases) {
+        const saved = localStorage.getItem(`bleepx_solved_${domain}_${caseId}`);
+        if (!saved) continue;
+        const parsed = JSON.parse(saved);
         if (parsed.results && parsed.results.length > 0) {
           results.push({
             type: 'query',
-            title: `${itemId} - Query Results`,
+            title: `${caseId} - Query Results`,
             data: parsed.results,
             query: parsed.query,
             summary: `${parsed.results.length} rows returned`,
-            timestamp: parsed.timestamp || new Date().toISOString()
+            timestamp: parsed.ts ? new Date(parsed.ts).toISOString() : new Date().toISOString(),
           });
         }
       }
-    } else if (verse === 'lab') {
-      // Pull Lab step results from localStorage
-      const labKey = `bleepx_lab_step_${itemId}`;
-      const labData = localStorage.getItem(labKey);
-      
-      if (labData) {
-        const parsed = JSON.parse(labData);
+    } else if (verse === 'lab' && domain) {
+      // Aggregate saved lab step results for every project in the domain.
+      const projects = LAB_CASE_ORDER[domain] || [];
+      for (const projectId of projects) {
+        const saved = localStorage.getItem(`bleepx_lab_step_${projectId}`);
+        if (!saved) continue;
+        const parsed = JSON.parse(saved);
         results.push({
           type: 'lab_step',
-          title: `${itemId} - Lab Step Result`,
+          title: `${projectId} - Lab Step Result`,
           data: parsed,
           summary: parsed.output || 'Lab step completed',
-          timestamp: parsed.timestamp || new Date().toISOString()
+          timestamp: parsed.ts ? new Date(parsed.ts).toISOString() : new Date().toISOString(),
         });
       }
     }
