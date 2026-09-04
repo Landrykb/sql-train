@@ -156,6 +156,67 @@ function generateHints(rawCsv: string, sqlResult: string): { sql: string[]; pyth
   return { sql, python, columns: cols };
 }
 
+function generatePythonStarter(rawCsv: string, sqlResult: string): string {
+  const input = sqlResult || rawCsv;
+  const cols = analyzeCsv(input);
+  const numeric = cols.filter((c) => c.type === 'numeric').slice(0, 3);
+  const categorical = cols.filter((c) => c.type === 'categorical' || c.type === 'text' || c.type === 'date').slice(0, 3);
+  const date = cols.filter((c) => c.type === 'date').slice(0, 1);
+  const groupCol = categorical[0] || (cols.find((c) => c.name.toLowerCase().includes('name') || c.name.toLowerCase().includes('id')) ?? cols[0]);
+  const colList = cols.map((c) => c.name).join(', ') || '...';
+
+  let body = `# Columns available: ${colList}\n`;
+
+  if (numeric.length) {
+    const n = numeric[0].name;
+    body += `\n# Derived column example\ndf['scaled_${n}'] = df['${n}'] * 2\n`;
+    if (numeric[1]) {
+      body += `df['${n}_per_${numeric[1].name}'] = df['${n}'] / df['${numeric[1].name}']\n`;
+    }
+    body += `\n# Filter to above-average rows\ndf = df[df['${n}'] >= df['${n}'].mean()]\n`;
+  }
+
+  if (date.length) {
+    const d = date[0].name;
+    body += `\n# Filter by date example\n# df = df[df['${d}'] >= '2020-01-01']\n`;
+  }
+
+  if (groupCol && numeric.length) {
+    const cat = groupCol.name;
+    body += `\n# Aggregate and plot\nprint(df.groupby('${cat}')['${numeric[0].name}'].mean())\ndf.groupby('${cat}')['${numeric[0].name}'].mean().plot(kind='bar')\n`;
+  } else if (groupCol) {
+    body += `\n# Count categories\nprint(df['${groupCol.name}'].value_counts())\n`;
+  }
+
+  return `import pandas as pd
+import matplotlib.pyplot as plt
+from io import StringIO
+
+# Use the SQL result if it exists, otherwise the original raw CSV
+input_csv = sql_result if 'sql_result' in globals() and sql_result else raw_csv
+df = pd.read_csv(StringIO(input_csv))
+
+${body}
+# Print the final CSV so it can continue to S3
+print(df.to_csv(index=False))`;
+}
+
+function extractLastCsv(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed) return trimmed;
+  const blocks = trimmed.split(/\n\s*\n/).filter(Boolean);
+  for (let i = blocks.length - 1; i >= 0; i--) {
+    const candidate = blocks[i].trim();
+    const parsed = Papa.parse<Record<string, unknown>>(candidate, { header: true, skipEmptyLines: true, dynamicTyping: true });
+    if (parsed.errors.length === 0 && parsed.meta.fields && parsed.meta.fields.length > 0 && parsed.data.length > 0) {
+      const expected = parsed.meta.fields.length;
+      const consistent = parsed.data.every((row) => Object.keys(row).length === expected);
+      if (consistent) return candidate;
+    }
+  }
+  return trimmed;
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function CsvOutput({ csv, cell, title }: { csv: string; cell?: number; title: string }) {
@@ -208,6 +269,41 @@ function CsvOutput({ csv, cell, title }: { csv: string; cell?: number; title: st
   );
 }
 
+function ImageOutput({ images, cell, title }: { images: Array<{ mime: string; data: string }>; cell?: number; title: string }) {
+  if (!images.length) return null;
+  return (
+    <div className="mt-3 rounded-lg border border-gray-700 overflow-hidden bg-gray-950">
+      <div className="flex flex-wrap items-center gap-2 px-3 py-1.5 bg-gray-900 border-b border-gray-700 text-xs font-mono">
+        <span className="text-emerald-400 font-bold">Out[{cell ?? ' '}]</span>
+        <span className="text-gray-400">{title}</span>
+      </div>
+      <div className="p-3 flex flex-wrap gap-3">
+        {images.map((img, i) => (
+          <img
+            key={i}
+            src={`data:${img.mime};base64,${img.data}`}
+            alt={`Plot ${i + 1}`}
+            className="max-w-full h-auto rounded border border-gray-700"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ConsoleOutput({ text, cell, title }: { text: string; cell?: number; title: string }) {
+  if (!text.trim()) return null;
+  return (
+    <div className="mt-3 rounded-lg border border-gray-700 overflow-hidden bg-gray-950">
+      <div className="flex flex-wrap items-center gap-2 px-3 py-1.5 bg-gray-900 border-b border-gray-700 text-xs font-mono">
+        <span className="text-emerald-400 font-bold">Out[{cell ?? ' '}]</span>
+        <span className="text-gray-400">{title}</span>
+      </div>
+      <pre className="p-3 text-xs text-gray-300 font-mono overflow-x-auto whitespace-pre-wrap break-words max-w-full">{text}</pre>
+    </div>
+  );
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function CloudPipelineCanvas() {
@@ -216,7 +312,7 @@ export default function CloudPipelineCanvas() {
     rawCsv: '',
     sqlQuery: DEFAULT_QUERY,
     sqlResult: '',
-    pythonCode: DEFAULT_PYTHON,
+    pythonCode: generatePythonStarter('', ''),
     transformedCsv: '',
     s3Bucket: 'bleepx-pipeline-output',
     s3Key: 'output.csv',
@@ -225,34 +321,54 @@ export default function CloudPipelineCanvas() {
   const [execCount, setExecCount] = useState(0);
   const [sqlLoading, setSqlLoading] = useState(false);
   const [pythonLoading, setPythonLoading] = useState(false);
+  const [pythonImages, setPythonImages] = useState<Array<{ mime: string; data: string }>>([]);
+  const [pythonConsole, setPythonConsole] = useState<string>('');
   const [sqlHintIdx, setSqlHintIdx] = useState(-1);
   const [pythonHintIdx, setPythonHintIdx] = useState(-1);
   const pyodideRef = useRef<any>(null);
+  const lastGeneratedPython = useRef<string>(generatePythonStarter('', ''));
 
   const [sandbox, setSandbox] = useState<CloudSandboxState>(createEmptySandboxState());
   const [message, setMessage] = useState<string | null>(null);
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
 
   const activeRawCsv = useMemo(() => normalizeCsv(pipeline.rawCsv), [pipeline.rawCsv]);
+  const generatedPythonCode = useMemo(
+    () => generatePythonStarter(activeRawCsv, pipeline.sqlResult),
+    [activeRawCsv, pipeline.sqlResult]
+  );
   const { sql: sqlHints, python: pythonHints, columns: dataColumns } = useMemo(
     () => generateHints(activeRawCsv, pipeline.sqlResult),
     [activeRawCsv, pipeline.sqlResult]
   );
 
+  useEffect(() => {
+    if (
+      pipeline.pythonCode === lastGeneratedPython.current ||
+      pipeline.pythonCode === '' ||
+      pipeline.pythonCode === DEFAULT_PYTHON
+    ) {
+      setPipeline((p) => ({ ...p, pythonCode: generatedPythonCode }));
+    }
+    lastGeneratedPython.current = generatedPythonCode;
+  }, [generatedPythonCode]);
+
   const loadPreset = useCallback((id: string) => {
     const preset = PIPELINE_PRESETS.find((p) => p.id === id);
     if (!preset) return;
     const clean = normalizeCsv(preset.rawCsv);
+    const starter = generatePythonStarter(clean, '');
     setPipeline((p) => ({
       ...p,
       sourceUrl: preset.sourceUrl,
       rawCsv: clean,
       sqlQuery: preset.sqlQuery,
-      pythonCode: preset.pythonCode,
+      pythonCode: preset.pythonCode === DEFAULT_PYTHON ? starter : preset.pythonCode,
       s3Key: preset.s3Key,
       s3Bucket: 'bleepx-pipeline-output',
       activeStep: 'sql',
     }));
+    lastGeneratedPython.current = starter;
     setSelectedPresetId(id);
     setMessage(`Loaded "${preset.name}" with ${clean.split('\n').length - 1} data row(s). Source: ${preset.sourceUrl}. Run SQL preview next.`);
   }, []);
@@ -272,7 +388,9 @@ export default function CloudPipelineCanvas() {
 
   const loadSample = useCallback((csv: string) => {
     const clean = normalizeCsv(csv);
-    setPipeline((p) => ({ ...p, rawCsv: clean, activeStep: 'sql' }));
+    const starter = generatePythonStarter(clean, '');
+    setPipeline((p) => ({ ...p, rawCsv: clean, pythonCode: starter, activeStep: 'sql' }));
+    lastGeneratedPython.current = starter;
     setMessage('CSV loaded into the pipeline. Run SQL or Python next.');
   }, []);
 
@@ -310,36 +428,43 @@ export default function CloudPipelineCanvas() {
     }
     setPythonLoading(true);
     setMessage('Loading Python runtime…');
+    setPythonImages([]);
+    setPythonConsole('');
     const nextCell = execCount + 1;
     try {
       if (!pyodideRef.current) {
         pyodideRef.current = await loadPyodide((msg) => setMessage(msg));
       }
-      const { stdout, stderr } = await runPythonCode(pyodideRef.current, {
-        code: pipeline.pythonCode || DEFAULT_PYTHON,
-        globals: { raw_csv: pipeline.rawCsv, sql_result: pipeline.sqlResult || '' },
+      const { stdout, stderr, images } = await runPythonCode(pyodideRef.current, {
+        code: pipeline.pythonCode || generatedPythonCode,
+        globals: { raw_csv: activeRawCsv, sql_result: pipeline.sqlResult || '' },
         timeoutMs: 30000,
         onProgress: (msg) => setMessage(msg),
       });
       const combined = stderr ? `${stdout}\n${stderr}` : stdout;
-      const preview = Papa.parse(combined.trim(), { header: true, skipEmptyLines: true });
+      const csvOut = extractLastCsv(stdout);
+      const preview = Papa.parse(csvOut, { header: true, skipEmptyLines: true });
       const rows = preview.data.length;
       const cols = preview.meta.fields?.length ?? 0;
       const colList = preview.meta.fields?.join(', ') ?? '';
       setExecCount(nextCell);
-      setPipeline((p) => ({ ...p, transformedCsv: combined.trim(), pythonCell: nextCell, activeStep: 'csv' }));
+      setPythonImages(images || []);
+      setPythonConsole(combined.trim());
+      setPipeline((p) => ({ ...p, transformedCsv: csvOut, pythonCell: nextCell, activeStep: 'csv' }));
       setMessage(
         `Python produced ${rows} row(s) and ${cols} column(s)${colList ? `: ${colList}` : ''}. ` +
         `You can now upload the CSV to the S3 sandbox, or tweak the code and run again.`
       );
     } catch (err: any) {
       const detail = err?.stdout ? `${err.stdout}\n${err.message}` : err?.message || String(err);
-      setPipeline((p) => ({ ...p, transformedCsv: detail.trim(), pythonCell: nextCell, activeStep: 'csv' }));
+      setPythonImages(err?.images || []);
+      setPythonConsole(detail.trim());
+      setPipeline((p) => ({ ...p, transformedCsv: '', pythonCell: nextCell, activeStep: 'csv' }));
       setMessage(`Python error: ${err?.message || String(err)}`);
     } finally {
       setPythonLoading(false);
     }
-  }, [pipeline.rawCsv, pipeline.pythonCode, execCount]);
+  }, [pipeline.rawCsv, pipeline.pythonCode, pipeline.sqlResult, activeRawCsv, generatedPythonCode, execCount]);
 
   const uploadToS3 = useCallback(() => {
     let next = createS3Bucket(sandbox, pipeline.s3Bucket, sandbox.activeRegion);
@@ -532,7 +657,7 @@ export default function CloudPipelineCanvas() {
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
         <h2 className="text-base font-bold text-bleepx-text mb-2">3. Python ETL</h2>
         <p className="text-xs text-bleepx-text-secondary mb-3">
-          The CSV is available in the <code>raw_csv</code> variable. Edit the code to transform it, then run — the output feeds the next step.
+          The SQL result is in <code>sql_result</code>; the original CSV is in <code>raw_csv</code>. Edit the code to transform the data, then run — the final CSV feeds S3 and any plots are captured below.
         </p>
         <div className="mb-2 text-xs font-mono text-emerald-500">In[{pipeline.pythonCell ?? ' '}]</div>
         <textarea
@@ -558,8 +683,10 @@ export default function CloudPipelineCanvas() {
           </div>
         )}
         {pipeline.transformedCsv && (
-          <CsvOutput csv={pipeline.transformedCsv} cell={pipeline.pythonCell} title="Python transform" />
+          <CsvOutput csv={pipeline.transformedCsv} cell={pipeline.pythonCell} title="Python transform CSV" />
         )}
+        <ImageOutput images={pythonImages} cell={pipeline.pythonCell} title="Python plots" />
+        <ConsoleOutput text={pythonConsole} cell={pipeline.pythonCell} title="Python console" />
       </div>
 
       {/* CSV / S3 */}
