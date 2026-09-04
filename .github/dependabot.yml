@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # JavaScript / TypeScript dependencies (pnpm workspace, via npm ecosystem)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    ignore:
+      # Pin these packages manually in package.json overrides; ignore Dependabot bump noise.
+      - dependency-name: "dompurify"
+        update-types: ["version-update:semver-major"]
+
+  # Keep GitHub Actions versions up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5

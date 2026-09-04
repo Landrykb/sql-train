@@ -1,0 +1,49 @@
+name: OWASP ZAP DAST
+
+on:
+  # Trigger after a deployment finishes, or run manually against any live URL.
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: 'Target URL to scan (e.g. https://besa-sqlverse.vercel.app)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  zap-baseline:
+    name: OWASP ZAP baseline scan
+    runs-on: ubuntu-latest
+    # Only run when the deployment succeeded or a host is provided manually.
+    if: (github.event_name == 'workflow_dispatch') || (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine target URL
+        id: target
+        run: |
+          if [ "${{ github.event_name }}" = "deployment_status" ]; then
+            echo "url=${{ github.event.deployment_status.environment_url }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "url=${{ inputs.host }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate target URL
+        if: steps.target.outputs.url == ''
+        run: |
+          echo "::error::No target URL available. Provide a host or ensure deployment_status.environment_url is set."
+          exit 1
+
+      - name: ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: ${{ steps.target.outputs.url }}
+          # Non-blocking while you triage findings. Switch to true after cleanup.
+          fail_action: false
+          # Keep the report for review.
+          allow_issue_writing: false
