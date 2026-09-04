@@ -336,11 +336,12 @@ export default function CloudPipelineCanvas() {
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
   const [lastSqlError, setLastSqlError] = useState<{ message: string; query: string } | null>(null);
   const [lastPythonError, setLastPythonError] = useState<{ message: string; code: string } | null>(null);
+  const [pythonSource, setPythonSource] = useState<'auto' | 'sql' | 'raw'>('auto');
 
   const activeRawCsv = useMemo(() => normalizeCsv(pipeline.rawCsv), [pipeline.rawCsv]);
-  const generatedPythonCode = useMemo(
-    () => generatePythonStarter(activeRawCsv, pipeline.sqlResult),
-    [activeRawCsv, pipeline.sqlResult]
+  const effectivePythonCode = useMemo(
+    () => generatePythonStarter(activeRawCsv, pythonSource === 'raw' ? '' : pipeline.sqlResult),
+    [activeRawCsv, pipeline.sqlResult, pythonSource]
   );
   const { sql: sqlHints, python: pythonHints, columns: dataColumns } = useMemo(
     () => generateHints(activeRawCsv, pipeline.sqlResult),
@@ -353,16 +354,17 @@ export default function CloudPipelineCanvas() {
       pipeline.pythonCode === '' ||
       pipeline.pythonCode === DEFAULT_PYTHON
     ) {
-      setPipeline((p) => ({ ...p, pythonCode: generatedPythonCode }));
+      setPipeline((p) => ({ ...p, pythonCode: effectivePythonCode }));
     }
-    lastGeneratedPython.current = generatedPythonCode;
-  }, [generatedPythonCode]);
+    lastGeneratedPython.current = effectivePythonCode;
+  }, [effectivePythonCode]);
 
   const loadPreset = useCallback((id: string) => {
     const preset = PIPELINE_PRESETS.find((p) => p.id === id);
     if (!preset) return;
     const clean = normalizeCsv(preset.rawCsv);
     const starter = generatePythonStarter(clean, '');
+    setPythonSource('auto');
     setPipeline((p) => ({
       ...p,
       sourceUrl: preset.sourceUrl,
@@ -394,6 +396,7 @@ export default function CloudPipelineCanvas() {
   const loadSample = useCallback((csv: string) => {
     const clean = normalizeCsv(csv);
     const starter = generatePythonStarter(clean, '');
+    setPythonSource('auto');
     setPipeline((p) => ({ ...p, rawCsv: clean, pythonCode: starter, activeStep: 'sql' }));
     lastGeneratedPython.current = starter;
     setMessage('CSV loaded into the pipeline. Run SQL or Python next.');
@@ -414,6 +417,7 @@ export default function CloudPipelineCanvas() {
       const csv = Papa.unparse({ fields: columns, data });
       setExecCount(nextCell);
       setLastSqlError(null);
+      setPythonSource('auto');
       setPipeline((p) => ({ ...p, sqlResult: csv, sqlCell: nextCell, activeStep: 'python' }));
       const cols = columns.join(', ');
       setMessage(
@@ -444,7 +448,7 @@ export default function CloudPipelineCanvas() {
         pyodideRef.current = await loadPyodide((msg) => setMessage(msg));
       }
       const { stdout, stderr, images } = await runPythonCode(pyodideRef.current, {
-        code: pipeline.pythonCode || generatedPythonCode,
+        code: pipeline.pythonCode || effectivePythonCode,
         globals: { raw_csv: activeRawCsv, sql_result: pipeline.sqlResult || '' },
         timeoutMs: 30000,
         onProgress: (msg) => setMessage(msg),
@@ -474,7 +478,7 @@ export default function CloudPipelineCanvas() {
     } finally {
       setPythonLoading(false);
     }
-  }, [pipeline.rawCsv, pipeline.pythonCode, pipeline.sqlResult, activeRawCsv, generatedPythonCode, execCount]);
+  }, [pipeline.rawCsv, pipeline.pythonCode, pipeline.sqlResult, activeRawCsv, effectivePythonCode, execCount]);
 
   const buildBleepxHint = useCallback((): BleepxHint => {
     if (lastPythonError) {
@@ -540,7 +544,6 @@ export default function CloudPipelineCanvas() {
   const askBleepx = useCallback((targetId: string) => {
     const hint = buildBleepxHint();
     const target = typeof document !== 'undefined' ? document.getElementById(targetId) : null;
-    if (target && target instanceof HTMLElement) target.focus();
     if (typeof document !== 'undefined') {
       document.dispatchEvent(new CustomEvent('bleepx:hint', { detail: { hint, value: message || '', target } }));
     }
@@ -743,8 +746,64 @@ export default function CloudPipelineCanvas() {
       {/* Python */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
         <h2 className="text-base font-bold text-bleepx-text mb-2">3. Python ETL</h2>
+        <p className="text-xs text-bleepx-text-secondary mb-2">
+          Python transforms the chosen data source and produces the final CSV. Pick the source that best fits your analysis.
+        </p>
+        <div className="flex flex-wrap gap-2 mb-3">
+          <button
+            onClick={() => {
+              setPythonSource('auto');
+              setPipeline((p) => ({ ...p, pythonCode: generatePythonStarter(activeRawCsv, p.sqlResult) }));
+            }}
+            disabled={pythonSource === 'auto'}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+              pythonSource === 'auto'
+                ? 'bg-sky-600 text-white'
+                : 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 hover:bg-sky-200'
+            }`}
+            title="Use the SQL result if it exists, otherwise the raw CSV. Best for summarised/aggregated data."
+          >
+            Auto: SQL result first
+          </button>
+          <button
+            onClick={() => {
+              setPythonSource('sql');
+              if (pipeline.sqlResult) {
+                setPipeline((p) => ({ ...p, pythonCode: generatePythonStarter(activeRawCsv, p.sqlResult) }));
+              }
+            }}
+            disabled={pythonSource === 'sql' || !pipeline.sqlResult}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-50 ${
+              pythonSource === 'sql'
+                ? 'bg-teal-600 text-white'
+                : 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 hover:bg-teal-200'
+            }`}
+            title="Use the columns from the last SQL run. Best when SQL already computed the fields you need."
+          >
+            Use SQL output
+          </button>
+          <button
+            onClick={() => {
+              setPythonSource('raw');
+              setPipeline((p) => ({ ...p, pythonCode: generatePythonStarter(activeRawCsv, '') }));
+            }}
+            disabled={pythonSource === 'raw'}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+              pythonSource === 'raw'
+                ? 'bg-violet-600 text-white'
+                : 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-200'
+            }`}
+            title="Use the original raw CSV with all row-level columns. Best when you need columns that SQL dropped or aggregated."
+          >
+            Use raw CSV
+          </button>
+        </div>
         <p className="text-xs text-bleepx-text-secondary mb-3">
-          The SQL result is in <code>sql_result</code>; the original CSV is in <code>raw_csv</code>. Edit the code to transform the data, then run — the final CSV feeds S3 and any plots are captured below.
+          {pythonSource === 'raw'
+            ? 'Code is now using the original raw CSV columns.'
+            : pipeline.sqlResult
+              ? 'Code is now using the SQL result columns.'
+              : 'No SQL result yet — code is using the raw CSV columns until you run SQL.'}
         </p>
         <div className="mb-2 text-xs font-mono text-emerald-500">In[{pipeline.pythonCell ?? ' '}]</div>
         <textarea
