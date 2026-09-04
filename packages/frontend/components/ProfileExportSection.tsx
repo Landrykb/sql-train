@@ -134,7 +134,7 @@ export default function ProfileExportSection({
 
     const all = fullCaseOrder[domain] || [];
     const solved = all.filter((c) => completed.has(c));
-    const caseData: Record<string, { name: string; query: string; solution: string }> = {};
+    const caseData: Record<string, { name: string; query?: string; solution?: string; results?: Record<string, any>[] }> = {};
     for (const caseId of solved) {
       try {
         const saved = localStorage.getItem(`bleepx_solved_${domain}_${caseId}`);
@@ -144,6 +144,7 @@ export default function ProfileExportSection({
             name: caseId,
             query: parsed.query || '',
             solution: parsed.solution || '',
+            results: parsed.results,
           };
         }
       } catch { /* ignore */ }
