@@ -6,6 +6,10 @@
    Pandas ships its own inline styles for the HTML table, but they collide
    with dark backgrounds. These rules give us a consistent, readable
    notebook look regardless of system theme. */
+table {
+  max-width: 100%;
+}
+
 .bleepx-df table {
   border-collapse: collapse;
   font-size: 11px;
@@ -13,6 +17,7 @@
   color: #111827;
   background: #fff;
 }
+
 .bleepx-df table thead th {
   background: #f3f4f6;
   color: #111827;
@@ -21,6 +26,7 @@
   text-align: right;
   font-weight: 600;
 }
+
 .bleepx-df table tbody td,
 .bleepx-df table tbody th {
   padding: 3px 8px;
@@ -28,10 +34,12 @@
   text-align: right;
   white-space: nowrap;
 }
+
 .bleepx-df table tbody tr:nth-child(even) td,
 .bleepx-df table tbody tr:nth-child(even) th {
   background: #fafafa;
 }
+
 .bleepx-df table tbody tr:hover td,
 .bleepx-df table tbody tr:hover th {
   background: #ecfeff;
@@ -40,7 +48,7 @@
 @layer base {
   :root {
     --bleepx-bg: #F5F7FA;
-    --bleepx-white: #FFFFFF;
+    --bleepx-white: #FFF;
     --bleepx-blue: #2563EB;
     --bleepx-blue-hover: #3B82F6;
     --bleepx-text: #111827;
@@ -49,6 +57,7 @@
     --bleepx-gray: #374151;
     --bleepx-pink: #EC4899;
   }
+
   .dark {
     --bleepx-bg: #111827;
     --bleepx-white: #1F2937;
@@ -73,53 +82,60 @@ html, body {
   overflow-x: hidden;
   min-width: 0;
 }
+
 body {
   overflow-wrap: break-word;
 }
+
 main, footer {
   min-width: 0;
 }
+
 /* Force CodeMirror 6 to never grow wider than its container */
 .cm-editor,
 .cm-scroller,
 .cm-content {
   min-width: 0 !important;
 }
+
 pre, code, .font-mono {
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: break-word;
 }
+
 pre {
   max-width: 100%;
   overflow-x: auto;
 }
+
 img, svg, video, canvas, iframe {
   max-width: 100%;
   height: auto;
 }
+
 .bleepx-df {
   overflow-x: auto;
   max-width: 100%;
 }
-table {
-  max-width: 100%;
-}
+
 .no-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-@media (max-width: 640px) {
+
+@media (width <= 640px) {
   input, textarea, select {
     font-size: 16px !important;
   }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
+  0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
 
@@ -128,6 +144,7 @@ table {
 }
 
 /* ─── Bleepx mascot mood animations (3D, inside its circular button) ─── */
+
 /* 3D space is enabled on the PngSprite wrapper via perspective: 800px */
 
 @keyframes bleepx-orbit {
@@ -137,30 +154,36 @@ table {
   75%  { transform: translate3d(0, -5px, -10px) rotateY(0deg) rotateX(10deg); }
   100% { transform: translate3d(6px, 0, 0) rotateY(-20deg) rotateX(4deg); }
 }
+
 @keyframes bleepx-fly {
   0%   { transform: translate3d(0, 0, 0) scale3d(0.92, 0.92, 1) rotateX(-6deg) rotateY(-4deg); }
   50%  { transform: translate3d(0, -4px, 14px) scale3d(1.05, 1.05, 1) rotateX(6deg) rotateY(4deg); }
   100% { transform: translate3d(0, 0, -4px) scale3d(0.92, 0.92, 1) rotateX(0deg) rotateY(0deg); }
 }
+
 @keyframes bleepx-wave {
   0%, 100% { transform: translate3d(0, 0, 0) rotateY(0deg); }
   33% { transform: translate3d(5px, 0, 8px) rotateY(18deg); }
   66% { transform: translate3d(-5px, 0, 8px) rotateY(-18deg); }
 }
+
 @keyframes bleepx-think {
   0%, 100% { transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0deg); }
   33% { transform: translate3d(0, 3px, 6px) scale3d(0.96, 0.96, 1) rotateX(4deg); }
   66% { transform: translate3d(0, -3px, 10px) scale3d(1.03, 1.03, 1) rotateX(-3deg); }
 }
+
 @keyframes bleepx-code {
   0%, 100% { transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg); }
   25% { transform: translate3d(0, -2px, 4px) rotateX(5deg) rotateY(3deg); }
   75% { transform: translate3d(0, 1px, 2px) rotateX(-3deg) rotateY(-3deg); }
 }
+
 @keyframes bleepx-chat {
   0%, 100% { transform: translate3d(0, 0, 0) rotateX(0deg); }
   50% { transform: translate3d(0, -3px, 8px) rotateX(8deg); }
 }
+
 @keyframes bleepx-error {
   0%, 100% { transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg); }
   20% { transform: translate3d(-3px, 0, 0) rotateX(-8deg) rotateY(-5deg); }
@@ -168,29 +191,60 @@ table {
   60% { transform: translate3d(-3px, 0, 0) rotateX(-8deg) rotateY(-5deg); }
   80% { transform: translate3d(3px, 0, 0) rotateX(8deg) rotateY(5deg); }
 }
+
 @keyframes bleepx-success {
-  0%   { transform: translate3d(0, 0, -20px) scale3d(0.5, 0.5, 1); opacity: 0; }
-  50%  { transform: translate3d(0, 0, 20px) scale3d(1.15, 1.15, 1); opacity: 1; }
-  100% { transform: translate3d(0, 0, 0) scale3d(1, 1, 1); opacity: 1; }
+  0% {
+    transform: translate3d(0, 0, -20px) scale3d(0.5, 0.5, 1);
+    opacity: 0;
+  }
+
+  50% {
+    transform: translate3d(0, 0, 20px) scale3d(1.15, 1.15, 1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+    opacity: 1;
+  }
 }
+
 @keyframes bleepx-signal {
-  0%, 100% { transform: translate3d(0, 0, 0) rotateY(0deg); opacity: 1; }
-  50% { transform: translate3d(0, 0, 12px) rotateY(12deg); opacity: 0.85; }
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotateY(0deg);
+    opacity: 1;
+  }
+
+  50% {
+    transform: translate3d(0, 0, 12px) rotateY(12deg);
+    opacity: 0.85;
+  }
 }
+
 @keyframes bleepx-watch {
   0%, 100% { transform: translate3d(0, 0, 0) rotateY(0deg); }
   25% { transform: translate3d(3px, 0, 4px) rotateY(10deg); }
   75% { transform: translate3d(-3px, 0, 4px) rotateY(-10deg); }
 }
+
 @keyframes bleepx-spark {
-  0%, 100% { transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateZ(0deg); opacity: 1; }
-  50% { transform: translate3d(0, 0, 10px) scale3d(1.06, 1.06, 1) rotateZ(8deg); opacity: 0.8; }
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateZ(0deg);
+    opacity: 1;
+  }
+
+  50% {
+    transform: translate3d(0, 0, 10px) scale3d(1.06, 1.06, 1) rotateZ(8deg);
+    opacity: 0.8;
+  }
 }
+
 @keyframes bleepx-git {
   0%, 100% { transform: translate3d(0, 0, 0) rotateY(0deg); }
   33% { transform: translate3d(0, -4px, 10px) rotateY(12deg); }
   66% { transform: translate3d(0, 2px, 4px) rotateY(-8deg); }
 }
+
 @keyframes bleepx-face {
   0%, 100% { transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateY(0deg); }
   50% { transform: translate3d(0, 0, 8px) scale3d(1.08, 1.08, 1) rotateY(10deg); }
@@ -218,6 +272,7 @@ table {
 main {
   min-width: 0;
 }
+
 main > main {
   /* Page shells are nested inside the layout <main>. Give them an explicit
      width so their children (tables, code blocks, etc.) cannot force the
