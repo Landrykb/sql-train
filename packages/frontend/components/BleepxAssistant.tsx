@@ -163,6 +163,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const assistantRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const [isDark, setIsDark] = useState(false);
   const [manualMode, setManualMode] = useState<'auto' | Mode>('auto');
   const [teaser, setTeaser] = useState<{ text: string; command: string } | null>(null);
@@ -318,6 +319,11 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     };
   }, [open, dragging]);
 
+  // Auto-expand the chat textarea as the user types and after sending.
+  useEffect(() => {
+    if (inputRef.current) autoResize(inputRef.current);
+  }, [input]);
+
   const goal = findJourneyGoal();
   const completedCount = completed.size;
 
@@ -340,6 +346,11 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       setMessages((prev) => [...prev, { role: 'assistant', text: needsName ? voice.namePrompt() : voice.prompt(displayName) }]);
       playBleep();
     }, 900);
+  };
+
+  const autoResize = (el: HTMLTextAreaElement) => {
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   };
 
   const setSiteDark = (dark: boolean) => {
@@ -949,14 +960,16 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
                   <button key={q} onClick={() => handleQuick(q)} className="shrink-0 whitespace-nowrap text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors">{q}</button>
                 ))}
               </div>
-              <div className="flex gap-2 min-w-0">
-                <input
+              <div className="flex items-end gap-2 min-w-0">
+                <textarea
+                  ref={inputRef}
                   data-bleepx-ignore
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') send(input); }}
+                  rows={1}
+                  onChange={(e) => { setInput(e.target.value); if (inputRef.current) autoResize(inputRef.current); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input); } }}
                   placeholder="Ask Bleepx..."
-                  className="flex-1 min-w-0 px-3 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  className="flex-1 min-w-0 px-3 py-2 resize-none rounded-2xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-sky-500 max-h-40 min-h-[2.5rem]"
                 />
                 <button onClick={() => send(input)} className="shrink-0 px-3 py-2 rounded-full bg-sky-600 text-white text-xs font-bold hover:bg-sky-700">Send</button>
               </div>
