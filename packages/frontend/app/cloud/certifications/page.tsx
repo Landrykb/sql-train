@@ -194,7 +194,7 @@ export default function CertificationsPage() {
                   <span className="text-xs font-bold w-5 h-5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 flex items-center justify-center flex-shrink-0">{idx + 1}</span>
                   <span className="font-semibold text-sm text-bleepx-text min-w-0 break-words">{step.label}</span>
                 </div>
-                <Link href={step.href} className="text-[10px] text-sky-600 hover:underline break-words min-w-0">{step.resource} →</Link>
+                <Link href={step.href} className="text-xs text-sky-600 hover:underline break-words min-w-0">{step.resource} →</Link>
               </div>
             </label>
           ))}
@@ -240,7 +240,7 @@ export default function CertificationsPage() {
                     <div className="flex-1 min-w-0">
                       <span className="text-sm text-bleepx-text break-words">{step.label}</span>
                       <br/>
-                      <Link href={step.href} className="text-[10px] text-sky-600 hover:underline break-words">{step.resource}</Link>
+                      <Link href={step.href} className="text-xs text-sky-600 hover:underline break-words">{step.resource}</Link>
                     </div>
                   </label>
                 ))}

@@ -67,7 +67,11 @@
    has a computed font-size below 16px, and does not zoom back out on blur —
    this is what makes the app "zoom in" and force the user to manually pinch
    back out. Forcing 16px on form controls on small screens prevents it.
-   Avoid overflow-x: hidden here; it clips content instead of reflowing it. */
+   We also lock the horizontal viewport so the page can never zoom-out/scroll
+   sideways as a whole; wide content must live inside scrollable containers. */
+html, body {
+  overflow-x: hidden;
+}
 body {
   overflow-wrap: break-word;
 }
@@ -76,12 +80,19 @@ pre, code, .font-mono {
   word-break: break-word;
   overflow-wrap: break-word;
 }
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
 img, svg, video, canvas, iframe {
   max-width: 100%;
   height: auto;
 }
 .bleepx-df {
   overflow-x: auto;
+  max-width: 100%;
+}
+table {
   max-width: 100%;
 }
 .no-scrollbar {

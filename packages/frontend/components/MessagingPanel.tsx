@@ -70,7 +70,7 @@ export default function MessagingPanel({ state, onAction }: { state: CloudSandbo
                     <div className="text-xs text-bleepx-text-secondary mt-1">Subscribers: {t.subscriptions.length}</div>
                     {t.messages.length > 0 && (
                       <div className="mt-2 space-y-1">
-                        {t.messages.map((m, i) => <code key={i} className="block text-[10px] px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-bleepx-text font-mono whitespace-pre-wrap break-words" title={m}>{m}</code>)}
+                        {t.messages.map((m, i) => <code key={i} className="block text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-bleepx-text font-mono whitespace-pre-wrap break-words" title={m}>{m}</code>)}
                       </div>
                     )}
                   </div>
@@ -114,7 +114,7 @@ export default function MessagingPanel({ state, onAction }: { state: CloudSandbo
                     {q.messages.length > 0 && (
                       <div className="mt-2 space-y-1">
                         {q.messages.map((m) => (
-                          <code key={m.id} className={`block text-[10px] px-2 py-1 rounded font-mono whitespace-pre-wrap break-words ${m.received ? 'bg-gray-100 dark:bg-gray-800 text-bleepx-text' : 'bg-sky-50 dark:bg-sky-900/20 text-sky-700'}`} title={m.body}>
+                          <code key={m.id} className={`block text-xs px-2 py-1 rounded font-mono whitespace-pre-wrap break-words ${m.received ? 'bg-gray-100 dark:bg-gray-800 text-bleepx-text' : 'bg-sky-50 dark:bg-sky-900/20 text-sky-700'}`} title={m.body}>
                             {m.received ? <span className="inline-flex flex-wrap items-center gap-1"><CheckBadge size={10} /> {m.body}</span> : m.body}
                           </code>
                         ))}

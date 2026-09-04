@@ -155,7 +155,7 @@ export default async function DomainPage({ params }: { params: Promise<{ domain:
             <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text capitalize break-words">
               {domainKey.charAt(0).toUpperCase() + domainKey.slice(1).replace('_', ' ')} Division
             </h1>
-            <p className="text-[10px] sm:text-xs text-bleepx-text-secondary">SwiftLink Training Program</p>
+            <p className="text-xs sm:text-xs text-bleepx-text-secondary">SwiftLink Training Program</p>
           </div>
         </div>
         <div className="flex gap-2 items-center flex-wrap">

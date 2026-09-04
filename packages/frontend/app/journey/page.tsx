@@ -198,7 +198,7 @@ export default function JourneyPage() {
               >
                 <div className="mb-1 text-bleepx-text"><GoalIcon goal={g.id} size={20} /></div>
                 <div className="font-bold text-sm text-bleepx-text break-words">{g.label}</div>
-                <div className="text-[10px] text-bleepx-text-secondary break-words">{g.desc}</div>
+                <div className="text-xs text-bleepx-text-secondary break-words">{g.desc}</div>
               </button>
             );
           })}
@@ -233,7 +233,7 @@ export default function JourneyPage() {
                   </div>
                   <div className="text-right min-w-0">
                     <Link href={step.href} target={step.href.startsWith('http') ? '_blank' : undefined} rel={step.href.startsWith('http') ? 'noopener noreferrer' : undefined} className="text-xs text-sky-600 hover:underline font-medium break-words">{step.resource} →</Link>
-                    <div className="text-[10px] text-bleepx-text-secondary">{step.time}</div>
+                    <div className="text-xs text-bleepx-text-secondary">{step.time}</div>
                   </div>
                 </div>
               </li>

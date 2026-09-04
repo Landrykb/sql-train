@@ -188,22 +188,22 @@ export default function CloudHomePage() {
                         {meta.name}
                       </h3>
                       {meta.cert && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300">{meta.cert}</span>
+                        <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300">{meta.cert}</span>
                       )}
                       {s.pct === 100 && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">COMPLETE</span>
+                        <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">COMPLETE</span>
                       )}
                     </div>
                     <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-0.5 line-clamp-2">{meta.desc}</p>
                     <div className="mt-2 flex items-center gap-2 flex-wrap">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary font-medium inline-flex items-center gap-1"><ChartBarIcon size={12} /> {levelRange(CLOUD_MISSIONS[p])}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary font-medium">{s.total} missions</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary font-medium inline-flex items-center gap-1"><ChartBarIcon size={12} /> {levelRange(CLOUD_MISSIONS[p])}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary font-medium">{s.total} missions</span>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
                       <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div className={`h-full rounded-full bg-gradient-to-r ${meta.color} transition-all duration-700`} style={{ width: `${s.pct}%` }} />
                       </div>
-                      <span className="text-[10px] sm:text-xs text-bleepx-text-secondary font-mono whitespace-nowrap">{s.done}/{s.total}</span>
+                      <span className="text-xs sm:text-xs text-bleepx-text-secondary font-mono whitespace-nowrap">{s.done}/{s.total}</span>
                     </div>
                   </div>
                 </div>

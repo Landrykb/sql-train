@@ -68,7 +68,7 @@ export default function CaseProgress({ caseIds, domain, cases }: Props) {
         <>
           <div className="my-4 flex items-center gap-3">
             <div className="h-px flex-1 bg-amber-200 dark:bg-amber-700" />
-            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest">Classified Missions</span>
+            <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest">Classified Missions</span>
             <div className="h-px flex-1 bg-amber-200 dark:bg-amber-700" />
           </div>
           <ul className="space-y-1.5">

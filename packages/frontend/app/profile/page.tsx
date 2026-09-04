@@ -440,9 +440,9 @@ export default function ProfilePage() {
                 {/* Active perks row */}
                 {isSignedIn && perks.perkLines.length > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider">Perks</span>
+                    <span className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider">Perks</span>
                     {perks.perkLines.map((line, i) => (
-                      <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 font-medium border border-indigo-100 dark:border-indigo-800">{line}</span>
+                      <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 font-medium border border-indigo-100 dark:border-indigo-800">{line}</span>
                     ))}
                   </div>
                 )}
@@ -481,7 +481,7 @@ export default function ProfilePage() {
           <button
             key={t}
             onClick={() => { playBleep(); setTab(t); }}
-            className={`flex flex-col items-center justify-end gap-0.5 text-center min-h-[3.5rem] px-1 sm:px-3 py-2 text-[10px] sm:text-xs font-medium leading-tight whitespace-normal break-words transition-colors border-b-2 -mb-px ${
+            className={`flex flex-col items-center justify-end gap-0.5 text-center min-h-[3.5rem] px-1 sm:px-3 py-2 text-xs sm:text-xs font-medium leading-tight whitespace-normal break-words transition-colors border-b-2 -mb-px ${
               tab === t
                 ? 'border-bleepx-blue text-bleepx-blue'
                 : 'border-transparent text-bleepx-text-secondary hover:text-bleepx-text'

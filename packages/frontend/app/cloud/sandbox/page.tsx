@@ -296,7 +296,7 @@ export default function CloudSandboxPage() {
                       <span className={`font-semibold min-w-0 break-words ${isDone ? 'text-green-700' : 'text-bleepx-text'}`}>{obj.label}</span>
                       {isDone && <span className="text-green-600 text-xs font-bold inline-flex flex-wrap items-center gap-1"><CheckBadge size={12} className="text-green-600" /> Done</span>}
                     </div>
-                    <p className="text-[10px] text-bleepx-text-secondary mt-0.5 leading-relaxed break-words">{obj.theory}</p>
+                    <p className="text-xs text-bleepx-text-secondary mt-0.5 leading-relaxed break-words">{obj.theory}</p>
                   </div>
                 </div>
               </div>

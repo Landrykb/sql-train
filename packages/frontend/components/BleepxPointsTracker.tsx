@@ -22,7 +22,7 @@ export default function BleepxPointsTracker({ caseIds }: Props) {
         </div>
         <div>
           <div className="text-sm font-bold text-bleepx-text">{points} <span className="text-xs font-normal text-bleepx-text-secondary">pts</span></div>
-          <div className="text-[10px] text-bleepx-text-secondary">{completedCount}/{totalCount} cleared</div>
+          <div className="text-xs text-bleepx-text-secondary">{completedCount}/{totalCount} cleared</div>
         </div>
       </div>
       <p className="text-xs text-bleepx-text-secondary italic flex-1 min-w-0 whitespace-normal break-words">{getPointsMessage(points)}</p>

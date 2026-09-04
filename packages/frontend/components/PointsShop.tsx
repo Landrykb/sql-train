@@ -146,7 +146,7 @@ export default function PointsShop() {
             <p className="text-xs font-bold text-indigo-700 dark:text-indigo-300 mb-1.5 inline-flex items-center gap-1"><BoltIcon size={12} /> Active Perks</p>
             <div className="flex flex-wrap gap-2">
               {activePerks.perkLines.map((line, i) => (
-                <span key={i} className="text-[11px] px-2 py-0.5 rounded-full bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-700 text-indigo-600 dark:text-indigo-300 font-medium">{line}</span>
+                <span key={i} className="text-sm px-2 py-0.5 rounded-full bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-700 text-indigo-600 dark:text-indigo-300 font-medium">{line}</span>
               ))}
             </div>
           </div>
@@ -160,7 +160,7 @@ export default function PointsShop() {
             <button
               key={id}
               onClick={() => { playBleep(); setShopTab(id); }}
-              className={`flex flex-col items-center justify-end min-h-[3.25rem] px-1 py-2 text-[10px] sm:text-xs font-medium leading-tight whitespace-normal break-words transition-colors border-b-2 -mb-px ${
+              className={`flex flex-col items-center justify-end min-h-[3.25rem] px-1 py-2 text-xs sm:text-xs font-medium leading-tight whitespace-normal break-words transition-colors border-b-2 -mb-px ${
                 shopTab === id ? 'border-bleepx-blue text-bleepx-blue' : 'border-transparent text-bleepx-text-secondary hover:text-bleepx-text'
               }`}
             >
@@ -196,9 +196,9 @@ export default function PointsShop() {
                           <p className="font-bold text-sm text-bleepx-text break-words">{title.name}</p>
                           <p className="text-xs text-bleepx-text-secondary mt-0.5 break-words">{title.description}</p>
                           <div className="mt-1 flex flex-wrap gap-1">
-                            {title.perks.pointMultiplier > 1 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">{title.perks.pointMultiplier}x pts</span>}
-                            {title.perks.extraFreeHints > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">+{title.perks.extraFreeHints} free hints</span>}
-                            {title.perks.trialTimeBonus > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">+{Math.floor(title.perks.trialTimeBonus / 60)}m trial time</span>}
+                            {title.perks.pointMultiplier > 1 && <span className="text-xs px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">{title.perks.pointMultiplier}x pts</span>}
+                            {title.perks.extraFreeHints > 0 && <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">+{title.perks.extraFreeHints} free hints</span>}
+                            {title.perks.trialTimeBonus > 0 && <span className="text-xs px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">+{Math.floor(title.perks.trialTimeBonus / 60)}m trial time</span>}
                           </div>
                         </div>
                         {!owned && !locked && (
@@ -268,9 +268,9 @@ export default function PointsShop() {
                           </div>
                           <p className="text-xs text-bleepx-text-secondary">{badge.description}</p>
                           <div className="mt-1 flex flex-wrap gap-1">
-                            {badge.perks.pointMultiplier > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">+{Math.round(badge.perks.pointMultiplier * 100)}% pts</span>}
-                            {badge.perks.hintDiscount > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">-{badge.perks.hintDiscount} hint cost</span>}
-                            {badge.perks.skipDiscount > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-medium">-{badge.perks.skipDiscount} skip cost</span>}
+                            {badge.perks.pointMultiplier > 0 && <span className="text-xs px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium">+{Math.round(badge.perks.pointMultiplier * 100)}% pts</span>}
+                            {badge.perks.hintDiscount > 0 && <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">-{badge.perks.hintDiscount} hint cost</span>}
+                            {badge.perks.skipDiscount > 0 && <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-medium">-{badge.perks.skipDiscount} skip cost</span>}
                           </div>
                         </div>
                       </div>
@@ -361,13 +361,13 @@ export default function PointsShop() {
                           <p className="text-xs text-bleepx-text-secondary mt-0.5">{tier.description}</p>
                           <div className="mt-1.5 flex flex-wrap gap-1">
                             {tier.features.map(f => (
-                              <span key={f} className="px-2 py-0.5 rounded text-[10px] font-mono bg-gray-100 dark:bg-gray-700 text-bleepx-text-secondary">{f}</span>
+                              <span key={f} className="px-2 py-0.5 rounded text-xs font-mono bg-gray-100 dark:bg-gray-700 text-bleepx-text-secondary">{f}</span>
                             ))}
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0 ml-3">
                           <p className="text-xs font-bold text-amber-600 dark:text-amber-400">{tier.minPoints} pts</p>
-                          <p className="text-[10px] text-bleepx-text-secondary">lifetime</p>
+                          <p className="text-xs text-bleepx-text-secondary">lifetime</p>
                         </div>
                       </div>
                     </div>

@@ -16,12 +16,12 @@ export function DataGrid({ data }: { data: Record<string, any>[] }) {
     return <p className="text-sm text-bleepx-text-secondary">Query returned {data.length} row(s) but no columns were found.</p>
   }
   return (
-    <div className="overflow-x-auto max-w-full max-h-[400px]">
-      <table className="w-full min-w-max table-auto border-collapse text-sm" style={{ borderCollapse: 'collapse' }}>
+    <div className="overflow-x-auto max-w-full max-h-[400px] rounded-lg border border-bleepx-border">
+      <table className="w-full min-w-max table-auto border-collapse text-[13px] sm:text-sm" style={{ borderCollapse: 'collapse' }}>
         <thead className="sticky top-0 z-10">
           <tr>
             {cols.map(c => (
-              <th key={c} className="px-3 py-2 text-left text-xs font-semibold border border-bleepx-border bg-bleepx-bg text-bleepx-gray whitespace-nowrap">
+              <th key={c} className="px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm font-semibold border border-bleepx-border bg-bleepx-bg text-bleepx-gray whitespace-nowrap">
                 {c}
               </th>
             ))}
@@ -31,7 +31,7 @@ export function DataGrid({ data }: { data: Record<string, any>[] }) {
           {data.map((row, i) => (
             <tr key={i} className={i % 2 === 0 ? 'bg-bleepx-white' : 'bg-bleepx-bg'}>
               {cols.map(c => (
-                <td key={c} className="px-3 py-1.5 text-xs border border-bleepx-border text-bleepx-text whitespace-nowrap">
+                <td key={c} className="px-2 sm:px-3 py-1.5 sm:py-2 text-[13px] sm:text-sm border border-bleepx-border text-bleepx-text whitespace-nowrap">
                   {row[c] != null ? String(row[c]) : ''}
                 </td>
               ))}

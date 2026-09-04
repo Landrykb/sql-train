@@ -65,13 +65,13 @@ function CsvOutput({ csv, cell, title }: { csv: string; cell?: number; title: st
 
   return (
     <div className="mt-3 rounded-lg border border-gray-700 overflow-hidden bg-gray-950">
-      <div className="flex flex-wrap items-center gap-2 px-3 py-1.5 bg-gray-900 border-b border-gray-700 text-[10px] font-mono">
+      <div className="flex flex-wrap items-center gap-2 px-3 py-1.5 bg-gray-900 border-b border-gray-700 text-xs font-mono">
         <span className="text-emerald-400 font-bold">Out[{cell ?? ' '}]</span>
         <span className="text-gray-400">{title}</span>
       </div>
       {parsed ? (
         <div className="overflow-x-auto max-w-full max-h-80">
-          <table className="w-full text-[10px] font-mono">
+          <table className="w-full text-xs font-mono">
             <thead className="bg-gray-900 text-gray-300 sticky top-0">
               <tr>
                 {parsed.headers.map((h, i) => (
@@ -264,7 +264,7 @@ export default function CloudPipelineCanvas() {
           return (
             <div className="p-3 rounded-lg bg-sky-50 dark:bg-sky-900/10 border border-sky-200 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-200">
               <strong>{p.name}</strong> — {p.description}<br/>
-              <span className="text-[10px]">Source: {p.sourceUrl}</span>
+              <span className="text-xs">Source: {p.sourceUrl}</span>
             </div>
           );
         })()}
@@ -283,7 +283,7 @@ export default function CloudPipelineCanvas() {
           className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm mb-3"
         />
         {sourceInfo && (
-          <p className="text-[10px] text-sky-600 dark:text-sky-400 mb-3">
+          <p className="text-xs text-sky-600 dark:text-sky-400 mb-3">
             <span className="inline-flex flex-wrap items-center gap-1"><ChartBarIcon size={12} /> Detected {sourceInfo.filename} from {pipeline.sourceUrl.includes('kaggle') ? 'Kaggle' : 'data.world'}.</span>
           </p>
         )}
@@ -297,13 +297,13 @@ export default function CloudPipelineCanvas() {
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => loadSample('id,name,quantity,price\n1,Alice,2,9.99\n2,Bob,5,4.50\n3,Carol,1,19.99\n4,Dave,3,7.25')}
-            className="text-[10px] px-3 py-1.5 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 font-bold hover:bg-teal-200 transition-colors"
+            className="text-xs px-3 py-1.5 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 font-bold hover:bg-teal-200 transition-colors"
           >
             Load sample sales CSV
           </button>
           <button
             onClick={() => loadSample('sensor,temperature,humidity\nA,22.5,60\nB,21.0,65\nC,23.1,58\nD,20.4,72')}
-            className="text-[10px] px-3 py-1.5 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 font-bold hover:bg-teal-200 transition-colors"
+            className="text-xs px-3 py-1.5 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 font-bold hover:bg-teal-200 transition-colors"
           >
             Load sample IoT CSV
           </button>
@@ -313,7 +313,7 @@ export default function CloudPipelineCanvas() {
       {/* SQL */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
         <h2 className="text-base font-bold text-bleepx-text mb-2">2. SQL Analysis</h2>
-        <div className="mb-2 text-[10px] font-mono text-emerald-500">In[{pipeline.sqlCell ?? ' '}]</div>
+        <div className="mb-2 text-xs font-mono text-emerald-500">In[{pipeline.sqlCell ?? ' '}]</div>
         <textarea
           value={pipeline.sqlQuery}
           onChange={(e) => setPipeline((p) => ({ ...p, sqlQuery: e.target.value }))}
@@ -331,7 +331,7 @@ export default function CloudPipelineCanvas() {
       {/* Python */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
         <h2 className="text-base font-bold text-bleepx-text mb-2">3. Python ETL</h2>
-        <div className="mb-2 text-[10px] font-mono text-emerald-500">In[{pipeline.pythonCell ?? ' '}]</div>
+        <div className="mb-2 text-xs font-mono text-emerald-500">In[{pipeline.pythonCell ?? ' '}]</div>
         <textarea
           value={pipeline.pythonCode}
           onChange={(e) => setPipeline((p) => ({ ...p, pythonCode: e.target.value }))}

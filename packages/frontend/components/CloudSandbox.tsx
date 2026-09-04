@@ -136,7 +136,7 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-2 py-1 rounded-full text-[10px] sm:px-3 sm:py-1.5 sm:text-xs font-bold uppercase tracking-wide transition-colors snap-start whitespace-nowrap min-w-fit ${
+            className={`px-2 py-1 rounded-full text-xs sm:px-3 sm:py-1.5 sm:text-xs font-bold uppercase tracking-wide transition-colors snap-start whitespace-nowrap min-w-fit ${
               activeTab === tab ? 'bg-sky-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
           >
@@ -197,7 +197,7 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
                 <p className="text-xs text-green-700 dark:text-green-300 mt-1 ml-7 italic">{step.explanation}</p>
               )}
               {completedSteps[step.id] && step.examConcept && (
-                <p className="text-[10px] text-sky-600 dark:text-sky-400 mt-1 ml-7 inline-flex flex-wrap items-center gap-1"><SchoolIcon size={10} /> {step.examConcept}</p>
+                <p className="text-xs text-sky-600 dark:text-sky-400 mt-1 ml-7 inline-flex flex-wrap items-center gap-1"><SchoolIcon size={10} /> {step.examConcept}</p>
               )}
             </div>
           ))}
@@ -384,21 +384,21 @@ function S3Panel({ state, onAction }: { state: CloudSandboxState; onAction: (s: 
           <div key={b.name} className="p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <div className="flex flex-wrap items-center justify-between">
               <span className="font-mono text-sm font-bold text-bleepx-text min-w-0 whitespace-normal break-words">{b.name}</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
                 {b.region} · {b.objects.length} objects
               </span>
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
-              <button onClick={() => onAction(setS3PublicAccess(state, b.name, !b.publicAccessBlock))} className="text-[10px] px-2 py-1 rounded bg-amber-100 text-amber-700 hover:bg-amber-200">
+              <button onClick={() => onAction(setS3PublicAccess(state, b.name, !b.publicAccessBlock))} className="text-xs px-2 py-1 rounded bg-amber-100 text-amber-700 hover:bg-amber-200">
                 {b.publicAccessBlock ? 'Disable' : 'Enable'} Public Access Block
               </button>
-              <button onClick={() => onAction(setS3Encryption(state, b.name, 'AES256'))} className="text-[10px] px-2 py-1 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
+              <button onClick={() => onAction(setS3Encryption(state, b.name, 'AES256'))} className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
                 SSE-S3
               </button>
-              <button onClick={() => onAction(setS3Encryption(state, b.name, 'aws:kms'))} className="text-[10px] px-2 py-1 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
+              <button onClick={() => onAction(setS3Encryption(state, b.name, 'aws:kms'))} className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
                 SSE-KMS
               </button>
-              <button onClick={() => onAction(deleteS3Bucket(state, b.name))} className="text-[10px] px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200">
+              <button onClick={() => onAction(deleteS3Bucket(state, b.name))} className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200">
                 Delete
               </button>
             </div>
@@ -410,7 +410,7 @@ function S3Panel({ state, onAction }: { state: CloudSandboxState; onAction: (s: 
                     <li key={o.key} className="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm">
                       <div className="flex flex-wrap items-center justify-between">
                         <span className="font-mono text-bleepx-text min-w-0 whitespace-normal break-words">{o.key}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300">{o.storageClass}</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300">{o.storageClass}</span>
                       </div>
                       <div className="mt-1 flex flex-wrap items-center gap-2">
                         <select
@@ -428,21 +428,21 @@ function S3Panel({ state, onAction }: { state: CloudSandboxState; onAction: (s: 
                         </select>
                         <button
                           onClick={() => onAction(setS3ObjectStorageClass(state, b.name, o.key, current))}
-                          className="text-[10px] px-2 py-1 rounded bg-sky-100 text-sky-700 hover:bg-sky-200 font-bold"
+                          className="text-xs px-2 py-1 rounded bg-sky-100 text-sky-700 hover:bg-sky-200 font-bold"
                         >
                           Set Class
                         </button>
                         {['GLACIER', 'GLACIER_DEEP_ARCHIVE'].includes(o.storageClass) && (
                           <button
                             onClick={() => onAction(restoreS3Object(state, b.name, o.key))}
-                            className="text-[10px] px-2 py-1 rounded bg-amber-100 text-amber-700 hover:bg-amber-200 font-bold"
+                            className="text-xs px-2 py-1 rounded bg-amber-100 text-amber-700 hover:bg-amber-200 font-bold"
                           >
                             Restore
                           </button>
                         )}
                       </div>
                       {o.restoreUntil && (
-                        <div className="text-[10px] text-amber-700 dark:text-amber-400 mt-1">Restored until {o.restoreUntil.slice(0, 10)}</div>
+                        <div className="text-xs text-amber-700 dark:text-amber-400 mt-1">Restored until {o.restoreUntil.slice(0, 10)}</div>
                       )}
                     </li>
                   );
@@ -513,7 +513,7 @@ function IAMPanel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
         {users.map((u) => (
           <div key={u.name} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
             <span className="font-mono font-bold min-w-0 whitespace-normal break-words">{u.name}</span>
-            <div className="text-[10px] text-gray-500 break-words">Attached: {u.attachedPolicies.join(', ') || 'none'}</div>
+            <div className="text-xs text-gray-500 break-words">Attached: {u.attachedPolicies.join(', ') || 'none'}</div>
           </div>
         ))}
       </div>
@@ -550,12 +550,12 @@ function EC2Panel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
           <div key={i.instanceId} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
             <div className="flex flex-wrap items-center justify-between">
               <span className="font-mono font-bold min-w-0 whitespace-normal break-words">{i.instanceId}</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full ${i.state === 'running' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{i.state}</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${i.state === 'running' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{i.state}</span>
             </div>
-            <div className="text-[10px] text-gray-500 break-words">{i.size} · {i.ami} · {i.vCpu} vCPU · {i.ramGiB} GB</div>
+            <div className="text-xs text-gray-500 break-words">{i.size} · {i.ami} · {i.vCpu} vCPU · {i.ramGiB} GB</div>
             <div className="mt-1 flex gap-2">
-              <button onClick={() => onAction(stopEC2Instance(state, i.instanceId))} className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-700">Stop</button>
-              <button onClick={() => onAction(terminateEC2Instance(state, i.instanceId))} className="text-[10px] px-2 py-0.5 rounded bg-red-100 text-red-700">Terminate</button>
+              <button onClick={() => onAction(stopEC2Instance(state, i.instanceId))} className="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700">Stop</button>
+              <button onClick={() => onAction(terminateEC2Instance(state, i.instanceId))} className="text-xs px-2 py-0.5 rounded bg-red-100 text-red-700">Terminate</button>
             </div>
           </div>
         ))}
@@ -630,9 +630,9 @@ function VPCPanel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
         {securityGroups.map((sg) => (
           <div key={sg.groupId} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
             <div className="font-mono font-bold min-w-0 whitespace-normal break-words">{sg.name}</div>
-            <div className="text-[10px] text-gray-500">{sg.inbound.length} inbound · {sg.outbound.length} outbound</div>
+            <div className="text-xs text-gray-500">{sg.inbound.length} inbound · {sg.outbound.length} outbound</div>
             {sg.inbound.map((r, i) => (
-              <div key={i} className="text-[10px] text-gray-600 dark:text-gray-400 font-mono mt-0.5 break-words">
+              <div key={i} className="text-xs text-gray-600 dark:text-gray-400 font-mono mt-0.5 break-words">
                 {r.protocol} {r.fromPort}-{r.toPort} from {r.source}
               </div>
             ))}
@@ -644,7 +644,7 @@ function VPCPanel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
         {vpcs.map((v) => (
           <div key={v.vpcId} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
             <div className="font-mono font-bold min-w-0 whitespace-normal break-words">{v.vpcId}</div>
-            <div className="text-[10px] text-gray-500 break-words">{v.cidr} · {subnets.filter((s) => s.vpcId === v.vpcId).length} subnets</div>
+            <div className="text-xs text-gray-500 break-words">{v.cidr} · {subnets.filter((s) => s.vpcId === v.vpcId).length} subnets</div>
           </div>
         ))}
       </div>
@@ -662,10 +662,10 @@ function EventsPanel({ state }: { state: CloudSandboxState }) {
         <div key={i} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs">
           <div className="flex flex-wrap items-center justify-between">
             <span className="font-bold text-sky-700 dark:text-sky-300 min-w-0 whitespace-normal break-words">{e.service}</span>
-            <span className="text-[10px] text-gray-500">{new Date(e.timestamp).toLocaleTimeString()}</span>
+            <span className="text-xs text-gray-500">{new Date(e.timestamp).toLocaleTimeString()}</span>
           </div>
           <div className="font-mono text-bleepx-text break-words">{e.action} {e.resource}</div>
-          <div className={`text-[10px] break-words ${e.status === 'success' ? 'text-green-600' : e.status === 'failure' ? 'text-red-600' : 'text-gray-500'}`}>{e.message}</div>
+          <div className={`text-xs break-words ${e.status === 'success' ? 'text-green-600' : e.status === 'failure' ? 'text-red-600' : 'text-gray-500'}`}>{e.message}</div>
         </div>
       ))}
     </div>
@@ -722,7 +722,7 @@ function DynamoDBPanel({ state, onAction }: { state: CloudSandboxState; onAction
             setQueryResult(JSON.stringify(res.items, null, 2) + '\n// ' + res.message);
           }
         }} className="w-full px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 disabled:opacity-50" disabled={!tableName}>Query</button>
-        {queryResult && <pre className="mt-2 p-2 rounded-lg bg-gray-900 text-green-400 text-[11px] font-mono overflow-x-auto whitespace-pre-wrap break-words max-w-full">{queryResult}</pre>}
+        {queryResult && <pre className="mt-2 p-2 rounded-lg bg-gray-900 text-green-400 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-words max-w-full">{queryResult}</pre>}
       </div>
 
       <div className="p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
@@ -738,8 +738,8 @@ function DynamoDBPanel({ state, onAction }: { state: CloudSandboxState; onAction
           {Object.values(state.dynamodb.dax).map((c) => (
             <div key={c.clusterName} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
               <div className="font-mono font-bold min-w-0 break-words">{c.clusterName}</div>
-              <div className="text-[10px] text-gray-500 break-words">{c.nodeType} × {c.nodes} nodes · {c.status}</div>
-              <button onClick={() => onAction(deleteDAXCluster(state, c.clusterName))} className="mt-2 text-[10px] px-2 py-1 rounded bg-rose-100 text-rose-700 hover:bg-rose-200 font-bold">Delete</button>
+              <div className="text-xs text-gray-500 break-words">{c.nodeType} × {c.nodes} nodes · {c.status}</div>
+              <button onClick={() => onAction(deleteDAXCluster(state, c.clusterName))} className="mt-2 text-xs px-2 py-1 rounded bg-rose-100 text-rose-700 hover:bg-rose-200 font-bold">Delete</button>
             </div>
           ))}
         </div>
@@ -753,7 +753,7 @@ function DynamoDBPanel({ state, onAction }: { state: CloudSandboxState; onAction
         {Object.values(state.dynamodb.tables).map((t) => (
           <div key={t.tableName} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
             <div className="font-mono font-bold min-w-0 whitespace-normal break-words">{t.tableName}</div>
-            <div className="text-[10px] text-gray-500 break-words">PK: {t.partitionKey} · {t.items.length} items · {t.billingMode}</div>
+            <div className="text-xs text-gray-500 break-words">PK: {t.partitionKey} · {t.items.length} items · {t.billingMode}</div>
           </div>
         ))}
       </div>
@@ -802,14 +802,14 @@ function LambdaPanel({ state, onAction, onInvoke }: { state: CloudSandboxState; 
             } catch { setInvokeResult('Invalid JSON payload'); }
           }
         }} className="w-full px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 disabled:opacity-50" disabled={!selectedFn}>Invoke</button>
-        {invokeResult && <pre className="mt-2 p-2 rounded-lg bg-gray-900 text-green-400 text-[11px] font-mono overflow-x-auto whitespace-pre-wrap break-words max-w-full">{invokeResult}</pre>}
+        {invokeResult && <pre className="mt-2 p-2 rounded-lg bg-gray-900 text-green-400 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-words max-w-full">{invokeResult}</pre>}
       </div>
 
       <div className="space-y-2">
         {Object.values(state.lambda.functions).map((f) => (
           <div key={f.functionName} className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
             <div className="font-mono font-bold min-w-0 whitespace-normal break-words">{f.functionName}</div>
-            <div className="text-[10px] text-gray-500 break-words">{f.runtime} · {f.memoryMb} MB · {f.timeout}s</div>
+            <div className="text-xs text-gray-500 break-words">{f.runtime} · {f.memoryMb} MB · {f.timeout}s</div>
           </div>
         ))}
       </div>
@@ -835,7 +835,7 @@ function TerraformPanel({ state, onAction }: { state: CloudSandboxState; onActio
       <p className="text-xs text-bleepx-text-secondary">Export the current sandbox state as Terraform HCL. This is the Infrastructure as Code (IaC) that would recreate these resources in a real AWS account.</p>
       <button onClick={handleExport} className="px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 inline-flex flex-wrap items-center gap-1">{exported ? <><CheckBadge size={12} /> Terraform Exported</> : 'Generate & Save Terraform'}</button>
       <div className="relative">
-        <button onClick={() => navigator.clipboard?.writeText(tf)} className="absolute top-2 right-2 text-[10px] px-2 py-1 rounded bg-white/10 text-gray-300 hover:bg-white/20">Copy</button>
+        <button onClick={() => navigator.clipboard?.writeText(tf)} className="absolute top-2 right-2 text-xs px-2 py-1 rounded bg-white/10 text-gray-300 hover:bg-white/20">Copy</button>
         <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-xs font-mono overflow-x-auto whitespace-pre-wrap break-words max-h-96 max-w-full">{tf}</pre>
       </div>
     </div>
@@ -858,7 +858,7 @@ function SecurityPanel({ state }: { state: CloudSandboxState }) {
             'bg-sky-50 border-sky-200 dark:bg-sky-900/20 dark:border-sky-800'
           }`}>
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase ${
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold uppercase ${
                 f.severity === 'critical' ? 'bg-red-500 text-white' :
                 f.severity === 'high' ? 'bg-orange-500 text-white' :
                 f.severity === 'medium' ? 'bg-amber-500 text-white' :
@@ -867,8 +867,8 @@ function SecurityPanel({ state }: { state: CloudSandboxState }) {
               <span className="font-mono font-bold text-bleepx-text min-w-0 whitespace-normal break-words">{f.resource}</span>
             </div>
             <p className="text-xs text-bleepx-text-secondary mt-1 break-words"><strong>{f.issue}</strong></p>
-            <p className="text-[10px] text-bleepx-text mt-1 inline-flex flex-wrap items-center gap-1 min-w-0"><ToolsIcon size={10} /> <span className="break-words min-w-0">{f.remediation}</span></p>
-            <p className="text-[10px] text-sky-700 dark:text-sky-400 mt-1 inline-flex flex-wrap items-center gap-1 min-w-0"><SchoolIcon size={10} /> <span className="break-words min-w-0">{f.examConcept}</span></p>
+            <p className="text-xs text-bleepx-text mt-1 inline-flex flex-wrap items-center gap-1 min-w-0"><ToolsIcon size={10} /> <span className="break-words min-w-0">{f.remediation}</span></p>
+            <p className="text-xs text-sky-700 dark:text-sky-400 mt-1 inline-flex flex-wrap items-center gap-1 min-w-0"><SchoolIcon size={10} /> <span className="break-words min-w-0">{f.examConcept}</span></p>
           </div>
         ))}
         {findings.length === 0 && (
@@ -930,21 +930,21 @@ function RDSPanel({ state, onAction }: { state: CloudSandboxState; onAction: (s:
             <div key={db.dbInstanceIdentifier} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-sm space-y-1">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <span className="font-bold text-bleepx-text min-w-0 whitespace-normal break-words">{db.dbInstanceIdentifier}</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${db.status === 'available' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{db.status}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${db.status === 'available' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{db.status}</span>
               </div>
               <div className="text-xs text-bleepx-text-secondary grid sm:grid-cols-2 gap-1 break-words">
                 <span>Engine: {db.engine} {db.instanceClass}</span>
                 <span>Storage: {db.allocatedStorage} GB {db.storageType}</span>
                 <span>AZ: {db.availabilityZone} {db.multiAZ && db.secondaryAvailabilityZone ? `↔ ${db.secondaryAvailabilityZone}` : ''}</span>
-                <span>Endpoint: <span className="font-mono text-[10px]">{db.endpoint}</span></span>
+                <span>Endpoint: <span className="font-mono text-xs">{db.endpoint}</span></span>
                 <span>Multi-AZ: {db.multiAZ ? 'Yes' : 'No'} | Encrypted: {db.storageEncrypted ? 'Yes' : 'No'} | Public: {db.publiclyAccessible ? 'Yes' : 'No'}</span>
                 <span>Backups: {db.backupRetentionPeriod} days</span>
               </div>
               <div className="flex flex-wrap gap-2 pt-2">
-                <button onClick={() => onAction(createRDSSnapshot(state, db.dbInstanceIdentifier))} className="text-[10px] px-2.5 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">Create Snapshot</button>
-                <button onClick={() => onAction(modifyRDSInstance(state, db.dbInstanceIdentifier, { multiAZ: !db.multiAZ }))} className="text-[10px] px-2.5 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">Toggle Multi-AZ</button>
-                <button onClick={() => onAction(modifyRDSInstance(state, db.dbInstanceIdentifier, { storageEncrypted: !db.storageEncrypted }))} className="text-[10px] px-2.5 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">Toggle Encryption</button>
-                <button onClick={() => onAction(deleteRDSInstance(state, db.dbInstanceIdentifier))} className="text-[10px] px-2.5 py-1.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 font-bold hover:bg-rose-200 transition-colors">Delete</button>
+                <button onClick={() => onAction(createRDSSnapshot(state, db.dbInstanceIdentifier))} className="text-xs px-2.5 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">Create Snapshot</button>
+                <button onClick={() => onAction(modifyRDSInstance(state, db.dbInstanceIdentifier, { multiAZ: !db.multiAZ }))} className="text-xs px-2.5 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">Toggle Multi-AZ</button>
+                <button onClick={() => onAction(modifyRDSInstance(state, db.dbInstanceIdentifier, { storageEncrypted: !db.storageEncrypted }))} className="text-xs px-2.5 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">Toggle Encryption</button>
+                <button onClick={() => onAction(deleteRDSInstance(state, db.dbInstanceIdentifier))} className="text-xs px-2.5 py-1.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 font-bold hover:bg-rose-200 transition-colors">Delete</button>
               </div>
             </div>
           ))}

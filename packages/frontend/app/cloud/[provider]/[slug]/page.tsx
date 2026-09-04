@@ -55,15 +55,15 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
   return (
     <div className="relative group">
       {lang && (
-        <span className="absolute top-2 right-12 text-[10px] uppercase tracking-wide text-gray-500 font-mono">{lang}</span>
+        <span className="absolute top-2 right-12 text-xs uppercase tracking-wide text-gray-500 font-mono">{lang}</span>
       )}
       <button
         onClick={() => { navigator.clipboard?.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-        className="absolute top-2 right-2 text-[10px] px-2 py-1 rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+        className="absolute top-2 right-2 text-xs px-2 py-1 rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
       >
         {copied ? 'Copied' : 'Copy'}
       </button>
-      <pre className="bg-gray-900 text-green-300 p-3 pt-8 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap break-words leading-relaxed max-w-full">{code}</pre>
+      <pre className="bg-gray-900 text-green-300 p-3 pt-8 rounded-lg text-xs sm:text-sm overflow-x-auto whitespace-pre-wrap break-all leading-relaxed max-w-full">{code}</pre>
     </div>
   );
 }
@@ -76,7 +76,7 @@ function ArchitectureFlow({ nodes }: { nodes: { label: string; note?: string }[]
         <React.Fragment key={i}>
           <div className="flex-shrink-0 min-w-[110px] max-w-[150px] rounded-lg border border-bleepx-border bg-gradient-to-b from-bleepx-bg to-bleepx-white p-3 text-center">
             <div className="text-xs font-bold text-bleepx-text leading-tight break-words">{n.label}</div>
-            {n.note && <div className="text-[10px] text-bleepx-text-secondary mt-0.5 break-words">{n.note}</div>}
+            {n.note && <div className="text-xs text-bleepx-text-secondary mt-0.5 break-words">{n.note}</div>}
           </div>
           {i < nodes.length - 1 && (
             <div className="flex flex-wrap items-center text-sky-400 text-lg flex-shrink-0">→</div>
@@ -240,8 +240,8 @@ export default function CloudMissionPage() {
           <span className={`flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br ${meta.color} flex items-center justify-center shadow-md`}><CloudProviderIcon provider={provider} size={24} className="text-white" /></span>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] uppercase tracking-wide font-bold text-bleepx-text-secondary">{mission.section}</span>
-              {isDone && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 inline-flex flex-wrap items-center gap-1"><CheckBadge size={10} className="text-emerald-700 dark:text-emerald-300" /> COMPLETED</span>}
+              <span className="text-xs uppercase tracking-wide font-bold text-bleepx-text-secondary">{mission.section}</span>
+              {isDone && <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 inline-flex flex-wrap items-center gap-1"><CheckBadge size={10} className="text-emerald-700 dark:text-emerald-300" /> COMPLETED</span>}
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text mt-0.5 break-words">{mission.title}</h1>
             <div className="mt-2 flex items-center gap-2 flex-wrap">
@@ -323,7 +323,7 @@ export default function CloudMissionPage() {
                   key={l.key}
                   onClick={() => setStepIdx(i)}
                   title={l.concept.name}
-                  className={`h-7 px-2 rounded-full text-[11px] font-medium border transition-colors ${
+                  className={`h-7 px-2 rounded-full text-sm font-medium border transition-colors ${
                     understood.has(l.key)
                       ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'
                       : i === stepIdx
@@ -347,22 +347,22 @@ export default function CloudMissionPage() {
               </div>
               <div className="p-4 space-y-3">
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-sky-600 mb-0.5">Why it matters</p>
+                  <p className="text-sm font-bold uppercase tracking-wide text-sky-600 mb-0.5">Why it matters</p>
                   <p className="text-sm text-bleepx-text-secondary leading-relaxed break-words">{c.why}</p>
                 </div>
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-indigo-500 mb-0.5">When to use it</p>
+                  <p className="text-sm font-bold uppercase tracking-wide text-indigo-500 mb-0.5">When to use it</p>
                   <p className="text-sm text-bleepx-text-secondary leading-relaxed break-words">{c.when}</p>
                 </div>
                 {c.example && (
                   <div>
-                    <p className="text-[11px] font-bold uppercase tracking-wide text-emerald-600 mb-1">Example</p>
+                    <p className="text-sm font-bold uppercase tracking-wide text-emerald-600 mb-1">Example</p>
                     <CodeBlock code={c.example.code} lang={c.example.lang} />
                   </div>
                 )}
                 {c.gotcha && (
                   <div className="rounded-lg border-l-4 border-red-400 bg-red-50 dark:bg-red-900/15 p-3">
-                    <p className="text-[11px] font-bold text-red-600 mb-0.5 flex flex-wrap items-center gap-1"><AlertIcon size={12} /> Gotcha (exam trap)</p>
+                    <p className="text-sm font-bold text-red-600 mb-0.5 flex flex-wrap items-center gap-1"><AlertIcon size={12} /> Gotcha (exam trap)</p>
                     <p className="text-sm text-bleepx-text-secondary leading-relaxed break-words">{c.gotcha}</p>
                   </div>
                 )}

@@ -78,8 +78,8 @@ function CopyInline({ value }: { value: string }) {
       title={`Copy ${value}`}
       className="w-full text-left flex flex-wrap items-center gap-1.5 group"
     >
-      <code className="text-[11px] font-mono text-bleepx-text break-all min-w-0 flex-1">{value}</code>
-      <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold transition-colors flex-shrink-0 ${copied ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 group-hover:bg-teal-500 group-hover:text-white'}`}>
+      <code className="text-sm font-mono text-bleepx-text break-all min-w-0 flex-1">{value}</code>
+      <span className={`text-xs px-1.5 py-0.5 rounded font-bold transition-colors flex-shrink-0 ${copied ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 group-hover:bg-teal-500 group-hover:text-white'}`}>
         {copied ? <IconCheck size={10} /> : <CopyIcon size={10} />}
       </span>
     </button>
@@ -124,7 +124,7 @@ function HowItWorksBanner() {
         <ol className="text-xs text-teal-900/80 dark:text-teal-200/80 space-y-1 list-decimal list-inside leading-relaxed px-4 sm:px-5 pb-4 sm:pb-5 pl-10 sm:pl-12">
           <li>Write your solution in the <strong>Try It Yourself</strong> editor below — matplotlib/seaborn figures and pandas tables render inline.</li>
           <li>Stuck? Expand a section and click <strong className="whitespace-nowrap">↑ Send to editor</strong> to stack its snippet into the editor, notebook-style.</li>
-          <li>Hit <strong>▶ Run</strong> (or <kbd className="px-1 py-0.5 rounded bg-white dark:bg-gray-800 border border-teal-300 dark:border-teal-700 text-[10px]">⌘↵</kbd>) — once your output matches the expected result, the step is marked solved.</li>
+          <li>Hit <strong>▶ Run</strong> (or <kbd className="px-1 py-0.5 rounded bg-white dark:bg-gray-800 border border-teal-300 dark:border-teal-700 text-xs">⌘↵</kbd>) — once your output matches the expected result, the step is marked solved.</li>
           <li>Use <strong>↺ Reset</strong> to restore the starter code at any time.</li>
         </ol>
       )}
@@ -190,12 +190,12 @@ function SpoilerCodeBlock({
       <div className="flex flex-wrap items-center justify-between bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-mono text-bleepx-text-secondary uppercase">{language}</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-medium">Reference</span>
+          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-medium">Reference</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setRevealed(false)}
-            className="text-[10px] px-2 py-1 rounded-md text-bleepx-text-secondary hover:text-bleepx-text transition-colors"
+            className="text-xs px-2 py-1 rounded-md text-bleepx-text-secondary hover:text-bleepx-text transition-colors"
           >
             <EyeOffIcon size={14} className="inline" /> Hide
           </button>
@@ -217,7 +217,7 @@ function SpoilerCodeBlock({
         </div>
       </div>
       <pre className="p-4 overflow-x-auto max-w-full bg-gray-50 dark:bg-gray-900 text-sm leading-relaxed">
-        <code className="text-bleepx-text font-mono whitespace-pre-wrap break-words">{code}</code>
+        <code className="text-bleepx-text font-mono whitespace-pre-wrap break-all">{code}</code>
       </pre>
     </div>
   );
@@ -456,14 +456,14 @@ export default function LabProjectViewer({
           <div className="flex flex-wrap items-center gap-2.5 min-w-0">
             <BleepxFace size={22} />
             <span className="text-white text-xs font-bold tracking-wide uppercase whitespace-nowrap">BleepxLab</span>
-            <span className="text-teal-200 text-[10px] hidden sm:inline">•</span>
+            <span className="text-teal-200 text-xs hidden sm:inline">•</span>
             <span className="text-teal-100 text-xs whitespace-normal break-words min-w-0">{project}</span>
           </div>
           {/* Action chips — wrap on narrow screens, never push Run/Quiz off-screen */}
           <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 sm:justify-end">
             {/* Test mode timer display */}
             {timerEnabled && timeLimit > 0 && !timeExpired && (
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold font-mono whitespace-nowrap ${
+              <span className={`text-xs px-2 py-0.5 rounded-full font-bold font-mono whitespace-nowrap ${
                 timerSeconds <= 60 ? 'bg-red-500 text-white animate-pulse' :
                 timerSeconds <= 5 * 60 ? 'bg-amber-400 text-amber-900' :
                 'bg-white/20 text-white'
@@ -488,17 +488,17 @@ export default function LabProjectViewer({
                   setTimeExpired(false);
                 }
               }}
-              className={`text-[10px] px-2 py-0.5 rounded-full font-medium transition-colors whitespace-nowrap ${
+              className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors whitespace-nowrap ${
                 timerEnabled ? 'bg-amber-400/30 text-amber-100 hover:bg-amber-400/50' : 'bg-white/20 text-white hover:bg-white/30'
               }`}
               title={timerEnabled ? 'Stop timer' : 'Start test-mode timer'}
             >
               {timerEnabled ? <span className="inline-flex flex-wrap items-center gap-1"><ClockIcon size={10} /> Stop</span> : <span className="inline-flex flex-wrap items-center gap-1"><ClockIcon size={10} /> Timer</span>}
             </button>
-            <Link href="/lab/quiz" className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-100 hover:bg-purple-500/50 transition-colors font-medium whitespace-nowrap inline-flex flex-wrap items-center gap-1">
+            <Link href="/lab/quiz" className="text-xs px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-100 hover:bg-purple-500/50 transition-colors font-medium whitespace-nowrap inline-flex flex-wrap items-center gap-1">
               <BrainIcon size={10} /> Quiz
             </Link>
-            <Link href={`/lab/${domain}`} className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors font-medium whitespace-nowrap inline-flex flex-wrap items-center gap-1">
+            <Link href={`/lab/${domain}`} className="text-xs px-2 py-0.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors font-medium whitespace-nowrap inline-flex flex-wrap items-center gap-1">
               <FileTextIcon size={10} /> Steps
             </Link>
           </div>
@@ -511,7 +511,7 @@ export default function LabProjectViewer({
             </div>
             <div className="min-w-0">
               <h2 className="text-xl sm:text-2xl font-bold text-bleepx-text leading-tight break-words">{name}</h2>
-              <p className="text-[10px] text-bleepx-text-secondary mt-0.5">{language} • Step {stepNumber}</p>
+              <p className="text-xs text-bleepx-text-secondary mt-0.5">{language} • Step {stepNumber}</p>
             </div>
           </div>
           <p className="text-sm text-bleepx-text-secondary leading-relaxed">{description}</p>
@@ -519,7 +519,7 @@ export default function LabProjectViewer({
           {/* Skills */}
           <div className="mt-3 flex flex-wrap gap-1.5">
             {skills.map((s) => (
-              <span key={s} className="text-[10px] px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 font-medium border border-teal-200 dark:border-teal-800">
+              <span key={s} className="text-xs px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 font-medium border border-teal-200 dark:border-teal-800">
                 {s}
               </span>
             ))}
@@ -553,7 +553,7 @@ export default function LabProjectViewer({
                   href={datasetUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[10px] px-2.5 py-1 rounded-full bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors inline-flex flex-wrap items-center gap-1"
+                  className="text-xs px-2.5 py-1 rounded-full bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors inline-flex flex-wrap items-center gap-1"
                 >
                   <ExternalLinkIcon size={10} /> View on {sourceName}
                 </a>
@@ -562,7 +562,7 @@ export default function LabProjectViewer({
               {/* Filename panel. */}
               {sourceMatchesPath ? (
                 <div className="mb-2 p-2.5 rounded-lg bg-white dark:bg-gray-900 border border-green-300 dark:border-green-800 flex flex-wrap items-center gap-2.5">
-                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 font-bold whitespace-nowrap flex-shrink-0 inline-flex flex-wrap items-center gap-1"><IconCheck size={10} /> Matches {sourceName}</span>
+                  <span className="text-sm px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 font-bold whitespace-nowrap flex-shrink-0 inline-flex flex-wrap items-center gap-1"><IconCheck size={10} /> Matches {sourceName}</span>
                   <div className="flex-1 min-w-0">
                     <CopyInline value={sourceFilename} />
                   </div>
@@ -571,13 +571,13 @@ export default function LabProjectViewer({
                 <div className="mb-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {sourceFilename && (
                     <div className="p-2 rounded-lg bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-800">
-                      <div className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-0.5">{sourceName} filename</div>
+                      <div className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-0.5">{sourceName} filename</div>
                       <CopyInline value={sourceFilename} />
                     </div>
                   )}
                   {datasetPath && (
                     <div className="p-2 rounded-lg bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-800">
-                      <div className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-0.5">Lab path (browser)</div>
+                      <div className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-0.5">Lab path (browser)</div>
                       <CopyInline value={datasetPath} />
                     </div>
                   )}
@@ -585,24 +585,24 @@ export default function LabProjectViewer({
               ) : null}
 
               {kaggleNote && (
-                <p className="text-[10px] text-blue-700/80 dark:text-blue-300/80 mb-2 italic">{kaggleNote}</p>
+                <p className="text-xs text-blue-700/80 dark:text-blue-300/80 mb-2 italic">{kaggleNote}</p>
               )}
               {dataWorldNote && (
-                <p className="text-[10px] text-blue-700/80 dark:text-blue-300/80 mb-2 italic">{dataWorldNote}</p>
+                <p className="text-xs text-blue-700/80 dark:text-blue-300/80 mb-2 italic">{dataWorldNote}</p>
               )}
 
-              <p className="text-[10px] text-blue-600 dark:text-blue-400 mb-1.5">
+              <p className="text-xs text-blue-600 dark:text-blue-400 mb-1.5">
                 *bleep* Load the dataset in the browser terminal:
               </p>
               <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto max-w-full">
-                <code className="text-[11px] text-green-400 font-mono whitespace-pre-wrap break-words">{`from pyodide.http import open_url\nimport pandas as pd\n\ndf = pd.read_csv(open_url("${datasetPath || '/datasets/YOUR_FILE.csv'}"))\nprint(df.shape)\nprint(df.columns.tolist())`}</code>
+                <code className="text-sm text-green-400 font-mono whitespace-pre-wrap break-all">{`from pyodide.http import open_url\nimport pandas as pd\n\ndf = pd.read_csv(open_url("${datasetPath || '/datasets/YOUR_FILE.csv'}"))\nprint(df.shape)\nprint(df.columns.tolist())`}</code>
               </div>
               {sourceFilename && datasetPath && sourceFilename === labBasename ? (
-                <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
+                <p className="text-xs text-blue-500 dark:text-blue-400/70 mt-1.5">
                   <BulbIcon size={10} className="inline" /> Running locally? The file inside the {sourceName} download is already named <code className="px-1 bg-white dark:bg-gray-900 rounded font-mono">{sourceFilename}</code> — drop it into the notebook's working directory and the code above runs unchanged (swap <code>open_url(...)</code> for <code>"{sourceFilename}"</code>).
                 </p>
               ) : sourceFilename ? (
-                <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
+                <p className="text-xs text-blue-500 dark:text-blue-400/70 mt-1.5">
                   <BulbIcon size={10} className="inline" /> Running locally? {sourceName} ships <code className="px-1 bg-white dark:bg-gray-900 rounded font-mono">{sourceFilename}</code>. Point <code>read_csv</code> at that path and everything else works unchanged.
                 </p>
               ) : null}
@@ -617,7 +617,7 @@ export default function LabProjectViewer({
               </h4>
               <div className="flex flex-wrap gap-1.5">
                 {schema.map((col, i) => (
-                  <code key={i} className="text-[10px] px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-bleepx-text font-mono">{col}</code>
+                  <code key={i} className="text-xs px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-bleepx-text font-mono">{col}</code>
                 ))}
               </div>
             </div>
@@ -656,7 +656,7 @@ export default function LabProjectViewer({
             </div>
           </div>
           {codeLang === 'r' && (
-            <p className="text-[10px] text-blue-600 dark:text-blue-400 mt-2">
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
               R equivalents shown where available. Some advanced steps are Python-only.
             </p>
           )}
@@ -675,7 +675,7 @@ export default function LabProjectViewer({
           </h3>
           <div className="flex flex-wrap items-center gap-2">
             {stepSolved && (
-              <span className="text-[10px] font-bold text-green-400 px-2 py-0.5 rounded-full bg-green-900/40 border border-green-700">
+              <span className="text-xs font-bold text-green-400 px-2 py-0.5 rounded-full bg-green-900/40 border border-green-700">
                 Solved
               </span>
             )}
@@ -708,8 +708,8 @@ import numpy as np
               <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 mb-2 flex flex-wrap items-center gap-1.5 min-w-0">
                 <IconLetterR size={12} className="flex-shrink-0" /> <span className="min-w-0">R Solution Reference</span>
               </h4>
-              <pre className="text-xs bg-gray-900 text-gray-100 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-words font-mono max-w-full"><code>{rSolutionCode}</code></pre>
-              <p className="text-[10px] text-blue-500 dark:text-blue-400/70 mt-1.5">
+              <pre className="text-xs sm:text-sm bg-gray-900 text-gray-100 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-all font-mono max-w-full"><code>{rSolutionCode}</code></pre>
+              <p className="text-xs text-blue-500 dark:text-blue-400/70 mt-1.5">
                 *bleep* The browser editor runs Python only. Use R code locally in RStudio or Jupyter with an R kernel.
               </p>
             </div>
@@ -749,7 +749,7 @@ import numpy as np
               onClick={() => toggleSection(idx)}
               className="w-full px-4 py-3 flex flex-wrap items-center gap-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors rounded-t-2xl"
             >
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 transition-colors ${
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-colors ${
                 isComplete
                   ? 'bg-emerald-500 text-white'
                   : 'bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary'
@@ -794,7 +794,7 @@ import numpy as np
                   <div className="flex flex-wrap items-start gap-2">
                     <BleepxFace size={20} className="flex-shrink-0" />
                     <div className="min-w-0">
-                      <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Bleepx says:</span>
+                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Bleepx says:</span>
                       <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed mt-0.5">{section.explanation}</p>
                     </div>
                   </div>
@@ -842,7 +842,7 @@ import numpy as np
             <ol className="mt-3 space-y-2">
               {thoughtProcess.map((step, i) => (
                 <li key={i} className="text-xs text-bleepx-text-secondary flex flex-wrap items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-teal-100 dark:bg-teal-900/30 flex flex-wrap items-center justify-center text-[10px] font-bold text-teal-700 dark:text-teal-300 flex-shrink-0 mt-0.5">{i + 1}</span>
+                  <span className="w-5 h-5 rounded-full bg-teal-100 dark:bg-teal-900/30 flex flex-wrap items-center justify-center text-xs font-bold text-teal-700 dark:text-teal-300 flex-shrink-0 mt-0.5">{i + 1}</span>
                   <span>{step}</span>
                 </li>
               ))}
@@ -874,7 +874,7 @@ import numpy as np
               {hints.map((hint, i) => (
                 <li key={i} className="text-xs text-bleepx-text-secondary flex flex-wrap items-start gap-2">
                   <BulbIcon size={12} className="text-amber-500 mt-0.5" />
-                  <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-[11px]">{hint}</code>
+                  <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm">{hint}</code>
                 </li>
               ))}
             </ul>
@@ -906,37 +906,37 @@ import numpy as np
             </p>
             <div className="space-y-3">
               <div>
-                <h5 className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Histogram</h5>
+                <h5 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Histogram</h5>
                 <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto max-w-full">
-                  <code className="text-[11px] text-green-400 font-mono whitespace-pre-wrap break-words">{`import matplotlib.pyplot as plt\ndf['column_name'].hist(bins=30, edgecolor='black')\nplt.title('Distribution')\nplt.xlabel('Value')\nplt.ylabel('Count')\nplt.show()`}</code>
+                  <code className="text-sm text-green-400 font-mono whitespace-pre-wrap break-all">{`import matplotlib.pyplot as plt\ndf['column_name'].hist(bins=30, edgecolor='black')\nplt.title('Distribution')\nplt.xlabel('Value')\nplt.ylabel('Count')\nplt.show()`}</code>
                 </div>
               </div>
               <div>
-                <h5 className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Scatter Plot</h5>
+                <h5 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Scatter Plot</h5>
                 <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto max-w-full">
-                  <code className="text-[11px] text-green-400 font-mono whitespace-pre-wrap break-words">{`import matplotlib.pyplot as plt\nplt.scatter(df['x_col'], df['y_col'], alpha=0.5)\nplt.title('X vs Y')\nplt.xlabel('X')\nplt.ylabel('Y')\nplt.show()`}</code>
+                  <code className="text-sm text-green-400 font-mono whitespace-pre-wrap break-all">{`import matplotlib.pyplot as plt\nplt.scatter(df['x_col'], df['y_col'], alpha=0.5)\nplt.title('X vs Y')\nplt.xlabel('X')\nplt.ylabel('Y')\nplt.show()`}</code>
                 </div>
               </div>
               <div>
-                <h5 className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Correlation Heatmap</h5>
+                <h5 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Correlation Heatmap</h5>
                 <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto max-w-full">
-                  <code className="text-[11px] text-green-400 font-mono whitespace-pre-wrap break-words">{`import seaborn as sns\nimport matplotlib.pyplot as plt\nsns.heatmap(df.select_dtypes('number').corr(),\n  annot=True, cmap='coolwarm', fmt='.2f')\nplt.title('Correlation Matrix')\nplt.tight_layout()\nplt.show()`}</code>
+                  <code className="text-sm text-green-400 font-mono whitespace-pre-wrap break-all">{`import seaborn as sns\nimport matplotlib.pyplot as plt\nsns.heatmap(df.select_dtypes('number').corr(),\n  annot=True, cmap='coolwarm', fmt='.2f')\nplt.title('Correlation Matrix')\nplt.tight_layout()\nplt.show()`}</code>
                 </div>
               </div>
               <div>
-                <h5 className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Box Plot</h5>
+                <h5 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Box Plot</h5>
                 <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto max-w-full">
-                  <code className="text-[11px] text-green-400 font-mono whitespace-pre-wrap break-words">{`import seaborn as sns\nimport matplotlib.pyplot as plt\nsns.boxplot(data=df, x='category_col', y='value_col')\nplt.xticks(rotation=45)\nplt.tight_layout()\nplt.show()`}</code>
+                  <code className="text-sm text-green-400 font-mono whitespace-pre-wrap break-all">{`import seaborn as sns\nimport matplotlib.pyplot as plt\nsns.boxplot(data=df, x='category_col', y='value_col')\nplt.xticks(rotation=45)\nplt.tight_layout()\nplt.show()`}</code>
                 </div>
               </div>
               <div>
-                <h5 className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Line Chart (Time Series)</h5>
+                <h5 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">Line Chart (Time Series)</h5>
                 <div className="bg-gray-900 rounded-lg p-2.5 overflow-x-auto max-w-full">
-                  <code className="text-[11px] text-green-400 font-mono whitespace-pre-wrap break-words">{`import matplotlib.pyplot as plt\ndf.plot(x='date_col', y='value_col', figsize=(10,4))\nplt.title('Trend Over Time')\nplt.tight_layout()\nplt.show()`}</code>
+                  <code className="text-sm text-green-400 font-mono whitespace-pre-wrap break-all">{`import matplotlib.pyplot as plt\ndf.plot(x='date_col', y='value_col', figsize=(10,4))\nplt.title('Trend Over Time')\nplt.tight_layout()\nplt.show()`}</code>
                 </div>
               </div>
             </div>
-            <p className="text-[10px] text-bleepx-text-secondary italic">
+            <p className="text-xs text-bleepx-text-secondary italic">
               Tip: Replace column names with your actual dataset columns. Use <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">df.columns.tolist()</code> to see available columns.
             </p>
           </div>
@@ -994,12 +994,12 @@ import numpy as np
                       <circle cx="18" cy="18" r="15" fill="none" className="stroke-gray-200 dark:stroke-gray-700" strokeWidth="3" />
                       <circle cx="18" cy="18" r="15" fill="none" className="stroke-teal-500" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${(countdown / 10) * 94.2} 94.2`} />
                     </svg>
-                    <span className="absolute inset-0 flex flex-wrap items-center justify-center text-[10px] font-bold text-teal-700 dark:text-teal-300">{countdown}</span>
+                    <span className="absolute inset-0 flex flex-wrap items-center justify-center text-xs font-bold text-teal-700 dark:text-teal-300">{countdown}</span>
                   </div>
                   <span className="text-xs text-teal-600 dark:text-teal-400">Auto-advancing...</span>
                   <button
                     onClick={() => setCountdown(null)}
-                    className="text-[10px] px-2 py-0.5 rounded-full border border-teal-300 dark:border-teal-700 text-teal-600 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/30 transition-colors"
+                    className="text-xs px-2 py-0.5 rounded-full border border-teal-300 dark:border-teal-700 text-teal-600 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/30 transition-colors"
                   >
                     Cancel
                   </button>

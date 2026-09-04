@@ -126,15 +126,15 @@ export default function LabHomePage() {
                     </div>
                     <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-0.5 line-clamp-2">{meta.desc}</p>
                     <div className="mt-2 flex items-center gap-3 flex-wrap">
-                      <span className="text-[10px] sm:text-xs text-bleepx-text-secondary">{meta.difficulty}</span>
+                      <span className="text-xs sm:text-xs text-bleepx-text-secondary">{meta.difficulty}</span>
                       <StarRating stars={meta.stars} size={12} />
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 font-medium">{meta.language}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 font-medium">{meta.language}</span>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
                       <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div className={`h-full rounded-full bg-gradient-to-r ${meta.color} transition-all duration-700`} style={{ width: `${pct}%` }} />
                       </div>
-                      <span className="text-[10px] sm:text-xs text-bleepx-text-secondary font-mono whitespace-nowrap">{done}/{steps}</span>
+                      <span className="text-xs sm:text-xs text-bleepx-text-secondary font-mono whitespace-nowrap">{done}/{steps}</span>
                     </div>
                   </div>
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 dark:text-gray-600 group-hover:text-teal-600 group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-1 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -154,22 +154,22 @@ export default function LabHomePage() {
           <div>
             <div className="flex justify-center mb-1"><BleepxSignal size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">Step-by-Step Guides</div>
-            <div className="text-[10px] text-bleepx-text-secondary mt-0.5">Code + theory per step</div>
+            <div className="text-xs text-bleepx-text-secondary mt-0.5">Code + theory per step</div>
           </div>
           <div>
             <div className="flex justify-center mb-1"><BleepxSpark size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">Real Datasets</div>
-            <div className="text-[10px] text-bleepx-text-secondary mt-0.5">Kaggle & public sources</div>
+            <div className="text-xs text-bleepx-text-secondary mt-0.5">Kaggle & public sources</div>
           </div>
           <div>
             <div className="flex justify-center mb-1"><BleepxFace size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">ML Models</div>
-            <div className="text-[10px] text-bleepx-text-secondary mt-0.5">Regression to deep learning</div>
+            <div className="text-xs text-bleepx-text-secondary mt-0.5">Regression to deep learning</div>
           </div>
           <div>
             <div className="flex justify-center mb-1"><BleepxGit size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">Portfolio Ready</div>
-            <div className="text-[10px] text-bleepx-text-secondary mt-0.5">Resume-worthy projects</div>
+            <div className="text-xs text-bleepx-text-secondary mt-0.5">Resume-worthy projects</div>
           </div>
         </div>
       </div>

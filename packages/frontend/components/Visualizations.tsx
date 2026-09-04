@@ -308,7 +308,7 @@ ${getJSCode()}
                 />
               </div>
               <p className="text-xs mt-2 text-bleepx-text-secondary">
-                <span className="font-mono px-1.5 py-0.5 rounded text-[10px] bg-gray-100 dark:bg-gray-700">SQL</span>{' '}
+                <span className="font-mono px-1.5 py-0.5 rounded text-xs bg-gray-100 dark:bg-gray-700">SQL</span>{' '}
                 {currentChart.query}
               </p>
             </div>
@@ -331,21 +331,21 @@ ${getJSCode()}
               <div>
                 <div className="flex flex-wrap items-center justify-between mb-2">
                   <h4 className="text-sm font-bold text-bleepx-text">SQL Query</h4>
-                  <button onClick={() => navigator.clipboard.writeText(currentChart.query)} className="text-[10px] text-bleepx-blue hover:underline">Copy</button>
+                  <button onClick={() => navigator.clipboard.writeText(currentChart.query)} className="text-xs text-bleepx-blue hover:underline">Copy</button>
                 </div>
                 <pre className="bg-gray-900 text-green-400 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap break-words">{currentChart.query}</pre>
               </div>
               <div>
                 <div className="flex flex-wrap items-center justify-between mb-2">
                   <h4 className="text-sm font-bold text-bleepx-text">JavaScript (Plotly.js)</h4>
-                  <button onClick={() => navigator.clipboard.writeText(getJSCode())} className="text-[10px] text-bleepx-blue hover:underline">Copy</button>
+                  <button onClick={() => navigator.clipboard.writeText(getJSCode())} className="text-xs text-bleepx-blue hover:underline">Copy</button>
                 </div>
                 <pre className="bg-gray-900 text-blue-300 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap break-words max-h-[300px]">{getJSCode()}</pre>
               </div>
               <div>
                 <div className="flex flex-wrap items-center justify-between mb-2">
                   <h4 className="text-sm font-bold text-bleepx-text">Python (Plotly Express)</h4>
-                  <button onClick={() => navigator.clipboard.writeText(getPythonCode())} className="text-[10px] text-bleepx-blue hover:underline">Copy</button>
+                  <button onClick={() => navigator.clipboard.writeText(getPythonCode())} className="text-xs text-bleepx-blue hover:underline">Copy</button>
                 </div>
                 <pre className="bg-gray-900 text-yellow-300 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap break-words max-h-[300px]">{getPythonCode()}</pre>
               </div>

@@ -211,7 +211,7 @@ export default function SaaPracticeExamPage() {
                 <div key={q.id} className={`p-4 rounded-xl border ${isCorrect ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-900/10' : 'border-rose-200 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-900/10'}`}>
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <span className="text-[10px] font-bold uppercase text-bleepx-text-secondary">{i + 1}. {DOMAIN_LABELS[q.domain]}</span>
+                      <span className="text-xs font-bold uppercase text-bleepx-text-secondary">{i + 1}. {DOMAIN_LABELS[q.domain]}</span>
                       <p className="text-sm font-bold text-bleepx-text mt-1">{q.question}</p>
                     </div>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>{isCorrect ? 'Correct' : 'Incorrect'}</span>

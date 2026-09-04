@@ -65,9 +65,9 @@ export default function CasesPage() {
                     </h3>
                     {info && <p className="text-xs text-bleepx-text-secondary mt-0.5 line-clamp-1">{info.desc}</p>}
                     <div className="mt-2 flex items-center gap-3">
-                      <span className="text-[10px] sm:text-xs text-bleepx-text-secondary">{info?.difficulty || 'Beginner'}</span>
+                      <span className="text-xs sm:text-xs text-bleepx-text-secondary">{info?.difficulty || 'Beginner'}</span>
                       <StarRating stars={info?.stars || 1} size={12} />
-                      <span className="text-[10px] text-bleepx-text-secondary ml-auto">{total} missions</span>
+                      <span className="text-xs text-bleepx-text-secondary ml-auto">{total} missions</span>
                     </div>
                   </div>
                   <svg className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-bleepx-blue group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-1 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

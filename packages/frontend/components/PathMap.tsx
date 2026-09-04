@@ -154,7 +154,7 @@ export default function PathMap({ domain, cases }: PathMapProps) {
               style={{ width: `${progressPct}%` }}
             />
           </div>
-          <span className="text-[10px] sm:text-xs text-gray-400 font-mono">{progressPct}%</span>
+          <span className="text-xs sm:text-xs text-gray-400 font-mono">{progressPct}%</span>
         </div>
       </div>
 
@@ -179,7 +179,7 @@ export default function PathMap({ domain, cases }: PathMapProps) {
                   ${colors.bg} ${colors.border} ${colors.text}
                   ${colors.glow ? `shadow-md ${colors.glow}` : ''}
                 `}>
-                  {status === 'completed' ? <StatusIcon status={status} isHidden={false} /> : <span className="text-[10px]">{i + 1}</span>}
+                  {status === 'completed' ? <StatusIcon status={status} isHidden={false} /> : <span className="text-xs">{i + 1}</span>}
                 </span>
                 <span className={`text-sm font-medium min-w-0 whitespace-normal break-words flex-1 ${
                   status === 'completed' ? 'text-emerald-300' :
@@ -189,7 +189,7 @@ export default function PathMap({ domain, cases }: PathMapProps) {
                   {getCaseName(node.id)}
                 </span>
                 {status === 'locked' && (
-                  <span className="text-[10px] text-gray-500 flex-shrink-0">
+                  <span className="text-xs text-gray-500 flex-shrink-0">
                     {(() => { const t = CASE_TIERS[node.id] || 1; const r = TRIAL_TIER_UNLOCK[t]; return r && r.minPoints > 0 ? `${r.minPoints} pts` : ''; })()}
                   </span>
                 )}
@@ -237,7 +237,7 @@ export default function PathMap({ domain, cases }: PathMapProps) {
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     {label && (
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                      <span className={`text-xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
                         status === 'completed' ? 'bg-emerald-500/20 text-emerald-400' :
                         status === 'unlocked' ? 'bg-blue-500/20 text-blue-400' :
                         'bg-gray-700 text-gray-500'

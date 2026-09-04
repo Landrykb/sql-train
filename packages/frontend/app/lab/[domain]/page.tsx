@@ -129,16 +129,16 @@ export default async function LabDomainPage({ params }: { params: Promise<{ doma
                   </h3>
                   <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-0.5 line-clamp-2">{step.description}</p>
                   <div className="mt-2 flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary">
+                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary">
                       {tierLabels[step.tier] || 'Beginner'}
                     </span>
                     {step.skills.slice(0, 4).map((s) => (
-                      <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300">
+                      <span key={s} className="text-xs px-1.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300">
                         {s}
                       </span>
                     ))}
                     {step.skills.length > 4 && (
-                      <span className="text-[10px] text-bleepx-text-secondary">+{step.skills.length - 4}</span>
+                      <span className="text-xs text-bleepx-text-secondary">+{step.skills.length - 4}</span>
                     )}
                   </div>
                 </div>

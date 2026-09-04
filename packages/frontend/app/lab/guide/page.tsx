@@ -177,7 +177,7 @@ export default function LabGuidePage() {
                 <h3 className="font-bold text-bleepx-text group-hover:text-teal-600 transition-colors">{t.name}</h3>
               </div>
               <p className="text-xs text-bleepx-text-secondary">{t.description}</p>
-              <div className="mt-3 text-[10px] text-teal-600 font-medium">{t.sections.length} sections →</div>
+              <div className="mt-3 text-xs text-teal-600 font-medium">{t.sections.length} sections →</div>
             </button>
           ))}
         </div>
@@ -206,7 +206,7 @@ export default function LabGuidePage() {
                 <div className="relative">
                   <button
                     onClick={() => copyCode(section.code!)}
-                    className="absolute top-2 right-2 px-2 py-1 text-[10px] font-bold rounded bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors z-10 inline-flex items-center gap-1"
+                    className="absolute top-2 right-2 px-2 py-1 text-xs font-bold rounded bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors z-10 inline-flex items-center gap-1"
                   >
                     {copiedCode === section.code ? <><CheckBadge size={10} className="text-gray-300" /> Copied</> : <><CopyIcon size={10} /> Copy</>}
                   </button>

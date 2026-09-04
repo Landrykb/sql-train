@@ -69,7 +69,7 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                 Maybe later — keep browsing
               </button>
             </div>
-            <p className="text-[10px] text-bleepx-text-secondary mt-4">
+            <p className="text-xs text-bleepx-text-secondary mt-4">
               By signing in you agree to our{' '}
               <Link href="/terms" className="underline">Terms</Link> and{' '}
               <Link href="/privacy" className="underline">Privacy Policy</Link>.

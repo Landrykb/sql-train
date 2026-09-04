@@ -45,7 +45,7 @@ export default function CloudWatchPanel({ state, onAction }: { state: CloudSandb
                   <strong className="text-bleepx-text min-w-0 break-words">{a.alarmName}</strong>
                   <div className="text-xs text-bleepx-text-secondary break-words">{a.namespace}/{a.metricName} {a.statistic} {a.comparisonOperator} {a.threshold} for {a.evaluationPeriods} periods</div>
                 </div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold flex-shrink-0">OK</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold flex-shrink-0">OK</span>
               </div>
             ))}
           </div>

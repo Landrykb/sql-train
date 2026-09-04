@@ -39,9 +39,9 @@ export default function CrossVerseNav({ path, currentVerse, title }: CrossVerseN
               <div className="min-w-0">
                 <div className="text-xs font-bold text-bleepx-text group-hover:text-bleepx-blue transition-colors">
                   {meta.name}
-                  <span className="ml-1.5 text-[9px] uppercase tracking-wide opacity-70">{bridge.type}</span>
+                  <span className="ml-1.5 text-xs uppercase tracking-wide opacity-70">{bridge.type}</span>
                 </div>
-                <div className="text-[10px] text-bleepx-text-secondary leading-snug">{bridge.why}</div>
+                <div className="text-xs text-bleepx-text-secondary leading-snug">{bridge.why}</div>
               </div>
             </Link>
           );

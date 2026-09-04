@@ -243,7 +243,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
             <CodeIcon size={12} /> Python
           </span>
           {solved && (
-            <span className="text-[10px] font-bold text-green-500 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30">
+            <span className="text-xs font-bold text-green-500 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30">
               Solved
             </span>
           )}
@@ -253,7 +253,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
           {/* Theme toggle */}
           <button
             onClick={cycleTheme}
-            className={`px-2 py-1 text-[10px] font-bold rounded transition-colors whitespace-nowrap ${
+            className={`px-2 py-1 text-xs font-bold rounded transition-colors whitespace-nowrap ${
               isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
             }`}
             title={`Theme: ${editorTheme}`}
@@ -265,7 +265,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
             <button
               onClick={showNextHint}
               disabled={hintIdx >= hints.length - 1}
-              className={`px-2 py-1 text-[10px] font-bold rounded transition-colors disabled:opacity-40 whitespace-nowrap ${
+              className={`px-2 py-1 text-xs font-bold rounded transition-colors disabled:opacity-40 whitespace-nowrap ${
                 isDark ? 'bg-amber-900/40 text-amber-300 hover:bg-amber-900/60' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
               }`}
             >
@@ -275,7 +275,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
           {solutionCode && (
             <button
               onClick={() => setShowSolution(!showSolution)}
-              className={`px-2 py-1 text-[10px] font-bold rounded transition-colors whitespace-nowrap ${
+              className={`px-2 py-1 text-xs font-bold rounded transition-colors whitespace-nowrap ${
                 isDark ? 'bg-purple-900/40 text-purple-300 hover:bg-purple-900/60' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
               }`}
             >
@@ -286,7 +286,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
             onClick={resetEditor}
             disabled={code === initialCode}
             title="Restore starter code"
-            className={`px-2 py-1 text-[10px] font-bold rounded transition-colors whitespace-nowrap disabled:opacity-40 ${
+            className={`px-2 py-1 text-xs font-bold rounded transition-colors whitespace-nowrap disabled:opacity-40 ${
               isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
             }`}
           >
@@ -294,7 +294,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
           </button>
           <button
             onClick={clearOutput}
-            className={`px-2 py-1 text-[10px] font-bold rounded transition-colors whitespace-nowrap ${
+            className={`px-2 py-1 text-xs font-bold rounded transition-colors whitespace-nowrap ${
               isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
             }`}
           >
@@ -306,7 +306,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
             className="px-3 py-1.5 text-xs font-bold rounded bg-teal-600 text-white hover:bg-teal-700 active:bg-teal-800 transition-colors disabled:opacity-40 flex items-center gap-1 whitespace-nowrap shadow-md"
           >
             {running ? <span className="inline-flex items-center gap-1"><ClockIcon size={10} /> Running...</span> : <span className="inline-flex items-center gap-1"><PlayIcon size={10} /> Run</span>}
-            <span className="text-[9px] opacity-70 hidden sm:inline">(⌘↵)</span>
+            <span className="text-xs opacity-70 hidden sm:inline">(⌘↵)</span>
           </button>
         </div>
       </div>
@@ -330,14 +330,14 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
             <span className={`text-xs font-bold ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>Solution Code:</span>
             <button
               onClick={() => setCode(solutionCode)}
-              className={`text-[10px] px-2 py-0.5 rounded font-medium transition-colors ${
+              className={`text-xs px-2 py-0.5 rounded font-medium transition-colors ${
                 isDark ? 'bg-purple-800 text-purple-200 hover:bg-purple-700' : 'bg-purple-200 text-purple-700 hover:bg-purple-300'
               }`}
             >
               Copy to Editor
             </button>
           </div>
-          <pre className="text-xs bg-gray-900 text-gray-100 rounded p-2 overflow-x-auto whitespace-pre-wrap break-words font-mono max-w-full"><code>{solutionCode}</code></pre>
+          <pre className="text-xs bg-gray-900 text-gray-100 rounded p-2 overflow-x-auto whitespace-pre-wrap break-all font-mono max-w-full"><code>{solutionCode}</code></pre>
         </div>
       )}
 
@@ -429,7 +429,7 @@ import numpy as np"
             if (line.type === 'image') {
               return (
                 <div key={i} className="p-3 border-l-4 border-blue-400">
-                  {label && <div className="text-[10px] text-blue-300 mb-1">{label}</div>}
+                  {label && <div className="text-xs text-blue-300 mb-1">{label}</div>}
                   <div className="rounded-md overflow-hidden bg-white p-2 inline-block max-w-full">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -444,7 +444,7 @@ import numpy as np"
             if (line.type === 'html') {
               return (
                 <div key={i} className={`p-3 border-l-4 ${border}`}>
-                  {label && <div className="text-[10px] text-blue-300 mb-1">{label}</div>}
+                  {label && <div className="text-xs text-blue-300 mb-1">{label}</div>}
                   <div
                     className="bleepx-df rounded-md overflow-auto bg-white text-gray-900 p-2 max-w-full"
                     dangerouslySetInnerHTML={{ __html: line.html }}
@@ -455,14 +455,14 @@ import numpy as np"
             if (line.type === 'prompt') {
               return (
                 <div key={i} className="p-2 border-l-4 border-emerald-400 bg-emerald-900/10">
-                  <div className="text-[10px] text-emerald-300 font-bold">{label}</div>
+                  <div className="text-xs text-emerald-300 font-bold">{label}</div>
                   <div className="text-emerald-300 text-xs font-mono whitespace-pre-wrap">{line.text.slice(`In [${cell}]: `.length)}</div>
                 </div>
               );
             }
             return (
               <div key={i} className={`p-2 border-l-4 ${border}`}>
-                {label && <div className={`text-[10px] mb-0.5 ${line.type === 'stderr' ? 'text-red-300' : 'text-gray-400'}`}>{label}</div>}
+                {label && <div className={`text-xs mb-0.5 ${line.type === 'stderr' ? 'text-red-300' : 'text-gray-400'}`}>{label}</div>}
                 <div className={`whitespace-pre-wrap ${textColor}`}>
                   {line.text}
                 </div>
@@ -481,7 +481,7 @@ import numpy as np"
           isDark ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-gray-50 border-gray-300 text-gray-500'
         }`}>
           <strong>Expected output:</strong>
-          <pre className={`mt-1 text-[11px] p-2 rounded overflow-x-auto whitespace-pre-wrap break-words font-mono max-w-full ${
+          <pre className={`mt-1 text-sm p-2 rounded overflow-x-auto whitespace-pre-wrap break-all font-mono max-w-full ${
             isDark ? 'bg-gray-900 text-gray-300' : 'bg-gray-100 text-gray-700'
           }`}>{expectedOutput}</pre>
         </div>

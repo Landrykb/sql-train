@@ -11,7 +11,9 @@ import type { Viewport } from 'next';
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  minimumScale: 1,
   maximumScale: 5,
+  userScalable: true,
   themeColor: '#57ECF4',
 };
 
@@ -46,7 +48,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <footer className="bg-bleepx-white text-bleepx-text-secondary py-3 sm:py-4 pb-24 border-t border-bleepx-border">
               <div className="max-w-5xl mx-auto px-3 sm:px-6 text-center text-xs sm:text-sm space-y-1">
                 <p>&copy; {new Date().getFullYear()} Bleepx &mdash; All rights reserved.</p>
-                <p className="flex flex-wrap justify-center items-center gap-3 text-[11px]">
+                <p className="flex flex-wrap justify-center items-center gap-3 text-xs sm:text-sm">
                   <a
                     href="https://www.linkedin.com/in/landrykb"
                     target="_blank"

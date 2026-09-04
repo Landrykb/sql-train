@@ -79,10 +79,10 @@ export default function LabQuizPage() {
                   </div>
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {topic.skills.slice(0, 3).map((s) => (
-                      <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 font-medium">{s.replace(/_/g, ' ')}</span>
+                      <span key={s} className="text-xs px-1.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 font-medium">{s.replace(/_/g, ' ')}</span>
                     ))}
                     {topic.skills.length > 3 && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary">+{topic.skills.length - 3}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary">+{topic.skills.length - 3}</span>
                     )}
                   </div>
                   {prevScore > 0 && (

@@ -74,7 +74,7 @@ export default function CloudGuidePage() {
                   <div className="flex items-center gap-2 mb-1">
                     <CloudProviderIcon provider={g.provider} size={16} />
                     <h3 className="font-bold text-bleepx-text">{g.term}</h3>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary uppercase">{g.provider}</span>
+                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary uppercase">{g.provider}</span>
                   </div>
                   <p className="text-sm text-bleepx-text-secondary leading-relaxed">{g.definition}</p>
                 </div>

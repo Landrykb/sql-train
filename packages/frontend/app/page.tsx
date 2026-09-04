@@ -106,7 +106,7 @@ export default function HomePage() {
                 <h3 className="font-extrabold text-white text-lg sm:text-xl group-hover:text-indigo-300 transition-colors break-words min-w-0">
                   Trials Arena
                 </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider">
                   Timed
                 </span>
               </div>
@@ -159,12 +159,12 @@ export default function HomePage() {
                         {d}
                       </h3>
                       {done === total && total > 0 && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 flex-shrink-0">COMPLETE</span>
+                        <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 flex-shrink-0">COMPLETE</span>
                       )}
                     </div>
                     <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-0.5 line-clamp-2">{meta.desc}</p>
                     <div className="mt-2 flex items-center gap-2">
-                      <span className="text-[10px] sm:text-xs text-bleepx-text-secondary">{meta.difficulty}</span>
+                      <span className="text-xs sm:text-xs text-bleepx-text-secondary">{meta.difficulty}</span>
                       <StarRating stars={meta.stars} size={12} />
                     </div>
                     <div className="mt-2 flex items-center gap-2">
@@ -174,7 +174,7 @@ export default function HomePage() {
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <span className="text-[10px] sm:text-xs text-bleepx-text-secondary font-mono whitespace-nowrap">
+                      <span className="text-xs sm:text-xs text-bleepx-text-secondary font-mono whitespace-nowrap">
                         {done}/{total}
                       </span>
                     </div>
@@ -203,7 +203,7 @@ export default function HomePage() {
                 <h3 className="font-extrabold text-white text-lg sm:text-xl group-hover:text-teal-300 transition-colors min-w-0 break-words">
                   BleepxLab
                 </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 uppercase tracking-wider">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 uppercase tracking-wider">
                   Data Science
                 </span>
               </div>
@@ -218,7 +218,7 @@ export default function HomePage() {
                     <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-teal-400 transition-all duration-700" style={{ width: `${labPct}%` }} />
                     </div>
-                    <span className="text-[10px] text-teal-400 font-mono">{labPct}%</span>
+                    <span className="text-xs text-teal-400 font-mono">{labPct}%</span>
                   </div>
                 )}
               </div>
@@ -237,22 +237,22 @@ export default function HomePage() {
           <div>
             <div className="flex justify-center mb-1"><BleepxSignal size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">Progressive Difficulty</div>
-            <div className="text-[10px] text-bleepx-text-secondary mt-0.5">Beginner to Expert</div>
+            <div className="text-xs text-bleepx-text-secondary mt-0.5">Beginner to Expert</div>
           </div>
           <div>
             <div className="flex justify-center mb-1"><BleepxSpark size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">Data Visualizations</div>
-            <div className="text-[10px] text-bleepx-text-secondary mt-0.5">Plotly charts per case</div>
+            <div className="text-xs text-bleepx-text-secondary mt-0.5">Plotly charts per case</div>
           </div>
           <div>
             <div className="flex justify-center mb-1"><BleepxFace size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">Hidden Bonus Missions</div>
-            <div className="text-[10px] text-bleepx-text-secondary mt-0.5">Real-world scenarios</div>
+            <div className="text-xs text-bleepx-text-secondary mt-0.5">Real-world scenarios</div>
           </div>
           <div>
             <div className="flex justify-center mb-1"><BleepxGit size={28} /></div>
             <div className="text-xs font-medium text-bleepx-text">Portfolio Export</div>
-            <div className="text-[10px] text-bleepx-text-secondary mt-0.5">GitHub-ready projects</div>
+            <div className="text-xs text-bleepx-text-secondary mt-0.5">GitHub-ready projects</div>
           </div>
         </div>
       </div>

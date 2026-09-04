@@ -48,12 +48,12 @@ export default function ElastiCachePanel({ state, onAction }: { state: CloudSand
               <div key={c.cacheClusterId} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-sm">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <strong className="text-bleepx-text min-w-0 break-words">{c.cacheClusterId}</strong>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold flex-shrink-0 ${c.status === 'available' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{c.status}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-bold flex-shrink-0 ${c.status === 'available' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{c.status}</span>
                 </div>
                 <div className="text-xs text-bleepx-text-secondary mt-1 break-words">{c.engine} {c.engineVersion} · {c.cacheNodeType} × {c.numCacheNodes}</div>
                 <div className="text-xs text-bleepx-text-secondary mt-1 break-words">Endpoint: {c.endpoint}</div>
                 <div className="text-xs text-bleepx-text-secondary mt-1 break-words">AZ: {c.preferredAvailabilityZone} · Subnet group: {c.cacheSubnetGroupName} · SGs: {c.securityGroupIds.join(', ') || 'default'}</div>
-                <button onClick={() => onAction(deleteElastiCacheCluster(state, c.cacheClusterId))} className="mt-2 text-[10px] px-2.5 py-1.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 font-bold hover:bg-rose-200 transition-colors">Delete</button>
+                <button onClick={() => onAction(deleteElastiCacheCluster(state, c.cacheClusterId))} className="mt-2 text-xs px-2.5 py-1.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 font-bold hover:bg-rose-200 transition-colors">Delete</button>
               </div>
             ))}
           </div>

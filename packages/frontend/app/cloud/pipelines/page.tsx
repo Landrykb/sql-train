@@ -19,7 +19,7 @@ export default function CloudPipelinesPage() {
 
       <CloudPipelineCanvas />
 
-      <div className="text-center text-[10px] text-bleepx-text-secondary">
+      <div className="text-center text-xs text-bleepx-text-secondary">
         <BleepxLogo /> Data pipelines are the glue between BleepxQuery, BleepxLab, and BleepxCloud.
       </div>
     </main>

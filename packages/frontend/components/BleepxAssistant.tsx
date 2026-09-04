@@ -836,11 +836,11 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           <div className="flex items-center gap-2 mb-1">
             <BleepxSpark size={20} className="text-cyan-500" />
             <div className="font-bold text-cyan-600 dark:text-cyan-300 text-xs uppercase tracking-wide">Psst...</div>
-            <button onClick={(e) => { e.stopPropagation(); setTeaser(null); }} className="ml-auto text-[10px] text-gray-400 hover:text-gray-600">×</button>
+            <button onClick={(e) => { e.stopPropagation(); setTeaser(null); }} className="ml-auto text-xs text-gray-400 hover:text-gray-600">×</button>
           </div>
           <div className="text-bleepx-text-secondary leading-relaxed">{teaser.text}</div>
           {teaser.command && (
-            <button onClick={(e) => { e.stopPropagation(); setOpen(true); setTeaser(null); send(teaser.command); }} className="mt-2 text-[10px] px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 font-bold hover:bg-cyan-200">Try it</button>
+            <button onClick={(e) => { e.stopPropagation(); setOpen(true); setTeaser(null); send(teaser.command); }} className="mt-2 text-xs px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 font-bold hover:bg-cyan-200">Try it</button>
           )}
         </div>
       )}
@@ -856,9 +856,9 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
               <div className="flex-1 min-w-0">
                 <div className="font-extrabold text-bleepx-text flex flex-wrap items-center gap-2">
                   <span className="min-w-0">Bleepx</span>
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] border ${MODES[activeMode].badge}`}>{MODES[activeMode].label}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-xs border ${MODES[activeMode].badge}`}>{MODES[activeMode].label}</span>
                 </div>
-                <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{completedCount} steps done · {points} pts</div>
+                <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">{completedCount} steps done · {points} pts</div>
               </div>
               <button onClick={() => setOpen(false)} className="text-xs text-bleepx-text-secondary hover:text-bleepx-text flex-shrink-0">Close</button>
             </div>
@@ -879,7 +879,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
                               key={ai}
                               href={a.href}
                               onClick={() => setOpen(false)}
-                              className="text-[10px] px-2.5 py-1.5 rounded-full bg-sky-600 text-white font-bold hover:bg-sky-700 transition-colors flex items-center gap-1"
+                              className="text-xs px-2.5 py-1.5 rounded-full bg-sky-600 text-white font-bold hover:bg-sky-700 transition-colors flex items-center gap-1"
                             >
                               {ActionIcon && <ActionIcon size={12} />}
                               {a.label} →
@@ -897,7 +897,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
                     <div className="text-xs font-bold mb-2">Pick a mode:</div>
                     <div className="flex flex-wrap gap-2">
                       {(['light','dark','stealth','mix','neon','ghost','solar','green','red'] as Mode[]).map((m) => (
-                        <button key={m} onClick={() => { setShowModeChips(false); applyMode(m); }} className="text-[10px] px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 font-bold hover:bg-cyan-200">
+                        <button key={m} onClick={() => { setShowModeChips(false); applyMode(m); }} className="text-xs px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 font-bold hover:bg-cyan-200">
                           {MODES[m].label.replace(' MODE','')}
                         </button>
                       ))}
@@ -917,7 +917,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
             <div className="p-3 border-t border-gray-200 dark:border-gray-700">
               <div className="flex flex-nowrap gap-2 mb-2 overflow-x-auto max-w-full overscroll-x-contain no-scrollbar pb-1">
                 {QUICK_REPLIES.map((q) => (
-                  <button key={q} onClick={() => handleQuick(q)} className="shrink-0 whitespace-nowrap text-[10px] px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors">{q}</button>
+                  <button key={q} onClick={() => handleQuick(q)} className="shrink-0 whitespace-nowrap text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors">{q}</button>
                 ))}
               </div>
               <div className="flex gap-2 min-w-0">
@@ -932,8 +932,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
                 <button onClick={() => send(input)} className="shrink-0 px-3 py-2 rounded-full bg-sky-600 text-white text-xs font-bold hover:bg-sky-700">Send</button>
               </div>
               <div className="mt-2 flex items-center justify-between gap-2 min-w-0">
-                <Link href={hint.href} onClick={() => setOpen(false)} className="min-w-0 whitespace-normal break-words text-[10px] px-3 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">{hint.cta}</Link>
-                <button onClick={startChat} className="shrink-0 text-[10px] text-bleepx-text-secondary hover:text-bleepx-text underline">Clear chat</button>
+                <Link href={hint.href} onClick={() => setOpen(false)} className="min-w-0 whitespace-normal break-words text-xs px-3 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 font-bold hover:bg-sky-200 transition-colors">{hint.cta}</Link>
+                <button onClick={startChat} className="shrink-0 text-xs text-bleepx-text-secondary hover:text-bleepx-text underline">Clear chat</button>
               </div>
             </div>
           </div>

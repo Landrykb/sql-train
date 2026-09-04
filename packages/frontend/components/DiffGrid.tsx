@@ -81,7 +81,7 @@ export default function DiffGrid({ actual, expected, expectedColumns }: DiffGrid
                           <>
                             <span>{actStr || <em className="text-gray-400">null</em>}</span>
                             {!isMatch && expRow && (
-                              <div className="text-[10px] text-red-500 mt-0.5">expected: {expStr || 'null'}</div>
+                              <div className="text-xs text-red-500 mt-0.5">expected: {expStr || 'null'}</div>
                             )}
                           </>
                         ) : (

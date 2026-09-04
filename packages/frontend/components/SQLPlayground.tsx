@@ -879,12 +879,12 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
           <div className="max-w-full overflow-x-auto min-w-0">
             <CodeMirror
             value={query}
-            height="200px"
+            height="260px"
             onChange={setQuery}
             onCreateEditor={(view: any) => { editorViewRef.current = view; }}
             isDark={dark}
             aria-label="SQL query editor"
-            className="border rounded-lg border-bleepx-border max-w-full min-w-0"
+            className="border rounded-lg border-bleepx-border max-w-full min-w-0 overflow-hidden"
             style={{ maxWidth: '100%' }}
             />
           </div>
@@ -911,11 +911,11 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                     <button onClick={() => insertAtCursor(table.name + ' ')} className="hover:text-bleepx-blue cursor-pointer">
                       {table.name}
                     </button>
-                    <span className="text-[10px] ml-1 text-bleepx-text-secondary">({table.rowCount} rows)</span>
+                    <span className="text-xs ml-1 text-bleepx-text-secondary">({table.rowCount} rows)</span>
                   </div>
                   <div className="flex flex-wrap gap-1 ml-5">
                     {table.columns.map((c) => (
-                      <button key={c} onClick={() => { playBleep(); insertAtCursor(c + ' '); }} className="px-2 py-0.5 rounded text-[11px] cursor-pointer transition-colors bg-bleepx-white hover:bg-bleepx-blue/10 text-bleepx-text-secondary border border-bleepx-border">
+                      <button key={c} onClick={() => { playBleep(); insertAtCursor(c + ' '); }} className="px-2 py-0.5 rounded text-sm cursor-pointer transition-colors bg-bleepx-white hover:bg-bleepx-blue/10 text-bleepx-text-secondary border border-bleepx-border">
                         {c}
                       </button>
                     ))}
@@ -945,14 +945,14 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                     <div key={i} className="flex flex-wrap items-start gap-2 p-1.5 rounded cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30" onClick={() => { setQuery(h.query); setShowHistory(false); }}>
                       <span className="flex-shrink-0 mt-0.5">{h.success === true ? <CheckBadge size={12} className="text-green-600" /> : h.success === false ? <ErrorIcon size={12} className="text-red-500" /> : <CircleIcon size={12} className="text-gray-400" />}</span>
                       <pre className="whitespace-pre-wrap break-words min-w-0 flex-1 font-mono text-bleepx-text">{h.query}</pre>
-                      <span className="flex-shrink-0 text-[10px] text-bleepx-text-secondary">{new Date(h.ts).toLocaleTimeString()}</span>
+                      <span className="flex-shrink-0 text-xs text-bleepx-text-secondary">{new Date(h.ts).toLocaleTimeString()}</span>
                     </div>
                   ))}
                 </div>
               )}
             </div>
           )}
-          <div className="mt-4 flex gap-1.5 sm:gap-2 flex-wrap">
+          <div className="mt-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
             <button
               onClick={() => {
                 playBleep();
@@ -960,7 +960,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               }}
               data-run-btn
               disabled={!canRun}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-white text-sm sm:text-base font-medium transition-all duration-200 ${canRun ? 'bg-bleepx-blue hover:bg-blue-700 dark:hover:bg-blue-500' : 'bg-gray-400 cursor-not-allowed'}`}
+              className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-2 rounded-full text-white text-sm sm:text-base font-medium transition-all duration-200 ${canRun ? 'bg-bleepx-blue hover:bg-blue-700 dark:hover:bg-blue-500' : 'bg-gray-400 cursor-not-allowed'}`}
               aria-disabled={!canRun}
             >
               Run Query
@@ -975,7 +975,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 setShowSolution(false);
                 setVisibleHints(1);
               }}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
+              className="w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
             >
               Clear
             </button>
@@ -985,7 +985,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                   playBleep();
                   tryExampleQuery();
                 }}
-                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
               >
                 Example
               </button>
@@ -996,16 +996,17 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                   playBleep();
                   setShowSolution(true);
                 }}
-                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-2 rounded-full border border-bleepx-gray/20 text-bleepx-gray text-sm sm:text-base hover:bg-bleepx-blue/5 transition-all duration-200"
               >
                 Solution
               </button>
             )}
-            <Link href={`/cases/${domain}/${id}/visualizations`}>
-              <button className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-indigo-600 text-white text-sm sm:text-base hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-all duration-200 inline-flex flex-wrap items-center gap-1">
-                <ChartBarIcon size={16} /> Visualizations
-              </button>
-            </Link>
+            <button
+              onClick={() => { playBleep(); router.push(`/cases/${domain}/${id}/visualizations`); }}
+              className="w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-2 rounded-full bg-indigo-600 text-white text-sm sm:text-base hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-all duration-200 inline-flex flex-wrap items-center justify-center gap-1"
+            >
+              <ChartBarIcon size={16} /> Visualizations
+            </button>
           </div>
           {message && (
             <div className="mt-4 flex flex-wrap items-start gap-2.5" role="status">
@@ -1019,7 +1020,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                     : 'bg-gradient-to-r from-slate-100 to-blue-50 dark:from-slate-800/60 dark:to-blue-900/30 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-600'
                 } ${showSuccess ? 'animate-pulse' : ''}`}
               >
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-bleepx-blue/70 mb-1">Bleepx</span>
+                <span className="block text-xs font-bold uppercase tracking-wider text-bleepx-blue/70 mb-1">Bleepx</span>
                 <span>{message}</span>
               </div>
             </div>
@@ -1034,7 +1035,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                 <p className="text-xs font-semibold text-red-800 dark:text-red-200">How to fix:</p>
                 {errorHelp.suggestions.map((s, i) => (
                   <div key={i} className="flex flex-wrap items-start gap-2 text-xs text-red-700 dark:text-red-300">
-                    <span className="flex-shrink-0 w-4 h-4 rounded-full bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200 text-[10px] font-bold flex flex-wrap items-center justify-center mt-0.5">{i + 1}</span>
+                    <span className="flex-shrink-0 w-4 h-4 rounded-full bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200 text-xs font-bold flex flex-wrap items-center justify-center mt-0.5">{i + 1}</span>
                     <span className="leading-relaxed">{s}</span>
                   </div>
                 ))}
@@ -1054,7 +1055,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
               <div className="flex flex-wrap items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold text-bleepx-gray">*bleep* Fine. Here&apos;s how I&apos;d do it:</h3>
                 {solutionQuery && (
-                  <div className="flex rounded-full bg-gray-200 dark:bg-gray-700 p-0.5 text-[11px] font-medium">
+                  <div className="flex rounded-full bg-gray-200 dark:bg-gray-700 p-0.5 text-sm font-medium">
                     <button
                       onClick={() => setSolutionView('diff')}
                       className={`px-3 py-1 rounded-full transition-colors ${solutionView === 'diff' ? 'bg-bleepx-blue text-white shadow-sm' : 'text-bleepx-text-secondary hover:text-bleepx-text'}`}
@@ -1075,7 +1076,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
                   {solutionView === 'diff' ? (
                     <>
                       <SqlDiff userQuery={query} solutionQuery={solutionQuery} />
-                      <div className="mt-2 flex gap-3 text-[10px] text-bleepx-text-secondary">
+                      <div className="mt-2 flex gap-3 text-xs text-bleepx-text-secondary">
                         <span className="flex flex-wrap items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-green-200 dark:bg-green-900/50" /> Missing from your query</span>
                         <span className="flex flex-wrap items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-red-200 dark:bg-red-900/50" /> Extra in your query</span>
                       </div>

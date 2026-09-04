@@ -95,19 +95,19 @@ export default function CloudProviderPage() {
                       <h3 className={`font-bold ${locked ? 'text-bleepx-text-secondary' : 'text-bleepx-text group-hover:text-sky-600'} transition-colors`}>
                         {m.isBonus && !isDone && locked ? '??? Bonus Mission' : m.title}
                       </h3>
-                      {m.isBonus && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">BONUS</span>}
-                      {m.crossDomain && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">↔ {m.crossDomain}</span>}
+                      {m.isBonus && <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">BONUS</span>}
+                      {m.crossDomain && <span className="text-xs px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">↔ {m.crossDomain}</span>}
                     </div>
                     {!(m.isBonus && locked) && (
                       <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-0.5 line-clamp-2">{m.description.split('\n')[0]}</p>
                     )}
                     <div className="mt-2 flex items-center gap-2 flex-wrap">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary">{m.level}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text-secondary">{m.level}</span>
                       <StarRating stars={m.stars} size={10} />
                       {!(m.isBonus && locked) && m.skills.slice(0, 3).map((s) => (
-                        <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-full bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300">{s}</span>
+                        <span key={s} className="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300">{s}</span>
                       ))}
-                      {locked && <span className="text-[10px] text-bleepx-text-secondary inline-flex flex-wrap items-center gap-1"><LockIcon size={10} /> Requires: {m.prerequisites.join(', ')}</span>}
+                      {locked && <span className="text-xs text-bleepx-text-secondary inline-flex flex-wrap items-center gap-1"><LockIcon size={10} /> Requires: {m.prerequisites.join(', ')}</span>}
                     </div>
                   </div>
                 </div>

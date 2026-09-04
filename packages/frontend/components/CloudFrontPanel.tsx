@@ -80,7 +80,7 @@ export default function CloudFrontPanel({ state, onAction }: { state: CloudSandb
               <div key={dist.id} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-sm">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <strong className="text-bleepx-text min-w-0 break-words">{dist.id}</strong>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-bold flex-shrink-0">{dist.status}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-bold flex-shrink-0">{dist.status}</span>
                 </div>
                 <div className="text-xs text-bleepx-text-secondary mt-1 break-words">Domain: {dist.domainName}</div>
                 <div className="text-xs text-bleepx-text-secondary mt-0.5 break-words">Origins: {dist.origins.map((o) => `${o.type}:${o.domainName}`).join(', ')}</div>
