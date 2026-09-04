@@ -7,8 +7,16 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 10
+    groups:
+      # CodeMirror packages are tightly coupled; bump them together to avoid peer mismatches.
+      codemirror:
+        patterns:
+          - "@codemirror/*"
+        update-types:
+          - "minor"
+          - "patch"
     ignore:
-      # Pin these packages manually in package.json overrides; ignore Dependabot bump noise.
+      # Pin these packages manually; ignore Dependabot bump noise.
       - dependency-name: "dompurify"
         update-types: ["version-update:semver-major"]
 
