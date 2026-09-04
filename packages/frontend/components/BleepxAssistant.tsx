@@ -98,7 +98,7 @@ const PROGRESS_INTENT = /(my progress|what should i (do|focus)|what to (do|focus
 const QUICK_REPLIES = ['What should I do next?', 'What is S3?', 'SQL JOIN help', 'EC2 vs Lambda', 'Cost-optimized storage'];
 
 const TOPIC_HINTS: Record<string, string> = {
-  'what is s3?': 'S3 is object storage. Use it for static files, data lakes, backups, and content distribution via CloudFront.',
+  'what is s3': 'S3 is object storage. Use it for static files, data lakes, backups, and content distribution via CloudFront.',
   'sql join help': 'SQL joins combine rows. INNER JOIN keeps matches, LEFT keeps all from the left, FULL keeps all rows, and CROSS gives the Cartesian product.',
   'ec2 vs lambda': 'EC2 gives full control and long-running compute; Lambda is serverless, event-driven, and billed per request.',
   'cost-optimized storage': 'For archives use S3 Glacier or Glacier Deep Archive. For logs, transition to Infrequent Access after a few days.',
@@ -410,6 +410,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     setMessages((prev) => [...prev, { role: 'user', text: text.trim() }]);
     const lower = text.toLowerCase().trim();
     const clean = lower.replace(/[^a-z0-9\s-]/g, '').trim();
+    const wordSet = new Set(clean.split(/\s+/).filter(Boolean));
+    const isShortDefinition = messages.length <= 2 && text.trim().length < 60;
     if (applyMode(clean)) return;
     if (awaitingNickname) {
       const name = text.trim().split(/[\s,!?]+/)[0].replace(/[^a-zA-Z0-9_\-']/g, '');
@@ -449,7 +451,6 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
     (async () => {
       try {
-        const isShortDefinition = messages.length <= 2 && text.trim().length < 60;
         const known = TOPIC_HINTS[clean] ?? (isShortDefinition ? voice.known(text, activeContext) : null);
         let final: string;
         let actions: ChatAction[] | undefined;
@@ -458,13 +459,13 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
         if (known) {
           final = voice.signOff(known, displayName);
           nextMood = 'success';
-        } else if (clean.includes('github')) {
+        } else if (isShortDefinition && wordSet.has('github')) {
           final = voice.signOff('GitHub is where your code and progress live. Sign in with it to save your work across the app.', displayName);
           nextMood = 'github';
-        } else if (clean.includes('git')) {
+        } else if (isShortDefinition && wordSet.has('git')) {
           final = voice.signOff('Git is version control. You track changes in code and collaborate with branches and commits.', displayName);
           nextMood = 'git';
-        } else if (clean.includes('hello') || clean.includes('hi ')) {
+        } else if (isShortDefinition && (wordSet.has('hello') || wordSet.has('hi'))) {
           final = voice.welcomeBack(displayName) + ' Ask me anything about SQL, cloud, Python, or ML.';
           nextMood = 'face';
         } else {

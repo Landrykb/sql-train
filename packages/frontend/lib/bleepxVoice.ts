@@ -299,27 +299,29 @@ const LAB_FALLBACKS = [
 
 export function known(input: string, context: string): string | null {
   const lower = input.toLowerCase();
-  if (lower.includes('s3') && lower.includes('glacier')) return 'S3 Glacier and Glacier Deep Archive are for rarely accessed long-term data. Restores take minutes to hours.';
-  if (lower.includes('s3')) return 'S3 stores objects in buckets. Choose storage classes based on access patterns: STANDARD for hot data, IA for infrequent, Glacier for archives.';
-  if (lower.includes('ec2') && (lower.includes('ebs') || lower.includes('disk'))) return 'EC2 instances use EBS for block storage or instance store for temporary storage. EBS is persistent and AZ-bound.';
-  if (lower.includes('ec2')) return 'EC2 provides virtual servers. Pick instance families by workload: compute (C), memory (R), general (M), or burstable (T).';
-  if (lower.includes('lambda')) return 'AWS Lambda runs code in response to events. It scales automatically and you only pay for invocation time.';
-  if (lower.includes('rds')) return 'RDS manages relational databases like MySQL, Postgres, and MariaDB. Use Multi-AZ for high availability and read replicas for scale.';
-  if (lower.includes('dynamodb') || lower.includes('dax')) return 'DynamoDB is a managed NoSQL key-value store. DAX is an in-memory cache for microsecond reads.';
-  if (lower.includes('vpc') || lower.includes('subnet')) return 'A VPC is your isolated network. Subnets are AZ-specific and route tables control traffic flow.';
-  if (lower.includes('iam') || lower.includes('role') || lower.includes('policy')) return 'IAM controls access. Prefer roles with temporary credentials, least privilege, and managed policies for common patterns.';
-  if (lower.includes('cloudfront')) return 'CloudFront is a CDN that caches content at edge locations to reduce latency and origin load.';
+  const words = new Set(lower.split(/\W+/).filter(Boolean));
+
+  if (words.has('s3') && words.has('glacier')) return 'S3 Glacier and Glacier Deep Archive are for rarely accessed long-term data. Restores take minutes to hours.';
+  if (words.has('s3')) return 'S3 stores objects in buckets. Choose storage classes based on access patterns: STANDARD for hot data, IA for infrequent, Glacier for archives.';
+  if (words.has('ec2') && (words.has('ebs') || words.has('disk'))) return 'EC2 instances use EBS for block storage or instance store for temporary storage. EBS is persistent and AZ-bound.';
+  if (words.has('ec2')) return 'EC2 provides virtual servers. Pick instance families by workload: compute (C), memory (R), general (M), or burstable (T).';
+  if (words.has('lambda')) return 'AWS Lambda runs code in response to events. It scales automatically and you only pay for invocation time.';
+  if (words.has('rds')) return 'RDS manages relational databases like MySQL, Postgres, and MariaDB. Use Multi-AZ for high availability and read replicas for scale.';
+  if (words.has('dynamodb') || words.has('dax')) return 'DynamoDB is a managed NoSQL key-value store. DAX is an in-memory cache for microsecond reads.';
+  if (words.has('vpc') || words.has('subnet')) return 'A VPC is your isolated network. Subnets are AZ-specific and route tables control traffic flow.';
+  if (words.has('iam') || words.has('role') || words.has('policy')) return 'IAM controls access. Prefer roles with temporary credentials, least privilege, and managed policies for common patterns.';
+  if (words.has('cloudfront')) return 'CloudFront is a CDN that caches content at edge locations to reduce latency and origin load.';
   if (lower.includes('route 53') || lower.includes('route53')) return 'Route 53 is a DNS and domain registrar. Use it for routing policies, health checks, and failover.';
-  if (lower.includes('sns') || lower.includes('sqs')) return 'SNS is pub-sub messaging; SQS is a managed queue. Fan-out patterns use SNS to push to multiple SQS queues.';
-  if (lower.includes('join')) return 'A SQL JOIN merges tables. INNER returns matches, LEFT returns all left rows, RIGHT returns all right rows, FULL returns all rows from both.';
+  if (words.has('sns') || words.has('sqs')) return 'SNS is pub-sub messaging; SQS is a managed queue. Fan-out patterns use SNS to push to multiple SQS queues.';
+  if (words.has('join')) return 'A SQL JOIN merges tables. INNER returns matches, LEFT returns all left rows, RIGHT returns all right rows, FULL returns all rows from both.';
   if (lower.includes('group by')) return 'GROUP BY aggregates rows. Use it with aggregate functions like COUNT, SUM, AVG, MAX, and MIN.';
-  if (lower.includes('window') || lower.includes('over')) return 'Window functions like ROW_NUMBER, RANK, and LEAD/LAG operate over a set of rows without collapsing them.';
-  if (lower.includes('cte') || (lower.includes('with') && lower.includes('clause'))) return 'A CTE (WITH clause) defines a temporary result set for cleaner, reusable queries.';
-  if (lower.includes('python') || lower.includes('pandas')) return 'Pandas is the standard Python data manipulation library. Use DataFrames for tables, groupby for aggregation, and merge for joins.';
-  if (lower.includes('cost') || lower.includes('pricing')) return 'For cost savings, use Reserved Instances or Savings Plans for steady workloads, Spot for fault-tolerant batch, and right-size storage classes.';
-  if (lower.includes('secure') || lower.includes('security')) return 'Security pillars: least privilege IAM, encryption at rest and in transit, private subnets, CloudTrail logging, and regular security scans.';
+  if (words.has('window') || lower.includes('window function') || words.has('over')) return 'Window functions like ROW_NUMBER, RANK, and LEAD/LAG operate over a set of rows without collapsing them.';
+  if (words.has('cte') || (words.has('with') && words.has('clause'))) return 'A CTE (WITH clause) defines a temporary result set for cleaner, reusable queries.';
+  if (words.has('python') || words.has('pandas')) return 'Pandas is the standard Python data manipulation library. Use DataFrames for tables, groupby for aggregation, and merge for joins.';
+  if (words.has('cost') || words.has('pricing')) return 'For cost savings, use Reserved Instances or Savings Plans for steady workloads, Spot for fault-tolerant batch, and right-size storage classes.';
+  if (words.has('secure') || words.has('security')) return 'Security pillars: least privilege IAM, encryption at rest and in transit, private subnets, CloudTrail logging, and regular security scans.';
   if (lower.includes('resilien') || lower.includes('high availability')) return 'Build resilience with Multi-AZ, auto scaling, health checks, read replicas, and automated backups.';
-  if (lower.includes('machine learning') || lower.includes('ml')) return 'SageMaker builds, trains, and deploys ML models. Use S3 for data, ECR for containers, and Lambda for light inference endpoints.';
+  if (lower.includes('machine learning') || words.has('ml')) return 'SageMaker builds, trains, and deploys ML models. Use S3 for data, ECR for containers, and Lambda for light inference endpoints.';
   return null;
 }
 
