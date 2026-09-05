@@ -27,9 +27,9 @@ const domains = Object.keys(domainMeta);
 export default function HomePage() {
   const { completed, points } = useProgress();
   const allCaseIds = Object.entries(fullCaseOrder).filter(([d]) => d !== 'guide' && d !== 'trials').flatMap(([, ids]) => ids);
-  const totalCompleted = completed?.size || 0;
+  const totalCompleted = allCaseIds.filter((id) => completed?.has(id)).length;
   const totalChallenges = allCaseIds.length;
-  const overallPct = totalChallenges > 0 ? Math.round((totalCompleted / totalChallenges) * 100) : 0;
+  const overallPct = totalChallenges > 0 ? Math.min(100, Math.round((totalCompleted / totalChallenges) * 100)) : 0;
 
   // Lab progress
   const allLabIds = Object.values(LAB_CASE_ORDER).flat();
