@@ -307,6 +307,23 @@ function ConsoleOutput({ text, cell, title }: { text: string; cell?: number; tit
   );
 }
 
+function StatusLog({ logs, onClear }: { logs: string[]; onClear: () => void }) {
+  if (!logs.length) return null;
+  return (
+    <div className="mt-3 rounded-lg border border-sky-200 dark:border-sky-800 overflow-hidden bg-sky-50 dark:bg-sky-900/10">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 bg-sky-100 dark:bg-sky-900/20 border-b border-sky-200 dark:border-sky-800 text-xs font-mono">
+        <span className="font-bold text-sky-700 dark:text-sky-300 flex items-center gap-1"><BleepxFace size={14} /> Bleepx status log</span>
+        <button onClick={onClear} className="text-xs text-sky-600 dark:text-sky-400 hover:underline">Clear</button>
+      </div>
+      <div className="p-3 space-y-1 max-h-48 overflow-y-auto">
+        {logs.map((log, i) => (
+          <div key={i} className="text-xs text-sky-700 dark:text-sky-300 break-words">{log}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function CloudPipelineCanvas() {
@@ -332,7 +349,10 @@ export default function CloudPipelineCanvas() {
   const lastGeneratedPython = useRef<string>(generatePythonStarter('', ''));
 
   const [sandbox, setSandbox] = useState<CloudSandboxState>(createEmptySandboxState());
-  const [message, setMessage] = useState<string | null>(null);
+  const [logs, setLogs] = useState<string[]>([]);
+  const addLog = useCallback((msg: string) => {
+    setLogs((prev) => [msg, ...prev].slice(0, 25));
+  }, []);
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
   const [lastSqlError, setLastSqlError] = useState<{ message: string; query: string } | null>(null);
   const [lastPythonError, setLastPythonError] = useState<{ message: string; code: string } | null>(null);
@@ -377,7 +397,7 @@ export default function CloudPipelineCanvas() {
     }));
     lastGeneratedPython.current = starter;
     setSelectedPresetId(id);
-    setMessage(`Loaded "${preset.name}" with ${clean.split('\n').length - 1} data row(s). Source: ${preset.sourceUrl}. Run SQL preview next.`);
+    addLog(`Loaded "${preset.name}" with ${clean.split('\n').length - 1} data row(s). Source: ${preset.sourceUrl}. Run SQL preview next.`);
   }, []);
 
   useEffect(() => {
@@ -399,16 +419,16 @@ export default function CloudPipelineCanvas() {
     setPythonSource('auto');
     setPipeline((p) => ({ ...p, rawCsv: clean, pythonCode: starter, activeStep: 'sql' }));
     lastGeneratedPython.current = starter;
-    setMessage('CSV loaded into the pipeline. Run SQL or Python next.');
+    addLog('CSV loaded into the pipeline. Run SQL or Python next.');
   }, []);
 
   const runSql = useCallback(async () => {
     if (!pipeline.rawCsv.trim()) {
-      setMessage('Paste or load a CSV first, then run SQL.');
+      addLog('Paste or load a CSV first, then run SQL.');
       return;
     }
     setSqlLoading(true);
-    setMessage('Running SQL on the in-browser database…');
+    addLog('Running SQL on the in-browser database…');
     const nextCell = execCount + 1;
     try {
       await initSQL();
@@ -420,14 +440,14 @@ export default function CloudPipelineCanvas() {
       setPythonSource('auto');
       setPipeline((p) => ({ ...p, sqlResult: csv, sqlCell: nextCell, activeStep: 'python' }));
       const cols = columns.join(', ');
-      setMessage(
+      addLog(
         `SQL returned ${data.length} row(s) with columns: ${cols}. ` +
         `Try filtering, grouping, or adding a calculated column. Then run Python to transform the result before S3.`
       );
     } catch (err: any) {
       const msg = err?.message || String(err);
       setLastSqlError({ message: msg, query: pipeline.sqlQuery || DEFAULT_QUERY });
-      setMessage(`SQL error: ${msg}`);
+      addLog(`SQL error: ${msg}`);
     } finally {
       setSqlLoading(false);
     }
@@ -435,23 +455,23 @@ export default function CloudPipelineCanvas() {
 
   const runPython = useCallback(async () => {
     if (!pipeline.rawCsv.trim()) {
-      setMessage('Paste or load a CSV first, then run Python.');
+      addLog('Paste or load a CSV first, then run Python.');
       return;
     }
     setPythonLoading(true);
-    setMessage('Loading Python runtime…');
+    addLog('Loading Python runtime…');
     setPythonImages([]);
     setPythonConsole('');
     const nextCell = execCount + 1;
     try {
       if (!pyodideRef.current) {
-        pyodideRef.current = await loadPyodide((msg) => setMessage(msg));
+        pyodideRef.current = await loadPyodide((msg) => addLog(msg));
       }
       const { stdout, stderr, images } = await runPythonCode(pyodideRef.current, {
         code: pipeline.pythonCode || effectivePythonCode,
         globals: { raw_csv: activeRawCsv, sql_result: pipeline.sqlResult || '' },
         timeoutMs: 30000,
-        onProgress: (msg) => setMessage(msg),
+        onProgress: (msg) => addLog(msg),
       });
       const combined = stderr ? `${stdout}\n${stderr}` : stdout;
       const csvOut = extractLastCsv(stdout);
@@ -464,7 +484,7 @@ export default function CloudPipelineCanvas() {
       setPythonImages(images || []);
       setPythonConsole(combined.trim());
       setPipeline((p) => ({ ...p, transformedCsv: csvOut, pythonCell: nextCell, activeStep: 'csv' }));
-      setMessage(
+      addLog(
         `Python produced ${rows} row(s) and ${cols} column(s)${colList ? `: ${colList}` : ''}. ` +
         `You can now upload the CSV to the S3 sandbox, or tweak the code and run again.`
       );
@@ -474,7 +494,7 @@ export default function CloudPipelineCanvas() {
       setPythonImages(err?.images || []);
       setPythonConsole(detail.trim());
       setPipeline((p) => ({ ...p, transformedCsv: '', pythonCell: nextCell, activeStep: 'csv' }));
-      setMessage(`Python error: ${err?.message || String(err)}`);
+      addLog(`Python error: ${err?.message || String(err)}`);
     } finally {
       setPythonLoading(false);
     }
@@ -545,22 +565,39 @@ export default function CloudPipelineCanvas() {
     const hint = buildBleepxHint();
     const target = typeof document !== 'undefined' ? document.getElementById(targetId) : null;
     if (typeof document !== 'undefined') {
-      document.dispatchEvent(new CustomEvent('bleepx:hint', { detail: { hint, value: message || '', target } }));
+      document.dispatchEvent(new CustomEvent('bleepx:hint', { detail: { hint, value: logs[0] || '', target } }));
     }
-  }, [buildBleepxHint, message]);
+  }, [buildBleepxHint, logs]);
 
   const uploadToS3 = useCallback(() => {
     let next = createS3Bucket(sandbox, pipeline.s3Bucket, sandbox.activeRegion);
     const bucket = next.s3.buckets[pipeline.s3Bucket];
     if (!bucket) {
-      setMessage('Could not create bucket. It may already exist. Trying upload anyway.');
+      addLog('Could not create bucket. It may already exist. Trying upload anyway.');
     }
     next = putS3Object(next, pipeline.s3Bucket, pipeline.s3Key, pipeline.transformedCsv || pipeline.rawCsv);
     setSandbox(next);
     setPipeline((p) => ({ ...p, activeStep: 's3' }));
     const last = next.events[next.events.length - 1];
-    setMessage(last ? last.message : 'Uploaded to S3 sandbox.');
+    addLog(last ? last.message : 'Uploaded to S3 sandbox.');
   }, [sandbox, pipeline.s3Bucket, pipeline.s3Key, pipeline.transformedCsv, pipeline.rawCsv]);
+
+  const validateOutput = useCallback(() => {
+    if (!pipeline.transformedCsv) {
+      addLog('No Python output to validate yet. Run the Python transform first.');
+      return;
+    }
+    const parsed = Papa.parse<Record<string, unknown>>(pipeline.transformedCsv, { header: true, skipEmptyLines: true });
+    if (parsed.errors.length) {
+      addLog(`Validation failed: ${parsed.errors.length} parse error(s) in the output CSV.`);
+      return;
+    }
+    const rows = parsed.data.length;
+    const cols = parsed.meta.fields?.length ?? 0;
+    const emptyRows = parsed.data.filter((row) => Object.values(row).some((v) => v === null || v === '')).length;
+    const check = emptyRows === 0 ? 'passed' : `warning: ${emptyRows} row(s) with empty cells`;
+    addLog(`Data quality check: ${rows} row(s), ${cols} column(s) — ${check}.`);
+  }, [pipeline.transformedCsv]);
 
   const stepOrder: PipelineStep[] = ['extract', 'sql', 'python', 'csv', 's3'];
   const stepIndex = stepOrder.indexOf(pipeline.activeStep);
@@ -579,11 +616,11 @@ export default function CloudPipelineCanvas() {
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between text-sm font-bold gap-2">
           {[
-            { key: 'extract', label: 'Extract' },
-            { key: 'sql', label: 'SQL' },
-            { key: 'python', label: 'Python' },
-            { key: 'csv', label: 'CSV' },
-            { key: 's3', label: 'S3' },
+            { key: 'extract', label: 'Extract', badge: 'Bronze' },
+            { key: 'sql', label: 'SQL', badge: 'Silver' },
+            { key: 'python', label: 'Python', badge: 'Gold' },
+            { key: 'csv', label: 'CSV', badge: 'Gold' },
+            { key: 's3', label: 'S3', badge: 'Load' },
           ].map((s, i) => (
             <React.Fragment key={s.key}>
               <div className={`text-center px-3 py-2 rounded-lg transition-colors ${
@@ -591,19 +628,14 @@ export default function CloudPipelineCanvas() {
                   ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
               }`}>
-                {s.label}
+                <div className="text-xs font-bold">{s.badge}</div>
+                <div className="text-sm">{s.label}</div>
               </div>
               {i < 4 && <span className="text-gray-400">→</span>}
             </React.Fragment>
           ))}
         </div>
       </div>
-
-      {message && (
-        <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-900/10 border border-sky-200 dark:border-sky-800 text-sm text-sky-700 dark:text-sky-300">
-          <BleepxFace /> {message}
-        </div>
-      )}
 
       {/* Project picker */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
@@ -818,6 +850,13 @@ export default function CloudPipelineCanvas() {
             {pythonLoading ? 'Running…' : 'Run Python transform'}
           </button>
           <button
+            onClick={validateOutput}
+            disabled={!pipeline.transformedCsv}
+            className="px-3 py-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-sm font-bold hover:bg-emerald-200 transition-colors disabled:opacity-50"
+          >
+            Validate output
+          </button>
+          <button
             onClick={() => setPythonHintIdx((i) => (i + 1) % pythonHints.length)}
             className="px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-bold hover:bg-amber-200 transition-colors inline-flex items-center gap-1"
           >
@@ -844,7 +883,10 @@ export default function CloudPipelineCanvas() {
 
       {/* CSV / S3 */}
       <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-5 shadow-sm">
-        <h2 className="text-base font-bold text-bleepx-text mb-2">4. Load to S3 Sandbox</h2>
+        <h2 className="text-base font-bold text-bleepx-text mb-2 flex flex-wrap items-center gap-2"><UploadIcon size={18} /> 4. Load to S3 Sandbox</h2>
+        <p className="text-xs text-bleepx-text-secondary mb-3">
+          This is the final step: the Gold-layer CSV is written to the AWS S3 sandbox bucket and key below.
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
           <input
             value={pipeline.s3Bucket}
@@ -859,15 +901,70 @@ export default function CloudPipelineCanvas() {
             className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
           />
         </div>
-        <button onClick={uploadToS3} disabled={!pipeline.rawCsv} className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-sky-600 to-teal-600 text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 inline-flex flex-wrap items-center justify-center gap-1">
-          <UploadIcon size={16} /> Upload CSV to S3 Sandbox
-        </button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+          <button onClick={uploadToS3} disabled={!pipeline.rawCsv} className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-sky-600 to-teal-600 text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 inline-flex flex-wrap items-center justify-center gap-1">
+            <UploadIcon size={16} /> Upload CSV to S3 Sandbox
+          </button>
+          {pipeline.transformedCsv && (
+            <button
+              onClick={() => {
+                const blob = new Blob([pipeline.transformedCsv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = pipeline.s3Key || 'output.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+                addLog(`Downloaded ${a.download} (${blob.size} bytes).`);
+              }}
+              className="w-full px-4 py-3 rounded-lg bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-sm font-bold hover:bg-violet-200 transition-colors inline-flex items-center justify-center gap-1"
+            >
+              <ChartBarIcon size={16} /> Download output CSV
+            </button>
+          )}
+        </div>
+        {pipeline.activeStep === 's3' && (
+          <div className="mt-4 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800">
+            <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300 mb-2">Uploaded and ready — what next?</p>
+            <div className="flex flex-wrap gap-2 mb-3">
+              <Link href="/cloud/sandbox" className="px-3 py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-200 transition-colors">
+                View S3 sandbox
+              </Link>
+              <button
+                onClick={() => {
+                  const summary = [
+                    `Bleepx ETL run: ${pipeline.s3Bucket}/${pipeline.s3Key}`,
+                    `Source: ${pipeline.sourceUrl || 'local CSV'}`,
+                    `Rows after Python: ${pipeline.transformedCsv ? pipeline.transformedCsv.split('\\n').length - 1 : 0}`,
+                    `SQL: ${pipeline.sqlQuery.trim()}`,
+                    `Python: ${pipeline.pythonCode.trim().slice(0, 200)}...`,
+                  ].join('\\n');
+                  navigator.clipboard.writeText(summary).then(() => addLog('Run summary copied to clipboard.'));
+                }}
+                className="px-3 py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-200 transition-colors"
+              >
+                Copy run summary
+              </button>
+              <button
+                onClick={() => { setPipeline((p) => ({ ...p, activeStep: 'extract', sqlResult: '', transformedCsv: '' })); addLog('Pipeline reset for a new run.'); }}
+                className="px-3 py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-200 transition-colors"
+              >
+                Run another pipeline
+              </button>
+            </div>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400">
+              Tip: open the S3 sandbox to verify the object, download the CSV, or start another ETL run with a different dataset.
+            </p>
+          </div>
+        )}
       </div>
+
+      <StatusLog logs={logs} onClear={() => setLogs([])} />
 
       {/* Reset + links */}
       <div className="flex flex-wrap items-center justify-between">
         <button
-          onClick={() => { clearSandboxState(); setSandbox(createEmptySandboxState()); setMessage('Sandbox reset.'); }}
+          onClick={() => { clearSandboxState(); setSandbox(createEmptySandboxState()); addLog('Sandbox reset.'); }}
           className="text-xs px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           <span className="inline-flex flex-wrap items-center gap-1"><RefreshIcon size={12} /> Reset Pipeline</span>
