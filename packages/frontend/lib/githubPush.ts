@@ -581,3 +581,93 @@ export async function pushCloudMissionToGitHub(
     return { success: false, error: msg };
   }
 }
+
+/** Data for a Bleepx ETL pipeline run. */
+export interface ETLPipelineData {
+  sourceUrl: string;
+  rawCsv: string;
+  sqlQuery: string;
+  sqlResult: string;
+  pythonCode: string;
+  transformedCsv: string;
+  s3Bucket: string;
+  s3Key: string;
+  timestamp?: string;
+  name?: string;
+}
+
+/** Push a complete Bleepx ETL pipeline (Bronze → Silver → Gold → S3) to GitHub. */
+export async function pushETLPipelineToGitHub(
+  data: ETLPipelineData,
+  onProgress?: (msg: string) => void,
+  user?: GitHubUser | null,
+): Promise<PushResult> {
+  const token = await getGitHubToken();
+  if (!user) {
+    return { success: false, error: 'Sign in with GitHub first to push your ETL pipeline.' };
+  }
+  if (!token) {
+    return { success: false, error: 'GitHub token not available. Please sign in again to refresh your session.' };
+  }
+
+  const repoName = 'etl-portfolio';
+  const author = user.name || user.login;
+  const date = data.timestamp ? new Date(data.timestamp).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+  const runName = data.name?.trim().replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 40) || `etl-run-${date}`;
+  const dir = `etl-pipelines/${runName}`;
+
+  const rawRows = data.rawCsv ? Math.max(0, data.rawCsv.trim().split('\n').length - 1) : 0;
+  const sqlRows = data.sqlResult ? Math.max(0, data.sqlResult.trim().split('\n').length - 1) : 0;
+  const outRows = data.transformedCsv ? Math.max(0, data.transformedCsv.trim().split('\n').length - 1) : 0;
+
+  const readme = `# ETL Pipeline: ${runName}\n\n` +
+    `A full browser-based ETL pipeline by **${author}**.\n\n` +
+    `## Medallion flow\n\n` +
+    `- **Bronze (Extract):** raw CSV from ${data.sourceUrl || 'user input'} (${rawRows} data rows)\n` +
+    `- **Silver (SQL):** exploration and aggregation in \`query.sql\` (${sqlRows} data rows)\n` +
+    `- **Gold (Python):** transformation in \`transform.py\` (${outRows} data rows)\n` +
+    `- **Load (S3):** uploaded to \`${data.s3Bucket || '—'}/${data.s3Key || '—'}\`\n\n` +
+    `## Files\n\n` +
+    `- \`raw.csv\` — Bronze source data\n` +
+    `- \`query.sql\` — Silver SQL\n` +
+    `- \`sql_result.csv\` — Silver output\n` +
+    `- \`transform.py\` — Gold Python\n` +
+    `- \`output.csv\` — Gold output ready for S3\n` +
+    `- \`s3_manifest.txt\` — S3 destination\n` +
+    `- \`pipeline.json\` — run metadata\n\n` +
+    `---\n*Pushed by **${author}** — *bleep* approved.*\n`;
+
+  const safeMeta = { ...data };
+  delete (safeMeta as any).rawCsv;
+  delete (safeMeta as any).sqlResult;
+  delete (safeMeta as any).transformedCsv;
+
+  const files: PortfolioFile[] = [
+    { path: `${dir}/README.md`, content: readme },
+    { path: `${dir}/query.sql`, content: data.sqlQuery },
+    { path: `${dir}/transform.py`, content: data.pythonCode },
+    { path: `${dir}/raw.csv`, content: data.rawCsv },
+    { path: `${dir}/sql_result.csv`, content: data.sqlResult },
+    { path: `${dir}/output.csv`, content: data.transformedCsv },
+    { path: `${dir}/s3_manifest.txt`, content: `bucket: ${data.s3Bucket}\nkey: ${data.s3Key}\n` },
+    { path: `${dir}/pipeline.json`, content: JSON.stringify(safeMeta, null, 2) },
+  ];
+
+  try {
+    onProgress?.('Creating repository...');
+    const repo = await ensureRepo(token, repoName);
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      onProgress?.(`Pushing ${f.path} (${i + 1}/${files.length})...`);
+      await pushFile(token, repo, f.path, f.content, `Add ${f.path}`);
+    }
+    onProgress?.('Done!');
+    return { success: true, repoUrl: `https://github.com/${repo}/tree/main/${dir}` };
+  } catch (err: any) {
+    const msg = err.message || 'Push failed';
+    if (msg.includes('Bad credentials')) {
+      return { success: false, error: 'Bad credentials — please sign out and sign in again.' };
+    }
+    return { success: false, error: msg };
+  }
+}

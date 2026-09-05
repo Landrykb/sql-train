@@ -13,6 +13,7 @@ import {
   pushDomainPortfolioToGitHub,
   pushLabDomainPortfolioToGitHub,
   pushCloudProviderPortfolioToGitHub,
+  pushETLPipelineToGitHub,
 } from '@/lib/githubPush';
 import { playBleep } from '@/lib/audio';
 import { fullCaseOrder } from '@/lib/constants';
@@ -35,6 +36,7 @@ import {
   CloudProviderIcon,
   CheckBadge,
   ErrorIcon,
+  ToolsIcon,
 } from '@/components/AppIcons';
 import { VerseIcon } from '@/components/NavIcons';
 import { FileText } from 'lucide-react';
@@ -85,6 +87,7 @@ export default function ProfileExportSection({
   const [checkingToken, setCheckingToken] = useState(true);
   const [status, setStatus] = useState<Record<string, ExportStatus>>({});
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
+  const [etlName, setEtlName] = useState('my-first-etl');
 
   // Keep the GitHub token fresh. The cookie is set by the OAuth callback and
   // by the SIGNED_IN listener, but read it here so we can disable exports when
@@ -240,6 +243,40 @@ export default function ProfileExportSection({
         provider as any,
         solved.map((m: any) => m.slug),
         missionData,
+        (msg) => console.log(msg),
+        currentUser
+      );
+      setItemStatus(key, { loading: false, result });
+    } catch (err: any) {
+      setItemStatus(key, { loading: false, result: { success: false, error: err.message || 'Export failed' } });
+    }
+  };
+
+  const handleExportETL = async (name: string) => {
+    const key = 'etl';
+    setItemStatus(key, { loading: true, result: undefined });
+
+    const currentUser = user;
+    if (!currentUser) {
+      setItemStatus(key, { loading: false, result: { success: false, error: 'Sign in with GitHub first.' } });
+      return;
+    }
+    const t = await getGitHubToken();
+    if (!t) {
+      setItemStatus(key, { loading: false, result: { success: false, error: 'GitHub token not available. Sign in with GitHub to export.' } });
+      return;
+    }
+
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('bleepx_etl_pipeline') : null;
+    if (!saved) {
+      setItemStatus(key, { loading: false, result: { success: false, error: 'No ETL pipeline saved yet. Run one in the Bleepx Pipeline Canvas first.' } });
+      return;
+    }
+
+    try {
+      const data = JSON.parse(saved);
+      const result = await pushETLPipelineToGitHub(
+        { ...data, name },
         (msg) => console.log(msg),
         currentUser
       );
@@ -571,6 +608,56 @@ export default function ProfileExportSection({
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Bleepx ETL Exports */}
+      <div className="border border-bleepx-border rounded-lg p-4">
+        <h3 className="font-bold text-bleepx-text mb-2 flex items-center gap-2">
+          <ToolsIcon size={20} className="text-teal-500" /> Bleepx ETL
+        </h3>
+        <p className="text-xs text-bleepx-text-secondary mb-3">
+          Export your latest end-to-end pipeline (Bronze → Silver → Gold → S3) to GitHub.
+        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+          <div className="flex items-center gap-2 flex-wrap">
+            <input
+              value={etlName}
+              onChange={(e) => setEtlName(e.target.value.replace(/[^a-zA-Z0-9_-]/g, '_'))}
+              placeholder="etl-run-name"
+              className="px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+            />
+          </div>
+          <div className="flex gap-2 flex-wrap items-center">
+            <button
+              disabled={!canExport || status['etl']?.loading}
+              onClick={() => handleExportETL(etlName || 'my-first-etl')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                canExport && !status['etl']?.loading
+                  ? 'bg-teal-600 text-white hover:bg-teal-700'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              {status['etl']?.loading ? 'Exporting...' : 'Export'}
+            </button>
+          </div>
+          {status['etl']?.result && !status['etl'].loading && (
+            <div className="w-full mt-1 text-xs">
+              {status['etl'].result.success ? (
+                <span className="text-emerald-600 flex items-center gap-1 flex-wrap">
+                  <CheckBadge size={14} className="text-emerald-600" />
+                  Exported!{' '}
+                  <a href={status['etl'].result.repoUrl} target="_blank" rel="noopener noreferrer" className="underline break-all">
+                    {status['etl'].result.repoUrl}
+                  </a>
+                </span>
+              ) : (
+                <span className="text-red-600 flex items-center gap-1">
+                  <ErrorIcon size={14} className="text-red-600" /> {status['etl'].result.error}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

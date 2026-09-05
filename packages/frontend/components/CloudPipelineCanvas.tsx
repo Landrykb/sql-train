@@ -8,6 +8,8 @@ import { CheckBadge, AlertIcon, ToolsIcon, RocketIcon, ChartBarIcon, UploadIcon,
 import { getKaggleInfo } from '@/lib/kaggleDatasets';
 import { getDataWorldInfo } from '@/lib/dataWorldDatasets';
 import { PIPELINE_PRESETS, DEFAULT_PYTHON } from '@/lib/cloud/pipelinePresets';
+import { pushETLPipelineToGitHub } from '@/lib/githubPush';
+import { getGitHubUser } from '@/lib/authClient';
 import { initSQL, loadCSVString, runQuery } from '@/lib/sqlClient/browser';
 import { getSqlErrorHelp } from '@/lib/sqlErrorHelper';
 import { getPyErrorHelp } from '@/lib/pyErrorHelper';
@@ -357,6 +359,27 @@ export default function CloudPipelineCanvas() {
   const [lastSqlError, setLastSqlError] = useState<{ message: string; query: string } | null>(null);
   const [lastPythonError, setLastPythonError] = useState<{ message: string; code: string } | null>(null);
   const [pythonSource, setPythonSource] = useState<'auto' | 'sql' | 'raw'>('auto');
+  const [pushing, setPushing] = useState(false);
+  const [githubUser, setGithubUser] = useState<{ login: string; name?: string } | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = localStorage.getItem('bleepx_etl_pipeline');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setPipeline((p) => ({ ...p, ...parsed }));
+      }
+    } catch { /* ignore */ }
+    setGithubUser(getGitHubUser());
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem('bleepx_etl_pipeline', JSON.stringify({ ...pipeline, timestamp: new Date().toISOString() }));
+    } catch { /* ignore */ }
+  }, [pipeline]);
 
   const activeRawCsv = useMemo(() => normalizeCsv(pipeline.rawCsv), [pipeline.rawCsv]);
   const effectivePythonCode = useMemo(
@@ -581,6 +604,19 @@ export default function CloudPipelineCanvas() {
     const last = next.events[next.events.length - 1];
     addLog(last ? last.message : 'Uploaded to S3 sandbox.');
   }, [sandbox, pipeline.s3Bucket, pipeline.s3Key, pipeline.transformedCsv, pipeline.rawCsv]);
+
+  const pushToGitHub = useCallback(async () => {
+    setPushing(true);
+    addLog('Pushing ETL pipeline to GitHub...');
+    const name = `${pipeline.s3Bucket}-${pipeline.s3Key}`.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 40);
+    const result = await pushETLPipelineToGitHub({ ...pipeline, name }, (msg) => addLog(msg), getGitHubUser());
+    if (result.success) {
+      addLog(`Pushed to GitHub: ${result.repoUrl}`);
+    } else {
+      addLog(`GitHub push failed: ${result.error}`);
+    }
+    setPushing(false);
+  }, [pipeline, addLog]);
 
   const validateOutput = useCallback(() => {
     if (!pipeline.transformedCsv) {
@@ -944,6 +980,13 @@ export default function CloudPipelineCanvas() {
                 className="px-3 py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-200 transition-colors"
               >
                 Copy run summary
+              </button>
+              <button
+                onClick={pushToGitHub}
+                disabled={pushing || !githubUser}
+                className="px-3 py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-200 transition-colors disabled:opacity-50"
+              >
+                {pushing ? 'Pushing…' : 'Push to GitHub'}
               </button>
               <button
                 onClick={() => { setPipeline((p) => ({ ...p, activeStep: 'extract', sqlResult: '', transformedCsv: '' })); addLog('Pipeline reset for a new run.'); }}
