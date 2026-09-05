@@ -70,13 +70,18 @@ interface CloudSandboxProps {
   initialState?: CloudSandboxState;
   onStateChange?: (state: CloudSandboxState) => void;
   persist?: boolean;
+  openTab?: string;
 }
 
-export default function CloudSandbox({ mission, onComplete, freePlay, initialState, onStateChange, persist = true }: CloudSandboxProps) {
+export default function CloudSandbox({ mission, onComplete, freePlay, initialState, onStateChange, persist = true, openTab }: CloudSandboxProps) {
   const [state, setState] = useState<CloudSandboxState>(initialState || createEmptySandboxState());
   const [activeTab, setActiveTab] = useState<'s3' | 'iam' | 'ec2' | 'vpc' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'secretsmanager' | 'elasticache' | 'messaging' | 'stepfunctions' | 'storage' | 'lambda' | 'terraform' | 'security' | 'events'>('s3');
   const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState<{ text: string; type: 'info' | 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    if (openTab) setActiveTab(openTab as any);
+  }, [openTab]);
 
   useEffect(() => {
     if (initialState) return;
