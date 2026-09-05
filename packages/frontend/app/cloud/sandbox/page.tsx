@@ -268,7 +268,7 @@ export default function CloudSandboxPage() {
   const initialScenario = (searchParams.get('scenario') as ScenarioKey) || 'bank';
   const [scenario, setScenario] = useState<ScenarioKey>(initialScenario);
   const [state, setState] = useState<CloudSandboxState | null>(null);
-  const [openTab, setOpenTab] = useState<string | undefined>(undefined);
+  const [openTab, setOpenTab] = useState<{ tab: string; id: number } | undefined>(undefined);
 
   const current = SCENARIOS[scenario];
   const findings = useMemo(() => (state ? scanSecurityPosture(state) : []), [state]);
@@ -401,13 +401,13 @@ export default function CloudSandboxPage() {
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               <button
-                onClick={() => setOpenTab(currentStep.tab)}
+                onClick={() => setOpenTab({ tab: currentStep.tab, id: Date.now() })}
                 className="px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 transition-colors"
               >
                 Open {currentStep.tab} tab
               </button>
               <button
-                onClick={() => setOpenTab('security')}
+                onClick={() => setOpenTab({ tab: 'security', id: Date.now() })}
                 className="px-3 py-1.5 rounded-lg bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-xs font-bold hover:bg-rose-200 transition-colors"
               >
                 View security findings

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { CloudSandboxState, S3BucketPolicy } from '@/lib/cloud/sandbox';
 import { createBleepxBankScenario } from '@/lib/cloud/sandbox';
 import { CheckBadge, SchoolIcon, BuildingBankIcon, RefreshIcon, ToolsIcon } from '@/components/AppIcons';
@@ -70,17 +70,22 @@ interface CloudSandboxProps {
   initialState?: CloudSandboxState;
   onStateChange?: (state: CloudSandboxState) => void;
   persist?: boolean;
-  openTab?: string;
+  openTab?: { tab: string; id: number };
 }
 
 export default function CloudSandbox({ mission, onComplete, freePlay, initialState, onStateChange, persist = true, openTab }: CloudSandboxProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<CloudSandboxState>(initialState || createEmptySandboxState());
   const [activeTab, setActiveTab] = useState<'s3' | 'iam' | 'ec2' | 'vpc' | 'dynamodb' | 'rds' | 'elb' | 'asg' | 'kms' | 'cloudwatch' | 'route53' | 'cloudfront' | 'secretsmanager' | 'elasticache' | 'messaging' | 'stepfunctions' | 'storage' | 'lambda' | 'terraform' | 'security' | 'events'>('s3');
   const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState<{ text: string; type: 'info' | 'success' | 'error' } | null>(null);
 
   useEffect(() => {
-    if (openTab) setActiveTab(openTab as any);
+    if (!openTab) return;
+    setActiveTab(openTab.tab as any);
+    setTimeout(() => {
+      containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   }, [openTab]);
 
   useEffect(() => {
@@ -126,7 +131,7 @@ export default function CloudSandbox({ mission, onComplete, freePlay, initialSta
   }, [checkSteps, freePlay, steps, onComplete, state]);
 
   return (
-    <div className="space-y-4 min-w-0">
+    <div ref={containerRef} className="space-y-4 min-w-0">
       {message && (
         <div className={`p-3 rounded-xl text-sm font-medium border ${
           message.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' :
