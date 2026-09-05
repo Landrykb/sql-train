@@ -2,12 +2,13 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import CloudSandbox from '@/components/CloudSandbox';
 import { ScenarioIcon, CloudIcon, CheckBadge } from '@/components/AppIcons';
-import { createBleepxBankScenario, createBleepxRetailScenario, createBleepxHealthScenario, type CloudSandboxState } from '@/lib/cloud/sandbox';
+import { createBleepxBankScenario, createBleepxRetailScenario, createBleepxHealthScenario, createEmptySandboxState, loadSandboxState, type CloudSandboxState } from '@/lib/cloud/sandbox';
 import { scanSecurityPosture } from '@/lib/cloud/sandboxActions';
 
-type ScenarioKey = 'bank' | 'retail' | 'health';
+type ScenarioKey = 'bank' | 'retail' | 'health' | 'saved';
 
 interface SandboxScenario {
   key: ScenarioKey;
@@ -172,10 +173,21 @@ const SCENARIOS: Record<ScenarioKey, SandboxScenario> = {
       },
     ],
   },
+  saved: {
+    key: 'saved',
+    title: 'My Sandbox',
+    description: 'Your live sandbox state, including any buckets and objects created by the ETL Pipeline Canvas or free play.',
+    realWorld: 'This is your persistent playground state in the browser.',
+    dataNote: 'User-created S3 objects, IAM policies, and any other sandbox resources.',
+    create: () => loadSandboxState() || createEmptySandboxState(),
+    objectives: [],
+  },
 };
 
 export default function CloudSandboxPage() {
-  const [scenario, setScenario] = useState<ScenarioKey>('bank');
+  const searchParams = useSearchParams();
+  const initialScenario = (searchParams.get('scenario') as ScenarioKey) || 'bank';
+  const [scenario, setScenario] = useState<ScenarioKey>(initialScenario);
   const [state, setState] = useState<CloudSandboxState | null>(null);
 
   const current = SCENARIOS[scenario];

@@ -188,9 +188,9 @@ function generatePythonStarter(rawCsv: string, sqlResult: string): string {
 
   if (groupCol && numeric.length) {
     const cat = groupCol.name;
-    body += `\n# Aggregate and plot\nprint(df.groupby('${cat}')['${numeric[0].name}'].mean())\ndf.groupby('${cat}')['${numeric[0].name}'].mean().plot(kind='bar')\n`;
+    body += `\n# Aggregate and plot (the figure is captured automatically)\nsummary = df.groupby('${cat}')['${numeric[0].name}'].mean()\nsummary.plot(kind='bar')\n`;
   } else if (groupCol) {
-    body += `\n# Count categories\nprint(df['${groupCol.name}'].value_counts())\n`;
+    body += `\n# Count categories\ncounts = df['${groupCol.name}'].value_counts()\n`;
   }
 
   return `import pandas as pd
@@ -210,16 +210,22 @@ function extractLastCsv(text: string): string {
   const trimmed = text.trim();
   if (!trimmed) return trimmed;
   const blocks = trimmed.split(/\n\s*\n/).filter(Boolean);
-  for (let i = blocks.length - 1; i >= 0; i--) {
-    const candidate = blocks[i].trim();
+  let bestCandidate = '';
+  let bestCols = 0;
+  let bestIndex = -1;
+  blocks.forEach((block, index) => {
+    const candidate = block.trim();
     const parsed = Papa.parse<Record<string, unknown>>(candidate, { header: true, skipEmptyLines: true, dynamicTyping: true });
-    if (parsed.errors.length === 0 && parsed.meta.fields && parsed.meta.fields.length > 0 && parsed.data.length > 0) {
-      const expected = parsed.meta.fields.length;
-      const consistent = parsed.data.every((row) => Object.keys(row).length === expected);
-      if (consistent) return candidate;
+    if (parsed.errors.length > 0 || !parsed.meta.fields || parsed.meta.fields.length === 0 || parsed.data.length === 0) return;
+    const expected = parsed.meta.fields.length;
+    const consistent = parsed.data.every((row) => Object.keys(row).length === expected);
+    if (consistent && (parsed.meta.fields.length > bestCols || (parsed.meta.fields.length === bestCols && index > bestIndex))) {
+      bestCandidate = candidate;
+      bestCols = parsed.meta.fields.length;
+      bestIndex = index;
     }
-  }
-  return trimmed;
+  });
+  return bestCandidate || trimmed;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -435,6 +441,12 @@ export default function CloudPipelineCanvas() {
   const sourceInfo = useMemo(() => {
     return getKaggleInfo(pipeline.sourceUrl) || getDataWorldInfo(pipeline.sourceUrl);
   }, [pipeline.sourceUrl]);
+
+  const uploadedObject = useMemo(() => {
+    if (!pipeline.s3Bucket) return null;
+    const bucket = sandbox.s3.buckets[pipeline.s3Bucket];
+    return bucket?.objects.find((o) => o.key === pipeline.s3Key) || null;
+  }, [sandbox, pipeline.s3Bucket, pipeline.s3Key]);
 
   const loadSample = useCallback((csv: string) => {
     const clean = normalizeCsv(csv);
@@ -963,7 +975,7 @@ export default function CloudPipelineCanvas() {
           <div className="mt-4 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800">
             <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300 mb-2">Uploaded and ready — what next?</p>
             <div className="flex flex-wrap gap-2 mb-3">
-              <Link href="/cloud/sandbox" className="px-3 py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-200 transition-colors">
+              <Link href={`/cloud/sandbox?scenario=saved`} className="px-3 py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-200 transition-colors">
                 View S3 sandbox
               </Link>
               <button
@@ -996,8 +1008,16 @@ export default function CloudPipelineCanvas() {
               </button>
             </div>
             <p className="text-xs text-emerald-600 dark:text-emerald-400">
-              Tip: open the S3 sandbox to verify the object, download the CSV, or start another ETL run with a different dataset.
+              Tip: verify the object below, download it, push the full run to GitHub, or start another ETL run.
             </p>
+            {uploadedObject && (
+              <div className="mt-4">
+                <div className="text-xs font-mono text-emerald-700 dark:text-emerald-300 mb-1">
+                  s3://{pipeline.s3Bucket}/{uploadedObject.key} ({uploadedObject.size} bytes, {uploadedObject.contentType})
+                </div>
+                <CsvOutput csv={uploadedObject.body} cell={undefined} title="S3 object preview" />
+              </div>
+            )}
           </div>
         )}
       </div>
