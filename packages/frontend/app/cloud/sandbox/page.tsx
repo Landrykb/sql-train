@@ -176,8 +176,8 @@ const SCENARIOS: Record<ScenarioKey, SandboxScenario> = {
   saved: {
     key: 'saved',
     title: 'My Sandbox',
-    description: 'Your live sandbox state, including any buckets and objects created by the ETL Pipeline Canvas or free play.',
-    realWorld: 'This is your persistent playground state in the browser.',
+    description: 'Your live sandbox with any buckets and objects you created in the ETL Pipeline Canvas or during free play. This is the place to inspect your uploaded CSVs, verify S3 paths, and run a security posture scan on resources you built.',
+    realWorld: 'In production, a data platform keeps a dedicated landing-zone bucket for every ETL run so analysts, auditors, and downstream jobs can find the data. Your sandbox does the same.',
     dataNote: 'User-created S3 objects, IAM policies, and any other sandbox resources.',
     create: () => loadSandboxState() || createEmptySandboxState(),
     objectives: [],
@@ -203,6 +203,13 @@ export default function CloudSandboxPage() {
     return counts;
   }, [state, current]);
   const criticalCount = useMemo(() => findings.filter((f) => f.severity === 'critical' || f.severity === 'high').length, [findings]);
+  const savedSummary = useMemo(() => {
+    if (scenario !== 'saved' || !state) return null;
+    const buckets = Object.values(state.s3.buckets);
+    const objects = buckets.flatMap((b) => b.objects.map((o) => `${b.name}/${o.key}`));
+    if (objects.length === 0) return 'No S3 objects found yet. Run the ETL Pipeline Canvas or upload objects in free play to populate this sandbox.';
+    return `S3 buckets: ${buckets.length} | Objects: ${objects.length} — ${objects.slice(0, 4).join(', ')}${objects.length > 4 ? '…' : ''}`;
+  }, [state, scenario]);
 
   return (
     <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-20">
@@ -259,6 +266,11 @@ export default function CloudSandboxPage() {
           <div className="mt-2 text-xs text-bleepx-text-secondary break-words">
             <strong>Data included:</strong> {current.dataNote}
           </div>
+          {savedSummary && (
+            <div className="mt-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200 break-words">
+              <strong>Your data:</strong> {savedSummary}
+            </div>
+          )}
         </div>
 
         <div className="rounded-xl border border-bleepx-border bg-bleepx-white p-5 shadow-sm flex flex-col justify-between">
@@ -327,6 +339,7 @@ export default function CloudSandboxPage() {
         freePlay
         initialState={current.create()}
         onStateChange={setState}
+        persist={scenario === 'saved'}
       />
 
       <div className="flex flex-wrap items-center justify-between text-sm text-bleepx-text-secondary">
