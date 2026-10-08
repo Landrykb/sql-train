@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    # Weekly on Tuesdays at 07:00 UTC — catches newly published rules/findings
+    - cron: '0 7 * * 2'
   workflow_dispatch:
 
 permissions:

@@ -1,0 +1,57 @@
+name: Dependency audit
+
+on:
+  schedule:
+    # Weekly on Thursdays at 09:00 UTC — flags known vulns and stale packages
+    - cron: '0 9 * * 4'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: pnpm audit + outdated report
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.3
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit for known vulnerabilities
+        run: |
+          pnpm audit --audit-level=high > audit.txt 2>&1
+          STATUS=$?
+          cat audit.txt
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::warning::pnpm audit found high/critical vulnerabilities. See log above."
+          fi
+          echo "audit_exit=$STATUS" >> "$GITHUB_OUTPUT"
+        id: audit
+
+      - name: Report outdated direct dependencies
+        if: always()
+        run: pnpm outdated --recursive > outdated.txt 2>&1 || true && cat outdated.txt
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-audit-${{ github.run_number }}
+          path: |
+            audit.txt
+            outdated.txt
+          retention-days: 30

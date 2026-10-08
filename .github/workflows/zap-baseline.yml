@@ -1,8 +1,11 @@
 name: OWASP ZAP DAST
 
 on:
-  # Trigger after a deployment finishes, or run manually against any live URL.
+  # Trigger after a deployment finishes, weekly, or manually against any live URL.
   deployment_status:
+  schedule:
+    # Weekly on Wednesdays at 08:00 UTC — scans ZAP_TARGET_URL (set it in repo variables)
+    - cron: '0 8 * * 3'
   workflow_dispatch:
     inputs:
       host:
@@ -18,8 +21,8 @@ jobs:
   zap-baseline:
     name: OWASP ZAP baseline scan
     runs-on: ubuntu-latest
-    # Only run when the deployment succeeded or a host is provided manually.
-    if: (github.event_name == 'workflow_dispatch') || (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success')
+    # Only run when the deployment succeeded, a host is provided manually, or on schedule.
+    if: (github.event_name == 'workflow_dispatch') || (github.event_name == 'schedule') || (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,6 +32,8 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "deployment_status" ]; then
             echo "url=${{ github.event.deployment_status.environment_url }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "url=${{ vars.ZAP_TARGET_URL }}" >> "$GITHUB_OUTPUT"
           else
             echo "url=${{ inputs.host }}" >> "$GITHUB_OUTPUT"
           fi
@@ -36,7 +41,7 @@ jobs:
       - name: Validate target URL
         if: steps.target.outputs.url == ''
         run: |
-          echo "::error::No target URL available. Provide a host or ensure deployment_status.environment_url is set."
+          echo "::error::No target URL available. Provide a host, ensure deployment_status.environment_url is set, or set the ZAP_TARGET_URL repository variable for scheduled scans."
           exit 1
 
       - name: ZAP baseline scan
