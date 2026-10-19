@@ -16,6 +16,9 @@ export interface Champion {
   blurb: string;
   sprite: string;       // /arena/<id>.png
   quizAccuracy: number; // scripted-quiz fallback hit rate (0..1)
+  typeStyle: 'burst' | 'steady' | 'erratic'; // how it writes code on screen
+  bugRate: number;      // scripted-SQL chance a round has a bug (0..1)
+  quips: { start: string; hit: string; miss: string };
 }
 
 export const CHAMPIONS: Champion[] = [
@@ -33,6 +36,9 @@ export const CHAMPIONS: Champion[] = [
     blurb: 'Simplest correct query, immediately.',
     sprite: '/arena/dash.png',
     quizAccuracy: 0.7,
+    typeStyle: 'burst',
+    bugRate: 0.22,
+    quips: { start: 'Speedrun it.', hit: 'Told you — fast AND right.', miss: 'Too fast. Again.' },
   },
   {
     id: 'spec',
@@ -49,6 +55,9 @@ export const CHAMPIONS: Champion[] = [
     blurb: 'Verifies the schema twice, then strikes once.',
     sprite: '/arena/spectacle.png',
     quizAccuracy: 0.85,
+    typeStyle: 'steady',
+    bugRate: 0.08,
+    quips: { start: 'Measure twice. Query once.', hit: 'Methodical wins again.', miss: 'Hmm. Recalibrating.' },
   },
   {
     id: 'hex',
@@ -65,6 +74,9 @@ export const CHAMPIONS: Champion[] = [
     blurb: 'Clever or catastrophic — never boring.',
     sprite: '/arena/hex.png',
     quizAccuracy: 0.6,
+    typeStyle: 'erratic',
+    bugRate: 0.3,
+    quips: { start: 'Watch this trick…', hit: 'CHAOS WORKS?!', miss: 'The chaos chose violence.' },
   },
 ];
 
@@ -112,7 +124,10 @@ export const RIVAL = {
   solveDelayMs: [900, 1200, 1500],
   sprite: '/arena/vex7.png',
   quizAccuracy: 0.75,   // house bot hits most questions
-};
+  typeStyle: 'steady',
+  bugRate: 0.12,
+  quips: { start: 'INITIATING COMBAT PROTOCOL.', hit: 'EXPECTED OUTCOME.', miss: 'RECALCULATING.' },
+} as const;
 
 export function getChampion(id: string): Champion {
   return CHAMPIONS.find((c) => c.id === id) ?? CHAMPIONS[0];
