@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Swords } from 'lucide-react';
 import NavAuth from '@/components/NavAuth';
 import { CrossVerseIcon, GuideIcon, VerseIcon } from '@/components/NavIcons';
 import { BrainIcon } from '@/components/AppIcons';
@@ -124,6 +124,11 @@ export default function NavHeader() {
           <Link href={guideHref} className={`flex items-center justify-center gap-1 p-1.5 min-h-[44px] min-w-[44px] text-bleepx-text-secondary hover:${brandColor} font-semibold text-sm sm:text-base transition-colors`}>
             <GuideIcon size={24} />
             <span className="hidden sm:inline">Guide</span>
+          </Link>
+
+          <Link href="/arena" className={`flex items-center justify-center gap-1 p-1.5 min-h-[44px] min-w-[44px] text-bleepx-text-secondary hover:${brandColor} font-semibold text-sm sm:text-base transition-colors`}>
+            <Swords size={24} />
+            <span className="hidden sm:inline">Arena</span>
           </Link>
 
           {currentVerse && <><div className="h-6 w-px bg-bleepx-border hidden sm:block" /><VerseSwitcher current={currentVerse} /></>}

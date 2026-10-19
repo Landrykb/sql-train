@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bleepx-v1';
+const CACHE_NAME = 'bleepx-v2';
 const PRECACHE_URLS = ['/', '/manifest.json', '/icons/icon-192x192.png', '/icons/icon-512x512.png'];
 
 self.addEventListener('install', (event) => {
