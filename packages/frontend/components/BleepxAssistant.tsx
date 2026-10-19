@@ -29,7 +29,7 @@ import {
 } from '@/components/BleepxIcons';
 
 
-type AssistantContext = 'home' | 'sql' | 'lab' | 'cloud' | 'journey' | 'general';
+type AssistantContext = 'home' | 'sql' | 'lab' | 'cloud' | 'journey' | 'arena' | 'general';
 
 function contextFromPathname(path: string | null): AssistantContext {
   if (!path) return 'general';
@@ -37,6 +37,7 @@ function contextFromPathname(path: string | null): AssistantContext {
   if (path.startsWith('/cloud')) return 'cloud';
   if (path.startsWith('/lab')) return 'lab';
   if (path.startsWith('/journey')) return 'journey';
+  if (path.startsWith('/arena')) return 'arena';
   if (path === '/') return 'home';
   return 'general';
 }
@@ -48,6 +49,7 @@ function topicForContext(context: AssistantContext): Chunk['topic'] {
     cloud: 'aws',
     lab: 'python',
     journey: 'general',
+    arena: 'general',
     general: 'general',
   };
   return map[context];
@@ -76,6 +78,7 @@ const DEFAULT_HINTS: Record<string, { text: string; cta: string; href: string }>
   '/cloud/pipelines': { text: 'Pick a project preset, run SQL, transform with Python, then upload to S3.', cta: 'Choose a preset', href: '/cloud/pipelines' },
   '/cloud/certifications': { text: 'Check off each SAA-C03 domain step as you complete it in the sandbox.', cta: 'Back to Sandbox', href: '/cloud/sandbox' },
   '/journey': { text: 'Pick your goals and time. Bleepx will build the path and remember it.', cta: 'Generate Plan', href: '#' },
+  '/arena': { text: 'Coach your champion: pick a strategy card and watch it fight VEX-7. Tag-team lets you take the last round yourself.', cta: 'Back to Arenas', href: '/arena' },
 };
 
 const findJourneyGoal = (): string | null => {
@@ -127,6 +130,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       case 'sql': return 'SQL';
       case 'cloud': return 'AWS';
       case 'lab': return 'PY';
+      case 'arena': return 'VS';
       default: return 'SQL';
     }
   }, [activeContext]);
@@ -241,6 +245,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   useEffect(() => { activeModeRef.current = activeMode; }, [activeMode]);
 
   const hint = useMemo(() => {
+    if (pathname?.startsWith('/arena')) return DEFAULT_HINTS['/arena'];
     const exact = DEFAULT_HINTS[pathname];
     if (exact) return exact;
     if (pathname?.startsWith('/cases/')) return { text: 'Read the case, run a query, and hit the Bleepx hint if you are stuck.', cta: 'Back to Cases', href: '/cases' };
