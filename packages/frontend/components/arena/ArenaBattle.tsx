@@ -15,9 +15,11 @@ import { CHAMPIONS, STRATEGY_CARDS, RIVAL, type Champion, type StrategyCard } fr
 import { ARENA_XP, EVO_STAGES, awardChampionXp, getChampionProgress, getEvolvedStats, getSelectedChampionId, setSelectedChampionId, syncTrainingXp, type ChampionProgress } from '@/lib/arena/evolution';
 import { playBleep } from '@/lib/audio';
 import { motion, AnimatePresence } from 'framer-motion';
+import { loadPyodide, runPythonCode } from '@/lib/pyodideRuntime';
+import { cloudMissionById, actionsToLines, freshSandbox, type CloudAction } from '@/lib/arena/codeDuels';
 
 interface RoundDef {
-  type: 'sql' | 'quiz';
+  type: 'sql' | 'quiz' | 'python' | 'cloud';
   id: string;
   name: string;
   tier: string | number;
@@ -33,6 +35,12 @@ interface RoundDef {
   answer?: string | string[];
   explanation?: string;
   hint?: string;
+  // python duel
+  setup?: string;
+  solution?: string;
+  buggy?: string;
+  check?: string;
+  starter?: string;
 }
 
 interface FighterResult {
@@ -76,8 +84,8 @@ const VERSES: { id: Verse; name: string; icon: string; blurb: string; domains?: 
       { id: 'trials', label: 'Trials' },
     ],
   },
-  { id: 'cloud', name: 'Cloud Arena', icon: '☁️', blurb: 'AWS / Azure / GCP quiz duels — fastest right answer.' },
-  { id: 'lab', name: 'Lab Arena', icon: '🧪', blurb: 'Python & data-science quiz duels.' },
+  { id: 'cloud', name: 'Cloud Arena', icon: '☁️', blurb: 'Quiz duels + a real build mission in the AWS sandbox.' },
+  { id: 'lab', name: 'Lab Arena', icon: '🧪', blurb: 'Quiz duels + a real Python code duel in Pyodide.' },
 ];
 
 const TIERS: { id: Tier; name: string; blurb: string }[] = [
@@ -89,9 +97,13 @@ const TIERS: { id: Tier; name: string; blurb: string }[] = [
 /* Bleepx referee commentary — scripted lines per beat. */
 const REF = {
   roundStart: (n: number) => [`ROUND ${n} — FIGHT!`, `Bleepx calls it: round ${n} begins.`],
-  reading: (kind: 'sql' | 'quiz') => kind === 'sql'
-    ? 'Bleepx: "Read the task — both bots get it at the same time you do."'
-    : 'Bleepx: "Question on the board — the crowd reads it first."',
+  reading: (kind: string) => kind === 'quiz'
+    ? 'Bleepx: "Question on the board — the crowd reads it first."'
+    : kind === 'python'
+    ? 'Bleepx: "Final round is real code — Pyodide is warming up. Study the task."'
+    : kind === 'cloud'
+    ? 'Bleepx: "Build mission on the board — whoever ships the right infra first wins."'
+    : 'Bleepx: "Read the task — both bots get it at the same time you do."',
   typing: ['Champions are thinking…', 'Queries loading… stand by.', 'Fingers on keyboards. Bots on metal.'],
   champHit: ['Clean hit from the challenger!', 'That one landed! 💥', 'Textbook execution — the crowd goes mild-to-wild.'],
   champMiss: ['Oof — that missed the mark.', 'A swing and a miss!', 'VEX-7 saw that coming a mile away.'],
@@ -276,6 +288,7 @@ export default function ArenaBattle() {
   const [results, setResults] = useState<RoundResult[]>([]);
   const [verdict, setVerdict] = useState<string>('');
   const [playerSql, setPlayerSql] = useState('');
+  const [playerActions, setPlayerActions] = useState<CloudAction[]>([]);
   const [playerAnswer, setPlayerAnswer] = useState('');
   const [status, setStatus] = useState('');
   const [copied, setCopied] = useState(false);
@@ -371,6 +384,50 @@ export default function ArenaBattle() {
     }
   }, []);
 
+  // Run a Python duel entry in Pyodide: setup + bot code + check asserts.
+  const runAndScorePython = useCallback(async (code: string, round: RoundDef): Promise<FighterResult> => {
+    const t0 = performance.now();
+    try {
+      const py = await loadPyodide();
+      const full = `${round.setup ?? ''}\n${code}\n${round.check ?? ''}`;
+      const res = await runPythonCode(py, { code: full, timeoutMs: 20000 });
+      const execMs = Math.round(performance.now() - t0);
+      const failed = (res.stderr ?? '').trim().length > 0;
+      return {
+        sql: code,
+        correct: !failed,
+        solveMs: 0,
+        execMs,
+        rows: (res.stdout ?? '').split('\n').filter(Boolean).length,
+        error: failed ? (res.stderr ?? '').trim().split('\n').pop() : undefined,
+      };
+    } catch (err: any) {
+      return { sql: code, correct: false, solveMs: 0, execMs: Math.round(performance.now() - t0), rows: 0, error: err?.message };
+    }
+  }, []);
+
+  // Run a cloud build mission: apply the action list to a fresh sandbox,
+  // then validate the resulting state. execMs simulates provisioning time
+  // per action so efficient plays race ahead.
+  const runAndScoreCloud = useCallback(async (acts: CloudAction[], mission: ReturnType<typeof cloudMissionById>): Promise<FighterResult> => {
+    const t0 = performance.now();
+    try {
+      if (!mission) return { correct: false, solveMs: 0, execMs: 0, rows: 0, error: 'mission not found' };
+      let s = freshSandbox();
+      for (const a of acts) s = a.run(s);
+      const chk = mission.check(s);
+      return {
+        correct: chk.ok,
+        solveMs: 0,
+        execMs: acts.length * 140 + Math.round((performance.now() - t0)),
+        rows: acts.length,
+        error: chk.ok ? undefined : chk.detail,
+      };
+    } catch (err: any) {
+      return { correct: false, solveMs: 0, execMs: Math.round(performance.now() - t0), rows: acts.length, error: err?.message };
+    }
+  }, []);
+
   const quizCorrect = (ans: string, round: RoundDef) => {
     const a = Array.isArray(round.answer) ? round.answer[0] : round.answer;
     return !!a && ans.trim().toLowerCase() === String(a).trim().toLowerCase();
@@ -389,7 +446,8 @@ export default function ArenaBattle() {
       setChampAnswer(''); setRivalAnswer(''); setPlayerAnswer('');
       setChampTyped(false); setRivalTyped(false);
       setVerdict('');
-      setPlayerSql(round.seedQuery || '-- write your query here\nSELECT 1;');
+      setPlayerSql(round.type === 'python' ? (round.starter ?? '# your code here\n') : (round.seedQuery || '-- write your query here\nSELECT 1;'));
+      setPlayerActions([]);
       setBanner(`ROUND ${roundIdx + 1}`);
       setRefLine(`Bleepx: "${REF.roundStart(roundIdx + 1)[roundIdx % 2]}" ${champion.name}: "${champion.quips.start}"`);
       setTimeout(() => !cancelled && setBanner(''), 1400);
@@ -397,14 +455,41 @@ export default function ArenaBattle() {
       if (isPlayerRound) {
         pendingRef.current = null;
         setStep('reading');
-        setRefLine(REF.reading(round.type === 'quiz' ? 'quiz' : 'sql'));
+        setRefLine(REF.reading(round.type));
         return;
       }
 
       const t0 = performance.now();
       const rivalDelay = RIVAL.solveDelayMs[roundIdx % RIVAL.solveDelayMs.length];
 
-      if (round.type === 'quiz') {
+      if (round.type === 'python' || round.type === 'cloud') {
+        // Real-code rounds: scripted plays — canonical solution vs personality bug.
+        pendingRef.current = new Promise((r) => setTimeout(r, Math.min(rivalDelay, 600))).then(() => {
+          const champBug = Math.random() < evolved.bugRate;
+          const rivalBug = Math.random() < RIVAL.bugRate;
+          (window as any).__champBug = champBug;
+          (window as any).__rivalBug = rivalBug;
+          if (round.type === 'python') {
+            return {
+              kind: 'python',
+              ms: Math.round(performance.now() - t0),
+              champBug,
+              rivalBug,
+              champSql: champBug ? (round.buggy ?? round.solution ?? '') : (round.solution ?? ''),
+              rivalSql: rivalBug ? (round.buggy ?? round.solution ?? '') : (round.solution ?? ''),
+            };
+          }
+          const m = cloudMissionById(round.id);
+          return {
+            kind: 'cloud',
+            ms: Math.round(performance.now() - t0),
+            champBug,
+            rivalBug,
+            champSql: actionsToLines(champBug ? (m?.buggy ?? []) : (m?.solution ?? [])),
+            rivalSql: actionsToLines(rivalBug ? (m?.buggy ?? []) : (m?.solution ?? [])),
+          };
+        });
+      } else if (round.type === 'quiz') {
         const solvePromise = fetch('/api/arena/solve', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -466,7 +551,11 @@ export default function ArenaBattle() {
     if (!round) return;
     if (isPlayerRound) {
       setStep('youFight');
-      setRefLine(round.type === 'quiz' ? 'Bleepx: "The coach tags in! Pick your answer." 🏷️' : 'Bleepx: "The coach tags in! Write the winning query." 🏷️');
+      setRefLine(
+        round.type === 'quiz' ? 'Bleepx: "The coach tags in! Pick your answer." 🏷️'
+        : round.type === 'python' ? 'Bleepx: "The coach tags in! Write the winning Python." 🏷️'
+        : round.type === 'cloud' ? 'Bleepx: "The coach tags in! Build the infra yourself." 🏷️'
+        : 'Bleepx: "The coach tags in! Write the winning query." 🏷️');
       return;
     }
     const pending = pendingRef.current;
@@ -496,6 +585,8 @@ export default function ArenaBattle() {
   // scales with instruction length (tap FIGHT to skip).
   useEffect(() => {
     if (phase !== 'fight' || step !== 'reading') return;
+    // Warm the Python runtime while the user reads the task.
+    if (rounds[roundIdx]?.type === 'python') void loadPyodide().catch(() => {});
     const len = rounds[roundIdx]?.instructions.length ?? 0;
     const dur = Math.min(6500, 2400 + len * 28);
     const t = setTimeout(() => { void beginFight(); }, dur);
@@ -522,6 +613,31 @@ export default function ArenaBattle() {
         const champ: FighterResult = { answer: cAns, correct: quizCorrect(cAns, round), solveMs: champSolveMs, execMs: 0, rows: 0 };
         const rival: FighterResult = { answer: rivalAnswer, correct: quizCorrect(rivalAnswer, round), solveMs: rivalSolveMs, execMs: 0, rows: 0 };
         finishRound(champ, rival, round);
+        return;
+      }
+
+      if (round.type === 'python') {
+        const [champRes, rivalRes] = await Promise.all([
+          runAndScorePython(isPlayerRound ? playerSql : champSql, round),
+          runAndScorePython(rivalSql, round),
+        ]);
+        if (cancelled) return;
+        finishRound({ ...champRes, solveMs: champSolveMs }, { ...rivalRes, solveMs: rivalSolveMs }, round);
+        return;
+      }
+
+      if (round.type === 'cloud') {
+        const m = cloudMissionById(round.id);
+        const champActs = isPlayerRound
+          ? playerActions
+          : ((window as any).__champBug ? m?.buggy : m?.solution) ?? [];
+        const rivalActs = ((window as any).__rivalBug ? m?.buggy : m?.solution) ?? [];
+        const [champRes, rivalRes] = await Promise.all([
+          runAndScoreCloud(champActs, m),
+          runAndScoreCloud(rivalActs, m),
+        ]);
+        if (cancelled) return;
+        finishRound({ ...champRes, solveMs: champSolveMs }, { ...rivalRes, solveMs: rivalSolveMs }, round);
         return;
       }
 
@@ -580,9 +696,24 @@ export default function ArenaBattle() {
   };
 
   const playerFight = () => {
+    const round = rounds[roundIdx];
     (window as any).__champSolveMs = 0;
-    setChampSql(playerSql);
-    setRivalSql(rounds[roundIdx].solutionQuery ?? '');
+    (window as any).__champBug = false;
+    if (round.type === 'cloud') {
+      const m = cloudMissionById(round.id);
+      const rivalBug = Math.random() < RIVAL.bugRate;
+      (window as any).__rivalBug = rivalBug;
+      setChampSql(actionsToLines(playerActions));
+      setRivalSql(actionsToLines(rivalBug ? (m?.buggy ?? []) : (m?.solution ?? [])));
+    } else if (round.type === 'python') {
+      const rivalBug = Math.random() < RIVAL.bugRate;
+      (window as any).__rivalBug = rivalBug;
+      setChampSql(playerSql);
+      setRivalSql(rivalBug ? (round.buggy ?? '') : (round.solution ?? ''));
+    } else {
+      setChampSql(playerSql);
+      setRivalSql(round.solutionQuery ?? '');
+    }
     setStep('typing');
   };
 
@@ -1041,9 +1172,46 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
 
       {/* verdict + actions — pinned to the bottom of the viewport */}
       <div className="relative z-10 max-w-lg mx-auto w-full mt-2 space-y-2 shrink-0">
-        {step === 'youFight' && !isQuiz && (
+        {step === 'youFight' && !isQuiz && rounds[roundIdx]?.type === 'cloud' && (
           <div className="rounded-2xl border-2 p-3" style={{ borderColor: TEAL }}>
-            <p className="text-xs font-bold mb-2" style={{ color: TEAL }}>🤝 You're tagged in — write the query:</p>
+            <p className="text-xs font-bold mb-2" style={{ color: TEAL }}>🤝 You're tagged in — run the mission:</p>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {(cloudMissionById(rounds[roundIdx].id)?.palette ?? []).map((a, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setPlayerActions((p) => [...p, a]); playBleep(); }}
+                  className="px-2 py-1 rounded-lg bg-[#0d1117] border border-slate-700 text-[10px] font-mono text-slate-200 hover:border-cyan-400 transition-colors"
+                >
+                  + {a.label}
+                </button>
+              ))}
+            </div>
+            <div className="bg-[#0d1117] rounded-lg border border-slate-700 p-2 min-h-[44px] font-mono text-[10px] text-slate-300 whitespace-pre-wrap">
+              {playerActions.length ? actionsToLines(playerActions) : '# tap actions to build your run…'}
+            </div>
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => setPlayerActions((p) => p.slice(0, -1))}
+                className="px-3 py-2 rounded-xl border border-slate-600 text-slate-300 text-xs font-bold"
+              >
+                UNDO
+              </button>
+              <button
+                onClick={playerFight}
+                disabled={!playerActions.length}
+                className="flex-1 py-3 rounded-xl font-black text-[#0d1117] transition-transform active:scale-95 disabled:opacity-40"
+                style={{ background: TEAL }}
+              >
+                RUN MISSION
+              </button>
+            </div>
+          </div>
+        )}
+        {step === 'youFight' && !isQuiz && rounds[roundIdx]?.type !== 'cloud' && (
+          <div className="rounded-2xl border-2 p-3" style={{ borderColor: TEAL }}>
+            <p className="text-xs font-bold mb-2" style={{ color: TEAL }}>
+              🤝 You're tagged in — write the {rounds[roundIdx]?.type === 'python' ? 'Python' : 'query'}:
+            </p>
             <textarea
               value={playerSql}
               onChange={(e) => setPlayerSql(e.target.value)}
@@ -1100,7 +1268,7 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
           <p className="text-center text-[11px] text-slate-500 animate-pulse">
             {step === 'intro' && 'Bleepx is reading the round…'}
             {step === 'typing' && (isQuiz ? 'Fighters are locking in…' : 'Fighters are writing their queries…')}
-            {step === 'executing' && (isQuiz ? 'Revealing answers…' : 'Executing — racing the clock…')}
+            {step === 'executing' && (isQuiz ? 'Revealing answers…' : rounds[roundIdx]?.type === 'python' ? 'Running in Pyodide — real code, real clock…' : rounds[roundIdx]?.type === 'cloud' ? 'Provisioning in the sandbox…' : 'Executing — racing the clock…')}
           </p>
         )}
       </div>
@@ -1197,7 +1365,7 @@ function ReadingCard({ round, roundIdx, total, verseName, secs, onFight }: {
       transition={{ duration: 0.35 }}
     >
       <p className="text-[10px] font-bold tracking-[0.35em] text-slate-500">
-        ROUND {roundIdx + 1} OF {total} · {round.type === 'quiz' ? 'QUIZ DUEL' : 'SQL DUEL'}
+        ROUND {roundIdx + 1} OF {total} · {round.type === 'quiz' ? 'QUIZ DUEL' : round.type === 'python' ? 'PYTHON CODE DUEL' : round.type === 'cloud' ? 'BUILD MISSION' : 'SQL DUEL'}
       </p>
       <div className="w-full max-w-md rounded-2xl border border-slate-700/80 bg-slate-900/70 backdrop-blur px-5 py-5 text-center"
         style={{ boxShadow: '0 0 50px rgba(87,236,244,.08)' }}>

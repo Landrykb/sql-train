@@ -5,6 +5,7 @@ import { load } from 'js-yaml';
 import { caseOrder, domainFolderMap } from '@/lib/constants';
 import { cloudTrials } from '@/lib/cloud/trials';
 import { LAB_SKILL_QUESTIONS, LAB_GENERIC_QUESTIONS } from '@/lib/lab/questions';
+import { PYTHON_DUELS, CLOUD_MISSION_META } from '@/lib/arena/codeDuels';
 
 const MAX_ROUNDS = 3;
 
@@ -74,7 +75,7 @@ async function sqlRounds(domain: string, tier: Tier) {
 function cloudRounds(tier: Tier) {
   // Single-answer questions only — quiz duels pick one option.
   const pool = cloudTrials.filter((q) => QUIZ_TIER_DIFFICULTY[tier].includes(q.difficulty) && !Array.isArray(q.answer));
-  return pickDeterministic(pool, MAX_ROUNDS, `cloud-${tier}-${Date.now() / 86400000 | 0}`).map((q) => ({
+  const quizzes = pickDeterministic(pool, MAX_ROUNDS - 1, `cloud-${tier}-${Date.now() / 86400000 | 0}`).map((q) => ({
     type: 'quiz',
     id: q.id,
     name: `${q.provider === 'multi' ? 'Multi-Cloud' : String(q.provider).toUpperCase()} · ${q.topic}`,
@@ -86,6 +87,16 @@ function cloudRounds(tier: Tier) {
     hint: q.hint,
     skills: [q.topic],
   }));
+  // Final round: a real build mission inside the cloud sandbox.
+  const mission = pickDeterministic(CLOUD_MISSION_META, 1, `cloud-mission-${Date.now() / 86400000 | 0}`)[0];
+  return [...quizzes, {
+    type: 'cloud',
+    id: mission.id,
+    name: `⚒ Build Mission · ${mission.name}`,
+    tier: 'build',
+    instructions: mission.instructions,
+    skills: [mission.service, 'sandbox'],
+  }];
 }
 
 function labRounds(tier: Tier) {
@@ -93,8 +104,8 @@ function labRounds(tier: Tier) {
     ...Object.values(LAB_SKILL_QUESTIONS).flat(),
     ...LAB_GENERIC_QUESTIONS,
   ].filter((q) => q.type === 'multiple_choice' && q.options?.length);
-  const picked = pickDeterministic(pool, MAX_ROUNDS, `lab-${tier}-${Date.now() / 86400000 | 0}`);
-  return picked.map((q, i) => ({
+  const picked = pickDeterministic(pool, MAX_ROUNDS - 1, `lab-${tier}-${Date.now() / 86400000 | 0}`);
+  const quizzes = picked.map((q, i) => ({
     type: 'quiz',
     id: `lab-${i}`,
     name: 'Data Science · Lab Arena',
@@ -105,6 +116,21 @@ function labRounds(tier: Tier) {
     explanation: q.explanation,
     skills: ['python', 'data-science'],
   }));
+  // Final round: a real Python coding duel executed in Pyodide.
+  const duel = pickDeterministic(PYTHON_DUELS, 1, `lab-duel-${Date.now() / 86400000 | 0}`)[0];
+  return [...quizzes, {
+    type: 'python',
+    id: duel.id,
+    name: `⚒ Code Duel · ${duel.name}`,
+    tier: 'build',
+    instructions: duel.instructions,
+    setup: duel.setup,
+    solution: duel.solution,
+    buggy: duel.buggy,
+    check: duel.check,
+    starter: duel.starter,
+    skills: ['python', 'data-science'],
+  }];
 }
 
 /**
