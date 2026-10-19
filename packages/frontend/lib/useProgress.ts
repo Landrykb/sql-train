@@ -7,7 +7,7 @@ import {
 } from './progress';
 import { playBleep } from './audio';
 import { syncProgress, pushProgress, syncCurrentProgress } from './progressSync';
-import { supabase } from './supabase';
+import { getSupabaseBrowserClient } from './supabase';
 import { updateTotalPointsEarned, getActivePerks, getStoreState, saveStoreState } from './pointsStore';
 import { CASE_TIERS } from './constants';
 import { LAB_CASE_TIERS, LAB_CASE_ORDER } from './labConstants';
@@ -69,10 +69,11 @@ export function useProgress() {
 
   // Supabase sync: merge local ↔ remote on mount & auth changes
   useEffect(() => {
-    if (!supabase) return;
+    const sb = getSupabaseBrowserClient();
+    if (!sb) return;
     const doSync = async () => {
       try {
-        const { data: { user } } = await supabase!.auth.getUser();
+        const { data: { user } } = await sb.auth.getUser();
         if (!user) return;
         const localCompleted = JSON.parse(localStorage.getItem('completedCases') || localStorage.getItem('completed') || '[]');
         const localPoints = parseInt(localStorage.getItem('bleepxPoints') || '0', 10);
@@ -127,7 +128,7 @@ export function useProgress() {
     };
     doSync();
 
-    const { data: { subscription } } = supabase!.auth.onAuthStateChange((event: 'SIGNED_IN' | 'SIGNED_OUT' | 'TOKEN_REFRESHED' | 'INITIAL_SESSION') => {
+    const { data: { subscription } } = sb.auth.onAuthStateChange((event: 'SIGNED_IN' | 'SIGNED_OUT' | 'TOKEN_REFRESHED' | 'INITIAL_SESSION') => {
       if (event === 'SIGNED_IN') doSync();
       if (event === 'SIGNED_OUT') {
         // Clear progress from UI and localStorage on logout
