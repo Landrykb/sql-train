@@ -99,6 +99,14 @@ interface ChatMessage { role: ChatRole; text: string; actions?: ChatAction[]; }
 const PROGRESS_INTENT = /(my progress|what should i (do|focus)|what to (do|focus)|what.?s next|do next|proceed|given my|my journey|my plan|where (am i|should i)|next step|roadmap|what now)/i;
 
 const QUICK_REPLIES = ['What should I do next?', 'What is S3?', 'SQL JOIN help', 'EC2 vs Lambda', 'Cost-optimized storage'];
+const ARENA_QUICK_REPLIES = ['How does evolution work?', 'Best strategy card?', 'Who is VEX-7?', 'How do I train my champ?'];
+const ARENA_NAG = [
+  'Your champ is warming up. Pick a strategy.',
+  'VEX-7 never sleeps. Neither does the leaderboard.',
+  'Train in the verses, fight in the arena. That is the loop.',
+  'A buggy bot today is a legend tomorrow. Keep grinding XP.',
+];
+const randomArenaNag = () => ARENA_NAG[Math.floor(Math.random() * ARENA_NAG.length)];
 
 const TOPIC_HINTS: Record<string, string> = {
   'what is s3': 'S3 is object storage. Use it for static files, data lakes, backups, and content distribution via CloudFront.',
@@ -110,6 +118,10 @@ const TOPIC_HINTS: Record<string, string> = {
   'what is sql': 'SQL (Structured Query Language) is the language used to query and manage relational databases.',
   'what is aws': 'AWS is Amazon Web Services, a cloud platform with compute, storage, databases, networking, and machine learning services.',
   'how do i sign in': 'Click the GitHub sign-in button. Your progress syncs across devices through Supabase.',
+  'how does evolution work': 'Champions earn XP from arena fights AND from your training in any verse. Each stage — Hatchling to Legend — cuts bug rate, raises accuracy, and speeds up typing. A buggy bot literally learns.',
+  'best strategy card': 'Play it Safe for consistency, Go Fast to steal rounds on speed, Show Off for style. Match it to your champ: Dash loves Go Fast, Spectacle loves Safe.',
+  'who is vex-7': 'VEX-7 is the house bot — 75% quiz accuracy, steady typing, occasional glitches. Beat it 3 rounds and the belt is yours.',
+  'how do i train my champ': 'Half of every point you earn in SQL cases, Lab quizzes, and Cloud trials converts to champion XP. Training outside makes the fighter inside stronger.',
 };
 
 const NAG_MESSAGES = [
@@ -256,6 +268,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
 
   useEffect(() => {
     if (pathname?.startsWith('/lab/')) setMood('code');
+    else if (pathname?.startsWith('/arena')) setMood('spark');
     else setMood('idle');
   }, [pathname]);
 
@@ -281,7 +294,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   useEffect(() => {
     if (open || activeModeRef.current === 'stealth') return;
     const initial = setTimeout(() => {
-      const t = { text: randomNag(), command: '' };
+      const t = { text: activeContext === 'arena' ? randomArenaNag() : randomNag(), command: '' };
       setTeaser(t);
       playBleep();
       setTimeout(() => setTeaser((prev) => (prev === t ? null : prev)), 8000);
@@ -347,10 +360,16 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const startChat = () => {
     const needsName = signedIn && !nickName;
     const onboarded = (() => { try { return !!localStorage.getItem('bleepx_modes_onboarded'); } catch { return false; } })();
-    const msgs: ChatMessage[] = [
-      { role: 'assistant', text: needsName ? voice.nameAsk() : voice.greeting(displayName, goal, hint.text) },
-      { role: 'assistant', text: voice.intro() },
-    ];
+    const inArena = activeContext === 'arena';
+    const msgs: ChatMessage[] = inArena
+      ? [
+          { role: 'assistant', text: needsName ? voice.nameAsk() : `Cornerman mode, ${displayName}. I call these fights — your champ throws the queries, I keep the score.` },
+          { role: 'assistant', text: 'Rounds show the question first, then the bots move. Train in the verses to evolve your fighter — bugs fade, accuracy climbs.' },
+        ]
+      : [
+          { role: 'assistant', text: needsName ? voice.nameAsk() : voice.greeting(displayName, goal, hint.text) },
+          { role: 'assistant', text: voice.intro() },
+        ];
     const shouldOnboard = !onboarded && !needsName;
     if (shouldOnboard) {
       try { localStorage.setItem('bleepx_modes_onboarded', '1'); } catch {}
@@ -988,7 +1007,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
             </div>
             <div className="p-3 border-t border-gray-200 dark:border-gray-700">
               <div className="flex flex-nowrap gap-2 mb-2 overflow-x-auto max-w-full overscroll-x-contain no-scrollbar pb-1">
-                {QUICK_REPLIES.map((q) => (
+                {(activeContext === 'arena' ? ARENA_QUICK_REPLIES : QUICK_REPLIES).map((q) => (
                   <button key={q} onClick={() => handleQuick(q)} className="shrink-0 whitespace-nowrap text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-bleepx-text hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors">{q}</button>
                 ))}
               </div>
