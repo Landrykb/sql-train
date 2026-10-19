@@ -12,6 +12,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { compareResults } from '@/lib/compare';
 import { CHAMPIONS, STRATEGY_CARDS, RIVAL, type Champion, type StrategyCard } from '@/lib/arena/champions';
+import { ARENA_XP, EVO_STAGES, awardChampionXp, getChampionProgress, getEvolvedStats, getSelectedChampionId, setSelectedChampionId, syncTrainingXp, type ChampionProgress } from '@/lib/arena/evolution';
 import { playBleep } from '@/lib/audio';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -157,9 +158,9 @@ function Avatar({ color, emoji, sprite, size = 'md', hit }: { color: string; emo
 
 /* Big animated sprite for the ring: idle bounce, type-jitter while writing,
  * lunge on hit, wobble+drop on miss, KO slump when health is gone. */
-function RingFighter({ sprite, emoji, color, side, step, result, name }: {
+function RingFighter({ sprite, emoji, color, side, step, result, name, aura }: {
   sprite?: string; emoji: string; color: string; side: 'left' | 'right';
-  step: FightStep; result?: FighterResult; name: string;
+  step: FightStep; result?: FighterResult; name: string; aura?: string;
 }) {
   const dir = side === 'left' ? 1 : -1;
   const ko = result != null && step === 'verdict' && !result.correct;
@@ -182,7 +183,7 @@ function RingFighter({ sprite, emoji, color, side, step, result, name }: {
     >
       <div
         className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-3 bg-[#0d1117] flex items-center justify-center"
-        style={{ borderColor: color, borderWidth: 3, boxShadow: `0 0 22px ${color}88, inset 0 0 12px ${color}33` }}
+        style={{ borderColor: color, borderWidth: 3, boxShadow: `0 0 22px ${color}88, inset 0 0 12px ${color}33${aura ? `, 0 0 42px ${aura}55` : ''}` }}
       >
         {sprite
           ? <img src={sprite} alt={name} className="w-full h-full object-cover" />
@@ -251,7 +252,10 @@ function ClashSparks({ active }: { active: boolean }) {
 
 export default function ArenaBattle() {
   const [phase, setPhase] = useState<Phase>('select');
-  const [champion, setChampion] = useState<Champion>(CHAMPIONS[0]);
+  const [champion, setChampion] = useState<Champion>(() => {
+    const id = getSelectedChampionId();
+    return CHAMPIONS.find((c) => c.id === id) ?? CHAMPIONS[0];
+  });
   const [strategy, setStrategy] = useState<StrategyCard>(STRATEGY_CARDS[0]);
   const [mode, setMode] = useState<'coach' | 'tagteam'>('coach');
   const [verse, setVerse] = useState<Verse>('sql');
@@ -276,10 +280,39 @@ export default function ArenaBattle() {
   const [refLine, setRefLine] = useState('');
   const [banner, setBanner] = useState('');
   const [shake, setShake] = useState(false);
+  const [progMap, setProgMap] = useState<Record<string, ChampionProgress>>({});
+  const [evoBanner, setEvoBanner] = useState('');
+  const evolvedThisMatch = useRef<string | null>(null);
   const playerRound = 2; // last round in tag-team mode
 
   const isPlayerRound = mode === 'tagteam' && roundIdx === playerRound;
   const isQuiz = rounds[roundIdx]?.type === 'quiz';
+
+  const prog = progMap[champion.id] ?? getChampionProgress(champion.id);
+  const evolved = getEvolvedStats(champion, prog.stage.level);
+
+  const refreshProgress = useCallback(() => {
+    const m: Record<string, ChampionProgress> = {};
+    for (const c of CHAMPIONS) m[c.id] = getChampionProgress(c.id);
+    setProgMap(m);
+  }, []);
+
+  // Verse training feeds every champion's XP before you even step in.
+  useEffect(() => {
+    for (const c of CHAMPIONS) syncTrainingXp(c.id);
+    refreshProgress();
+  }, [refreshProgress]);
+
+  const grantXp = useCallback((amount: number) => {
+    const { progress, evolved: evo } = awardChampionXp(champion.id, amount);
+    setProgMap((m) => ({ ...m, [champion.id]: progress }));
+    if (evo) {
+      evolvedThisMatch.current = `${progress.stage.emoji} ${progress.stage.name}`;
+      setEvoBanner(`${progress.stage.emoji} ${champion.name.toUpperCase()} EVOLVED — ${progress.stage.name.toUpperCase()}`);
+      setRefLine(`Bleepx: "${champion.name} EVOLVED to ${progress.stage.name}! ${progress.stage.blurb}"`);
+      setTimeout(() => setEvoBanner(''), 2200);
+    }
+  }, [champion]);
 
   const loadMatch = useCallback(async () => {
     setPhase('loading');
@@ -366,7 +399,7 @@ export default function ArenaBattle() {
         const solvePromise = fetch('/api/arena/solve', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quiz: { question: round.instructions, options: round.options, answer: round.answer }, championId: champion.id, strategyId: strategy.id }),
+          body: JSON.stringify({ quiz: { question: round.instructions, options: round.options, answer: round.answer }, championId: champion.id, strategyId: strategy.id, accuracy: evolved.quizAccuracy }),
         })
           .then((r) => r.json())
           .then((d) => ({ answer: d?.answer ?? '', ms: Math.round(performance.now() - t0) }))
@@ -410,7 +443,7 @@ export default function ArenaBattle() {
       // Scripted-mode drama: without a live LLM the champion plays the
       // canonical solve — inject personality bugs so rounds can flip.
       const scripted = !(solve as any).usedLLM;
-      const champBug = scripted && Math.random() < champion.bugRate;
+      const champBug = scripted && Math.random() < evolved.bugRate;
       const rivalBug = Math.random() < RIVAL.bugRate;
       (window as any).__champBug = champBug;
       (window as any).__rivalBug = rivalBug;
@@ -422,7 +455,7 @@ export default function ArenaBattle() {
 
     go();
     return () => { cancelled = true; };
-  }, [phase, step, roundIdx, rounds, champion, strategy, isPlayerRound]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [phase, step, roundIdx, rounds, champion, strategy, isPlayerRound, prog.stage.level]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // When both sides are revealed, score.
   useEffect(() => {
@@ -481,6 +514,7 @@ export default function ArenaBattle() {
         : `${RIVAL.name}: "${RIVAL.quips.hit}"`;
       setRefLine(`Bleepx: "${champ.correct && champWon ? REF.champHit[roundIdx % 3] : !champ.correct ? REF.champMiss[roundIdx % 3] : REF.rivalHit[roundIdx % 2]}" ${quip}`);
       setResults((rs) => [...rs, { round, champ, rival, champWon, byPlayer: isPlayerRound }]);
+      grantXp(champWon ? (isPlayerRound ? ARENA_XP.playerRoundWon : ARENA_XP.roundWon) : ARENA_XP.roundLost);
       setStep('verdict');
       if (!champ.correct) { setShake(true); setTimeout(() => setShake(false), 500); }
       playBleep();
@@ -549,7 +583,8 @@ export default function ArenaBattle() {
       st.xp += xp;
       localStorage.setItem('bleepxArenaStats', JSON.stringify(st));
     } catch { /* ignore storage errors */ }
-  }, [phase, xpAwarded, xp, matchWon]);
+    if (matchWon) grantXp(ARENA_XP.matchWon);
+  }, [phase, xpAwarded, xp, matchWon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const verseName = VERSES.find(v => v.id === verse)?.name ?? 'Arena';
   const shareText = `⚔️ BLEEPX ARENA — ${mode === 'tagteam' ? 'You + ' : ''}${champion.name} ${wins}-${totalRounds - wins} vs ${RIVAL.name}
@@ -639,25 +674,39 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Pick your champion</p>
               <div className="space-y-3">
-                {CHAMPIONS.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => { setChampion(c); playBleep(); }}
-                    className={`w-full flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left ${
-                      champion.id === c.id ? 'bg-slate-800/80 scale-[1.02]' : 'bg-slate-800/30 opacity-70 hover:opacity-100'
-                    }`}
-                    style={{ borderColor: champion.id === c.id ? c.color : '#2B333C' }}
-                  >
-                    <Avatar color={c.color} emoji={c.emoji} sprite={c.sprite} />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-white text-sm">
-                        {c.name} <span className="font-normal text-slate-400">· {c.title}</span>
-                      </p>
-                      <p className="text-xs text-slate-400 truncate">{c.blurb}</p>
-                    </div>
-                    {champion.id === c.id && <span className="text-lg">✓</span>}
-                  </button>
-                ))}
+                {CHAMPIONS.map((c) => {
+                  const p = progMap[c.id] ?? { xp: 0, stage: EVO_STAGES[0], nextStage: EVO_STAGES[1], progressPct: 0 };
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => { setChampion(c); setSelectedChampionId(c.id); playBleep(); }}
+                      className={`w-full flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left ${
+                        champion.id === c.id ? 'bg-slate-800/80 scale-[1.02]' : 'bg-slate-800/30 opacity-70 hover:opacity-100'
+                      }`}
+                      style={{ borderColor: champion.id === c.id ? c.color : '#2B333C' }}
+                    >
+                      <Avatar color={p.stage.level >= 2 ? p.stage.aura : c.color} emoji={c.emoji} sprite={c.sprite} />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-white text-sm">
+                          {c.name} <span className="font-normal text-slate-400">· {c.title}</span>
+                          <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full align-middle" style={{ background: `${p.stage.aura}22`, color: p.stage.aura }}>
+                            {p.stage.emoji} {p.stage.name}
+                          </span>
+                        </p>
+                        <p className="text-xs text-slate-400 truncate">{c.blurb}</p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <div className="flex-1 h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                            <div className="h-full rounded-full transition-all" style={{ width: `${p.progressPct}%`, background: p.stage.aura }} />
+                          </div>
+                          <span className="text-[9px] font-bold text-slate-500 whitespace-nowrap">
+                            {p.nextStage ? `${p.xp}/${p.nextStage.xpNeeded} XP` : `${p.xp} XP · MAX`}
+                          </span>
+                        </div>
+                      </div>
+                      {champion.id === c.id && <span className="text-lg">✓</span>}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -748,9 +797,19 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
             <StatBar label="AVG SOLVE TIME" left={`${(avgMs / 1000).toFixed(1)}s`} right={`${((results.reduce((a, r) => a + r.rival.solveMs + r.rival.execMs, 0) / Math.max(1, totalRounds)) / 1000).toFixed(1)}s`} pct={Math.min(100, 3000 / Math.max(1, avgMs) * 50)} />
             <StatBar label="ROUNDS WON" left={`${wins}/${totalRounds}`} right={`${totalRounds - wins}/${totalRounds}`} pct={totalRounds ? (wins / totalRounds) * 100 : 0} />
           </div>
-          <div className="flex items-center justify-between rounded-xl bg-slate-800/70 px-4 py-3 mb-5">
+          <div className="flex items-center justify-between rounded-xl bg-slate-800/70 px-4 py-3 mb-3">
             <p className="text-sm font-bold" style={{ color: TEAL }}>+{xp} XP</p>
             <p className="text-[11px] text-slate-400">added to your Bleepx points</p>
+          </div>
+          <div className="flex items-center justify-between rounded-xl bg-slate-800/70 px-4 py-3 mb-5">
+            <p className="text-sm font-bold" style={{ color: prog.stage.aura }}>{prog.stage.emoji} {prog.stage.name}</p>
+            <p className="text-[11px] text-slate-400">
+              {evolvedThisMatch.current
+                ? `⚡ evolved this match → ${evolvedThisMatch.current}!`
+                : prog.nextStage
+                ? `${champion.name} · ${prog.xp}/${prog.nextStage.xpNeeded} XP to ${prog.nextStage.name}`
+                : `${champion.name} · ${prog.xp} XP · max stage`}
+            </p>
           </div>
           <button
             onClick={share}
@@ -760,7 +819,7 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
             {copied ? 'COPIED!' : 'SHARE RESULT'}
           </button>
           <button
-            onClick={() => { setPhase('select'); setResults([]); setRoundIdx(0); setXpAwarded(false); setStatus(''); }}
+            onClick={() => { setPhase('select'); setResults([]); setRoundIdx(0); setXpAwarded(false); setStatus(''); evolvedThisMatch.current = null; }}
             className="w-full py-3 rounded-2xl font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
           >
             RUN IT BACK
@@ -779,6 +838,12 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
   return (
     <div className={`min-h-screen flex flex-col px-4 py-4 ${shake ? 'arena-shake' : ''}`} style={{ background: BG }}>
       <style>{ARENA_CSS}</style>
+      {/* evolution moment */}
+      {evoBanner && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
+          <p className="arena-banner text-3xl font-black" style={{ color: prog.stage.aura, textShadow: `0 0 30px ${prog.stage.aura}` }}>{evoBanner}</p>
+        </div>
+      )}
       {/* round banner */}
       {banner && (
         <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
@@ -820,14 +885,14 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
           emoji={isPlayerRound ? '🧑‍💻' : champion.emoji}
           sprite={isPlayerRound ? undefined : champion.sprite}
           name={isPlayerRound ? 'YOU' : champion.name.toUpperCase()}
-          subtitle={isPlayerRound ? 'tagged in!' : `${champion.title} · ${strategy.name}`}
+          subtitle={isPlayerRound ? 'tagged in!' : `${prog.stage.emoji} ${prog.stage.name} · ${strategy.name}`}
           step={step}
           sql={isQuiz ? '' : champSql}
           answer={isQuiz ? (isPlayerRound ? playerAnswer : champAnswer) : ''}
           options={isQuiz ? round.options : undefined}
           correctAnswer={isQuiz ? round.answer : undefined}
-          typingSpeed={champion.typingSpeed}
-          typeStyle={champion.typeStyle}
+          typingSpeed={evolved.typingSpeed}
+          typeStyle={evolved.typeStyle}
           typingActive={step === 'typing' && !isQuiz}
           onTyped={() => setChampTyped(true)}
           result={results[roundIdx]?.champ}
@@ -842,6 +907,7 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
                 sprite={isPlayerRound ? undefined : champion.sprite}
                 emoji={isPlayerRound ? '🧑‍💻' : champion.emoji}
                 color={isPlayerRound ? TEAL : champion.color}
+                aura={isPlayerRound ? undefined : prog.stage.aura}
                 side="left"
                 step={step}
                 result={results[roundIdx]?.champ}

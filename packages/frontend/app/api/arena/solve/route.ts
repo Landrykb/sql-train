@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { domain, caseId, championId, strategyId, quiz } = body ?? {};
+  const { domain, caseId, championId, strategyId, quiz, accuracy } = body ?? {};
   const champion = getChampion(championId);
   const strategy = getStrategy(strategyId);
 
@@ -88,8 +88,9 @@ export async function POST(req: NextRequest) {
   if (quiz?.question && Array.isArray(quiz.options)) {
     const options: string[] = quiz.options.slice(0, 8);
     if (LLM_DISABLED || !LLM_KEY) {
-      // Scripted: hit at the champion's accuracy rate, else pick a wrong option.
-      const hit = Math.random() < champion.quizAccuracy;
+      // Scripted: hit at the champion's (evolution-adjusted) accuracy rate.
+      const acc = typeof accuracy === 'number' ? Math.min(0.97, Math.max(0.05, accuracy)) : champion.quizAccuracy;
+      const hit = Math.random() < acc;
       const answer = hit
         ? (Array.isArray(quiz.answer) ? quiz.answer[0] : quiz.answer) ?? options[0]
         : options[Math.floor(Math.random() * options.length)];
