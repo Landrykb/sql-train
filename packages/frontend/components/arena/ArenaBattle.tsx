@@ -895,7 +895,7 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
   const readSecs = Math.min(6.5, 2.4 + round.instructions.length * 0.028);
 
   return (
-    <div className={`relative h-[100dvh] flex flex-col px-3 py-2 overflow-hidden ${shake ? 'arena-shake' : ''}`} style={{ background: BG }}>
+    <div className={`fixed inset-0 z-40 flex flex-col px-3 py-2 overflow-hidden ${shake ? 'arena-shake' : ''}`} style={{ background: BG }}>
       <style>{ARENA_CSS}</style>
       {/* ambient arena backdrop — the environment shift */}
       <div className="arena-ambient" aria-hidden />
@@ -934,6 +934,13 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
           <img src="/arena/bleepx.png" alt="" className="w-5 h-5 rounded-full shrink-0" />
           <p className="text-[10px] text-slate-300 italic truncate">{refLine || 'Bleepx: "Welcome to the arena!"'}</p>
         </div>
+        <button
+          onClick={() => setPhase('select')}
+          title="Leave match"
+          className="shrink-0 w-6 h-6 rounded-md border border-slate-700/80 text-slate-500 text-[11px] font-bold leading-none hover:text-slate-300 hover:border-slate-500 transition-colors"
+        >
+          ✕
+        </button>
       </div>
 
       {step === 'reading' ? (
