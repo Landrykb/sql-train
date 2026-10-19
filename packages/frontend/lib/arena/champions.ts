@@ -14,6 +14,8 @@ export interface Champion {
   // Simulated profile — used for pacing/typewriter feel
   typingSpeed: number;  // chars/sec reveal
   blurb: string;
+  sprite: string;       // /arena/<id>.png
+  quizAccuracy: number; // scripted-quiz fallback hit rate (0..1)
 }
 
 export const CHAMPIONS: Champion[] = [
@@ -29,6 +31,8 @@ export const CHAMPIONS: Champion[] = [
       'No hedging, no extra columns, no comments. Output ONLY the SQL query, nothing else.',
     typingSpeed: 90,
     blurb: 'Simplest correct query, immediately.',
+    sprite: '/arena/dash.png',
+    quizAccuracy: 0.7,
   },
   {
     id: 'spec',
@@ -43,6 +47,8 @@ export const CHAMPIONS: Champion[] = [
       'Output ONLY the SQL query, nothing else.',
     typingSpeed: 40,
     blurb: 'Verifies the schema twice, then strikes once.',
+    sprite: '/arena/spectacle.png',
+    quizAccuracy: 0.85,
   },
   {
     id: 'hex',
@@ -57,6 +63,8 @@ export const CHAMPIONS: Champion[] = [
       'Output ONLY the SQL query, nothing else.',
     typingSpeed: 60,
     blurb: 'Clever or catastrophic — never boring.',
+    sprite: '/arena/hex.png',
+    quizAccuracy: 0.6,
   },
 ];
 
@@ -102,6 +110,8 @@ export const RIVAL = {
   persona: "Bleepx's undefeated sparring partner. Executes textbook SQL.",
   // Scripted round timing profile (ms) — the rival "types" its query fast.
   solveDelayMs: [900, 1200, 1500],
+  sprite: '/arena/vex7.png',
+  quizAccuracy: 0.75,   // house bot hits most questions
 };
 
 export function getChampion(id: string): Champion {

@@ -2,8 +2,10 @@
 
 /**
  * Bleepx Arena — the duel.
- * Pick a champion + strategy, watch it fight VEX-7 (the house bot)
- * through real cases, or tag in and fight one round yourself.
+ * Pick a champion + strategy + verse + tier, watch it fight VEX-7
+ * (the house bot) through real challenges, or tag in and fight
+ * one round yourself. SQL rounds execute for real; cloud/lab
+ * rounds are quiz duels. Bleepx referees.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -13,19 +15,27 @@ import { CHAMPIONS, STRATEGY_CARDS, RIVAL, type Champion, type StrategyCard } fr
 import { playBleep } from '@/lib/audio';
 
 interface RoundDef {
+  type: 'sql' | 'quiz';
   id: string;
   name: string;
-  tier: number;
+  tier: string | number;
   instructions: string;
   skills: string[];
-  datasets: { name: string; file: string }[];
-  schema: { name: string; columns: { name: string; type: string }[] }[];
-  solutionQuery: string;
-  seedQuery: string;
+  // sql
+  datasets?: { name: string; file: string }[];
+  schema?: { name: string; columns: { name: string; type: string }[] }[];
+  solutionQuery?: string;
+  seedQuery?: string;
+  // quiz
+  options?: string[];
+  answer?: string | string[];
+  explanation?: string;
+  hint?: string;
 }
 
 interface FighterResult {
-  sql: string;
+  sql?: string;
+  answer?: string;
   correct: boolean | null;
   solveMs: number;
   execMs: number;
@@ -43,11 +53,48 @@ interface RoundResult {
 
 type Phase = 'select' | 'loading' | 'fight' | 'done';
 type FightStep = 'intro' | 'typing' | 'youFight' | 'executing' | 'verdict';
+type Verse = 'sql' | 'cloud' | 'lab';
+type Tier = 'rookie' | 'pro' | 'boss';
 
 const BG = '#1C2129';
 const TEAL = '#57ECF4';
+const MAX_ROUNDS_DISPLAY = 3;
 
-/* Reveals SQL like it's being typed live. */
+const VERSES: { id: Verse; name: string; icon: string; blurb: string; domains?: { id: string; label: string }[] }[] = [
+  {
+    id: 'sql', name: 'SQL Arena', icon: '🗃️',
+    blurb: 'Real queries, live execution. Fastest correct result wins.',
+    domains: [
+      { id: 'business', label: 'Business' },
+      { id: 'finance', label: 'Finance' },
+      { id: 'healthcare', label: 'Healthcare' },
+      { id: 'marketing', label: 'Marketing' },
+      { id: 'retail', label: 'Retail' },
+      { id: 'sports', label: 'Sports' },
+      { id: 'trials', label: 'Trials' },
+    ],
+  },
+  { id: 'cloud', name: 'Cloud Arena', icon: '☁️', blurb: 'AWS / Azure / GCP quiz duels — fastest right answer.' },
+  { id: 'lab', name: 'Lab Arena', icon: '🧪', blurb: 'Python & data-science quiz duels.' },
+];
+
+const TIERS: { id: Tier; name: string; blurb: string }[] = [
+  { id: 'rookie', name: '🐣 Rookie', blurb: 'First fights. Learn the ropes.' },
+  { id: 'pro', name: '🔥 Pro', blurb: 'Harder rounds, tighter clocks.' },
+  { id: 'boss', name: '👑 Boss', blurb: 'Expert tier. No mercy.' },
+];
+
+/* Bleepx referee commentary — scripted lines per beat. */
+const REF = {
+  roundStart: (n: number) => [`ROUND ${n} — FIGHT!`, `Bleepx calls it: round ${n} begins.`],
+  typing: ['Champions are thinking…', 'Queries loading… stand by.', 'Fingers on keyboards. Bots on metal.'],
+  champHit: ['Clean hit from the challenger!', 'That one landed! 💥', 'Textbook execution — the crowd goes mild-to-wild.'],
+  champMiss: ['Oof — that missed the mark.', 'A swing and a miss!', 'VEX-7 saw that coming a mile away.'],
+  rivalHit: ['VEX-7 answers back!', 'The house bot does not blink.'],
+  final: (won: boolean) => won ? 'AND STILL… the challenger takes it! 🏆' : 'The house keeps the belt… this time.',
+};
+
+/* Reveals text like it's being typed live. */
 function TypedSql({ text, cps, active, onDone }: { text: string; cps: number; active: boolean; onDone?: () => void }) {
   const [shown, setShown] = useState(0);
   const doneRef = useRef(false);
@@ -79,14 +126,17 @@ function TypedSql({ text, cps, active, onDone }: { text: string; cps: number; ac
   );
 }
 
-function Avatar({ color, emoji, size = 'md' }: { color: string; emoji: string; size?: 'sm' | 'md' | 'lg' }) {
-  const sz = size === 'lg' ? 'w-16 h-16 text-3xl' : size === 'sm' ? 'w-8 h-8 text-base' : 'w-11 h-11 text-xl';
+function Avatar({ color, emoji, sprite, size = 'md', hit }: { color: string; emoji: string; sprite?: string; size?: 'sm' | 'md' | 'lg'; hit?: boolean }) {
+  const sz = size === 'lg' ? 'w-16 h-16' : size === 'sm' ? 'w-9 h-9' : 'w-14 h-14';
   return (
     <div
-      className={`${sz} rounded-full flex items-center justify-center bg-[#0d1117] border-2 shrink-0`}
+      className={`${sz} rounded-full overflow-hidden flex items-center justify-center bg-[#0d1117] border-2 shrink-0 ${hit ? 'arena-hit' : ''}`}
       style={{ borderColor: color, boxShadow: `0 0 14px ${color}66` }}
     >
-      {emoji}
+      {sprite
+        ? <img src={sprite} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+        : <span className={size === 'lg' ? 'text-3xl' : 'text-lg'}>{emoji}</span>}
+      {sprite && <span className="hidden">{emoji}</span>}
     </div>
   );
 }
@@ -96,53 +146,67 @@ export default function ArenaBattle() {
   const [champion, setChampion] = useState<Champion>(CHAMPIONS[0]);
   const [strategy, setStrategy] = useState<StrategyCard>(STRATEGY_CARDS[0]);
   const [mode, setMode] = useState<'coach' | 'tagteam'>('coach');
+  const [verse, setVerse] = useState<Verse>('sql');
+  const [domain, setDomain] = useState('business');
+  const [tier, setTier] = useState<Tier>('rookie');
   const [rounds, setRounds] = useState<RoundDef[]>([]);
   const [roundIdx, setRoundIdx] = useState(0);
   const [step, setStep] = useState<FightStep>('intro');
   const [champSql, setChampSql] = useState('');
   const [rivalSql, setRivalSql] = useState('');
+  const [champAnswer, setChampAnswer] = useState('');
+  const [rivalAnswer, setRivalAnswer] = useState('');
   const [champTyped, setChampTyped] = useState(false);
   const [rivalTyped, setRivalTyped] = useState(false);
   const [results, setResults] = useState<RoundResult[]>([]);
   const [verdict, setVerdict] = useState<string>('');
   const [playerSql, setPlayerSql] = useState('');
+  const [playerAnswer, setPlayerAnswer] = useState('');
   const [status, setStatus] = useState('');
   const [copied, setCopied] = useState(false);
   const [xpAwarded, setXpAwarded] = useState(false);
-  const domain = 'business';
+  const [refLine, setRefLine] = useState('');
+  const [banner, setBanner] = useState('');
+  const [shake, setShake] = useState(false);
   const playerRound = 2; // last round in tag-team mode
 
   const isPlayerRound = mode === 'tagteam' && roundIdx === playerRound;
+  const isQuiz = rounds[roundIdx]?.type === 'quiz';
 
   const loadMatch = useCallback(async () => {
     setPhase('loading');
-    setStatus('Preparing the arena…');
+    setStatus('');
     try {
-      const resp = await fetch(`/api/arena/match?domain=${domain}`);
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error ?? 'Failed to load match');
-      setRounds(data.rounds);
-      setStatus('Loading datasets…');
-      await initSQL();
-      const seen = new Set<string>();
-      for (const r of data.rounds as RoundDef[]) {
-        for (const d of r.datasets) {
-          if (!seen.has(d.name)) {
-            seen.add(d.name);
-            await loadCSV(d.name, d.file);
-          }
+      const r = await fetch(`/api/arena/match?verse=${verse}&domain=${domain}&tier=${tier}`);
+      const data = await r.json();
+      if (!r.ok || !data?.rounds?.length) {
+        setStatus(data?.error ?? 'No rounds found — try another arena.');
+        setPhase('select');
+        return;
+      }
+      const loaded: RoundDef[] = data.rounds;
+      const sqlRounds = loaded.filter((x) => x.type === 'sql');
+      if (sqlRounds.length) {
+        setStatus('Loading datasets…');
+        await initSQL();
+        const names = new Map<string, string>();
+        for (const rd of sqlRounds) for (const d of rd.datasets ?? []) names.set(d.name, d.file);
+        for (const [name, file] of names) {
+          try { await loadCSV(name, file); } catch { /* dataset may not exist locally */ }
         }
       }
-      setPhase('fight');
+      setRounds(loaded);
+      setResults([]);
       setRoundIdx(0);
       setStep('intro');
+      setPhase('fight');
+      setRefLine(`Bleepx: "Welcome to the ${VERSES.find(v => v.id === verse)?.name}! ${champion.name} vs ${RIVAL.name} — ${TIERS.find(t => t.id === tier)?.name.replace(/^[^ ]+ /, '')} bracket. Coaches ready?"`);
     } catch (err: any) {
-      setStatus(`Couldn't open the arena: ${err.message}`);
+      setStatus(err?.message ?? 'Failed to load match');
       setPhase('select');
     }
-  }, []);
+  }, [verse, domain, tier, champion]);
 
-  // Score a side's SQL: run it, compare against the canonical solution.
   const runAndScore = useCallback(async (sql: string, round: RoundDef): Promise<FighterResult> => {
     const t0 = performance.now();
     try {
@@ -152,12 +216,17 @@ export default function ArenaBattle() {
       const grid = (res?.data ?? []).map((row: unknown[]) =>
         Object.fromEntries(cols.map((c, i) => [c, row[i]]))
       ) as Record<string, string | number | null>[];
-      const { correct } = await compareResults(grid, [], round.solutionQuery, sql, []);
+      const { correct } = await compareResults(grid, [], round.solutionQuery ?? '', sql, []);
       return { sql, correct, solveMs: 0, execMs, rows: grid.length };
     } catch (err: any) {
       return { sql, correct: false, solveMs: 0, execMs: Math.round(performance.now() - t0), rows: 0, error: err?.message };
     }
   }, []);
+
+  const quizCorrect = (ans: string, round: RoundDef) => {
+    const a = Array.isArray(round.answer) ? round.answer[0] : round.answer;
+    return !!a && ans.trim().toLowerCase() === String(a).trim().toLowerCase();
+  };
 
   // Drive one round.
   useEffect(() => {
@@ -167,20 +236,56 @@ export default function ArenaBattle() {
     let cancelled = false;
 
     const go = async () => {
-      setChampSql('');
-      setRivalSql('');
-      setChampTyped(false);
-      setRivalTyped(false);
+      setChampSql(''); setRivalSql('');
+      setChampAnswer(''); setRivalAnswer(''); setPlayerAnswer('');
+      setChampTyped(false); setRivalTyped(false);
       setVerdict('');
       setPlayerSql(round.seedQuery || '-- write your query here\nSELECT 1;');
+      setBanner(`ROUND ${roundIdx + 1}`);
+      setRefLine(`Bleepx: "${REF.roundStart(roundIdx + 1)[roundIdx % 2]}"`);
+      setTimeout(() => !cancelled && setBanner(''), 1400);
 
       if (isPlayerRound) {
         setStep('youFight');
+        setRefLine(isQuiz ? 'Bleepx: "The coach tags in! Pick your answer." 🏷️' : 'Bleepx: "The coach tags in! Write the winning query." 🏷️');
+        return;
+      }
+
+      const t0 = performance.now();
+      const rivalDelay = RIVAL.solveDelayMs[roundIdx % RIVAL.solveDelayMs.length];
+
+      if (round.type === 'quiz') {
+        const solvePromise = fetch('/api/arena/solve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quiz: { question: round.instructions, options: round.options, answer: round.answer }, championId: champion.id, strategyId: strategy.id }),
+        })
+          .then((r) => r.json())
+          .then((d) => ({ answer: d?.answer ?? '', ms: Math.round(performance.now() - t0) }))
+          .catch(() => ({ answer: '', ms: Math.round(performance.now() - t0) }));
+
+        // rival picks: correct at quizAccuracy, else a random wrong option
+        const a = Array.isArray(round.answer) ? round.answer[0] : round.answer;
+        const rivalHit = Math.random() < RIVAL.quizAccuracy;
+        const wrongPool = (round.options ?? []).filter((o) => String(o).trim().toLowerCase() !== String(a ?? '').trim().toLowerCase());
+        const rivalPick = rivalHit && a ? String(a) : (wrongPool[Math.floor(Math.random() * wrongPool.length)] ?? String(a ?? ''));
+
+        const [solve] = await Promise.all([solvePromise, new Promise((r) => setTimeout(r, Math.min(rivalDelay, 400)))]);
+        if (cancelled) return;
+        (window as any).__champSolveMs = solve.ms;
+        (window as any).__rivalPick = rivalPick;
+        setChampSql(`> lock answer…`);
+        setRivalSql(`> lock answer…`);
+        setStep('typing');
+        setRefLine('Bleepx: "Both fighters are thinking… 👀"');
+        // reveal picks after the typing beat — unguarded because the
+        // effect cleanup cancels `cancelled` when step flips to 'typing'.
+        setTimeout(() => { setChampAnswer(solve.answer); setChampTyped(true); }, 900);
+        setTimeout(() => { setRivalAnswer(rivalPick); setRivalTyped(true); }, Math.min(rivalDelay, 1600));
         return;
       }
 
       // Champion solves via API while rival "types" the canonical answer.
-      const t0 = performance.now();
       const solvePromise = fetch('/api/arena/solve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -190,21 +295,21 @@ export default function ArenaBattle() {
         .then((d) => ({ sql: d?.sql ?? 'SELECT 1;', ms: Math.round(performance.now() - t0) }))
         .catch(() => ({ sql: 'SELECT 1;', ms: Math.round(performance.now() - t0) }));
 
-      const rivalDelay = RIVAL.solveDelayMs[roundIdx % RIVAL.solveDelayMs.length];
       const [solve] = await Promise.all([solvePromise, new Promise((r) => setTimeout(r, Math.min(rivalDelay, 400)))]);
       if (cancelled) return;
 
       (window as any).__champSolveMs = solve.ms;
-      setRivalSql(round.solutionQuery);
+      setRivalSql(round.solutionQuery ?? '');
       setChampSql(solve.sql);
       setStep('typing');
+      setRefLine(`Bleepx: "${REF.typing[roundIdx % REF.typing.length]}"`);
     };
 
     go();
     return () => { cancelled = true; };
-  }, [phase, step, roundIdx, rounds, champion, strategy, isPlayerRound]);
+  }, [phase, step, roundIdx, rounds, champion, strategy, isPlayerRound]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // When both SQLs are revealed, execute.
+  // When both sides are revealed, score.
   useEffect(() => {
     if (step !== 'typing') return;
     if (!champTyped || !rivalTyped) return;
@@ -218,14 +323,23 @@ export default function ArenaBattle() {
     const run = async () => {
       const champSolveMs = (window as any).__champSolveMs ?? 0;
       const rivalSolveMs = RIVAL.solveDelayMs[roundIdx % RIVAL.solveDelayMs.length];
+
+      if (round.type === 'quiz') {
+        const cAns = isPlayerRound ? playerAnswer : champAnswer;
+        const champ: FighterResult = { answer: cAns, correct: quizCorrect(cAns, round), solveMs: champSolveMs, execMs: 0, rows: 0 };
+        const rival: FighterResult = { answer: rivalAnswer, correct: quizCorrect(rivalAnswer, round), solveMs: rivalSolveMs, execMs: 0, rows: 0 };
+        finishRound(champ, rival, round);
+        return;
+      }
+
       const [champRes, rivalRes] = await Promise.all([
         runAndScore(isPlayerRound ? playerSql : champSql, round),
-        runAndScore(round.solutionQuery, round),
+        runAndScore(round.solutionQuery ?? '', round),
       ]);
       if (cancelled) return;
-      const champ: FighterResult = { ...champRes, solveMs: champSolveMs };
-      const rival: FighterResult = { ...rivalRes, solveMs: rivalSolveMs };
-
+      finishRound({ ...champRes, solveMs: champSolveMs }, { ...rivalRes, solveMs: rivalSolveMs }, round);
+    };
+    const finishRound = (champ: FighterResult, rival: FighterResult, round: RoundDef) => {
       let champWon = false;
       if (champ.correct && !rival.correct) champWon = true;
       else if (champ.correct && rival.correct) champWon = champ.solveMs + champ.execMs < rival.solveMs + rival.execMs;
@@ -237,11 +351,13 @@ export default function ArenaBattle() {
         ? `${label} ${winsVerb} the round — correct and faster!`
         : champ.correct
         ? `${label} ${wasVerb} right but ${RIVAL.name} was faster.`
-        : `${RIVAL.name} takes the round — ${possLabel} query missed.${champ.error ? ` (${champ.error})` : ''}`;
+        : `${RIVAL.name} takes the round — ${possLabel} answer missed.${champ.error ? ` (${champ.error})` : ''}`;
 
       setVerdict(v);
+      setRefLine(`Bleepx: "${champ.correct && champWon ? REF.champHit[roundIdx % 3] : !champ.correct ? REF.champMiss[roundIdx % 3] : REF.rivalHit[roundIdx % 2]}"`);
       setResults((rs) => [...rs, { round, champ, rival, champWon, byPlayer: isPlayerRound }]);
       setStep('verdict');
+      if (!champ.correct) { setShake(true); setTimeout(() => setShake(false), 500); }
       playBleep();
     };
     run();
@@ -251,6 +367,7 @@ export default function ArenaBattle() {
   const nextRound = () => {
     playBleep();
     if (roundIdx + 1 >= rounds.length) {
+      setRefLine(`Bleepx: "${REF.final(results.filter((r) => r.champWon).length > results.length / 2)}"`);
       setPhase('done');
     } else {
       setRoundIdx((i) => i + 1);
@@ -261,8 +378,25 @@ export default function ArenaBattle() {
   const playerFight = () => {
     (window as any).__champSolveMs = 0;
     setChampSql(playerSql);
-    setRivalSql(rounds[roundIdx].solutionQuery);
+    setRivalSql(rounds[roundIdx].solutionQuery ?? '');
     setStep('typing');
+  };
+
+  const playerQuizPick = (opt: string) => {
+    if (step !== 'youFight') return;
+    setPlayerAnswer(opt);
+    (window as any).__champSolveMs = 0;
+    (window as any).__rivalPick = (() => {
+      const round = rounds[roundIdx];
+      const a = Array.isArray(round.answer) ? round.answer[0] : round.answer;
+      const rivalHit = Math.random() < RIVAL.quizAccuracy;
+      const wrong = (round.options ?? []).filter((o) => String(o) !== String(a));
+      return rivalHit ? String(a) : wrong[Math.floor(Math.random() * wrong.length)];
+    })();
+    setChampSql('> answer locked'); setRivalSql('> answer locked');
+    setStep('typing');
+    setTimeout(() => { setChampAnswer(opt); setChampTyped(true); }, 500);
+    setTimeout(() => { setRivalAnswer((window as any).__rivalPick); setRivalTyped(true); }, 1100);
   };
 
   // Match card data
@@ -274,6 +408,8 @@ export default function ArenaBattle() {
     : 0;
   const matchWon = wins > totalRounds - wins;
   const xp = wins * 100 + (matchWon ? 120 : 0);
+  const champHp = Math.max(0, 100 - results.filter((r) => !r.champWon).length * 34);
+  const rivalHp = Math.max(0, 100 - wins * 34);
 
   useEffect(() => {
     if (phase !== 'done' || xpAwarded) return;
@@ -290,8 +426,9 @@ export default function ArenaBattle() {
     } catch { /* ignore storage errors */ }
   }, [phase, xpAwarded, xp, matchWon]);
 
-  const shareText = `⚔️ BLEEPX ARENA — ${isPlayerRound || mode === 'tagteam' ? 'You + ' : ''}${champion.name} ${wins}-${totalRounds - wins} vs ${RIVAL.name}
-Business Arena • ${correct}/${totalRounds} correct • avg ${(avgMs / 1000).toFixed(1)}s
+  const verseName = VERSES.find(v => v.id === verse)?.name ?? 'Arena';
+  const shareText = `⚔️ BLEEPX ARENA — ${mode === 'tagteam' ? 'You + ' : ''}${champion.name} ${wins}-${totalRounds - wins} vs ${RIVAL.name}
+${verseName} • ${tier} • ${correct}/${totalRounds} correct • avg ${(avgMs / 1000).toFixed(1)}s
 ${matchWon ? 'W. My bot holds the belt.' : 'L. Running it back.'}
 Think your champion beats mine? ${typeof window !== 'undefined' ? window.location.origin + '/arena' : ''}`;
 
@@ -313,7 +450,8 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
   if (phase === 'select' || phase === 'loading') {
     return (
       <div className="min-h-screen flex flex-col items-center px-4 py-10" style={{ background: BG }}>
-        <div className="text-center mb-8">
+        <style>{ARENA_CSS}</style>
+        <div className="text-center mb-6">
           <div className="text-5xl mb-3">⚔️</div>
           <h1 className="text-3xl font-black text-white tracking-tight">BLEEPX ARENA</h1>
           <p className="text-sm mt-2 max-w-xs mx-auto" style={{ color: TEAL }}>
@@ -329,6 +467,50 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
           </div>
         ) : (
           <div className="w-full max-w-md space-y-6">
+            {/* verse picker */}
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Choose your arena</p>
+              <div className="grid grid-cols-3 gap-2">
+                {VERSES.map((v) => (
+                  <button key={v.id}
+                    onClick={() => { setVerse(v.id); playBleep(); }}
+                    className={`p-3 rounded-xl border-2 text-center transition-all ${verse === v.id ? 'bg-slate-800' : 'bg-slate-800/30 opacity-70'}`}
+                    style={{ borderColor: verse === v.id ? TEAL : '#2B333C' }}>
+                    <div className="text-2xl mb-1">{v.icon}</div>
+                    <p className="text-[11px] font-bold text-white leading-tight">{v.name}</p>
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-slate-500 mt-2 text-center">{VERSES.find(v => v.id === verse)?.blurb}</p>
+              {verse === 'sql' && (
+                <div className="flex flex-wrap justify-center gap-1.5 mt-3">
+                  {VERSES[0].domains!.map((d) => (
+                    <button key={d.id} onClick={() => { setDomain(d.id); playBleep(); }}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${domain === d.id ? 'text-[#0d1117]' : 'text-slate-400'}`}
+                      style={{ background: domain === d.id ? TEAL : 'transparent', borderColor: domain === d.id ? TEAL : '#334155' }}>
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* tier picker */}
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Difficulty</p>
+              <div className="grid grid-cols-3 gap-2">
+                {TIERS.map((t) => (
+                  <button key={t.id}
+                    onClick={() => { setTier(t.id); playBleep(); }}
+                    className={`p-2.5 rounded-xl border-2 text-center transition-all ${tier === t.id ? 'bg-slate-800' : 'bg-slate-800/30 opacity-70'}`}
+                    style={{ borderColor: tier === t.id ? TEAL : '#2B333C' }}>
+                    <p className="text-[11px] font-bold text-white leading-tight">{t.name}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* champion picker */}
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Pick your champion</p>
               <div className="space-y-3">
@@ -341,7 +523,7 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
                     }`}
                     style={{ borderColor: champion.id === c.id ? c.color : '#2B333C' }}
                   >
-                    <Avatar color={c.color} emoji={c.emoji} />
+                    <Avatar color={c.color} emoji={c.emoji} sprite={c.sprite} />
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-white text-sm">
                         {c.name} <span className="font-normal text-slate-400">· {c.title}</span>
@@ -354,6 +536,7 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
               </div>
             </div>
 
+            {/* strategy */}
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Strategy card</p>
               <div className="grid grid-cols-3 gap-2">
@@ -374,6 +557,7 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
               <p className="text-[11px] text-slate-500 mt-2 text-center">{strategy.description}</p>
             </div>
 
+            {/* mode */}
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">How do you play?</p>
               <div className="grid grid-cols-2 gap-2">
@@ -416,22 +600,24 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
   if (phase === 'done') {
     return (
       <div className="min-h-screen flex flex-col items-center px-4 py-10" style={{ background: BG }}>
+        <style>{ARENA_CSS}</style>
         <div className="w-full max-w-md rounded-3xl border border-slate-700 bg-slate-900/80 p-6 shadow-2xl" style={{ boxShadow: `0 0 40px ${TEAL}22` }}>
           <p className="text-center text-[11px] font-bold tracking-[0.3em] text-slate-400 mb-5">MATCH RESULT</p>
           <div className="flex items-center justify-center gap-6 mb-5">
             <div className="flex flex-col items-center gap-2">
-              <Avatar color={champion.color} emoji={champion.emoji} size="lg" />
+              <Avatar color={champion.color} emoji={champion.emoji} sprite={champion.sprite} size="lg" />
               <p className="text-xs font-bold" style={{ color: champion.color }}>{champion.name.toUpperCase()}</p>
             </div>
             <p className="text-4xl font-black text-white">{wins}<span className="text-slate-600 mx-2">—</span>{totalRounds - wins}</p>
             <div className="flex flex-col items-center gap-2">
-              <Avatar color={RIVAL.color} emoji={RIVAL.emoji} size="lg" />
+              <Avatar color={RIVAL.color} emoji={RIVAL.emoji} sprite={RIVAL.sprite} size="lg" hit={!matchWon} />
               <p className="text-xs font-bold" style={{ color: RIVAL.color }}>{RIVAL.name}</p>
             </div>
           </div>
-          <p className="text-center text-lg font-black mb-5" style={{ color: matchWon ? '#4ADE80' : '#F87171' }}>
+          <p className="text-center text-lg font-black mb-2" style={{ color: matchWon ? '#4ADE80' : '#F87171' }}>
             {matchWon ? '🏆 MATCH WON' : '💀 DEFEATED'}
           </p>
+          <p className="text-center text-[11px] text-slate-400 mb-5">{verseName} · {TIERS.find(t => t.id === tier)?.name}</p>
           <div className="space-y-3 mb-5">
             <StatBar label="CORRECT" left={`${correct}/${totalRounds}`} right={`${results.filter((r) => r.rival.correct).length}/${totalRounds}`} pct={totalRounds ? (correct / totalRounds) * 100 : 0} />
             <StatBar label="AVG SOLVE TIME" left={`${(avgMs / 1000).toFixed(1)}s`} right={`${((results.reduce((a, r) => a + r.rival.solveMs + r.rival.execMs, 0) / Math.max(1, totalRounds)) / 1000).toFixed(1)}s`} pct={Math.min(100, 3000 / Math.max(1, avgMs) * 50)} />
@@ -449,7 +635,7 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
             {copied ? 'COPIED!' : 'SHARE RESULT'}
           </button>
           <button
-            onClick={() => { setPhase('select'); setStatus(''); setResults([]); setRoundIdx(0); setXpAwarded(false); }}
+            onClick={() => { setPhase('select'); setResults([]); setRoundIdx(0); setXpAwarded(false); setStatus(''); }}
             className="w-full py-3 rounded-2xl font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
           >
             RUN IT BACK
@@ -466,26 +652,37 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
   const scorePips = rounds.map((_, i) => results[i]?.champWon);
 
   return (
-    <div className="min-h-screen flex flex-col px-4 py-4" style={{ background: BG }}>
+    <div className={`min-h-screen flex flex-col px-4 py-4 ${shake ? 'arena-shake' : ''}`} style={{ background: BG }}>
+      <style>{ARENA_CSS}</style>
+      {/* round banner */}
+      {banner && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
+          <p className="arena-banner text-5xl font-black text-white" style={{ textShadow: `0 0 30px ${TEAL}` }}>{banner}</p>
+        </div>
+      )}
+
       {/* header */}
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-[11px] font-bold tracking-widest text-slate-400">ROUND {roundIdx + 1}/{rounds.length}</p>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[11px] font-bold tracking-widest text-slate-400">ROUND {roundIdx + 1}/{rounds.length} · {verseName.toUpperCase()}</p>
         <div className="flex gap-1.5">
           {scorePips.map((w, i) => (
             <span
               key={i}
               className={`w-3 h-3 rounded-full border ${i === roundIdx ? 'animate-pulse' : ''}`}
-              style={{
-                borderColor: '#475569',
-                background: w === undefined ? 'transparent' : w ? '#4ADE80' : '#F87171',
-              }}
+              style={{ borderColor: '#475569', background: w === undefined ? 'transparent' : w ? '#4ADE80' : '#F87171' }}
             />
           ))}
         </div>
       </div>
 
+      {/* referee feed */}
+      <div className="flex items-center gap-2 mb-3 rounded-xl bg-slate-900/70 border border-slate-800 px-3 py-2">
+        <Avatar color={TEAL} emoji="🦉" sprite="/arena/bleepx.png" size="sm" />
+        <p className="text-[11px] text-slate-300 italic">{refLine || 'Bleepx: "Welcome to the arena!"'}</p>
+      </div>
+
       {/* round title */}
-      <div className="text-center mb-4">
+      <div className="text-center mb-3">
         <h2 className="text-lg font-black text-white">{round.name}</h2>
         <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">{round.instructions}</p>
       </div>
@@ -496,34 +693,44 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
           side="you"
           color={isPlayerRound ? TEAL : champion.color}
           emoji={isPlayerRound ? '🧑‍💻' : champion.emoji}
+          sprite={isPlayerRound ? undefined : champion.sprite}
           name={isPlayerRound ? 'YOU' : champion.name.toUpperCase()}
           subtitle={isPlayerRound ? 'tagged in!' : `${champion.title} · ${strategy.name}`}
           step={step}
-          sql={champSql}
+          sql={isQuiz ? '' : champSql}
+          answer={isQuiz ? (isPlayerRound ? playerAnswer : champAnswer) : ''}
+          options={isQuiz ? round.options : undefined}
+          correctAnswer={isQuiz ? round.answer : undefined}
           typingSpeed={champion.typingSpeed}
-          typingActive={step === 'typing'}
+          typingActive={step === 'typing' && !isQuiz}
           onTyped={() => setChampTyped(true)}
           result={results[roundIdx]?.champ}
+          hp={champHp}
         />
-        <div className="text-center text-2xl font-black text-slate-600 -my-1">VS</div>
+        <div className="text-center text-2xl font-black text-slate-600 -my-1 arena-vs">VS</div>
         <FighterCard
           side="rival"
           color={RIVAL.color}
           emoji={RIVAL.emoji}
+          sprite={RIVAL.sprite}
           name={RIVAL.name}
           subtitle={RIVAL.title}
           step={step}
-          sql={rivalSql}
+          sql={isQuiz ? '' : rivalSql}
+          answer={isQuiz ? rivalAnswer : ''}
+          options={isQuiz ? round.options : undefined}
+          correctAnswer={isQuiz ? round.answer : undefined}
           typingSpeed={110}
-          typingActive={step === 'typing'}
+          typingActive={step === 'typing' && !isQuiz}
           onTyped={() => setRivalTyped(true)}
           result={results[roundIdx]?.rival}
+          hp={rivalHp}
         />
       </div>
 
       {/* verdict + actions */}
       <div className="max-w-lg mx-auto w-full mt-4 space-y-3">
-        {step === 'youFight' && (
+        {step === 'youFight' && !isQuiz && (
           <div className="rounded-2xl border-2 p-3" style={{ borderColor: TEAL }}>
             <p className="text-xs font-bold mb-2" style={{ color: TEAL }}>🤝 You're tagged in — write the query:</p>
             <textarea
@@ -542,10 +749,26 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
             </button>
           </div>
         )}
+        {step === 'youFight' && isQuiz && (
+          <div className="rounded-2xl border-2 p-3" style={{ borderColor: TEAL }}>
+            <p className="text-xs font-bold mb-2" style={{ color: TEAL }}>🤝 You're tagged in — pick the answer:</p>
+            <div className="space-y-2">
+              {(round.options ?? []).map((opt, i) => (
+                <button key={i} onClick={() => playerQuizPick(opt)}
+                  className="w-full text-left px-3 py-2.5 rounded-xl bg-[#0d1117] border border-slate-700 text-xs text-slate-200 hover:border-cyan-400 transition-colors">
+                  <span className="font-bold text-slate-400 mr-2">{String.fromCharCode(65 + i)}</span>{opt}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {step === 'verdict' && (
           <>
             <div className="rounded-2xl bg-slate-800/80 border border-slate-700 px-4 py-3 text-center">
               <p className="text-sm font-bold text-white">{verdict}</p>
+              {isQuiz && results[roundIdx]?.round.explanation && (
+                <p className="text-[11px] text-slate-400 mt-1 text-left">{results[roundIdx].round.explanation}</p>
+              )}
               <p className="text-[11px] text-slate-400 mt-1">
                 {isPlayerRound ? 'you' : champion.name}: {results[roundIdx]?.champ.correct ? '✅' : '❌'}{' '}
                 {((results[roundIdx]?.champ.solveMs ?? 0) + (results[roundIdx]?.champ.execMs ?? 0))}ms ·{' '}
@@ -565,8 +788,8 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
         {(step === 'intro' || step === 'typing' || step === 'executing') && (
           <p className="text-center text-xs text-slate-500 animate-pulse">
             {step === 'intro' && 'Bleepx is reading the round…'}
-            {step === 'typing' && 'Fighters are writing their queries…'}
-            {step === 'executing' && 'Executing — racing the clock…'}
+            {step === 'typing' && (isQuiz ? 'Fighters are locking in…' : 'Fighters are writing their queries…')}
+            {step === 'executing' && (isQuiz ? 'Revealing answers…' : 'Executing — racing the clock…')}
           </p>
         )}
       </div>
@@ -574,7 +797,16 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
   );
 }
 
-const MAX_ROUNDS_DISPLAY = 3;
+const ARENA_CSS = `
+@keyframes arena-banner { 0% { transform: scale(.4); opacity: 0 } 25% { transform: scale(1.15); opacity: 1 } 60% { transform: scale(1) } 100% { transform: scale(1.6); opacity: 0 } }
+.arena-banner { animation: arena-banner 1.4s ease-out forwards }
+@keyframes arena-shake { 0%,100% { transform: translateX(0) } 20% { transform: translateX(-6px) } 40% { transform: translateX(6px) } 60% { transform: translateX(-4px) } 80% { transform: translateX(4px) } }
+.arena-shake { animation: arena-shake .5s }
+@keyframes arena-hit { 0% { transform: scale(1) } 30% { transform: scale(1.15) rotate(-4deg) } 60% { transform: scale(.95) rotate(3deg) } 100% { transform: scale(1) } }
+.arena-hit { animation: arena-hit .5s }
+@keyframes arena-vs { 0%,100% { transform: scale(1); opacity:.6 } 50% { transform: scale(1.25); opacity:1 } }
+.arena-vs { animation: arena-vs 1.6s ease-in-out infinite }
+`;
 
 function StatBar({ label, left, right, pct }: { label: string; left: string; right: string; pct: number }) {
   return (
@@ -591,49 +823,89 @@ function StatBar({ label, left, right, pct }: { label: string; left: string; rig
   );
 }
 
+function HpBar({ pct, color }: { pct: number; color: string }) {
+  return (
+    <div className="flex-1 h-2.5 rounded-full bg-slate-800 overflow-hidden border border-slate-700">
+      <div
+        className="h-full rounded-full transition-all duration-700"
+        style={{ width: `${pct}%`, background: pct > 50 ? color : pct > 25 ? '#F59E0B' : '#EF4444' }}
+      />
+    </div>
+  );
+}
+
 function FighterCard({
-  side, color, emoji, name, subtitle, step, sql, typingSpeed, typingActive, onTyped, result,
+  side, color, emoji, sprite, name, subtitle, step, sql, answer, options, correctAnswer, typingSpeed, typingActive, onTyped, result, hp,
 }: {
   side: 'you' | 'rival';
   color: string;
   emoji: string;
+  sprite?: string;
   name: string;
   subtitle: string;
   step: FightStep;
   sql: string;
+  answer?: string;
+  options?: string[];
+  correctAnswer?: string | string[];
   typingSpeed: number;
   typingActive: boolean;
   onTyped: () => void;
   result?: FighterResult;
+  hp?: number;
 }) {
+  const isQuizCard = !!options?.length;
+  const correctText = Array.isArray(correctAnswer) ? correctAnswer[0] : correctAnswer;
   return (
     <div className="rounded-2xl border-2 bg-slate-900/60 p-3 transition-all" style={{ borderColor: step === 'executing' ? color : '#2B333C' }}>
       <div className="flex items-center gap-3 mb-2">
-        <Avatar color={color} emoji={emoji} size="sm" />
+        <Avatar color={color} emoji={emoji} sprite={sprite} size="sm" hit={result != null && !result.correct && step === 'verdict'} />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-black text-white leading-tight">{name}</p>
           <p className="text-[10px] text-slate-400 truncate">{subtitle}</p>
         </div>
         <span
           className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-          style={{
-            background: step === 'executing' ? color : '#1e293b',
-            color: step === 'executing' ? '#0d1117' : '#94a3b8',
-          }}
+          style={{ background: step === 'executing' ? color : '#1e293b', color: step === 'executing' ? '#0d1117' : '#94a3b8' }}
         >
-          {step === 'typing' ? 'WRITING…' : step === 'executing' ? 'RUNNING' : step === 'verdict' ? (result?.correct ? 'HIT' : 'MISS') : 'READY'}
+          {step === 'typing' ? (isQuizCard ? 'LOCKING…' : 'WRITING…') : step === 'executing' ? (isQuizCard ? 'REVEAL' : 'RUNNING') : step === 'verdict' ? (result?.correct ? 'HIT' : 'MISS') : 'READY'}
         </span>
       </div>
-      <div className="rounded-xl bg-[#0d1117] border border-slate-800 p-3 min-h-[4rem]">
-        {sql ? <TypedSql text={sql} cps={typingSpeed} active={typingActive} onDone={onTyped} /> : (
+      {typeof hp === 'number' && <HpBar pct={hp} color={color} />}
+      <div className="rounded-xl bg-[#0d1117] border border-slate-800 p-3 min-h-[4rem] mt-2">
+        {isQuizCard ? (
+          <div className="space-y-1.5">
+            {options!.map((opt, i) => {
+              const picked = answer === opt;
+              const isCorrect = step === 'verdict' && String(opt).trim().toLowerCase() === String(correctText ?? '').trim().toLowerCase();
+              const cls = isCorrect
+                ? 'border-emerald-500/60 bg-emerald-500/10'
+                : picked && step === 'verdict'
+                ? 'border-red-500/60 bg-red-500/10'
+                : picked
+                ? 'border-cyan-400/70 bg-cyan-400/10'
+                : 'border-slate-800';
+              return (
+                <div key={i} className={`px-2.5 py-1.5 rounded-lg border text-[11px] text-slate-300 transition-all ${cls}`}>
+                  <span className="font-bold text-slate-500 mr-1.5">{String.fromCharCode(65 + i)}</span>
+                  {opt}
+                  {picked && <span className="ml-1.5">{side === 'rival' ? '🤖' : '🎯'}</span>}
+                  {isCorrect && step === 'verdict' && <span className="ml-1.5">✅</span>}
+                </div>
+              );
+            })}
+          </div>
+        ) : sql ? (
+          <TypedSql text={sql} cps={typingSpeed} active={typingActive} onDone={onTyped} />
+        ) : (
           <p className="text-[11px] text-slate-600 italic">{step === 'youFight' && side === 'you' ? 'waiting for your input below…' : '…'}</p>
         )}
       </div>
       {result && step === 'verdict' && (
         <div className="flex gap-3 mt-2 text-[10px] text-slate-400">
           <span>{result.correct ? '✅ correct' : result.error ? `❌ ${result.error.slice(0, 40)}` : '❌ wrong result'}</span>
-          <span>⏱ {result.execMs}ms exec</span>
-          <span>{result.rows} rows</span>
+          {result.execMs > 0 && <span>⏱ {result.execMs}ms exec</span>}
+          {result.rows > 0 && <span>{result.rows} rows</span>}
         </div>
       )}
     </div>

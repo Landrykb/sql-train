@@ -80,7 +80,48 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { domain, caseId, championId, strategyId } = body ?? {};
+  const { domain, caseId, championId, strategyId, quiz } = body ?? {};
+  const champion = getChampion(championId);
+  const strategy = getStrategy(strategyId);
+
+  // Quiz-duel rounds: champion answers a multiple-choice question.
+  if (quiz?.question && Array.isArray(quiz.options)) {
+    const options: string[] = quiz.options.slice(0, 8);
+    if (LLM_DISABLED || !LLM_KEY) {
+      // Scripted: hit at the champion's accuracy rate, else pick a wrong option.
+      const hit = Math.random() < champion.quizAccuracy;
+      const answer = hit
+        ? (Array.isArray(quiz.answer) ? quiz.answer[0] : quiz.answer) ?? options[0]
+        : options[Math.floor(Math.random() * options.length)];
+      return NextResponse.json({ answer, usedLLM: false, champion: champion.name });
+    }
+    try {
+      const resp = await fetch(LLM_URL, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${LLM_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': LLM_REFERER },
+        body: JSON.stringify({
+          model: LLM_MODEL,
+          max_tokens: 120,
+          temperature: champion.id === 'hex' ? 0.9 : 0.4,
+          messages: [
+            { role: 'system', content: champion.systemPrompt + ' You are answering a multiple-choice arena question. Reply with ONLY the exact text of the correct option — no letter, no explanation.' },
+            { role: 'user', content: `QUESTION:\n${quiz.question}\n\nOPTIONS:\n${options.map((o, i) => `${String.fromCharCode(65 + i)}. ${o}`).join('\n')}\n\n${strategy.promptSuffix}\nReply with only the correct option text.` },
+          ],
+        }),
+      });
+      const data = resp.ok ? await resp.json() : null;
+      const text = (data?.choices?.[0]?.message?.content ?? '').trim();
+      const match = options.find((o) => text === o)
+        ?? options.find((o) => o.toLowerCase() === text.toLowerCase())
+        ?? options.find((o) => text.toLowerCase().includes(o.toLowerCase().slice(0, 24)));
+      return NextResponse.json({ answer: match ?? options[Math.floor(Math.random() * options.length)], usedLLM: !!match, champion: champion.name });
+    } catch (err) {
+      console.error('[arena] quiz solve failed:', err);
+      const answer = (Array.isArray(quiz.answer) ? quiz.answer[0] : quiz.answer) ?? options[0];
+      return NextResponse.json({ answer, usedLLM: false, champion: champion.name });
+    }
+  }
+
   if (!domain || !caseId) {
     return NextResponse.json({ error: 'domain and caseId required' }, { status: 400 });
   }
@@ -91,9 +132,6 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 404 });
   }
-
-  const champion = getChampion(championId);
-  const strategy = getStrategy(strategyId);
 
   if (LLM_DISABLED || !LLM_KEY) {
     // Scripted champion: plays the canonical solution so the arena works without an LLM.
