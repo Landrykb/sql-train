@@ -230,11 +230,14 @@ export default function ArenaBattle() {
       if (champ.correct && !rival.correct) champWon = true;
       else if (champ.correct && rival.correct) champWon = champ.solveMs + champ.execMs < rival.solveMs + rival.execMs;
       const label = isPlayerRound ? 'You' : champion.name;
+      const winsVerb = isPlayerRound ? 'win' : 'wins';
+      const wasVerb = isPlayerRound ? 'were' : 'was';
+      const possLabel = isPlayerRound ? 'your' : `${label}'s`;
       const v = champ.correct && champWon
-        ? `${label} wins the round — correct and faster!`
+        ? `${label} ${winsVerb} the round — correct and faster!`
         : champ.correct
-        ? `${label} was right but ${RIVAL.name} was faster.`
-        : `${RIVAL.name} takes the round — ${label}'s query missed.${champ.error ? ` (${champ.error})` : ''}`;
+        ? `${label} ${wasVerb} right but ${RIVAL.name} was faster.`
+        : `${RIVAL.name} takes the round — ${possLabel} query missed.${champ.error ? ` (${champ.error})` : ''}`;
 
       setVerdict(v);
       setResults((rs) => [...rs, { round, champ, rival, champWon, byPlayer: isPlayerRound }]);
@@ -446,7 +449,7 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
             {copied ? 'COPIED!' : 'SHARE RESULT'}
           </button>
           <button
-            onClick={() => { setPhase('select'); setResults([]); setRoundIdx(0); setXpAwarded(false); }}
+            onClick={() => { setPhase('select'); setStatus(''); setResults([]); setRoundIdx(0); setXpAwarded(false); }}
             className="w-full py-3 rounded-2xl font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
           >
             RUN IT BACK
