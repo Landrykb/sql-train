@@ -1372,6 +1372,19 @@ function ReadingCard({ round, roundIdx, total, verseName, secs, onFight }: {
         <p className="text-[10px] font-bold tracking-widest mb-2" style={{ color: TEAL }}>{verseName.toUpperCase()}</p>
         <h2 className="text-xl sm:text-2xl font-black text-white leading-tight">{round.name}</h2>
         <p className="text-sm text-slate-300 mt-3 leading-relaxed">{round.instructions}</p>
+        {round.type === 'quiz' && (round.options?.length ?? 0) > 0 && (
+          <div className="mt-4 space-y-1.5 text-left">
+            {round.options!.map((opt, i) => (
+              <div key={i} className="flex items-start gap-2 rounded-lg border border-slate-700/70 bg-[#0d1117]/60 px-2.5 py-1.5">
+                <span className="shrink-0 w-[18px] h-[18px] rounded flex items-center justify-center text-[9px] font-black"
+                  style={{ background: '#1e293b', color: TEAL }}>
+                  {String.fromCharCode(65 + i)}
+                </span>
+                <p className="text-[11px] text-slate-200 leading-snug break-words min-w-0">{opt}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       {/* countdown bar */}
       <div className="w-full max-w-xs h-1 rounded-full bg-slate-800 overflow-hidden">
@@ -1455,36 +1468,40 @@ function FighterCard({
       {typeof hp === 'number' && <div className="shrink-0"><HpBar pct={hp} color={color} /></div>}
       <div className="rounded-xl bg-[#0d1117] border border-slate-800 p-2.5 mt-1.5 flex-1 min-h-0 overflow-y-auto">
         {isQuizCard ? (
-          <div className="space-y-1.5">
-            <div className="flex flex-wrap gap-1">
-              {options!.map((opt, i) => {
-                const picked = answer === opt;
-                const isCorrect = step === 'verdict' && String(opt).trim().toLowerCase() === String(correctText ?? '').trim().toLowerCase();
-                const cls = isCorrect
-                  ? 'border-emerald-500/70 bg-emerald-500/15 text-emerald-300'
-                  : picked && step === 'verdict'
-                  ? 'border-red-500/70 bg-red-500/15 text-red-300'
-                  : picked
-                  ? 'border-cyan-400/70 bg-cyan-400/15 text-cyan-200'
-                  : 'border-slate-700 text-slate-400';
-                return (
-                  <span key={i} className={`px-2 py-1 rounded-md border text-[10px] font-bold transition-all ${cls}`}>
+          <div className="space-y-1">
+            {options!.map((opt, i) => {
+              const picked = answer === opt;
+              const isCorrect = step === 'verdict' && String(opt).trim().toLowerCase() === String(correctText ?? '').trim().toLowerCase();
+              const rowCls = isCorrect
+                ? 'border-emerald-500/70 bg-emerald-500/15'
+                : picked && step === 'verdict'
+                ? 'border-red-500/70 bg-red-500/15'
+                : picked
+                ? 'border-cyan-400/70 bg-cyan-400/15'
+                : 'border-slate-800 bg-slate-900/40';
+              const chipCls = isCorrect
+                ? 'bg-emerald-500 text-[#0d1117]'
+                : picked && step === 'verdict'
+                ? 'bg-red-500 text-white'
+                : picked
+                ? 'bg-cyan-400 text-[#0d1117]'
+                : 'bg-slate-800 text-slate-400';
+              const textCls = isCorrect ? 'text-emerald-200' : picked && step === 'verdict' ? 'text-red-200' : picked ? 'text-cyan-100' : 'text-slate-400';
+              return (
+                <div key={i} className={`flex items-start gap-1.5 rounded-lg border px-1.5 py-1 transition-all ${rowCls} ${picked ? 'scale-[1.01]' : ''}`}>
+                  <span className={`shrink-0 w-4 h-4 rounded flex items-center justify-center text-[9px] font-black ${chipCls}`}>
                     {String.fromCharCode(65 + i)}
                   </span>
-                );
-              })}
-            </div>
-            {answer ? (
-              <p className="text-[10px] text-slate-300 leading-snug break-words">
-                <span className="text-slate-500">{side === 'rival' ? '🤖' : '🎯'} </span>{answer}
-              </p>
-            ) : (
-              <p className="text-[10px] text-slate-600 italic">{step === 'typing' || step === 'executing' ? 'locking in…' : '…'}</p>
-            )}
-            {step === 'verdict' && correctText != null && (
-              <p className="text-[10px] text-emerald-300/80 leading-snug break-words">
-                <span className="text-slate-500">✓ </span>{String(correctText)}
-              </p>
+                  <p className={`text-[10px] leading-snug break-words min-w-0 ${textCls}`}>
+                    {opt}
+                    {isCorrect && <span className="ml-1 font-bold">✓</span>}
+                    {picked && !isCorrect && <span className="ml-1 font-bold">◂</span>}
+                  </p>
+                </div>
+              );
+            })}
+            {!answer && (
+              <p className="text-[10px] text-slate-600 italic pt-0.5">{step === 'typing' || step === 'executing' ? 'locking in…' : '…'}</p>
             )}
           </div>
         ) : sql ? (
