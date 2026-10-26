@@ -325,6 +325,13 @@ export default function ArenaBattle() {
     refreshProgress();
   }, [refreshProgress]);
 
+  // Clear the launch message once the gauntlet is no longer running
+  // (STOP, dismiss, or done) so it doesn't linger on the select screen.
+  const gauntletActive = runner?.state.status === 'running';
+  useEffect(() => {
+    if (!gauntletActive) setStatus((s) => (s.includes('fighting the gauntlet') ? '' : s));
+  }, [gauntletActive]);
+
   const grantXp = useCallback((amount: number) => {
     const { progress, evolved: evo } = awardChampionXp(champion.id, amount);
     setProgMap((m) => ({ ...m, [champion.id]: progress }));
