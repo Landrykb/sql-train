@@ -1053,6 +1053,9 @@ export default function ArenaBattle() {
                   <img src={RIVAL.sprite} alt={runner.state.rivalName} className={`w-10 h-10 rounded-full ${runner.state.intervention ? '' : 'arena-mini-fight-r'}`} style={{ boxShadow: `0 0 12px ${RIVAL.color}66` }} />
                 </div>
                 <p className="text-[11px] text-slate-400 mb-1">{runner.state.fight.lastEvent}</p>
+                {runner.state.fight.codeLine && (
+                  <p className="text-[10px] font-mono text-teal-300/90 bg-black/40 rounded-lg px-2.5 py-1.5 mb-1 truncate">{runner.state.fight.codeLine}<span className="animate-pulse">▌</span></p>
+                )}
                 {runner.state.intervention && (
                   <div className="mt-2 space-y-1.5">
                     <p className="text-[11px] text-red-200 leading-snug">{runner.state.intervention.prompt}</p>

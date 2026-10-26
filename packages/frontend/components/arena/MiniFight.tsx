@@ -76,8 +76,11 @@ export default function MiniFight() {
               </div>
             </div>
 
-            {/* status line */}
-            <p className="px-2.5 pb-1.5 text-[10px] text-slate-400 truncate">{state.fight.lastEvent}</p>
+            {/* status line + the code it's writing */}
+            <p className="px-2.5 pb-1 text-[10px] text-slate-400 truncate">{state.fight.lastEvent}</p>
+            {state.fight.codeLine && (
+              <p className="mx-2.5 mb-1.5 px-2 py-1 rounded bg-black/40 text-[9px] font-mono text-teal-300/90 truncate">{state.fight.codeLine}<span className="animate-pulse">▌</span></p>
+            )}
           </Link>
 
           {/* champ limits */}
