@@ -17,6 +17,7 @@ import { playBleep } from '@/lib/audio';
 import { motion, AnimatePresence } from 'framer-motion';
 import { loadPyodide, runPythonCode } from '@/lib/pyodideRuntime';
 import { cloudMissionById, actionsToLines, freshSandbox, type CloudAction } from '@/lib/arena/codeDuels';
+import { matchCardUrl } from '@/lib/arena/matchCard';
 
 interface RoundDef {
   type: 'sql' | 'quiz' | 'python' | 'cloud';
@@ -763,20 +764,30 @@ export default function ArenaBattle() {
   }, [phase, xpAwarded, xp, matchWon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const verseName = VERSES.find(v => v.id === verse)?.name ?? 'Arena';
-  const shareText = `⚔️ BLEEPX ARENA — ${mode === 'tagteam' ? 'You + ' : ''}${champion.name} ${wins}-${totalRounds - wins} vs ${RIVAL.name}
-${verseName} • ${tier} • ${correct}/${totalRounds} correct • avg ${(avgMs / 1000).toFixed(1)}s
-${matchWon ? 'W. My bot holds the belt.' : 'L. Running it back.'}
-Think your champion beats mine? ${typeof window !== 'undefined' ? window.location.origin + '/arena' : ''}`;
+  const cardUrl = matchCardUrl({
+    c: champion.id,
+    st: prog.stage.level,
+    v: verseName,
+    t: TIERS.find(t => t.id === tier)?.name ?? String(tier),
+    m: mode,
+    w: wins,
+    n: totalRounds,
+    k: correct,
+    ms: avgMs,
+    xp,
+    e: evolvedThisMatch.current ? 1 : undefined,
+  });
+  const shareText = `⚔️ ${mode === 'tagteam' ? 'You + ' : ''}${champion.name} ${wins}—${totalRounds - wins} vs ${RIVAL.name} · ${verseName} · ${matchWon ? 'MATCH WON' : 'defeated'} — think your champion beats mine?`;
 
   const share = async () => {
     try {
       if (navigator.share) {
-        await navigator.share({ text: shareText });
+        await navigator.share({ text: shareText, url: cardUrl });
         return;
       }
     } catch { /* fall through to clipboard */ }
     try {
-      await navigator.clipboard.writeText(shareText);
+      await navigator.clipboard.writeText(`${shareText} ${cardUrl}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch { /* ignore */ }
@@ -1004,7 +1015,7 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
             className="w-full py-3.5 rounded-2xl font-black text-[#0d1117] mb-3 transition-transform active:scale-95"
             style={{ background: TEAL }}
           >
-            {copied ? 'COPIED!' : 'SHARE RESULT'}
+            {copied ? 'LINK COPIED!' : 'SHARE MATCH CARD'}]
           </button>
           <button
             onClick={() => { setPhase('select'); setResults([]); setRoundIdx(0); setXpAwarded(false); setStatus(''); evolvedThisMatch.current = null; }}
@@ -1013,7 +1024,8 @@ Think your champion beats mine? ${typeof window !== 'undefined' ? window.locatio
             RUN IT BACK
           </button>
         </div>
-        <p className="text-[11px] text-slate-600 mt-6">better bots. brighter wins.</p>
+        <a href={cardUrl} target="_blank" rel="noopener" className="text-[11px] mt-4 hover:underline" style={{ color: TEAL }}>preview your match card ↗</a>
+        <p className="text-[11px] text-slate-600 mt-2">better bots. brighter wins.</p>
       </div>
     );
   }
