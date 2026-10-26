@@ -183,6 +183,8 @@ interface RunnerCtx {
   answer: (choice: IntervChoice) => void;
   dismiss: () => void;
   stop: () => void;
+  awayRecap: string | null;
+  clearAwayRecap: () => void;
 }
 
 const Ctx = createContext<RunnerCtx | null>(null);
@@ -214,8 +216,31 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
   pf.current = prefs;
   const matchWins = useRef({ champ: 0, rival: 0 });
   const interventionUsed = useRef(false);
+  const [awayRecap, setAwayRecap] = useState<string | null>(null);
+  const awaySince = useRef<number | null>(null);
 
   useEffect(() => { setPrefsState(loadPrefs()); }, []);
+
+  // "while you were away" recap — tab hidden → return → summarize log entries
+  useEffect(() => {
+    const onVis = () => {
+      if (document.hidden) { awaySince.current = Date.now(); return; }
+      const since = awaySince.current;
+      awaySince.current = null;
+      if (!since || Date.now() - since < 15000) return;
+      try {
+        const raw = localStorage.getItem('bleepxGauntletLog');
+        const log: { t: number; champ: string; won: boolean; rivalWins: number; champWins: number }[] = raw ? JSON.parse(raw) : [];
+        const fresh = log.filter((e) => e.t > since);
+        if (!fresh.length) return;
+        const w = fresh.filter((e) => e.won).length;
+        const champ = getChampion(fresh[0].champ);
+        setAwayRecap(`While you were away: ${champ.name} picked ${fresh.length} fight${fresh.length > 1 ? 's' : ''} — ${w}W ${fresh.length - w}L. Results in the arena.`);
+      } catch { /* ignore */ }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
   const setPrefs = useCallback((p: Partial<RunnerPrefs>) => {
     setPrefsState((prev) => {
       const next = { ...prev, ...p };
@@ -418,7 +443,7 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
 
   const champion = getChampion(state.championId);
   return (
-    <Ctx.Provider value={{ state, champion, prefs, setPrefs, start, answer, dismiss, stop }}>
+    <Ctx.Provider value={{ state, champion, prefs, setPrefs, start, answer, dismiss, stop, awayRecap, clearAwayRecap: () => setAwayRecap(null) }}>
       {children}
     </Ctx.Provider>
   );
