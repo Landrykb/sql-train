@@ -501,7 +501,7 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
       endless: pf.current.autoRematch,
       isDaily: !!opts.daily,
       rivalName: opts.rival ?? GHOST_RIVALS[Math.floor(Math.random() * GHOST_RIVALS.length)],
-      fight: { matchIdx: 0, round: 0, champHp: 100, rivalHp: 100, lastEvent: `${getChampion(opts.championId).name} enters the gauntlet…` },
+      fight: { matchIdx: 0, round: 0, champHp: 100, rivalHp: 100, lastEvent: `${getChampion(opts.championId).name} enters the gauntlet…`, codeLine: '' },
     });
     // mark an active gauntlet so the champ can "keep fighting" after a reload
     try { localStorage.setItem(ACTIVE_GAUNTLET_KEY, JSON.stringify({ champId: opts.championId, verse: opts.verse, at: Date.now() })); } catch { /* ignore */ }
