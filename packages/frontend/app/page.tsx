@@ -10,6 +10,7 @@ import { DomainIcon, StarRating, GuideIcon, BoltIcon, BrainIcon, FlaskIcon, Code
 import { useProgress } from '@/lib/useProgress';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
 import { LAB_CASE_ORDER } from '@/lib/labConstants';
+import ArenaCTA from '@/components/arena/ArenaCTA';
 
 const domainMeta: Record<string, { desc: string; color: string; difficulty: string; stars: number }> = {
   business: { desc: 'Retail analytics, revenue optimization & customer insights', color: 'from-blue-500 to-blue-700', difficulty: 'Beginner', stars: 1 },
@@ -61,6 +62,8 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      <ArenaCTA verse="sql" />
 
       {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

@@ -22,6 +22,7 @@ import { useArenaRunner } from '@/components/arena/ArenaRunner';
 import { dailyDuelSpec, getDuelStreak, getRivalRecords } from '@/lib/arena/daily';
 import { encodeReplay, type ReplayEvent } from '@/lib/arena/replay';
 import { isVerified } from '@/lib/arena/verified';
+import { VERSE_ACCENT } from '@/lib/arena/theme';
 
 interface RoundDef {
   type: 'sql' | 'quiz' | 'python' | 'cloud';
@@ -270,7 +271,7 @@ function ClashSparks({ active }: { active: boolean }) {
   );
 }
 
-export default function ArenaBattle() {
+export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | 'cloud' | 'lab' | null }) {
   const [phase, setPhase] = useState<Phase>('select');
   const [champion, setChampion] = useState<Champion>(() => {
     const id = getSelectedChampionId();
@@ -278,7 +279,7 @@ export default function ArenaBattle() {
   });
   const [strategy, setStrategy] = useState<StrategyCard>(STRATEGY_CARDS[0]);
   const [mode, setMode] = useState<'coach' | 'tagteam'>('coach');
-  const [verse, setVerse] = useState<Verse>('sql');
+  const [verse, setVerse] = useState<Verse>(initialVerse ?? 'sql');
   const [domain, setDomain] = useState('business');
   const [tier, setTier] = useState<Tier>('rookie');
   const [rounds, setRounds] = useState<RoundDef[]>([]);
@@ -602,7 +603,9 @@ export default function ArenaBattle() {
     // Warm the Python runtime while the user reads the task.
     if (rounds[roundIdx]?.type === 'python') void loadPyodide().catch(() => {});
     const len = rounds[roundIdx]?.instructions.length ?? 0;
-    const dur = Math.min(6500, 2400 + len * 28);
+    const isQuizRound = rounds[roundIdx]?.type === 'quiz';
+    // Quiz rounds need extra time — the crowd reads the propositions too.
+    const dur = Math.min(9500, 3400 + len * 30 + (isQuizRound ? 1800 : 0));
     const t = setTimeout(() => { void beginFight(); }, dur);
     return () => clearTimeout(t);
   }, [phase, step, roundIdx, beginFight]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -870,7 +873,7 @@ export default function ArenaBattle() {
                   <button key={v.id}
                     onClick={() => { setVerse(v.id); playBleep(); }}
                     className={`p-3 rounded-xl border-2 text-center transition-all ${verse === v.id ? 'bg-slate-800' : 'bg-slate-800/30 opacity-70'}`}
-                    style={{ borderColor: verse === v.id ? TEAL : '#2B333C' }}>
+                    style={{ borderColor: verse === v.id ? VERSE_ACCENT[v.id].hex : '#2B333C', boxShadow: verse === v.id ? `0 0 18px -6px ${VERSE_ACCENT[v.id].hex}` : undefined }}>
                     <div className="text-2xl mb-1">{v.icon}</div>
                     <p className="text-[11px] font-bold text-white leading-tight">{v.name}</p>
                   </button>
@@ -1022,7 +1025,7 @@ export default function ArenaBattle() {
             {/* guest quick-match — first fight in under a minute */}
             <button
               onClick={() => {
-                runner?.start({ championId: champion.id, verse: 'SQL Arena', tier: 'rookie', matches: 1 });
+                runner?.start({ championId: champion.id, verse: verseName, tier, matches: 1 });
                 setStatus(`${champion.name} dives into a quick match — track it bottom-left.`);
               }}
               disabled={runner?.state.status === 'running'}

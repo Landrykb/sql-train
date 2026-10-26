@@ -2,13 +2,15 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import ArenaBattle from '@/components/arena/ArenaBattle';
 import BleepxLogo from '@/components/BleepxLogo';
+import { verseFromParam } from '@/lib/arena/theme';
 
 export const metadata: Metadata = {
   title: 'Bleepx Arena — coach your champion',
   description: 'Pick a champion, set its strategy, and watch it fight the house bot through real data challenges. Or tag in and fight a round yourself.',
 };
 
-export default function ArenaPage() {
+export default async function ArenaPage({ searchParams }: { searchParams: Promise<{ verse?: string }> }) {
+  const { verse } = await searchParams;
   return (
     <div className="min-h-screen" style={{ background: '#1C2129' }}>
       <header className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
@@ -17,7 +19,7 @@ export default function ArenaPage() {
           ← back to training
         </Link>
       </header>
-      <ArenaBattle />
+      <ArenaBattle initialVerse={verseFromParam(verse)} />
     </div>
   );
 }
