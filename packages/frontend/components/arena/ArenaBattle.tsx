@@ -19,6 +19,9 @@ import { loadPyodide, runPythonCode } from '@/lib/pyodideRuntime';
 import { cloudMissionById, actionsToLines, freshSandbox, type CloudAction } from '@/lib/arena/codeDuels';
 import { matchCardUrl } from '@/lib/arena/matchCard';
 import { useArenaRunner } from '@/components/arena/ArenaRunner';
+import { dailyDuelSpec, getDuelStreak, getRivalRecords } from '@/lib/arena/daily';
+import { encodeReplay, type ReplayEvent } from '@/lib/arena/replay';
+import { isVerified } from '@/lib/arena/verified';
 
 interface RoundDef {
   type: 'sql' | 'quiz' | 'python' | 'cloud';
@@ -789,6 +792,29 @@ export default function ArenaBattle() {
   });
   const shareText = `⚔️ ${mode === 'tagteam' ? 'You + ' : ''}${champion.name} ${wins}—${totalRounds - wins} vs ${RIVAL.name} · ${verseName} · ${matchWon ? 'MATCH WON' : 'defeated'} — think your champion beats mine?`;
 
+  // spectate link — encode the real rounds so anyone can re-watch the fight
+  const replayUrl = phase === 'done' && results.length ? (() => {
+    let champHp = 100, rivalHp = 100;
+    const events: ReplayEvent[] = results.map((r, i) => {
+      const dmg = 34;
+      if (r.champWon) rivalHp = Math.max(0, rivalHp - dmg); else champHp = Math.max(0, champHp - dmg);
+      return {
+        round: i,
+        kind: r.champWon ? 'hit' : 'miss',
+        line: `${r.round.name} — ${r.champ.correct ? `${r.champ.solveMs}ms` : 'missed'} vs ${r.rival.correct ? `${r.rival.solveMs}ms` : 'missed'}`,
+        champHp, rivalHp,
+      };
+    });
+    const q = encodeReplay({
+      champ: champion.name, champSprite: champion.sprite, champColor: champion.color,
+      rival: RIVAL.name, rivalSprite: RIVAL.sprite, rivalColor: RIVAL.color,
+      verse: verseName, tier,
+      events,
+      result: { won: matchWon, champWins: wins, rivalWins: totalRounds - wins },
+    });
+    return `/arena/watch?d=${q}`;
+  })() : '';
+
   const share = async () => {
     try {
       if (navigator.share) {
@@ -974,6 +1000,37 @@ export default function ArenaBattle() {
               {mode === 'tagteam' ? 'You fight round 3 — your champion warms up on 1–2.' : `${champion.name} fights all ${MAX_ROUNDS_DISPLAY} rounds under ${strategy.name}.`}
             </p>
 
+            {/* daily duel — today's featured fight, same for everyone */}
+            <DailyDuelCard
+              onFight={() => {
+                const spec = dailyDuelSpec();
+                runner?.start({ championId: champion.id, verse: spec.verse, tier: spec.tier, matches: 3, daily: true, rival: spec.rival });
+                setStatus(`${champion.name} takes the daily duel vs ${spec.rival} — track it bottom-left.`);
+              }}
+              disabled={runner?.state.status === 'running'}
+            />
+
+            {/* rival ladder — ghost PvP, persistent records */}
+            <RivalLadder
+              onChallenge={(rival) => {
+                runner?.start({ championId: champion.id, verse: verseName, tier, matches: 1, rival });
+                setStatus(`${champion.name} challenges ${rival} — track it bottom-left.`);
+              }}
+              disabled={runner?.state.status === 'running'}
+            />
+
+            {/* guest quick-match — first fight in under a minute */}
+            <button
+              onClick={() => {
+                runner?.start({ championId: champion.id, verse: 'SQL Arena', tier: 'rookie', matches: 1 });
+                setStatus(`${champion.name} dives into a quick match — track it bottom-left.`);
+              }}
+              disabled={runner?.state.status === 'running'}
+              className="w-full py-2.5 rounded-2xl font-bold text-xs border border-slate-700 text-slate-300 hover:border-teal-400/50 transition-colors disabled:opacity-40"
+            >
+              ⚡ QUICK MATCH — no setup, just fight
+            </button>
+
             {/* live gauntlet — what the widget taps through to */}
             {runner?.state.status === 'running' && (
               <div className={`rounded-2xl border p-4 ${runner.state.intervention ? 'border-red-400/60 bg-red-500/5' : 'border-teal-400/30 bg-teal-400/5'}`}>
@@ -1100,8 +1157,18 @@ export default function ArenaBattle() {
             className="w-full py-3.5 rounded-2xl font-black text-[#0d1117] mb-3 transition-transform active:scale-95"
             style={{ background: TEAL }}
           >
-            {copied ? 'LINK COPIED!' : 'SHARE MATCH CARD'}]
+            {copied ? 'LINK COPIED!' : 'SHARE MATCH CARD'}
           </button>
+          {replayUrl && (
+            <a
+              href={replayUrl}
+              target="_blank"
+              rel="noopener"
+              className="block w-full py-3 rounded-2xl font-bold text-center text-slate-200 bg-slate-800 hover:bg-slate-700 transition-colors mb-3"
+            >
+              👁 SHARE FIGHT REPLAY
+            </a>
+          )}
           <button
             onClick={() => { setPhase('select'); setResults([]); setRoundIdx(0); setXpAwarded(false); setStatus(''); evolvedThisMatch.current = null; }}
             className="w-full py-3 rounded-2xl font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
@@ -1614,6 +1681,67 @@ function FighterCard({
           {result.rows > 0 && <span>{result.rows} rows</span>}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ─── Daily Duel card — today's featured fight, same rival for everyone ─── */
+function DailyDuelCard({ onFight, disabled }: { onFight: () => void; disabled?: boolean }) {
+  const spec = dailyDuelSpec();
+  const streak = getDuelStreak();
+  const playedToday = streak.lastDay === spec.day;
+  const tierLocked = !isVerified() && spec.tier !== 'rookie';
+  return (
+    <div className="rounded-2xl border border-cyan-400/30 bg-cyan-400/5 p-4">
+      <div className="flex items-center justify-between mb-1.5">
+        <p className="text-xs font-bold text-cyan-300 uppercase tracking-widest">🗓️ Daily Duel</p>
+        {streak.count > 0 && <p className="text-[10px] font-bold text-orange-300">🔥 {streak.count}-day streak</p>}
+      </div>
+      <p className="text-[11px] text-slate-300 mb-1">
+        Today's fight: <span className="font-bold text-white">{spec.rival}</span> in <span className="font-bold text-white">{spec.verse}</span> · {spec.tier} · +{spec.bonusXp}XP bonus
+      </p>
+      <p className="text-[10px] text-slate-500 mb-3">Same rival for everyone today. Watch the replay: <a className="underline text-cyan-400" href={`/arena/watch?seed=${spec.seed}&rival=${spec.rival}`}>spectate</a></p>
+      <button
+        onClick={onFight}
+        disabled={disabled || playedToday || tierLocked}
+        className="w-full py-3 rounded-2xl font-black text-sm transition-transform active:scale-95 disabled:opacity-40"
+        style={{ background: '#22D3EE', color: '#0d1117' }}
+      >
+        {playedToday ? `STREAK SAFE — COME BACK TOMORROW (${streak.count}🔥)` : tierLocked ? `🔒 ${spec.tier.toUpperCase()} TIER — VERIFIED ONLY` : `FIGHT THE DAILY DUEL ×3`}
+      </button>
+      {tierLocked && !playedToday && (
+        <a href="/verified" className="mt-2 block text-center text-[10px] text-amber-300 underline">Unlock with Bleepx Verified →</a>
+      )}
+    </div>
+  );
+}
+
+/* ─── Rival ladder — persistent records vs the ghost roster (PvP-flavored) ─── */
+function RivalLadder({ onChallenge, disabled }: { onChallenge: (rival: string) => void; disabled?: boolean }) {
+  const records = getRivalRecords();
+  const rivals = Object.keys(records).length ? Object.keys(records) : ['VEX-7'];
+  return (
+    <div className="rounded-2xl border border-slate-700 bg-slate-900/40 p-4">
+      <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">🥊 Rival Ladder</p>
+      <div className="space-y-1.5">
+        {rivals.slice(0, 4).map((r) => {
+          const rec = records[r] || { w: 0, l: 0 };
+          return (
+            <div key={r} className="flex items-center gap-2 text-[11px]">
+              <span className="font-bold text-white w-24 truncate">{r}</span>
+              <span className="text-slate-500 flex-1">{rec.w}W · {rec.l}L</span>
+              <button
+                onClick={() => onChallenge(r)}
+                disabled={disabled}
+                className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-teal-300 disabled:opacity-40"
+              >
+                CHALLENGE
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      <p className="text-[10px] text-slate-600 mt-2">Records persist — build your name against the roster.</p>
     </div>
   );
 }
