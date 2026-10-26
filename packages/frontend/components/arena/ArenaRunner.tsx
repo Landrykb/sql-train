@@ -331,7 +331,7 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
     const result: GauntletResult = { won, champWins: cw, rivalWins: rw };
     const results = [...s.results, result].slice(-30);
     const done = results.length >= s.totalMatches && !pf.current.autoRematch;
-    const nextRival = GHOST_RIVALS[Math.floor(Math.random() * GHOST_RIVALS.length)];
+    const nextRival = s.isDaily ? s.rivalName : GHOST_RIVALS[Math.floor(Math.random() * GHOST_RIVALS.length)];
     if (done) {
       const w = results.filter((r) => r.won).length;
       notify('🏁 Gauntlet done', `${champ.name} — ${w}W ${results.length - w}L · +${s.xpEarned}XP`);

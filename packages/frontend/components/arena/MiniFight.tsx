@@ -26,11 +26,11 @@ export default function MiniFight() {
     return () => clearInterval(t);
   }, [intervention]);
 
+  const [showPrefs, setShowPrefs] = useState(false);
   if (!runner || runner.state.status === 'idle') return null;
   const { state, champion } = runner;
   const running = state.status === 'running';
   const wins = state.results.filter((r) => r.won).length;
-  const [showPrefs, setShowPrefs] = useState(false);
   const prefs = runner.prefs;
 
   return (
