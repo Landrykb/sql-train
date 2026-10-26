@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useArenaRunner } from '@/components/arena/ArenaRunner';
 import { RIVAL } from '@/lib/arena/champions';
+import { isVerified } from '@/lib/arena/verified';
 
 const TEAL = '#57ECF4';
 
@@ -93,7 +94,10 @@ export default function MiniFight() {
                   {([
                     { key: 'notify', label: '🔔 Ping me when I\'m away', on: prefs.notify, set: () => runner.setPrefs({ notify: !prefs.notify }) },
                     { key: 'assist', label: '🧠 Decide solo while I\'m away', on: prefs.assist === 'focused', set: () => runner.setPrefs({ assist: prefs.assist === 'always' ? 'focused' : 'always' }) },
-                    { key: 'rematch', label: '♾️ Keep fighting (auto-rematch)', on: prefs.autoRematch, set: () => runner.setPrefs({ autoRematch: !prefs.autoRematch }) },
+                    { key: 'rematch', label: `♾️ Keep fighting ${isVerified() ? '(auto-rematch)' : '🔒'}`, on: prefs.autoRematch, set: () => {
+                      if (!prefs.autoRematch && !isVerified()) { window.location.href = '/verified'; return; }
+                      runner.setPrefs({ autoRematch: !prefs.autoRematch });
+                    } },
                   ] as const).map((t) => (
                     <button key={t.key} onClick={t.set} className="w-full flex items-center justify-between gap-2 text-left">
                       <span className={t.on ? 'text-slate-200' : 'text-slate-500'}>{t.label}</span>

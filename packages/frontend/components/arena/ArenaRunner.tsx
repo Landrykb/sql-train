@@ -9,6 +9,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { getChampion, type Champion } from '@/lib/arena/champions';
 import { ARENA_XP, awardChampionXp, getChampionProgress, getEvolvedStats } from '@/lib/arena/evolution';
+import { markDuelPlayed, recordRivalResult } from '@/lib/arena/daily';
+import { seededRng } from '@/lib/arena/replay';
 import { playBleep } from '@/lib/audio';
 
 export interface IntervChoice {
@@ -47,6 +49,7 @@ export interface GauntletState {
   tier: string;
   totalMatches: number;
   endless: boolean; // keep-fighting mode — rematches forever until stopped
+  isDaily: boolean;  // this gauntlet is today's daily duel
   rivalName: string;
   fight: FightView;
   intervention: Intervention | null;
@@ -62,6 +65,8 @@ export interface RunnerPrefs {
 }
 
 const PREFS_KEY = 'bleepxGauntletPrefs';
+// remembers an in-flight gauntlet across reloads so the champ can "fight while you were gone"
+const ACTIVE_GAUNTLET_KEY = 'bleepxActiveGauntlet';
 const DEFAULT_PREFS: RunnerPrefs = { notify: true, assist: 'always', autoRematch: false };
 const loadPrefs = (): RunnerPrefs => {
   try { return { ...DEFAULT_PREFS, ...(JSON.parse(localStorage.getItem(PREFS_KEY) || '{}')) }; }
@@ -179,7 +184,7 @@ interface RunnerCtx {
   champion: Champion;
   prefs: RunnerPrefs;
   setPrefs: (p: Partial<RunnerPrefs>) => void;
-  start: (opts: { championId: string; verse: string; tier: string; matches: number }) => void;
+  start: (opts: { championId: string; verse: string; tier: string; matches: number; daily?: boolean; rival?: string }) => void;
   answer: (choice: IntervChoice) => void;
   dismiss: () => void;
   stop: () => void;
@@ -193,7 +198,7 @@ export function useArenaRunner() {
 }
 
 const initial: GauntletState = {
-  status: 'idle', championId: 'dash', verse: 'SQL Arena', tier: 'rookie', totalMatches: 0, endless: false, rivalName: 'VEX-7',
+  status: 'idle', championId: 'dash', verse: 'SQL Arena', tier: 'rookie', totalMatches: 0, endless: false, isDaily: false, rivalName: 'VEX-7',
   fight: { matchIdx: 0, round: 0, champHp: 100, rivalHp: 100, lastEvent: '' },
   intervention: null, results: [], xpEarned: 0,
 };
@@ -221,10 +226,49 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
 
   useEffect(() => { setPrefsState(loadPrefs()); }, []);
 
+  // Offline catch-up: if a gauntlet was running when the app last closed,
+  // simulate what happened in between (deterministic, capped) and recap it.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(ACTIVE_GAUNTLET_KEY);
+      localStorage.removeItem(ACTIVE_GAUNTLET_KEY);
+      if (!raw) return;
+      const active: { champId: string; verse: string; at: number } = JSON.parse(raw);
+      const elapsed = Date.now() - active.at;
+      if (elapsed < 120_000) return; // nothing meaningful happened
+      const fights = Math.min(5, Math.floor(elapsed / 90_000));
+      if (fights <= 0) return;
+      const rng = seededRng(active.at);
+      const champ = getChampion(active.champId);
+      const log = JSON.parse(localStorage.getItem('bleepxGauntletLog') || '[]');
+      let w = 0;
+      for (let i = 0; i < fights; i++) {
+        const won = rng() < 0.5;
+        if (won) w += 1;
+        const cw = won ? 3 : Math.floor(rng() * 3);
+        const rival = GHOST_RIVALS[Math.floor(rng() * GHOST_RIVALS.length)];
+        log.unshift({ t: active.at + i * 90_000, champ: champ.id, verse: active.verse, tier: 'rookie', won, champWins: cw, rivalWins: 3 - cw, rival });
+        recordRivalResult(rival, won);
+      }
+      localStorage.setItem('bleepxGauntletLog', JSON.stringify(log.slice(0, 30)));
+      const xp = w * ARENA_XP.matchWon + (fights - w) * ARENA_XP.roundLost * 3;
+      awardChampionXp(champ.id, xp);
+      setAwayRecap(`While you were away: ${champ.name} picked ${fights} fight${fights > 1 ? 's' : ''} — ${w}W ${fights - w}L · +${xp}XP. Results in the arena.`);
+    } catch { /* ignore */ }
+  }, []);
+
   // "while you were away" recap — tab hidden → return → summarize log entries
   useEffect(() => {
     const onVis = () => {
-      if (document.hidden) { awaySince.current = Date.now(); return; }
+      if (document.hidden) {
+        awaySince.current = Date.now();
+        // stamp the active-gauntlet marker so catch-up measures real away time
+        try {
+          const raw = localStorage.getItem(ACTIVE_GAUNTLET_KEY);
+          if (raw) localStorage.setItem(ACTIVE_GAUNTLET_KEY, JSON.stringify({ ...JSON.parse(raw), at: Date.now() }));
+        } catch { /* ignore */ }
+        return;
+      }
       const since = awaySince.current;
       awaySince.current = null;
       if (!since || Date.now() - since < 15000) return;
@@ -291,12 +335,18 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
     if (done) {
       const w = results.filter((r) => r.won).length;
       notify('🏁 Gauntlet done', `${champ.name} — ${w}W ${results.length - w}L · +${s.xpEarned}XP`);
+      try { localStorage.removeItem(ACTIVE_GAUNTLET_KEY); } catch { /* ignore */ }
     }
     try {
       const raw = localStorage.getItem('bleepxGauntletLog');
       const log = raw ? JSON.parse(raw) : [];
-      log.unshift({ t: Date.now(), champ: champ.id, verse: s.verse, tier: s.tier, ...result });
+      log.unshift({ t: Date.now(), champ: champ.id, verse: s.verse, tier: s.tier, daily: s.isDaily, rival: s.rivalName, ...result });
       localStorage.setItem('bleepxGauntletLog', JSON.stringify(log.slice(0, 30)));
+      recordRivalResult(s.rivalName, won);
+      if (s.isDaily) {
+        markDuelPlayed();
+        awardChampionXp(s.championId, 150); // daily bonus on top of normal XP
+      }
       const pts = parseInt(localStorage.getItem('bleepxPoints') || '0', 10);
       localStorage.setItem('bleepxPoints', String(pts + (won ? ARENA_XP.matchWon : 0)));
     } catch { /* ignore */ }
@@ -404,7 +454,7 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
     }, 1400);
   }, [finishMatch, playRound]);
 
-  const start = useCallback((opts: { championId: string; verse: string; tier: string; matches: number }) => {
+  const start = useCallback((opts: { championId: string; verse: string; tier: string; matches: number; daily?: boolean; rival?: string }) => {
     clear();
     matchWins.current = { champ: 0, rival: 0 };
     interventionUsed.current = false;
@@ -416,9 +466,12 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
       tier: opts.tier,
       totalMatches: opts.matches,
       endless: pf.current.autoRematch,
-      rivalName: GHOST_RIVALS[Math.floor(Math.random() * GHOST_RIVALS.length)],
+      isDaily: !!opts.daily,
+      rivalName: opts.rival ?? GHOST_RIVALS[Math.floor(Math.random() * GHOST_RIVALS.length)],
       fight: { matchIdx: 0, round: 0, champHp: 100, rivalHp: 100, lastEvent: `${getChampion(opts.championId).name} enters the gauntlet…` },
     });
+    // mark an active gauntlet so the champ can "keep fighting" after a reload
+    try { localStorage.setItem(ACTIVE_GAUNTLET_KEY, JSON.stringify({ champId: opts.championId, verse: opts.verse, at: Date.now() })); } catch { /* ignore */ }
     playBleep();
     // request notification permission lazily so away-pings can reach you
     try {
@@ -431,11 +484,13 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
 
   const stop = useCallback(() => {
     clear();
+    try { localStorage.removeItem(ACTIVE_GAUNTLET_KEY); } catch { /* ignore */ }
     setState((p) => ({ ...p, status: 'done', intervention: null, fight: { ...p.fight, lastEvent: 'Gauntlet called off.' } }));
   }, []);
 
   const dismiss = useCallback(() => {
     clear();
+    try { localStorage.removeItem(ACTIVE_GAUNTLET_KEY); } catch { /* ignore */ }
     setState(initial);
   }, []);
 
