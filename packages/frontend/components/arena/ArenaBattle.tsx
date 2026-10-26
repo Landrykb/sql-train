@@ -332,7 +332,7 @@ export default function ArenaBattle() {
   // (STOP, dismiss, or done) so it doesn't linger on the select screen.
   const gauntletActive = runner?.state.status === 'running';
   useEffect(() => {
-    if (!gauntletActive) setStatus((s) => (s.includes('fighting the gauntlet') ? '' : s));
+    if (!gauntletActive) setStatus((s) => (s.includes('bottom-left') ? '' : s));
   }, [gauntletActive]);
 
   const grantXp = useCallback((amount: number) => {
