@@ -11,6 +11,7 @@ import { lintInput, BleepxHint } from '@/lib/bleepxLinter';
 import * as voice from '@/lib/bleepxVoice';
 import type { Chunk } from '@/lib/rag';
 import { getProgressSnapshot, formatProgressForPrompt, formatProgressChat, type NextStep } from '@/lib/bleepxProgress';
+import { useArenaRunner } from '@/components/arena/ArenaRunner';
 import { DashboardIcon, JourneyIcon } from '@/components/NavIcons';
 import {
   BleepxFace,
@@ -185,7 +186,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
   const [isDark, setIsDark] = useState(false);
   const [isTouch, setIsTouch] = useState(false);
   const [manualMode, setManualMode] = useState<'auto' | Mode>('auto');
-  const [teaser, setTeaser] = useState<{ text: string; command: string } | null>(null);
+  const [teaser, setTeaser] = useState<{ text: string; command: string; href?: string } | null>(null);
+  const runner = useArenaRunner();
 
   const safeDock = useMemo(() => {
     const { width, height } = viewport;
@@ -298,7 +300,7 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       setTeaser(t);
       playBleep();
       setTimeout(() => setTeaser((prev) => (prev === t ? null : prev)), 8000);
-    }, 8000);
+    }, 30000);
     return () => clearTimeout(initial);
   }, [open]);
 
@@ -309,9 +311,21 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
       setTeaser(t);
       playBleep();
       setTimeout(() => setTeaser((prev) => (prev === t ? null : prev)), 8000);
-    }, 45000);
+    }, 150000);
     return () => clearInterval(id);
   }, [open]);
+
+  // "while you were away" recap — fires once when the runner reports one
+  useEffect(() => {
+    const recap = runner?.awayRecap;
+    if (!recap || open) return;
+    const t = { text: recap, command: '', href: '/arena' };
+    setTeaser(t);
+    playBleep();
+    runner.clearAwayRecap();
+    const hide = setTimeout(() => setTeaser((prev) => (prev === t ? null : prev)), 14000);
+    return () => clearTimeout(hide);
+  }, [runner?.awayRecap, open]);
 
   useEffect(() => {
     if (open || dockedHint || dragging || manualMode !== 'auto') return;
@@ -932,6 +946,9 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
           <div className="text-bleepx-text-secondary leading-relaxed break-words">{teaser.text}</div>
           {teaser.command && (
             <button onClick={(e) => { e.stopPropagation(); setOpen(true); setTeaser(null); send(teaser.command); }} className="mt-2 text-xs px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 font-bold hover:bg-cyan-200">Try it</button>
+          )}
+          {teaser.href && (
+            <Link href={teaser.href} onClick={(e: React.MouseEvent) => { e.stopPropagation(); setTeaser(null); }} className="mt-2 inline-block text-xs px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 font-bold hover:bg-cyan-200">See results →</Link>
           )}
         </div>
       )}
