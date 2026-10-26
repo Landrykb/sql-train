@@ -46,41 +46,128 @@ export interface GauntletState {
   verse: string;
   tier: string;
   totalMatches: number;
+  endless: boolean; // keep-fighting mode — rematches forever until stopped
+  rivalName: string;
   fight: FightView;
   intervention: Intervention | null;
   results: GauntletResult[];
   xpEarned: number;
 }
 
-const INTERVENTION_PROMPTS: { prompt: string; choices: IntervChoice[] }[] = [
-  {
-    prompt: 'VEX-7 countered the query — your champ is hesitating. Call it:',
-    choices: [
-      { id: 'safe', emoji: '🛡️', label: 'Re-optimize', hint: 'steady, usually lands', winBoost: 0.35 },
-      { id: 'rush', emoji: '💨', label: 'Rush it', hint: 'coin flip', winBoost: 0.15 },
-      { id: 'wild', emoji: '🎲', label: 'Wildcard', hint: 'chaos — low odds', winBoost: 0.02 },
-    ],
-  },
-  {
-    prompt: 'A bug slipped into the code mid-fight. Quick — the fix:',
-    choices: [
-      { id: 'fix', emoji: '🔧', label: 'Patch it clean', hint: 'reliable recovery', winBoost: 0.35 },
-      { id: 'force', emoji: '⚡', label: 'Force it through', hint: 'fast but fragile', winBoost: 0.15 },
-      { id: 'pray', emoji: '🙏', label: 'Ship & pray', hint: 'the crowd gasps', winBoost: 0.02 },
-    ],
-  },
-  {
-    prompt: 'VEX-7 went aggressive — your champ is cornered. The play:',
-    choices: [
-      { id: 'defend', emoji: '🧱', label: 'Hold the line', hint: 'defensive, solid', winBoost: 0.35 },
-      { id: 'counter', emoji: '🥊', label: 'Counter-punch', hint: 'swingy', winBoost: 0.15 },
-      { id: 'gamble', emoji: '🃏', label: 'All-in', hint: 'glory or pain', winBoost: 0.02 },
-    ],
-  },
-];
+// How the user limits the champ's behavior while it fights on its own.
+export interface RunnerPrefs {
+  notify: boolean;          // browser-notification pings when the tab is hidden
+  assist: 'always' | 'focused'; // 'always' asks anytime; 'focused' only asks while you're watching
+  autoRematch: boolean;     // dive back in after the gauntlet completes
+}
 
-const HIT_LINES = ['landed a clean hit!', 'is on fire! 🔥', 'read it like a book.', 'textbook execution.'];
-const MISS_LINES = ['took one on the chin…', 'whiffed that round.', 'is reeling…', 'needs the cornerman.'];
+const PREFS_KEY = 'bleepxGauntletPrefs';
+const DEFAULT_PREFS: RunnerPrefs = { notify: true, assist: 'always', autoRematch: false };
+const loadPrefs = (): RunnerPrefs => {
+  try { return { ...DEFAULT_PREFS, ...(JSON.parse(localStorage.getItem(PREFS_KEY) || '{}')) }; }
+  catch { return DEFAULT_PREFS; }
+};
+
+// Ghost rivals — the gauntlet rotates who your champ faces, not just the house bot.
+const GHOST_RIVALS = ['VEX-7', 'NULLBYTE', 'PRAXIS-9', 'KOBOLD', 'SABLE'];
+
+// Every intervention is a real engineering call — the label IS the technique,
+// the hint is the tradeoff. Cornering your champ teaches real optimization vocab.
+const INTERVENTION_PROMPTS: Record<string, { prompt: string; choices: IntervChoice[] }[]> = {
+  sql: [
+    {
+      prompt: 'EXPLAIN shows a full seq scan over 2M rows — VEX-7\'s plan is faster. The call:',
+      choices: [
+        { id: 'safe', emoji: '🛡️', label: 'Composite index (region, ts)', hint: 'covering index — reliable', winBoost: 0.35 },
+        { id: 'rush', emoji: '💨', label: 'CTE + early pre-filter', hint: 'planner may still seq-scan', winBoost: 0.15 },
+        { id: 'wild', emoji: '🎲', label: 'Materialized view', hint: 'huge win or locking pain', winBoost: 0.02 },
+      ],
+    },
+    {
+      prompt: 'N+1 detected — 400 queries per render. Quick — the fix:',
+      choices: [
+        { id: 'fix', emoji: '🔧', label: 'Batch into one JOIN', hint: 'set-based, always lands', winBoost: 0.35 },
+        { id: 'force', emoji: '⚡', label: 'LATERAL join per group', hint: 'elegant but fiddly', winBoost: 0.15 },
+        { id: 'pray', emoji: '🙏', label: 'Cache in app memory', hint: 'fast demo, stale data', winBoost: 0.02 },
+      ],
+    },
+    {
+      prompt: 'The big join is timing out — VEX-7 is gaining. The play:',
+      choices: [
+        { id: 'defend', emoji: '🧱', label: 'Pre-aggregate in subquery', hint: 'shrinks the join input', winBoost: 0.35 },
+        { id: 'counter', emoji: '🥊', label: 'Window fn over join', hint: 'one pass — powerful, tricky', winBoost: 0.15 },
+        { id: 'gamble', emoji: '🃏', label: 'Partition table by date', hint: 'right answer, wrong deadline', winBoost: 0.02 },
+      ],
+    },
+  ],
+  cloud: [
+    {
+      prompt: 'Lambda is cold-starting on every burst — latency is bleeding. The call:',
+      choices: [
+        { id: 'safe', emoji: '🛡️', label: 'Provisioned concurrency', hint: 'warm pools, predictable', winBoost: 0.35 },
+        { id: 'rush', emoji: '💨', label: 'Trim deps into one layer', hint: 'shaves init, fiddly bundle', winBoost: 0.15 },
+        { id: 'wild', emoji: '🎲', label: 'SnapStart pre-warmed snapshot', hint: 'great or config hell', winBoost: 0.02 },
+      ],
+    },
+    {
+      prompt: 'Audit flags an over-privileged IAM role mid-mission. The fix:',
+      choices: [
+        { id: 'fix', emoji: '🔧', label: 'Least-privilege ARNs only', hint: 'correct, slower to write', winBoost: 0.35 },
+        { id: 'force', emoji: '⚡', label: 'Wild resources, tight actions', hint: 'passes check, thin ice', winBoost: 0.15 },
+        { id: 'pray', emoji: '🙏', label: 'Ship admin, fix later', hint: 'never ends well', winBoost: 0.02 },
+      ],
+    },
+    {
+      prompt: 'Pipeline bottleneck — everything queues behind one worker. The play:',
+      choices: [
+        { id: 'defend', emoji: '🧱', label: 'Fan out: SQS + workers', hint: 'classic decoupling', winBoost: 0.35 },
+        { id: 'counter', emoji: '🥊', label: 'Parallel Step Functions', hint: 'powerful, easy to miswire', winBoost: 0.15 },
+        { id: 'gamble', emoji: '🃏', label: 'Bigger instance', hint: 'money, not architecture', winBoost: 0.02 },
+      ],
+    },
+  ],
+  lab: [
+    {
+      prompt: 'A Python loop is crawling 500k rows — VEX-7 is way ahead. The call:',
+      choices: [
+        { id: 'safe', emoji: '🛡️', label: 'Vectorize with np.where', hint: 'SIMD speed, usually lands', winBoost: 0.35 },
+        { id: 'rush', emoji: '💨', label: 'multiprocessing.Pool', hint: 'fast — pickling may bite', winBoost: 0.15 },
+        { id: 'wild', emoji: '🎲', label: 'Numba @njit hot loop', hint: 'compiler magic or type errors', winBoost: 0.02 },
+      ],
+    },
+    {
+      prompt: 'Dataset load is blowing up memory. Quick — the fix:',
+      choices: [
+        { id: 'fix', emoji: '🔧', label: 'Downcast dtypes + categoricals', hint: 'often 10x smaller', winBoost: 0.35 },
+        { id: 'force', emoji: '⚡', label: 'Stream with chunks=', hint: 'works, code gets ugly', winBoost: 0.15 },
+        { id: 'pray', emoji: '🙏', label: 'Just load a sample', hint: 'fast demo, wrong answer', winBoost: 0.02 },
+      ],
+    },
+    {
+      prompt: 'A bug slipped in — groupby returns wrong aggregates. The play:',
+      choices: [
+        { id: 'defend', emoji: '🧱', label: '.pipe() assertion chain', hint: 'methodical, solid', winBoost: 0.35 },
+        { id: 'counter', emoji: '🥊', label: 'Pure-dict reduce rewrite', hint: 'dodges pandas quirks', winBoost: 0.15 },
+        { id: 'gamble', emoji: '🃏', label: 'Monkey-patch the agg', hint: 'works until it doesn\'t', winBoost: 0.02 },
+      ],
+    },
+  ],
+};
+
+const verseKey = (verse: string) =>
+  verse.toLowerCase().includes('cloud') ? 'cloud' : verse.toLowerCase().includes('lab') ? 'lab' : 'sql';
+
+// Round flavor is verse-aware too — every ticker line narrates a real technique.
+const HIT_LINES: Record<string, string[]> = {
+  sql: ['went index-only — 4x faster!', 'pre-aggregated into a clean join.', 'read the plan like a book.', 'textbook window function.'],
+  cloud: ['auto-scaled before the spike!', 'locked IAM tight and still shipped.', 'cached the hot path — clean p99.', 'textbook decoupling.'],
+  lab: ['vectorized the whole column!', 'broadcast the op — zero loops.', 'fit it all in 200MB.', 'clean aggregation, first try.'],
+};
+const MISS_LINES: Record<string, string[]> = {
+  sql: ['seq-scanned the whole table…', 'blew the join order.', 'deadlocked on the hot row.', 'needs the cornerman.'],
+  cloud: ['throttled at the queue…', 'hit the service quota.', 'over-privileged — flagged.', 'cold-start cost the round.'],
+  lab: ['iterrows ate the round…', 'dtype blew up to float64.', 'PicklingError mid-fan-out.', 'groupby keyed on the wrong column.'],
+};
 const ROUNDS_PER_MATCH = 3;
 const ROUND_MS = 4200;
 const BETWEEN_ROUNDS_MS = 1400;
@@ -90,6 +177,8 @@ const INTERVENTION_MS = 12000;
 interface RunnerCtx {
   state: GauntletState;
   champion: Champion;
+  prefs: RunnerPrefs;
+  setPrefs: (p: Partial<RunnerPrefs>) => void;
   start: (opts: { championId: string; verse: string; tier: string; matches: number }) => void;
   answer: (choice: IntervChoice) => void;
   dismiss: () => void;
@@ -102,18 +191,38 @@ export function useArenaRunner() {
 }
 
 const initial: GauntletState = {
-  status: 'idle', championId: 'dash', verse: 'SQL Arena', tier: 'rookie', totalMatches: 0,
+  status: 'idle', championId: 'dash', verse: 'SQL Arena', tier: 'rookie', totalMatches: 0, endless: false, rivalName: 'VEX-7',
   fight: { matchIdx: 0, round: 0, champHp: 100, rivalHp: 100, lastEvent: '' },
   intervention: null, results: [], xpEarned: 0,
 };
 
+const notify = (title: string, body: string) => {
+  try {
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted' || !document.hidden) return;
+    const n = new Notification(title, { body, tag: 'bleepx-gauntlet', icon: '/icons/icon-192x192.png' });
+    n.onclick = () => window.focus();
+  } catch { /* notifications unavailable */ }
+};
+
 export function ArenaRunnerProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<GauntletState>(initial);
+  const [prefs, setPrefsState] = useState<RunnerPrefs>(DEFAULT_PREFS);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const st = useRef(state);
   st.current = state;
+  const pf = useRef(prefs);
+  pf.current = prefs;
   const matchWins = useRef({ champ: 0, rival: 0 });
   const interventionUsed = useRef(false);
+
+  useEffect(() => { setPrefsState(loadPrefs()); }, []);
+  const setPrefs = useCallback((p: Partial<RunnerPrefs>) => {
+    setPrefsState((prev) => {
+      const next = { ...prev, ...p };
+      try { localStorage.setItem(PREFS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
 
   const clear = () => { if (timer.current) { clearTimeout(timer.current); timer.current = null; } };
 
@@ -129,9 +238,8 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
     awardChampionXp(s.championId, champWon ? ARENA_XP.roundWon : ARENA_XP.roundLost);
     const hit = champWon ? 28 + Math.floor(Math.random() * 22) : 0;
     const taken = champWon ? 0 : 28 + Math.floor(Math.random() * 22);
-    const line = champWon
-      ? `${champ.name} ${HIT_LINES[Math.floor(Math.random() * HIT_LINES.length)]}`
-      : `${champ.name} ${MISS_LINES[Math.floor(Math.random() * MISS_LINES.length)]}`;
+    const pool = champWon ? HIT_LINES[verseKey(s.verse)] ?? HIT_LINES.sql : MISS_LINES[verseKey(s.verse)] ?? MISS_LINES.sql;
+    const line = `${champ.name} ${pool[Math.floor(Math.random() * pool.length)]}`;
     setState((p) => ({
       ...p,
       xpEarned: p.xpEarned + (champWon ? ARENA_XP.roundWon : ARENA_XP.roundLost),
@@ -152,8 +260,13 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
     const won = cw > rw;
     if (won) awardChampionXp(s.championId, ARENA_XP.matchWon);
     const result: GauntletResult = { won, champWins: cw, rivalWins: rw };
-    const results = [...s.results, result];
-    const done = results.length >= s.totalMatches;
+    const results = [...s.results, result].slice(-30);
+    const done = results.length >= s.totalMatches && !pf.current.autoRematch;
+    const nextRival = GHOST_RIVALS[Math.floor(Math.random() * GHOST_RIVALS.length)];
+    if (done) {
+      const w = results.filter((r) => r.won).length;
+      notify('🏁 Gauntlet done', `${champ.name} — ${w}W ${results.length - w}L · +${s.xpEarned}XP`);
+    }
     try {
       const raw = localStorage.getItem('bleepxGauntletLog');
       const log = raw ? JSON.parse(raw) : [];
@@ -169,6 +282,7 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
       status: done ? 'done' : 'running',
       results,
       xpEarned: p.xpEarned + (won ? ARENA_XP.matchWon : 0),
+      rivalName: nextRival,
       fight: {
         matchIdx: p.fight.matchIdx + 1,
         round: 0,
@@ -184,7 +298,7 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
     const s = st.current;
     if (s.status !== 'running') return;
     const champ = getChampion(s.championId);
-    setState((p) => ({ ...p, fight: { ...p.fight, round: p.fight.round + 1, lastEvent: `${champ.name} vs VEX-7 — round ${p.fight.round + 1}…` } }));
+    setState((p) => ({ ...p, fight: { ...p.fight, round: p.fight.round + 1, lastEvent: `${champ.name} vs ${s.rivalName} — round ${p.fight.round + 1}…` } }));
     timer.current = setTimeout(() => {
       const doneRound = () => {
         const wonRound = finishRound();
@@ -198,19 +312,23 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
         }
         return wonRound;
       };
-      // intervention chance: once per match, ~40%
-      if (!interventionUsed.current && Math.random() < 0.4) {
+      // intervention chance: once per match, ~40% — in 'focused' mode the champ
+      // decides solo while you're away (no YOUR CALL when the tab is hidden)
+      const askNow = pf.current.assist === 'always' || !document.hidden;
+      if (!interventionUsed.current && Math.random() < 0.4 && askNow) {
         interventionUsed.current = true;
-        const pick = INTERVENTION_PROMPTS[Math.floor(Math.random() * INTERVENTION_PROMPTS.length)];
+        const pool = INTERVENTION_PROMPTS[verseKey(st.current.verse)] ?? INTERVENTION_PROMPTS.sql;
+        const pick = pool[Math.floor(Math.random() * pool.length)];
         const deadline = Date.now() + INTERVENTION_MS;
         setState((p) => ({
           ...p,
           intervention: { id: Date.now(), prompt: pick.prompt, choices: pick.choices, deadline },
         }));
         playBleep();
+        notify(`⚡ YOUR CALL — ${champ.name} needs you`, pick.prompt);
         timer.current = setTimeout(() => {
           // unanswered — the champ fumbles the round
-          setState((p) => ({ ...p, intervention: null, fight: { ...p.fight, lastEvent: `${getChampion(p.championId).name} hesitated — VEX-7 capitalizes!` } }));
+          setState((p) => ({ ...p, intervention: null, fight: { ...p.fight, lastEvent: `${getChampion(p.championId).name} hesitated — ${p.rivalName} capitalizes!` } }));
           matchWins.current.rival += 1;
           awardChampionXp(st.current.championId, ARENA_XP.roundLost);
           setState((p) => ({
@@ -248,7 +366,7 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
           ...p.fight,
           champHp: Math.max(0, p.fight.champHp - (won ? 0 : 34)),
           rivalHp: Math.max(0, p.fight.rivalHp - (won ? 40 : 0)),
-          lastEvent: won ? `${champ.name} executes your call — CLEAN HIT!` : `${champ.name} couldn't convert the call…`,
+          lastEvent: won ? `${champ.name} executes ${choice.label} — CLEAN HIT!` : `${champ.name}'s ${choice.label} backfires…`,
         },
       }));
       const { champ: cw, rival: rw } = matchWins.current;
@@ -272,9 +390,17 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
       verse: opts.verse,
       tier: opts.tier,
       totalMatches: opts.matches,
+      endless: pf.current.autoRematch,
+      rivalName: GHOST_RIVALS[Math.floor(Math.random() * GHOST_RIVALS.length)],
       fight: { matchIdx: 0, round: 0, champHp: 100, rivalHp: 100, lastEvent: `${getChampion(opts.championId).name} enters the gauntlet…` },
     });
     playBleep();
+    // request notification permission lazily so away-pings can reach you
+    try {
+      if (pf.current.notify && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    } catch { /* ignore */ }
     timer.current = setTimeout(() => playRound(), 1800);
   }, [playRound]);
 
@@ -292,7 +418,7 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
 
   const champion = getChampion(state.championId);
   return (
-    <Ctx.Provider value={{ state, champion, start, answer, dismiss, stop }}>
+    <Ctx.Provider value={{ state, champion, prefs, setPrefs, start, answer, dismiss, stop }}>
       {children}
     </Ctx.Provider>
   );
