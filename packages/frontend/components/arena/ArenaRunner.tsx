@@ -34,6 +34,7 @@ export interface FightView {
   champHp: number;
   rivalHp: number;
   lastEvent: string;
+  codeLine: string; // what the champ is "writing" this round — the show must go on
 }
 
 export interface GauntletResult {
@@ -75,6 +76,35 @@ const loadPrefs = (): RunnerPrefs => {
 
 // Ghost rivals — the gauntlet rotates who your champ faces, not just the house bot.
 const GHOST_RIVALS = ['VEX-7', 'NULLBYTE', 'PRAXIS-9', 'KOBOLD', 'SABLE'];
+
+// Snippets shown in the code window — the technique the champ is applying this round.
+const CODE_SNIPPETS: Record<string, string[]> = {
+  sql: [
+    'CREATE INDEX idx_region_ts ON orders(region, ts);',
+    'WITH t AS (SELECT * FROM sales WHERE ts > now() - interval \'7d\')',
+    'SELECT region, SUM(total) FROM sales GROUP BY 1 ORDER BY 2 DESC;',
+    'EXPLAIN ANALYZE SELECT * FROM orders o JOIN users u ON u.id = o.user_id;',
+    'SELECT *, ROW_NUMBER() OVER (PARTITION BY region ORDER BY total DESC) rn FROM sales;',
+    'CREATE MATERIALIZED VIEW daily_totals AS SELECT day, SUM(amount) FROM …',
+    'SELECT p.*, LATERAL (SELECT * FROM items i WHERE i.pid = p.id LIMIT 3) t;',
+  ],
+  cloud: [
+    'aws lambda put-provisioned-concurrency --function-name api --provisioned 4',
+    '{ "Effect": "Allow", "Action": ["s3:GetObject"], "Resource": "arn:aws:s3:::app/*" }',
+    'aws sqs create-queue --queue-name jobs && aws sns subscribe …',
+    'StepFunctions.map(items).maxConcurrency(8).retry({ backoff: 2 })',
+    'terraform { resource "aws_launch_template" { instance_type = "t3.medium" } }',
+    'CacheBehavior: TTL=300, CompressObjects=true, ViewerProtocolPolicy=https',
+  ],
+  lab: [
+    'df["flag"] = np.where(df.total > 1000, 1, 0)',
+    'with Pool(8) as p: results = p.map(transform, chunks)',
+    'df = df.astype({"region": "category", "total": "float32"})',
+    'for chunk in pd.read_csv("big.csv", chunksize=50_000): …',
+    'df.groupby("region").agg(total=("amount", "sum"), n=("id", "count"))',
+    '@njit\ndef kernel(a): return a.sum()',
+  ],
+};
 
 // Every intervention is a real engineering call — the label IS the technique,
 // the hint is the tradeoff. Cornering your champ teaches real optimization vocab.
@@ -199,7 +229,7 @@ export function useArenaRunner() {
 
 const initial: GauntletState = {
   status: 'idle', championId: 'dash', verse: 'SQL Arena', tier: 'rookie', totalMatches: 0, endless: false, isDaily: false, rivalName: 'VEX-7',
-  fight: { matchIdx: 0, round: 0, champHp: 100, rivalHp: 100, lastEvent: '' },
+  fight: { matchIdx: 0, round: 0, champHp: 100, rivalHp: 100, lastEvent: '', codeLine: '' },
   intervention: null, results: [], xpEarned: 0,
 };
 
@@ -364,6 +394,7 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
         champHp: 100,
         rivalHp: 100,
         lastEvent: won ? `${champ.name} takes the match! 🏆` : `${champ.name} drops the match…`,
+        codeLine: '',
       },
     }));
     return done;
@@ -373,7 +404,9 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
     const s = st.current;
     if (s.status !== 'running') return;
     const champ = getChampion(s.championId);
-    setState((p) => ({ ...p, fight: { ...p.fight, round: p.fight.round + 1, lastEvent: `${champ.name} vs ${s.rivalName} — round ${p.fight.round + 1}…` } }));
+    const codePool = CODE_SNIPPETS[verseKey(s.verse)] ?? CODE_SNIPPETS.sql;
+    const codeLine = codePool[Math.floor(Math.random() * codePool.length)];
+    setState((p) => ({ ...p, fight: { ...p.fight, round: p.fight.round + 1, codeLine, lastEvent: `${champ.name} vs ${s.rivalName} — round ${p.fight.round + 1}…` } }));
     timer.current = setTimeout(() => {
       const doneRound = () => {
         const wonRound = finishRound();
@@ -468,7 +501,7 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
       endless: pf.current.autoRematch,
       isDaily: !!opts.daily,
       rivalName: opts.rival ?? GHOST_RIVALS[Math.floor(Math.random() * GHOST_RIVALS.length)],
-      fight: { matchIdx: 0, round: 0, champHp: 100, rivalHp: 100, lastEvent: `${getChampion(opts.championId).name} enters the gauntlet…` },
+      fight: { matchIdx: 0, round: 0, champHp: 100, rivalHp: 100, lastEvent: `${getChampion(opts.championId).name} enters the gauntlet…`, codeLine: '' },
     });
     // mark an active gauntlet so the champ can "keep fighting" after a reload
     try { localStorage.setItem(ACTIVE_GAUNTLET_KEY, JSON.stringify({ champId: opts.championId, verse: opts.verse, at: Date.now() })); } catch { /* ignore */ }
