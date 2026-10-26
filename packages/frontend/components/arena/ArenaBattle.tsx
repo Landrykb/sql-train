@@ -974,6 +974,49 @@ export default function ArenaBattle() {
               {mode === 'tagteam' ? 'You fight round 3 — your champion warms up on 1–2.' : `${champion.name} fights all ${MAX_ROUNDS_DISPLAY} rounds under ${strategy.name}.`}
             </p>
 
+            {/* live gauntlet — what the widget taps through to */}
+            {runner?.state.status === 'running' && (
+              <div className={`rounded-2xl border p-4 ${runner.state.intervention ? 'border-red-400/60 bg-red-500/5' : 'border-teal-400/30 bg-teal-400/5'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: runner.state.intervention ? '#F87171' : TEAL }}>
+                    {runner.state.intervention ? '⚡ YOUR CALL' : `⚔️ GAUNTLET LIVE · M${runner.state.fight.matchIdx + 1}${runner.state.endless ? ' ♾️' : `/${runner.state.totalMatches}`}`}
+                  </p>
+                  <p className="text-[10px] text-slate-500">{runner.state.verse} · {runner.state.tier}</p>
+                </div>
+                <div className="flex items-center gap-3 mb-1.5">
+                  <img src={champion.sprite} alt="" className={`w-10 h-10 rounded-full ${runner.state.intervention ? '' : 'arena-mini-fight'}`} style={{ boxShadow: `0 0 12px ${champion.color}88` }} />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                      <div className="h-full transition-all duration-500" style={{ width: `${runner.state.fight.champHp}%`, background: champion.color }} />
+                    </div>
+                    <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                      <div className="h-full transition-all duration-500" style={{ width: `${runner.state.fight.rivalHp}%`, background: RIVAL.color }} />
+                    </div>
+                  </div>
+                  <img src={RIVAL.sprite} alt={runner.state.rivalName} className={`w-10 h-10 rounded-full ${runner.state.intervention ? '' : 'arena-mini-fight-r'}`} style={{ boxShadow: `0 0 12px ${RIVAL.color}66` }} />
+                </div>
+                <p className="text-[11px] text-slate-400 mb-1">{runner.state.fight.lastEvent}</p>
+                {runner.state.intervention && (
+                  <div className="mt-2 space-y-1.5">
+                    <p className="text-[11px] text-red-200 leading-snug">{runner.state.intervention.prompt}</p>
+                    {runner.state.intervention.choices.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => runner.answer(c)}
+                        className="w-full flex items-start gap-2 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-left transition-colors"
+                      >
+                        <span>{c.emoji}</span>
+                        <span className="min-w-0">
+                          <span className="block text-[11px] font-bold text-white leading-tight">{c.label}</span>
+                          <span className="block text-[10px] text-slate-500 leading-tight">{c.hint}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* auto-gauntlet — the idle mode */}
             <div className="rounded-2xl border border-amber-400/30 bg-amber-400/5 p-4">
               <div className="flex items-center justify-between mb-2">
