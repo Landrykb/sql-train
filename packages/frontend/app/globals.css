@@ -296,3 +296,24 @@ main > main {
   width: 100%;
   min-width: 0;
 }
+
+/* ─── Auto-Gauntlet mini fight widget ──────────────────────────────────── */
+@keyframes arena-mini-fight {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(3px) rotate(4deg); }
+  50% { transform: translateX(-2px) rotate(-3deg); }
+  75% { transform: translateX(2px) rotate(2deg); }
+}
+@keyframes arena-mini-fight-r {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(-3px) rotate(-4deg); }
+  50% { transform: translateX(2px) rotate(3deg); }
+  75% { transform: translateX(-2px) rotate(-2deg); }
+}
+.arena-mini-fight { animation: arena-mini-fight .7s ease-in-out infinite; }
+.arena-mini-fight-r { animation: arena-mini-fight-r .7s ease-in-out infinite; }
+@keyframes arena-urgent {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,.5); }
+  50% { box-shadow: 0 0 0 6px rgba(248,113,113,.12); }
+}
+.arena-urgent { animation: arena-urgent .9s ease-in-out infinite; }

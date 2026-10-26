@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { loadPyodide, runPythonCode } from '@/lib/pyodideRuntime';
 import { cloudMissionById, actionsToLines, freshSandbox, type CloudAction } from '@/lib/arena/codeDuels';
 import { matchCardUrl } from '@/lib/arena/matchCard';
+import { useArenaRunner } from '@/components/arena/ArenaRunner';
 
 interface RoundDef {
   type: 'sql' | 'quiz' | 'python' | 'cloud';
@@ -293,6 +294,8 @@ export default function ArenaBattle() {
   const [playerAnswer, setPlayerAnswer] = useState('');
   const [status, setStatus] = useState('');
   const [copied, setCopied] = useState(false);
+  const [gauntletMatches, setGauntletMatches] = useState(5);
+  const runner = useArenaRunner();
   const [xpAwarded, setXpAwarded] = useState(false);
   const [refLine, setRefLine] = useState('');
   const [banner, setBanner] = useState('');
@@ -963,6 +966,38 @@ export default function ArenaBattle() {
             <p className="text-center text-[11px] text-slate-500">
               {mode === 'tagteam' ? 'You fight round 3 — your champion warms up on 1–2.' : `${champion.name} fights all ${MAX_ROUNDS_DISPLAY} rounds under ${strategy.name}.`}
             </p>
+
+            {/* auto-gauntlet — the idle mode */}
+            <div className="rounded-2xl border border-amber-400/30 bg-amber-400/5 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-bold text-amber-300 uppercase tracking-widest">🤖 Auto-Gauntlet</p>
+                <div className="flex gap-1">
+                  {[3, 5, 10].map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => setGauntletMatches(n)}
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition-colors ${gauntletMatches === n ? 'border-amber-300 text-amber-200 bg-amber-400/15' : 'border-slate-700 text-slate-500'}`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="text-[11px] text-slate-400 mb-3">
+                {champion.name} fights {gauntletMatches} matches on its own while you keep playing the app. Watch it live in the corner widget — and jump in when it calls for you.
+              </p>
+              <button
+                onClick={() => {
+                  runner?.start({ championId: champion.id, verse: verseName, tier, matches: gauntletMatches });
+                  setStatus(`${champion.name} is fighting the gauntlet — track it bottom-left, or keep browsing.`);
+                }}
+                disabled={runner?.state.status === 'running'}
+                className="w-full py-3 rounded-2xl font-black text-sm transition-transform active:scale-95 disabled:opacity-40"
+                style={{ background: '#FBBF24', color: '#0d1117' }}
+              >
+                {runner?.state.status === 'running' ? 'GAUNTLET IN PROGRESS…' : `SEND ${champion.name.toUpperCase()} TO FIGHT ×${gauntletMatches}`}
+              </button>
+            </div>
           </div>
         )}
       </div>

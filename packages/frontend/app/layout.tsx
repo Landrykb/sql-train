@@ -5,6 +5,8 @@ import NavHeader from '@/components/NavHeader';
 import AnalyticsProvider from '@/components/AnalyticsProvider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import BleepxAssistant from '@/components/BleepxAssistant';
+import { ArenaRunnerProvider } from '@/components/arena/ArenaRunner';
+import MiniFight from '@/components/arena/MiniFight';
 import Script from 'next/script';
 import type { Viewport } from 'next';
 
@@ -42,6 +44,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="bg-bleepx-bg min-h-screen flex flex-col font-sans" suppressHydrationWarning>
         <ErrorBoundary>
           <AnalyticsProvider>
+            <ArenaRunnerProvider>
             <NavHeader />
             <main className="flex-1 flex flex-col max-w-5xl w-full mx-auto px-2 sm:px-6 py-3 sm:py-6 text-bleepx-text min-w-0">
               {children}
@@ -75,6 +78,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </div>
             </footer>
             <BleepxAssistant />
+            <MiniFight />
+            </ArenaRunnerProvider>
           </AnalyticsProvider>
         </ErrorBoundary>
         <Script strategy="afterInteractive" id="register-sw">
