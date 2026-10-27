@@ -6,6 +6,7 @@ import BleepxLogo from '@/components/BleepxLogo';
 import AchievementNotification from '@/components/AchievementNotification';
 import { CloudProviderIcon, GuideIcon, BrainIcon, FlaskIcon, ToolsIcon, ChartBarIcon, SendIcon, WorldIcon } from '@/components/AppIcons';
 import { useProgress } from '@/lib/useProgress';
+import ArenaCTA from '@/components/arena/ArenaCTA';
 import {
   CLOUD_PROVIDER_META,
   CLOUD_PROVIDERS,
@@ -78,6 +79,8 @@ export default function CloudHomePage() {
           </div>
         </div>
       </div>
+
+      <ArenaCTA verse="cloud" />
 
       {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

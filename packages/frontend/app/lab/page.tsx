@@ -8,6 +8,7 @@ import AchievementNotification from '@/components/AchievementNotification';
 import { LabDomainIcon, StarRating, GuideIcon, BrainIcon, TrophyIcon, SendIcon } from '@/components/AppIcons';
 import { LAB_DOMAIN_META, LAB_CASE_ORDER } from '@/lib/labConstants';
 import { useProgress } from '@/lib/useProgress';
+import ArenaCTA from '@/components/arena/ArenaCTA';
 
 const domains = Object.keys(LAB_DOMAIN_META);
 
@@ -48,6 +49,8 @@ export default function LabHomePage() {
           </div>
         </div>
       </div>
+
+      <ArenaCTA verse="lab" />
 
       {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

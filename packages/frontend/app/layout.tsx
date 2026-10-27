@@ -7,6 +7,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import BleepxAssistant from '@/components/BleepxAssistant';
 import { ArenaRunnerProvider } from '@/components/arena/ArenaRunner';
 import MiniFight from '@/components/arena/MiniFight';
+import AppToaster from '@/components/AppToaster';
 import Script from 'next/script';
 import type { Viewport } from 'next';
 
@@ -79,6 +80,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             </footer>
             <BleepxAssistant />
             <MiniFight />
+            <AppToaster />
             </ArenaRunnerProvider>
           </AnalyticsProvider>
         </ErrorBoundary>

@@ -315,17 +315,8 @@ export default function BleepxAssistant({ context }: { context?: AssistantContex
     return () => clearInterval(id);
   }, [open]);
 
-  // "while you were away" recap — fires once when the runner reports one
-  useEffect(() => {
-    const recap = runner?.awayRecap;
-    if (!recap || open) return;
-    const t = { text: recap, command: '', href: '/arena' };
-    setTeaser(t);
-    playBleep();
-    runner.clearAwayRecap();
-    const hide = setTimeout(() => setTeaser((prev) => (prev === t ? null : prev)), 14000);
-    return () => clearTimeout(hide);
-  }, [runner?.awayRecap, open]);
+  // "while you were away" recaps go through sileo toasts now (runner fires them
+  // with a See-results action) — no Bleepx bubble needed here.
 
   useEffect(() => {
     if (open || dockedHint || dragging || manualMode !== 'auto') return;

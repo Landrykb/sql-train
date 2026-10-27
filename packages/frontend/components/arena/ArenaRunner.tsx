@@ -12,6 +12,7 @@ import { ARENA_XP, awardChampionXp, getChampionProgress, getEvolvedStats } from 
 import { markDuelPlayed, recordRivalResult } from '@/lib/arena/daily';
 import { seededRng } from '@/lib/arena/replay';
 import { playBleep } from '@/lib/audio';
+import { sileo } from 'sileo';
 
 export interface IntervChoice {
   id: string;
@@ -283,7 +284,9 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
       localStorage.setItem('bleepxGauntletLog', JSON.stringify(log.slice(0, 30)));
       const xp = w * ARENA_XP.matchWon + (fights - w) * ARENA_XP.roundLost * 3;
       awardChampionXp(champ.id, xp);
-      setAwayRecap(`While you were away: ${champ.name} picked ${fights} fight${fights > 1 ? 's' : ''} — ${w}W ${fights - w}L · +${xp}XP. Results in the arena.`);
+      const recap = `While you were away: ${champ.name} picked ${fights} fight${fights > 1 ? 's' : ''} — ${w}W ${fights - w}L · +${xp}XP.`;
+      setAwayRecap(recap);
+      sileo.show({ title: '🌙 While you were away', description: recap, button: { title: 'See results', onClick: () => { window.location.href = '/arena'; } } });
     } catch { /* ignore */ }
   }, []);
 
@@ -309,7 +312,9 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
         if (!fresh.length) return;
         const w = fresh.filter((e) => e.won).length;
         const champ = getChampion(fresh[0].champ);
-        setAwayRecap(`While you were away: ${champ.name} picked ${fresh.length} fight${fresh.length > 1 ? 's' : ''} — ${w}W ${fresh.length - w}L. Results in the arena.`);
+        const recap = `While you were away: ${champ.name} picked ${fresh.length} fight${fresh.length > 1 ? 's' : ''} — ${w}W ${fresh.length - w}L.`;
+        setAwayRecap(recap);
+        sileo.show({ title: '🌙 While you were away', description: recap, button: { title: 'See results', onClick: () => { window.location.href = '/arena'; } } });
       } catch { /* ignore */ }
     };
     document.addEventListener('visibilitychange', onVis);
@@ -365,6 +370,11 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
     if (done) {
       const w = results.filter((r) => r.won).length;
       notify('🏁 Gauntlet done', `${champ.name} — ${w}W ${results.length - w}L · +${s.xpEarned}XP`);
+      sileo.success({
+        title: '🏁 Gauntlet done',
+        description: `${champ.name} — ${w}W ${results.length - w}L · +${s.xpEarned}XP`,
+        button: { title: 'See results', onClick: () => { window.location.href = '/arena'; } },
+      });
       try { localStorage.removeItem(ACTIVE_GAUNTLET_KEY); } catch { /* ignore */ }
     }
     try {
@@ -434,6 +444,12 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
         }));
         playBleep();
         notify(`⚡ YOUR CALL — ${champ.name} needs you`, pick.prompt);
+        sileo.action({
+          title: `⚡ YOUR CALL — ${champ.name} needs you`,
+          description: pick.prompt,
+          duration: Math.floor(INTERVENTION_MS / 1000),
+          button: { title: 'Corner it', onClick: () => { window.location.href = '/arena'; } },
+        });
         timer.current = setTimeout(() => {
           // unanswered — the champ fumbles the round
           setState((p) => ({ ...p, intervention: null, fight: { ...p.fight, lastEvent: `${getChampion(p.championId).name} hesitated — ${p.rivalName} capitalizes!` } }));
