@@ -846,13 +846,10 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
           >
             ⚔️
           </motion.div>
-          <h1
-            className="text-4xl font-black tracking-tight bg-clip-text text-transparent"
-            style={{ backgroundImage: `linear-gradient(90deg, #fff 0%, ${TEAL} 50%, #fff 100%)` }}
-          >
-            BLEEPX ARENA
+          <h1 className="text-4xl font-black tracking-tight text-white">
+            BLEEPX <span style={{ color: VERSE_ACCENT[verse].hex }}>ARENA</span>
           </h1>
-          <p className="text-sm mt-2 max-w-xs mx-auto" style={{ color: TEAL }}>
+          <p className="text-sm mt-2 max-w-xs mx-auto text-slate-400">
             Coach your champion through {MAX_ROUNDS_DISPLAY} rounds against {RIVAL.name}, the house bot. Or tag in and fight one yourself.
           </p>
           {status && <p className="text-xs text-slate-400 mt-3">{status}</p>}
