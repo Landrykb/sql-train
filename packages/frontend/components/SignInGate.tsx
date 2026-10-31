@@ -29,6 +29,8 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
   const [emailSent, setEmailSent] = useState(false);
   const [emailErr, setEmailErr] = useState('');
   const [otp, setOtp] = useState('');
+  const [password, setPassword] = useState('');
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
 
   if (!open) return null;
 
@@ -42,6 +44,26 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
     });
     if (error) setEmailErr(error.message);
     else { setEmailSent(true); track(Events.AUTH_SIGN_IN_START, { from: 'gate', method: 'email' }); }
+  };
+
+  const handleEmailAuth = async () => {
+    const sb = getSupabaseBrowserClient();
+    if (!sb || !email.trim() || password.length < 6) return;
+    setEmailErr('');
+    if (mode === 'signin') {
+      const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password });
+      if (error) setEmailErr(error.message === 'Invalid login credentials' ? 'Wrong email or password — or create an account below.' : error.message);
+      else onClose();
+    } else {
+      const { data, error } = await sb.auth.signUp({
+        email: email.trim(),
+        password,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      });
+      if (error) setEmailErr(error.message);
+      else if (data.session) onClose();
+      else setEmailSent(true); // email-confirm required → show link/code path
+    }
   };
 
   const handleVerifyOtp = async () => {
@@ -125,25 +147,46 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                   </div>
                 </div>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2">
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' && email.trim()) handleEmailSignIn(); }}
                     placeholder="you@email.com"
-                    className="flex-1 min-w-0 px-3 py-2.5 rounded-full border border-bleepx-border text-sm text-bleepx-text bg-transparent"
+                    className="w-full px-3 py-2.5 rounded-full border border-bleepx-border text-sm text-bleepx-text bg-transparent"
+                  />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && email.trim() && password.length >= 6) handleEmailAuth(); }}
+                    placeholder={mode === 'signin' ? 'password' : 'choose a password (6+ chars)'}
+                    className="w-full px-3 py-2.5 rounded-full border border-bleepx-border text-sm text-bleepx-text bg-transparent"
                   />
                   <button
-                    onClick={handleEmailSignIn}
-                    className={`px-4 py-2.5 rounded-full border text-sm font-bold transition-colors shrink-0 ${
-                      email.trim()
+                    onClick={handleEmailAuth}
+                    className={`w-full px-4 py-2.5 rounded-full border text-sm font-bold transition-colors ${
+                      email.trim() && password.length >= 6
                         ? 'bg-bleepx-blue border-bleepx-blue text-white hover:bg-blue-700'
                         : 'border-bleepx-border text-bleepx-text-secondary'
                     }`}
                   >
-                    Email link
+                    {mode === 'signin' ? 'Sign in' : 'Create account'}
                   </button>
+                  <div className="flex items-center justify-between">
+                    <button
+                      onClick={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setEmailErr(''); }}
+                      className="text-[11px] text-bleepx-text-secondary hover:text-bleepx-text transition-colors"
+                    >
+                      {mode === 'signin' ? 'New here? Create account' : 'Have an account? Sign in'}
+                    </button>
+                    <button
+                      onClick={() => { if (email.trim()) handleEmailSignIn(); }}
+                      className="text-[11px] text-bleepx-text-secondary hover:text-bleepx-text transition-colors underline"
+                    >
+                      email me a link instead
+                    </button>
+                  </div>
                 </div>
               )}
               {emailErr && <p className="text-xs text-red-500">{emailErr}</p>}
