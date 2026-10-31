@@ -1144,20 +1144,27 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                   </p>
                 </div>
               )}
-              {(globalBrains.length > 0 ? globalBrains : brains).length > 0 && (
-                <div className="mt-2 pt-2 border-t border-slate-700/60">
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">
-                    Brains scoreboard{globalBrains.length > 0 ? ' — global' : ' — yours'}
-                  </p>
-                  {(globalBrains.length > 0 ? globalBrains : brains).slice(0, 3).map((b) => (
-                    <p key={b.model} className="text-[10px] text-slate-400 flex justify-between">
-                      <span className="truncate">{BYOK_MODELS.find((m) => m.id === b.model)?.label ?? b.model}</span>
-                      <span className="font-bold text-slate-300 ml-2 shrink-0">{b.w}W · {b.l}L</span>
-                    </p>
-                  ))}
-                </div>
-              )}
             </div>
+
+            {/* Brains scoreboard — always visible when results exist; it IS the BYOK ad */}
+            {(globalBrains.length > 0 ? globalBrains : brains).length > 0 && (
+              <div className="rounded-xl border border-slate-700 bg-slate-800/40 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                  Brains scoreboard{globalBrains.length > 0 ? ' — global' : ' — yours'}
+                </p>
+                {(globalBrains.length > 0 ? globalBrains : brains).slice(0, 5).map((b) => (
+                  <p key={b.model} className="text-[11px] text-slate-300 flex justify-between py-0.5">
+                    <span className="truncate">{BYOK_MODELS.find((m) => m.id === b.model)?.label ?? b.model}</span>
+                    <span className="font-bold text-slate-200 ml-2 shrink-0">{b.w}W · {b.l}L</span>
+                  </p>
+                ))}
+                {!byok && (
+                  <p className="text-[9px] text-slate-500 mt-2">
+                    Connect your own brain above to put your model on the board.
+                  </p>
+                )}
+              </div>
+            )}
 
             <button
               onClick={loadMatch}
