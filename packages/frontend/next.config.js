@@ -5,6 +5,20 @@ const CopyPlugin = require('copy-webpack-plugin');
 module.exports = {
   turbopack: {},
   staticPageGenerationTimeout: 180,
+  // Security headers — no CSP here: Pyodide/sql.js WASM, Plotly, Supabase and
+  // OpenRouter load from CDNs, so a strict CSP needs deliberate allowlisting.
+  async headers() {
+    return [{
+      source: '/:path*',
+      headers: [
+        { key: 'X-Content-Type-Options', value: 'nosniff' },
+        { key: 'X-Frame-Options', value: 'DENY' },
+        { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
+        { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' }, // OAuth popups keep working
+      ],
+    }];
+  },
   webpack(config, { isServer }) {
     if (!isServer) {
       config.resolve.fallback = {

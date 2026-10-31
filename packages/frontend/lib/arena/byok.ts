@@ -101,12 +101,22 @@ export function getBrains(): BrainRecord[] {
 }
 
 /** Reports a fight outcome to the public board. Fire-and-forget. */
-export function reportBrainResult(model: string, won: boolean, verse?: string, tier?: string) {
+export async function reportBrainResult(model: string, won: boolean, verse?: string, tier?: string) {
   try {
+    // Signed mode: fetch a fight ticket first; unsigned mode returns null.
+    let ticket: string | null = null;
+    try {
+      const t = await fetch(`/api/arena/brain-result?ticket=1&model=${encodeURIComponent(model)}`);
+      if (t.ok) {
+        const d = await t.json();
+        ticket = d?.ticket ?? null;
+      }
+    } catch { /* board offline */ }
+
     fetch('/api/arena/brain-result', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, won, verse, tier }),
+      body: JSON.stringify({ model, won, verse, tier, ticket }),
     }).catch(() => { /* board offline — local stats still fine */ });
   } catch { /* ignore */ }
 }
