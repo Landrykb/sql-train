@@ -1907,7 +1907,11 @@ function DailyDuelCard({ onFight, disabled }: { onFight: () => void; disabled?: 
       <p className="text-[11px] text-slate-300 mb-1">
         Today's fight: <span className="font-bold text-white">{spec.rival}</span> in <span className="font-bold text-white">{spec.verse}</span> · {spec.tier} · +{spec.bonusXp}XP bonus
       </p>
-      <p className="text-[10px] text-slate-500 mb-3">Same rival for everyone today. Watch the replay: <a className="underline text-cyan-400" href={`/arena/watch?seed=${spec.seed}&rival=${spec.rival}`}>spectate</a></p>
+      <p className="text-[10px] text-slate-500 mb-1">
+        Same rival for everyone today — expires at midnight.
+        {!playedToday && streak.count > 0 && <span className="text-orange-300/90 font-bold"> Don't lose your {streak.count}-day streak.</span>}
+      </p>
+      <p className="text-[10px] text-slate-500 mb-3">Watch the replay: <a className="underline text-cyan-400" href={`/arena/watch?seed=${spec.seed}&rival=${spec.rival}`}>spectate</a></p>
       <button
         onClick={onFight}
         disabled={disabled || playedToday || tierLocked}

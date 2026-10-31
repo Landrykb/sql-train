@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { Swords, ArrowRight, Lock } from 'lucide-react';
+import { Swords, ArrowRight, Lock, Compass } from 'lucide-react';
 import BleepxLogo from '@/components/BleepxLogo';
 import { BleepxFace } from '@/components/BleepxIcons';
 import { VerseIcon } from '@/components/NavIcons';
@@ -59,7 +59,7 @@ export default function LinksPage() {
           <BleepxLogo />
           <div className="flex-1 min-w-0">
             <h2 className="font-extrabold text-lg">Bleepx Academy</h2>
-            <p className="text-white/80 text-sm">The full training platform — live now, free.</p>
+            <p className="text-white/80 text-sm">The full training platform — live now. Free forever, no card. Leave writing real SQL, not quiz answers.</p>
           </div>
           <ArrowRight size={20} className="shrink-0 group-hover:translate-x-1 transition-transform" />
         </div>
@@ -83,6 +83,17 @@ export default function LinksPage() {
             <ArrowRight size={16} className="text-bleepx-text-secondary group-hover:text-bleepx-text group-hover:translate-x-0.5 transition-all shrink-0" />
           </Link>
         ))}
+        <Link
+          href="/journey"
+          className="group flex items-center gap-3 rounded-xl bg-bleepx-white border border-bleepx-border p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
+        >
+          <span className="text-bleepx-text-secondary shrink-0"><Compass size={20} /></span>
+          <span className="flex-1 min-w-0">
+            <span className="block font-bold text-bleepx-text text-sm">Your Roadmap</span>
+            <span className="block text-xs text-bleepx-text-secondary">A clear path from zero to job-ready — week by week</span>
+          </span>
+          <ArrowRight size={16} className="text-bleepx-text-secondary group-hover:text-bleepx-text group-hover:translate-x-0.5 transition-all shrink-0" />
+        </Link>
       </div>
 
       {/* Coming soon */}

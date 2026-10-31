@@ -50,7 +50,7 @@ export default function HomePage() {
             <h1 className="text-2xl sm:text-5xl font-extrabold tracking-tight break-words">BleepxQuery</h1>
           </div>
           <p className="text-white/80 text-sm sm:text-lg max-w-lg leading-relaxed">
-            Master SQL through <strong className="text-white">real-world data challenges</strong>. Progress from beginner to expert across 8 industry domains, tackle timed trials, unlock hidden bonus missions, and build a GitHub portfolio.
+            Master SQL through <strong className="text-white">real-world data challenges</strong>. Progress from beginner to expert across 8 industry domains, tackle timed trials, unlock hidden bonus missions, and build a GitHub portfolio. Tutorials make you watch — Bleepx makes you fight.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/cases" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white text-bleepx-blue font-semibold text-sm hover:bg-gray-100 transition-colors shadow-lg">
