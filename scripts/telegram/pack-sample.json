@@ -1,0 +1,9 @@
+{
+  "episode": "EP.01",
+  "title": "The Fake Paywall",
+  "video": "",
+  "cover": "",
+  "short_caption": "I let an AI audit my platform. It found a fake paywall — the button shipped before the checkout existed. Fixing it in public.",
+  "full_text": "Episode 1 of fixing Bleepx Academy in public.\n\nThe audit caught it instantly: a $9/mo Verified page with no checkout behind it. Now it's a free preview, honestly labeled.\n\nFull receipts in the repo.",
+  "link": "https://bleepxacademy.vercel.app/links"
+}
