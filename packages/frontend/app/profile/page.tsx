@@ -354,8 +354,8 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3">
             <BleepxGitHub size={32} />
             <div className="flex-1">
-              <h3 className="font-bold text-white">Connect with GitHub</h3>
-              <p className="text-sm text-gray-400 mt-0.5">*bleep* Sign in with your real GitHub account. Redirects to GitHub for authentication — no passwords stored here.</p>
+              <h3 className="font-bold text-white">Sign in to save progress</h3>
+              <p className="text-sm text-gray-400 mt-0.5">*bleep* Sign in with GitHub or a magic email link — no passwords stored here, ever.</p>
             </div>
             <button onClick={() => { playBleep(); requireAuth('save your progress'); }} className="px-4 py-2 rounded-full bg-white text-gray-900 text-sm font-bold hover:bg-gray-100 transition-colors flex items-center gap-2 flex-shrink-0">
               <BleepxGitHub size={18} />
