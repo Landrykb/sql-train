@@ -162,7 +162,7 @@ export default function ProfilePage() {
     if (ghUser) {
       const updates: Partial<UserProfile> = {
         authProvider: 'github',
-        githubUsername: ghUser.login,
+        githubUsername: ghUser.provider === 'github' ? ghUser.login : null,
         displayName: ghUser.name || ghUser.login,
       };
       if (ghUser.email) updates.email = ghUser.email;
@@ -231,7 +231,7 @@ export default function ProfilePage() {
     }
   };
 
-  const githubUsername = ghUser?.login || profile.githubUsername;
+  const githubUsername = ghUser?.provider === 'github' ? (ghUser?.login || profile.githubUsername) : profile.githubUsername;
 
   const fmtTime = (s: number) => {
     if (s < 60) return `${s}s`;
