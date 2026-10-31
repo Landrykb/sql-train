@@ -42,6 +42,7 @@ export interface GitHubUser {
   /** @deprecated Tokens are no longer stored here. Use `getGitHubToken()` to
    *  retrieve the provider token from the active Supabase session instead. */
   token?: string;
+  provider?: string;
 }
 
 const STORAGE_KEY = 'bleepx_github_user';

@@ -34,6 +34,7 @@ export function useSupabaseUser(): GitHubUser | null {
           name: u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || '',
           avatar: u.user_metadata?.avatar_url || '',
           email: u.email || '',
+          provider: u.app_metadata?.provider || 'email',
         };
         setUser(ghUser);
         // Keep non-sensitive user info and the provider token in sync across
@@ -60,6 +61,7 @@ export function useSupabaseUser(): GitHubUser | null {
             name: u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || '',
             avatar: u.user_metadata?.avatar_url || '',
             email: u.email || '',
+          provider: u.app_metadata?.provider || 'email',
           };
           setUser(ghUser);
           setGitHubUser(ghUser);
