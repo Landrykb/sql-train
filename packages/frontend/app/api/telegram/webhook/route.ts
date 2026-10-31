@@ -73,13 +73,26 @@ export async function POST(req: NextRequest) {
   switch (cmd) {
     case '/start':
     case '/help':
-      reply = '<b>Bleepx bot</b> — the arena\'s herald.\n\n/links — everything, one page\n/arena — enter the arena\n/standings — which brain wins the most';
+      reply = '<b>Bleepx bot</b> — your guide.\n\n'
+        + '/train — start training (SQL, Lab, Cloud)\n'
+        + '/journey — your roadmap, week by week\n'
+        + '/arena — fight for real\n'
+        + '/standings — which brain wins the most\n'
+        + '/links — everything, one page';
       break;
     case '/links':
       reply = `${SITE}/links`;
       break;
+    case '/train':
+      reply = `Pick your verse:\nSQL cases → ${SITE}/cases\nData science → ${SITE}/lab\nCloud missions → ${SITE}/cloud`;
+      break;
+    case '/journey':
+      reply = `${SITE}/journey`;
+      break;
     case '/arena':
-      reply = `${SITE}/arena`;
+      // Same guided fork as the site: train first, or straight in if experienced.
+      reply = 'Know your stuff? Enter the arena → ' + `${SITE}/arena\n\n`
+        + `New here? /train first — you'll fight the final round yourself, and your solves count as real progress.`;
       break;
     case '/standings':
       reply = await standings();

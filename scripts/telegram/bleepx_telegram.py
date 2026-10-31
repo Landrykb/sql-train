@@ -150,14 +150,24 @@ class Poster:
     def handle_command(self, chat_id, cmd: str, site_base: str) -> None:
         if cmd in ("/start", "/help"):
             self.send_chat_text(chat_id,
-                "<b>Bleepx bot</b> — the arena's herald.\n\n"
-                "/links — everything, one page\n"
-                "/arena — enter the arena\n"
-                "/standings — which brain wins the most")
+                "<b>Bleepx bot</b> — your guide.\n\n"
+                "/train — start training (SQL, Lab, Cloud)\n"
+                "/journey — your roadmap, week by week\n"
+                "/arena — fight for real\n"
+                "/standings — which brain wins the most\n"
+                "/links — everything, one page")
         elif cmd == "/links":
             self.send_chat_text(chat_id, f"{site_base}/links")
+        elif cmd == "/train":
+            self.send_chat_text(chat_id,
+                f"Pick your verse:\nSQL cases → {site_base}/cases\nData science → {site_base}/lab\nCloud missions → {site_base}/cloud")
+        elif cmd == "/journey":
+            self.send_chat_text(chat_id, f"{site_base}/journey")
         elif cmd == "/arena":
-            self.send_chat_text(chat_id, f"{site_base}/arena")
+            # Same guided fork as the site: train first, or straight in if experienced.
+            self.send_chat_text(chat_id,
+                f"Know your stuff? Enter the arena → {site_base}/arena\n\n"
+                "New here? /train first — you'll fight the final round yourself, and your solves count as real progress.")
         elif cmd == "/standings":
             self.send_standings(chat_id, site_base)
         else:
