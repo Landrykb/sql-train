@@ -173,6 +173,7 @@ export default function ProfilePage() {
     playBleep();
     await logoutUser();
     saveProfile({ authProvider: null, githubUsername: null, displayName: 'SQL Explorer' });
+    window.location.reload();
   };
 
   const handleDeleteAccount = async () => {
