@@ -81,6 +81,36 @@ export const PYTHON_DUELS: PythonDuel[] = [
     check: `assert 'score_norm' in df.columns, 'score_norm missing'\nassert df['score_norm'].min() == 0 and df['score_norm'].max() == 1, 'not normalized to 0..1'\nassert abs(df.loc[2, 'score_norm'] - 0.25) < 1e-9, 'wrong normalization'`,
     starter: `# add df['score_norm'] = min-max normalized score (0..1)\n`,
   },
+  {
+    id: 'py-dedupe',
+    name: 'Dedupe Keep-Last',
+    instructions: 'Drop duplicate `user` rows keeping the LAST occurrence, into `dedup` (reset the index).',
+    setup: `import pandas as pd\ndf = pd.DataFrame({'user': ['a','b','a','c','b'], 'score': [1, 5, 9, 3, 7]})`,
+    solution: `dedup = df.drop_duplicates(subset='user', keep='last').reset_index(drop=True)`,
+    buggy: `dedup = df.drop_duplicates(subset='user', keep='first').reset_index(drop=True)`,
+    check: `assert list(dedup['user']) == ['a', 'c', 'b'], f"wrong rows: {list(dedup['user'])}"\nassert list(dedup['score']) == [9, 3, 7], 'kept wrong occurrence'`,
+    starter: `# dedup: last row per user, index reset\n`,
+  },
+  {
+    id: 'py-rolling',
+    name: 'Rolling Average',
+    instructions: 'Add column `ma3` to df: the 3-day rolling mean of `sales` (window=3, min_periods=1).',
+    setup: `import pandas as pd\ndf = pd.DataFrame({'day': range(6), 'sales': [10, 20, 30, 40, 50, 60]})`,
+    solution: `df['ma3'] = df['sales'].rolling(3, min_periods=1).mean()`,
+    buggy: `df['ma3'] = df['sales'].rolling(3).mean()`,
+    check: `assert 'ma3' in df.columns, 'ma3 missing'\nassert df['ma3'].iloc[0] == 10 and df['ma3'].iloc[2] == 20 and df['ma3'].iloc[5] == 50, 'wrong rolling mean'`,
+    starter: `# df['ma3'] = 3-day rolling mean of sales (min_periods=1)\n`,
+  },
+  {
+    id: 'py-pivot',
+    name: 'Pivot the Table',
+    instructions: 'Build `piv`: pivot df so rows are `region`, columns are `product`, values are `revenue` summed.',
+    setup: `import pandas as pd\ndf = pd.DataFrame({'region': ['n','n','s','s'], 'product': ['x','y','x','y'], 'revenue': [1, 2, 3, 4]})`,
+    solution: `piv = df.pivot_table(index='region', columns='product', values='revenue', aggfunc='sum')`,
+    buggy: `piv = df.pivot_table(index='product', columns='region', values='revenue', aggfunc='sum')`,
+    check: `assert list(piv.index) == ['n', 's'], 'wrong index'\nassert piv.loc['n', 'x'] == 1 and piv.loc['s', 'y'] == 4, 'wrong values'`,
+    starter: `# piv: regions as rows, products as columns, revenue summed\n`,
+  },
 ];
 
 // ─── Cloud missions ──────────────────────────────────────────────────────────
@@ -200,6 +230,52 @@ export const CLOUD_MISSIONS: CloudMission[] = [
         return { ok: false, detail: 'policy over-privileged' };
       }
       return { ok: true, detail: 'least privilege granted' };
+    },
+  },
+  {
+    id: 'cl-static-site',
+    name: 'Ship the Static Site',
+    service: 'S3',
+    instructions: "Create bucket 'arena-site', upload 'index.html', and leave public access OPEN (it's a website).",
+    solution: [
+      act(`createS3Bucket 'arena-site'`, (s) => createS3Bucket(s, 'arena-site')),
+      act(`putS3Object 'arena-site' 'index.html'`, (s) => putS3Object(s, 'arena-site', 'index.html', '<h1>arena</h1>')),
+      act(`setS3PublicAccess 'arena-site' block=false`, (s) => setS3PublicAccess(s, 'arena-site', false)),
+    ],
+    buggy: [
+      act(`createS3Bucket 'arena-site'`, (s) => createS3Bucket(s, 'arena-site')),
+      act(`setS3PublicAccess 'arena-site' block=true`, (s) => setS3PublicAccess(s, 'arena-site', true)),
+    ],
+    palette: [],
+    check: (s) => {
+      if (!hasBucket(s, 'arena-site')) return { ok: false, detail: 'bucket missing' };
+      if (!hasObject(s, 'arena-site', 'index.html')) return { ok: false, detail: 'index.html missing' };
+      if (bucketIsPrivate(s, 'arena-site')) return { ok: false, detail: 'site blocked — no one can see it' };
+      return { ok: true, detail: 'site live' };
+    },
+  },
+  {
+    id: 'cl-encrypted-lake',
+    name: 'Lock the Lake',
+    service: 'S3',
+    instructions: "Create bucket 'secure-lake', encrypt it with AES256, then upload 'secret.csv' — all private.",
+    solution: [
+      act(`createS3Bucket 'secure-lake'`, (s) => createS3Bucket(s, 'secure-lake')),
+      act(`setS3Encryption 'secure-lake' AES256`, (s) => setS3Encryption(s, 'secure-lake', 'AES256')),
+      act(`setS3PublicAccess 'secure-lake' block=true`, (s) => setS3PublicAccess(s, 'secure-lake', true)),
+      act(`putS3Object 'secure-lake' 'secret.csv'`, (s) => putS3Object(s, 'secure-lake', 'secret.csv', 'k,v\n1,x')),
+    ],
+    buggy: [
+      act(`createS3Bucket 'secure-lake'`, (s) => createS3Bucket(s, 'secure-lake')),
+      act(`putS3Object 'secure-lake' 'secret.csv'`, (s) => putS3Object(s, 'secure-lake', 'secret.csv', 'k,v\n1,x')),
+    ],
+    palette: [],
+    check: (s) => {
+      if (!hasBucket(s, 'secure-lake')) return { ok: false, detail: 'bucket missing' };
+      if (!bucketHasEncryption(s, 'secure-lake', 'AES256')) return { ok: false, detail: 'not encrypted' };
+      if (!bucketIsPrivate(s, 'secure-lake')) return { ok: false, detail: 'left public' };
+      if (!hasObject(s, 'secure-lake', 'secret.csv')) return { ok: false, detail: 'secret.csv missing' };
+      return { ok: true, detail: 'lake locked' };
     },
   },
 ];

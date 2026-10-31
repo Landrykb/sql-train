@@ -346,7 +346,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
     return CHAMPIONS.find((c) => c.id === id) ?? CHAMPIONS[0];
   });
   const [strategy, setStrategy] = useState<StrategyCard>(STRATEGY_CARDS[0]);
-  const [mode, setMode] = useState<'coach' | 'tagteam'>('coach');
+  const [mode, setMode] = useState<'coach' | 'tagteam'>('tagteam');
   const [verse, setVerse] = useState<Verse>(initialVerse ?? 'sql');
   const [domain, setDomain] = useState(() => VERSES.find((v) => v.id === (initialVerse ?? 'sql'))?.defaultCategory ?? 'business');
   const [tier, setTier] = useState<Tier>('rookie');
