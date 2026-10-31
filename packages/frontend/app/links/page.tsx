@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { Swords, ArrowRight, Lock, Compass } from 'lucide-react';
+import { Swords, ArrowRight, Lock, Compass, Instagram, Send } from 'lucide-react';
 import BleepxLogo from '@/components/BleepxLogo';
 import { BleepxFace } from '@/components/BleepxIcons';
 import { VerseIcon } from '@/components/NavIcons';
@@ -119,12 +119,24 @@ export default function LinksPage() {
         </p>
       </div>
 
-      {/* Social */}
-      <div className="flex justify-center gap-3">
-        <a href="https://www.instagram.com/bleepx.builds" target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-full bg-bleepx-blue text-white text-sm font-bold hover:opacity-90 transition-colors">Instagram</a>
-        <a href="https://t.me/bleepxbuilds" target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-full border border-bleepx-border text-sm font-semibold text-bleepx-text hover:bg-bleepx-white transition-colors">Telegram</a>
-        <a href="https://www.linkedin.com/in/landrykb" target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-full border border-bleepx-border text-sm font-semibold text-bleepx-text hover:bg-bleepx-white transition-colors">LinkedIn</a>
-        <a href="https://github.com/Landrykb" target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-full border border-bleepx-border text-sm font-semibold text-bleepx-text hover:bg-bleepx-white transition-colors">GitHub</a>
+      {/* Social — one full-width branded button per platform; more slots go here (YouTube, TikTok, X) */}
+      <div className="space-y-2.5">
+        <a
+          href="https://www.instagram.com/bleepx.builds"
+          target="_blank" rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2.5 w-full py-3.5 rounded-xl font-bold text-white text-sm transition-transform active:scale-95"
+          style={{ background: 'linear-gradient(90deg, #833AB4, #E1306C 55%, #F77737)' }}
+        >
+          <Instagram size={18} /> Instagram — @bleepx.builds
+        </a>
+        <a
+          href="https://t.me/bleepxbuilds"
+          target="_blank" rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2.5 w-full py-3.5 rounded-xl font-bold text-white text-sm transition-transform active:scale-95"
+          style={{ background: '#229ED9' }}
+        >
+          <Send size={18} /> Telegram — @bleepxbuilds
+        </a>
       </div>
     </main>
   );
