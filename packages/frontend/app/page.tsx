@@ -9,7 +9,7 @@ import { BleepxWave, BleepxGhost, BleepxSpark, BleepxFace, BleepxGit, BleepxSign
 import { DomainIcon, StarRating, GuideIcon, BoltIcon, BrainIcon, FlaskIcon, CodeIcon } from '@/components/AppIcons';
 import { useProgress } from '@/lib/useProgress';
 import { caseOrder, fullCaseOrder } from '@/lib/constants';
-import { LAB_CASE_ORDER } from '@/lib/labConstants';
+import { LAB_CASE_ORDER, LAB_DOMAIN_META } from '@/lib/labConstants';
 import ArenaCTA from '@/components/arena/ArenaCTA';
 
 const domainMeta: Record<string, { desc: string; color: string; difficulty: string; stars: number }> = {
@@ -60,6 +60,7 @@ export default function HomePage() {
               <GuideIcon size={16} /> SQL Reference Guide
             </Link>
           </div>
+          <p className="text-white/50 text-[11px] mt-4">*bleep* is Bleepx&apos;s catchphrase — he bleeps before he speaks.</p>
         </div>
       </div>
 
@@ -244,7 +245,7 @@ export default function HomePage() {
                 </span>
               </div>
               <p className="text-sm text-gray-400 mt-1">
-                *bleep* {overallPct >= 50 ? 'You\'ve proven your SQL skills. Ready for the next verse?' : '9 real-world data science projects. Python & R. From EDA to ML models.'}
+                *bleep* {overallPct >= 50 ? 'You\'ve proven your SQL skills. Ready for the next verse?' : `${Object.keys(LAB_DOMAIN_META).length} real-world data science projects. Python & R. From EDA to ML models.`}
               </p>
               <div className="mt-3 flex items-center gap-3">
                 <span className="text-xs text-gray-500">{labCompleted}/{allLabIds.length} steps done</span>

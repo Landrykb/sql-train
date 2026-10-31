@@ -160,12 +160,14 @@ export default async function CasePage({
         <BleepxPointsTracker caseIds={allCaseIds} />
       </Suspense>
       <div className="flex flex-wrap items-center justify-end gap-4">
-        <Link
-          href={`/cases/${domainKey}/${caseId}/quiz`}
-          className="inline-flex flex-wrap items-center gap-1.5 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
-        >
-          <BrainIcon size={16} /> Test Your Knowledge
-        </Link>
+        {domainKey === 'trials' && (
+          <Link
+            href={`/cases/${domainKey}/${caseId}/quiz`}
+            className="inline-flex flex-wrap items-center gap-1.5 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+          >
+            <BrainIcon size={16} /> Test Your Knowledge
+          </Link>
+        )}
         {hasVisualizations && (
           <Link
             href={`/cases/${domainKey}/${caseId}/visualizations`}

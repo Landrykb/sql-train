@@ -129,8 +129,8 @@ export default function NavHeader() {
 
           <Link
             href={`/arena?verse=${currentVerse === 'cloud' ? 'cloud' : currentVerse === 'lab' ? 'lab' : 'sql'}`}
-            className="flex items-center justify-center gap-1.5 px-3 py-1.5 min-h-[44px] rounded-full font-bold text-sm sm:text-base transition-all hover:scale-105 text-white"
-            style={{ background: VERSE_ACCENT[currentVerse === 'lab' ? 'lab' : currentVerse === 'cloud' ? 'cloud' : 'sql'].hex, boxShadow: '0 2px 12px -4px rgba(0,0,0,0.5)' }}
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 min-h-[44px] rounded-full font-bold text-sm sm:text-base transition-all hover:scale-105"
+            style={{ background: VERSE_ACCENT[currentVerse === 'lab' ? 'lab' : currentVerse === 'cloud' ? 'cloud' : 'sql'].hex, color: VERSE_ACCENT[currentVerse === 'lab' ? 'lab' : currentVerse === 'cloud' ? 'cloud' : 'sql'].onHex, boxShadow: '0 2px 12px -4px rgba(0,0,0,0.5)' }}
           >
             <Swords size={20} />
             <span className="hidden sm:inline">Arena</span>

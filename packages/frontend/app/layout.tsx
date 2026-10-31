@@ -21,8 +21,17 @@ export const viewport: Viewport = {
 };
 
 export const metadata = {
-  title: 'Bleepx - SQL & Data Science',
-  description: 'Master SQL with BleepxQuery and Data Science with BleepxLab',
+  metadataBase: new URL('https://bleepxacademy.vercel.app'),
+  title: { default: 'Bleepx — SQL, Data Science & Cloud training', template: '%s | Bleepx' },
+  description: 'Master SQL with BleepxQuery, data science with BleepxLab, and cloud with BleepxCloud — free, in-browser training with a fight-card Arena.',
+  openGraph: {
+    title: 'Bleepx — SQL, Data Science & Cloud training',
+    description: 'Free in-browser training: SQL challenges, Python/R labs, cloud missions — plus the Bleepx Arena.',
+    siteName: 'Bleepx',
+    type: 'website',
+    images: [{ url: '/bleepx-logo.png', width: 512, height: 512, alt: 'Bleepx' }],
+  },
+  twitter: { card: 'summary', title: 'Bleepx — SQL, Data Science & Cloud training', description: 'Free in-browser SQL, Python and cloud training.' },
   manifest: '/manifest.json',
   icons: {
     icon: '/icons/icon-192x192.png',

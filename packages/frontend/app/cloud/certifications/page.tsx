@@ -106,6 +106,9 @@ const FOUNDATION_TRACK: JourneyStep[] = [
 
 const STORAGE_KEY = 'bleepx-saa-checklist';
 
+// Single source of truth for the checklist length — the Dashboard reads this.
+export const SAA_TOTAL_STEPS = FOUNDATION_TRACK.length + SAA_DOMAINS.reduce((a, d) => a + d.steps.length, 0);
+
 export default function CertificationsPage() {
   const [done, setDone] = useState<Record<string, boolean>>({});
 

@@ -317,3 +317,6 @@ main > main {
   50% { box-shadow: 0 0 0 6px rgba(248,113,113,.12); }
 }
 .arena-urgent { animation: arena-urgent .9s ease-in-out infinite; }
+
+/* Plotly toolbar — render transparent instead of a grey block */
+.modebar, .js-plotly-plot .modebar { background: transparent !important; }

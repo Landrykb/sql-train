@@ -12,6 +12,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useArenaRunner } from '@/components/arena/ArenaRunner';
 import { RIVAL } from '@/lib/arena/champions';
 import { isVerified } from '@/lib/arena/verified';
+import { Shield, Wind, Zap, Wrench, Swords, Dices, Clover } from 'lucide-react';
+
+const MINI_ICONS: Record<string, React.ReactNode> = {
+  safe: <Shield size={14} />, fix: <Wrench size={14} />, defend: <Shield size={14} />,
+  rush: <Wind size={14} />, force: <Zap size={14} />, counter: <Swords size={14} />,
+  wild: <Dices size={14} />, pray: <Clover size={14} />, gamble: <Dices size={14} />,
+};
 
 const TEAL = '#57ECF4';
 
@@ -48,7 +55,7 @@ export default function MiniFight() {
           {/* header */}
           <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-slate-800">
             <p className="text-[9px] font-black tracking-widest text-slate-400">
-              {running ? `AUTO-GAUNTLET · M${state.fight.matchIdx + 1}${state.endless ? ' ♾️' : `/${state.totalMatches}`}` : 'GAUNTLET DONE'}
+              {running ? `AUTO-GAUNTLET · M${state.fight.matchIdx + 1}${state.endless ? ' ∞' : `/${state.totalMatches}`}` : 'GAUNTLET DONE'}
             </p>
             <div className="flex items-center gap-1">
               <button onClick={() => setShowPrefs((v) => !v)} title="champ limits" className={`text-[11px] font-bold leading-none px-1 ${showPrefs ? 'text-amber-300' : 'text-slate-600 hover:text-slate-300'}`}>⚙</button>
@@ -95,9 +102,9 @@ export default function MiniFight() {
                 <div className="px-2.5 py-2 space-y-1.5 text-[10px]">
                   <p className="text-[9px] font-black tracking-widest text-slate-500 mb-1">CHAMP LIMITS</p>
                   {([
-                    { key: 'notify', label: '🔔 Ping me when I\'m away', on: prefs.notify, set: () => runner.setPrefs({ notify: !prefs.notify }) },
-                    { key: 'assist', label: '🧠 Decide solo while I\'m away', on: prefs.assist === 'focused', set: () => runner.setPrefs({ assist: prefs.assist === 'always' ? 'focused' : 'always' }) },
-                    { key: 'rematch', label: `♾️ Keep fighting ${isVerified() ? '(auto-rematch)' : '🔒'}`, on: prefs.autoRematch, set: () => {
+                    { key: 'notify', label: 'Ping me when I\'m away', on: prefs.notify, set: () => runner.setPrefs({ notify: !prefs.notify }) },
+                    { key: 'assist', label: 'Decide solo while I\'m away', on: prefs.assist === 'focused', set: () => runner.setPrefs({ assist: prefs.assist === 'always' ? 'focused' : 'always' }) },
+                    { key: 'rematch', label: `Keep fighting ${isVerified() ? '(auto-rematch)' : '(locked)'}`, on: prefs.autoRematch, set: () => {
                       if (!prefs.autoRematch && !isVerified()) { window.location.href = '/verified'; return; }
                       runner.setPrefs({ autoRematch: !prefs.autoRematch });
                     } },
@@ -125,7 +132,7 @@ export default function MiniFight() {
               >
                 <div className="px-2.5 py-2">
                   <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-[10px] font-black text-red-300 tracking-widest">⚡ YOUR CALL — {secs}s</p>
+                    <p className="text-[10px] font-black text-red-300 tracking-widest">YOUR CALL — {secs}s</p>
                     <div className="w-16 h-1 rounded-full bg-slate-800 overflow-hidden">
                       <div className="h-full bg-red-400 transition-all duration-200" style={{ width: `${(secs / 12) * 100}%` }} />
                     </div>
@@ -138,7 +145,7 @@ export default function MiniFight() {
                         onClick={() => runner.answer(c)}
                         className="w-full flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-left transition-colors"
                       >
-                        <span className="text-sm leading-none mt-0.5">{c.emoji}</span>
+                        <span className="text-sm leading-none mt-0.5 text-slate-300">{MINI_ICONS[c.id] ?? null}</span>
                         <span className="min-w-0">
                           <span className="block text-[10px] font-bold text-white leading-tight">{c.label}</span>
                           <span className="block text-[9px] text-slate-500 leading-tight">{c.hint}</span>

@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'Terms of Service — Bleepx',
-  description: 'Terms of Service for Bleepx — BleepxQuery & BleepxLab learning platforms.',
+  description: 'Terms of Service for Bleepx — BleepxQuery, BleepxLab & BleepxCloud learning platforms.',
 };
 
 export default function TermsPage() {
@@ -12,15 +12,15 @@ export default function TermsPage() {
       <p className="text-xs text-bleepx-text-secondary">Last updated: April 2026</p>
 
       <p>
-        By using Bleepx (BleepxQuery &amp; BleepxLab), you agree to these terms. If you do not agree, please do not use
+        By using Bleepx (BleepxQuery, BleepxLab &amp; BleepxCloud), you agree to these terms. If you do not agree, please do not use
         the service.
       </p>
 
       <h2>1. The service</h2>
       <p>
         Bleepx is a learning platform that helps people train their SQL and data-science skills and build a public
-        portfolio. It offers interactive SQL challenges (BleepxQuery) and data-science projects in Python and R
-        (BleepxLab). All code execution happens in your browser via WebAssembly (sql.js, Pyodide). We do not execute
+        portfolio. It offers interactive SQL challenges (BleepxQuery), data-science projects in Python and R
+        (BleepxLab), and cloud architecture missions and quizzes (BleepxCloud). All code execution happens in your browser via WebAssembly (sql.js, Pyodide) or is simulated client-side. We do not execute
         your code on our servers. We maintain internal systems and code necessary to operate the service.
       </p>
 
@@ -28,7 +28,7 @@ export default function TermsPage() {
       <ul>
         <li>Sign-in is handled through GitHub OAuth. You must have a valid GitHub account and comply with GitHub&apos;s terms.</li>
         <li>You are responsible for activity performed under your account.</li>
-        <li>Browsing the site is free and requires no account. Running code, submitting quiz answers, saving progress across devices, and pushing work to GitHub all require sign-in.</li>
+        <li>Browsing the site and running code in your browser (SQL, Python, cloud simulations, quizzes, the Arena) is free and requires no account. Saving progress across devices and pushing work to GitHub require sign-in.</li>
       </ul>
 
       <h2>3. Acceptable use</h2>

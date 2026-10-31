@@ -138,8 +138,8 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
   // Run code with timeout + auto package install + matplotlib capture.
   const runCode = useCallback(async () => {
     if (running) return;
-    // Gate: require GitHub sign-in to execute code
-    if (!requireAuth('run Python code')) return;
+    // Guests can run Python freely (Pyodide is client-side). Sign-in is
+    // asked at solve time so progress/points/portfolio actually persist.
     track(Events.LAB_RUN_PYTHON);
     setErrorHelp(null);
     setRunning(true);
@@ -194,6 +194,7 @@ const PythonTerminal = forwardRef<PythonTerminalHandle, PythonTerminalProps>(fun
         const hasError = (stderr || '').trim().length > 0 && /\b(Error|Exception|Traceback)\b/i.test(stderr);
         if (isMatch && !solved && !hasError) {
           setSolved(true);
+          requireAuth('save your lab progress and earn points');
           setOutput((prev) => [...prev, { type: 'system', text: '*bleep* Correct! Output matches. Points earned, human.', cell: nextCell }]);
           onSolved?.();
         }

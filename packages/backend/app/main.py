@@ -13,9 +13,6 @@ DATASETS_DIR = os.getenv("DATASETS_DIR", os.path.join(os.path.dirname(__file__),
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
-# GitHub OAuth
-GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "")
-GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
 
 app = FastAPI(title="BESA SQL API", version="1.0")
 app.add_middleware(
@@ -81,56 +78,3 @@ async def query(q: QueryReq):
     except Exception as e:
         logger.error(f"Query error: {e}")
         raise HTTPException(status_code=400, detail=f"Query failed: {str(e)}")
-
-@app.get("/api/auth/github")
-async def github_login():
-    """Initiate GitHub OAuth login."""
-    if not GITHUB_CLIENT_ID:
-        raise HTTPException(status_code=500, detail="GitHub OAuth not configured")
-    auth_url = (
-        f"https://github.com/login/oauth/authorize?"
-        f"client_id={GITHUB_CLIENT_ID}&"
-        f"redirect_uri={BACKEND_URL}/github-callback&"
-        f"scope=repo"
-    )
-    return {"url": auth_url}
-
-@app.get("/github-callback")
-async def github_callback(code: str):
-    """Handle GitHub OAuth callback — exchange code, fetch user, redirect to frontend."""
-    import requests
-    from fastapi.responses import RedirectResponse
-    from urllib.parse import urlencode
-    try:
-        response = requests.post(
-            "https://github.com/login/oauth/access_token",
-            data={
-                "client_id": GITHUB_CLIENT_ID,
-                "client_secret": GITHUB_CLIENT_SECRET,
-                "code": code,
-            },
-            headers={"Accept": "application/json"}
-        )
-        data = response.json()
-        access_token = data.get("access_token")
-        if not access_token:
-            logger.error(f"GitHub token exchange failed: {data}")
-            return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error=token_failed")
-
-        # Fetch GitHub user profile
-        user_resp = requests.get(
-            "https://api.github.com/user",
-            headers={"Authorization": f"token {access_token}", "Accept": "application/json"}
-        )
-        user = user_resp.json()
-        params = urlencode({
-            "login": user.get("login", ""),
-            "name": user.get("name", "") or user.get("login", ""),
-            "avatar": user.get("avatar_url", ""),
-            "email": user.get("email", "") or "",
-            "token": access_token,
-        })
-        return RedirectResponse(f"{FRONTEND_URL}/auth/callback?{params}")
-    except Exception as e:
-        logger.error(f"GitHub callback error: {e}")
-        return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error={str(e)}")

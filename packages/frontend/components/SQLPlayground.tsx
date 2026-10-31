@@ -351,8 +351,8 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
   }, [domain, id]);
 
   const onRun = useCallback(async () => {
-    // Gate: require GitHub sign-in to run SQL
-    if (!requireAuth('run this SQL query')) return;
+    // Guests can run SQL freely (execution is client-side). Sign-in is asked
+    // at completion/save time instead — see the success branch below.
     track(Events.CASE_RUN_SQL, { case_id: id, domain });
     if (query.length > 3000) {
       setMessage(queryMessages.tooLong);
@@ -422,6 +422,9 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       if (correct && !completed.has(id)) {
         console.log('Correct answer! Marking complete:', id);
         markComplete(id, tier);
+        // Save-time gate: guests get a one-tap sign-in prompt so progress,
+        // points and the GitHub portfolio push actually persist.
+        requireAuth('save your progress, earn points, and push to GitHub');
         setShowSuccess(true);
         setVisibleHints(hints.length);
         if (timerRef.current) clearInterval(timerRef.current);
@@ -471,6 +474,10 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
       setBusy(false);
     }
   }, [query, expected, solutionQuery, id, markComplete, attempts, hints.length, completed, skills, domain, currentOrder, nextCaseId, tier, addHistory, timerSeconds, requireAuth]);
+
+  // Never offer a generator stub as an "example" — TODO seeds teach nothing.
+  const exampleQuery = templateQuery || seedQuery;
+  const hasExample = !!exampleQuery.trim() && !/TODO/i.test(exampleQuery);
 
   const tryExampleQuery = useCallback(() => {
     const example = templateQuery || seedQuery;
@@ -994,7 +1001,7 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
             >
               Clear
             </button>
-            {(templateQuery || seedQuery) && (
+            {hasExample && (
               <button
                 onClick={() => {
                   playBleep();

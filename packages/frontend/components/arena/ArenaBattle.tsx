@@ -23,6 +23,12 @@ import { dailyDuelSpec, getDuelStreak, getRivalRecords } from '@/lib/arena/daily
 import { encodeReplay, type ReplayEvent } from '@/lib/arena/replay';
 import { isVerified } from '@/lib/arena/verified';
 import { VERSE_ACCENT } from '@/lib/arena/theme';
+import { VerseIcon } from '@/components/NavIcons';
+import {
+  Swords, Shield, Zap, Sparkles, Bot, Crown, Egg, Dumbbell, Star,
+  Trophy, Skull, Eye, Users, Headphones, Calendar, Flame, Lock,
+  Wind, Wrench, Clover, Swords as CounterIcon, Dices, Check, X, User,
+} from 'lucide-react';
 
 interface RoundDef {
   type: 'sql' | 'quiz' | 'python' | 'cloud';
@@ -73,32 +79,95 @@ type Verse = 'sql' | 'cloud' | 'lab';
 type Tier = 'rookie' | 'pro' | 'boss';
 
 const BG = '#1C2129';
-const TEAL = '#57ECF4';
+const TEAL = '#57ECF4'; // ambient accent only — interactive buttons use the verse accent
 const MAX_ROUNDS_DISPLAY = 3;
 
-const VERSES: { id: Verse; name: string; icon: string; blurb: string; domains?: { id: string; label: string }[] }[] = [
+// Arena categories mirror the training sections exactly:
+// SQL → the case domains, Cloud → the quiz tracks, Lab → the quiz topics.
+const VERSES: { id: Verse; name: string; blurb: string; defaultCategory: string; categories: { id: string; label: string }[] }[] = [
   {
-    id: 'sql', name: 'SQL Arena', icon: '🗃️',
+    id: 'sql', name: 'SQL Arena',
     blurb: 'Real queries, live execution. Fastest correct result wins.',
-    domains: [
+    defaultCategory: 'business',
+    categories: [
       { id: 'business', label: 'Business' },
+      { id: 'crime', label: 'Crime' },
+      { id: 'farming', label: 'Farming' },
       { id: 'finance', label: 'Finance' },
       { id: 'healthcare', label: 'Healthcare' },
-      { id: 'marketing', label: 'Marketing' },
-      { id: 'retail', label: 'Retail' },
+      { id: 'social', label: 'Social' },
+      { id: 'space', label: 'Space' },
       { id: 'sports', label: 'Sports' },
       { id: 'trials', label: 'Trials' },
     ],
   },
-  { id: 'cloud', name: 'Cloud Arena', icon: '☁️', blurb: 'Quiz duels + a real build mission in the AWS sandbox.' },
-  { id: 'lab', name: 'Lab Arena', icon: '🧪', blurb: 'Quiz duels + a real Python code duel in Pyodide.' },
+  {
+    id: 'cloud', name: 'Cloud Arena',
+    blurb: 'Quiz duels + a real build mission in the AWS sandbox.',
+    defaultCategory: 'all',
+    categories: [
+      { id: 'all', label: 'All' },
+      { id: 'aws', label: 'AWS' },
+      { id: 'azure', label: 'Azure' },
+      { id: 'gcp', label: 'GCP' },
+      { id: 'multi', label: 'Multi-Cloud' },
+    ],
+  },
+  {
+    id: 'lab', name: 'Lab Arena',
+    blurb: 'Quiz duels + a real Python code duel in Pyodide.',
+    defaultCategory: 'all',
+    categories: [
+      { id: 'all', label: 'All' },
+      { id: 'statistics', label: 'Statistics' },
+      { id: 'probability', label: 'Probability' },
+      { id: 'python', label: 'Python' },
+      { id: 'data_analysis', label: 'Data Analysis' },
+      { id: 'machine_learning', label: 'Machine Learning' },
+      { id: 'evaluation', label: 'Evaluation' },
+      { id: 'feature_engineering', label: 'Feature Eng' },
+      { id: 'visualization', label: 'Visualization' },
+      { id: 'clustering', label: 'Clustering' },
+      { id: 'time_series', label: 'Time Series' },
+      { id: 'deep_learning', label: 'Deep Learning' },
+      { id: 'llm', label: 'LLMs & NLP' },
+      { id: 'mlops', label: 'MLOps' },
+    ],
+  },
 ];
 
 const TIERS: { id: Tier; name: string; blurb: string }[] = [
-  { id: 'rookie', name: '🐣 Rookie', blurb: 'First fights. Learn the ropes.' },
-  { id: 'pro', name: '🔥 Pro', blurb: 'Harder rounds, tighter clocks.' },
-  { id: 'boss', name: '👑 Boss', blurb: 'Expert tier. No mercy.' },
+  { id: 'rookie', name: 'Rookie', blurb: 'First fights. Learn the ropes.' },
+  { id: 'pro', name: 'Pro', blurb: 'Harder rounds, tighter clocks.' },
+  { id: 'boss', name: 'Boss', blurb: 'Expert tier. No mercy.' },
 ];
+
+// Original icons, mapped per id — no emoji glyphs in the arena.
+const TIER_ICONS: Record<Tier, React.ReactNode> = {
+  rookie: <Egg size={13} />,
+  pro: <Flame size={13} />,
+  boss: <Crown size={13} />,
+};
+const STRATEGY_ICONS: Record<string, React.ReactNode> = {
+  safe: <Shield size={18} />,
+  fast: <Zap size={18} />,
+  fancy: <Sparkles size={18} />,
+};
+const CHOICE_ICONS: Record<string, React.ReactNode> = {
+  safe: <Shield size={14} />,
+  fix: <Wrench size={14} />,
+  defend: <Shield size={14} />,
+  rush: <Wind size={14} />,
+  force: <Zap size={14} />,
+  counter: <CounterIcon size={14} />,
+  wild: <Dices size={14} />,
+  pray: <Clover size={14} />,
+  gamble: <Dices size={14} />,
+};
+export function stageIcon(level: number, size = 12, className = ''): React.ReactNode {
+  const I = [Egg, Dumbbell, Swords, Shield, Crown, Star][Math.max(0, Math.min(level, 5))];
+  return <I size={size} className={className} />;
+}
 
 /* Bleepx referee commentary — scripted lines per beat. */
 const REF = {
@@ -111,10 +180,10 @@ const REF = {
     ? 'Bleepx: "Build mission on the board — whoever ships the right infra first wins."'
     : 'Bleepx: "Read the task — both bots get it at the same time you do."',
   typing: ['Champions are thinking…', 'Queries loading… stand by.', 'Fingers on keyboards. Bots on metal.'],
-  champHit: ['Clean hit from the challenger!', 'That one landed! 💥', 'Textbook execution — the crowd goes mild-to-wild.'],
+  champHit: ['Clean hit from the challenger!', 'That one landed!', 'Textbook execution — the crowd goes mild-to-wild.'],
   champMiss: ['Oof — that missed the mark.', 'A swing and a miss!', 'VEX-7 saw that coming a mile away.'],
   rivalHit: ['VEX-7 answers back!', 'The house bot does not blink.'],
-  final: (won: boolean) => won ? 'AND STILL… the challenger takes it! 🏆' : 'The house keeps the belt… this time.',
+  final: (won: boolean) => won ? 'AND STILL… the challenger takes it!' : 'The house keeps the belt… this time.',
 };
 
 /* Reveals text like it's being typed live — with personality.
@@ -162,7 +231,7 @@ function TypedSql({ text, cps, active, onDone, style = 'steady' }: { text: strin
   );
 }
 
-function Avatar({ color, emoji, sprite, size = 'md', hit }: { color: string; emoji: string; sprite?: string; size?: 'sm' | 'md' | 'lg'; hit?: boolean }) {
+function Avatar({ color, emoji, sprite, size = 'md', hit }: { color: string; emoji: React.ReactNode; sprite?: string; size?: 'sm' | 'md' | 'lg'; hit?: boolean }) {
   const sz = size === 'lg' ? 'w-16 h-16' : size === 'sm' ? 'w-9 h-9' : 'w-14 h-14';
   return (
     <div
@@ -171,8 +240,7 @@ function Avatar({ color, emoji, sprite, size = 'md', hit }: { color: string; emo
     >
       {sprite
         ? <img src={sprite} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-        : <span className={size === 'lg' ? 'text-3xl' : 'text-lg'}>{emoji}</span>}
-      {sprite && <span className="hidden">{emoji}</span>}
+        : <span className={size === 'lg' ? 'text-3xl' : 'text-lg'}>{emoji ?? <Bot size={22} />}</span>}
     </div>
   );
 }
@@ -180,7 +248,7 @@ function Avatar({ color, emoji, sprite, size = 'md', hit }: { color: string; emo
 /* Big animated sprite for the ring: idle bounce, type-jitter while writing,
  * lunge on hit, wobble+drop on miss, KO slump when health is gone. */
 function RingFighter({ sprite, emoji, color, side, step, result, name, aura }: {
-  sprite?: string; emoji: string; color: string; side: 'left' | 'right';
+  sprite?: string; emoji: React.ReactNode; color: string; side: 'left' | 'right';
   step: FightStep; result?: FighterResult; name: string; aura?: string;
 }) {
   const dir = side === 'left' ? 1 : -1;
@@ -208,7 +276,7 @@ function RingFighter({ sprite, emoji, color, side, step, result, name, aura }: {
       >
         {sprite
           ? <img src={sprite} alt={name} className="w-full h-full object-cover" />
-          : <span className="text-4xl">{emoji}</span>}
+          : <span className="text-4xl">{emoji ?? <Bot size={36} />}</span>}
       </div>
       {typing && (
         <motion.div
@@ -264,7 +332,7 @@ function ClashSparks({ active }: { active: boolean }) {
               transition={{ duration: 0.7, repeat: Infinity, delay: i * 0.08 }}
             />
           ))}
-          <span className="absolute inset-0 flex items-center justify-center text-2xl">⚡</span>
+          <span className="absolute inset-0 flex items-center justify-center"><Zap size={24} className="text-amber-300" /></span>
         </motion.div>
       )}
     </AnimatePresence>
@@ -280,7 +348,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   const [strategy, setStrategy] = useState<StrategyCard>(STRATEGY_CARDS[0]);
   const [mode, setMode] = useState<'coach' | 'tagteam'>('coach');
   const [verse, setVerse] = useState<Verse>(initialVerse ?? 'sql');
-  const [domain, setDomain] = useState('business');
+  const [domain, setDomain] = useState(() => VERSES.find((v) => v.id === (initialVerse ?? 'sql'))?.defaultCategory ?? 'business');
   const [tier, setTier] = useState<Tier>('rookie');
   const [rounds, setRounds] = useState<RoundDef[]>([]);
   const [roundIdx, setRoundIdx] = useState(0);
@@ -316,6 +384,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
 
   const prog = progMap[champion.id] ?? getChampionProgress(champion.id);
   const evolved = getEvolvedStats(champion, prog.stage.level);
+  const ACCENT = VERSE_ACCENT[verse].hex;
+  const ON_ACCENT = VERSE_ACCENT[verse].onHex;
 
   const refreshProgress = useCallback(() => {
     const m: Record<string, ChampionProgress> = {};
@@ -340,8 +410,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
     const { progress, evolved: evo } = awardChampionXp(champion.id, amount);
     setProgMap((m) => ({ ...m, [champion.id]: progress }));
     if (evo) {
-      evolvedThisMatch.current = `${progress.stage.emoji} ${progress.stage.name}`;
-      setEvoBanner(`${progress.stage.emoji} ${champion.name.toUpperCase()} EVOLVED — ${progress.stage.name.toUpperCase()}`);
+      evolvedThisMatch.current = progress.stage.name;
+      setEvoBanner(`${champion.name.toUpperCase()} EVOLVED — ${progress.stage.name.toUpperCase()}`);
       setRefLine(`Bleepx: "${champion.name} EVOLVED to ${progress.stage.name}! ${progress.stage.blurb}"`);
       setTimeout(() => setEvoBanner(''), 2200);
     }
@@ -376,7 +446,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       setPhase('fight');
       setCinematic(true);
       setTimeout(() => setCinematic(false), 2100);
-      setRefLine(`Bleepx: "Welcome to the ${VERSES.find(v => v.id === verse)?.name}! ${champion.name} vs ${RIVAL.name} — ${TIERS.find(t => t.id === tier)?.name.replace(/^[^ ]+ /, '')} bracket. Coaches ready?"`);
+      setRefLine(`Bleepx: "Welcome to the ${VERSES.find(v => v.id === verse)?.name}! ${champion.name} vs ${RIVAL.name} — ${TIERS.find(t => t.id === tier)?.name} bracket. Coaches ready?"`);
     } catch (err: any) {
       setStatus(err?.message ?? 'Failed to load match');
       setPhase('select');
@@ -392,8 +462,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       const grid = (res?.data ?? []).map((row: unknown[]) =>
         Object.fromEntries(cols.map((c, i) => [c, row[i]]))
       ) as Record<string, string | number | null>[];
-      const { correct } = await compareResults(grid, [], round.solutionQuery ?? '', sql, []);
-      return { sql, correct, solveMs: 0, execMs, rows: grid.length };
+      const { correct, feedback } = await compareResults(grid, [], round.solutionQuery ?? '', sql, []);
+      return { sql, correct, solveMs: 0, execMs, rows: grid.length, error: correct ? undefined : feedback };
     } catch (err: any) {
       return { sql, correct: false, solveMs: 0, execMs: Math.round(performance.now() - t0), rows: 0, error: err?.message };
     }
@@ -567,10 +637,10 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
     if (isPlayerRound) {
       setStep('youFight');
       setRefLine(
-        round.type === 'quiz' ? 'Bleepx: "The coach tags in! Pick your answer." 🏷️'
-        : round.type === 'python' ? 'Bleepx: "The coach tags in! Write the winning Python." 🏷️'
-        : round.type === 'cloud' ? 'Bleepx: "The coach tags in! Build the infra yourself." 🏷️'
-        : 'Bleepx: "The coach tags in! Write the winning query." 🏷️');
+        round.type === 'quiz' ? 'Bleepx: "The coach tags in! Pick your answer."'
+        : round.type === 'python' ? 'Bleepx: "The coach tags in! Write the winning Python."'
+        : round.type === 'cloud' ? 'Bleepx: "The coach tags in! Build the infra yourself."'
+        : 'Bleepx: "The coach tags in! Write the winning query."');
       return;
     }
     const pending = pendingRef.current;
@@ -582,7 +652,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       setChampSql('> lock answer…');
       setRivalSql('> lock answer…');
       setStep('typing');
-      setRefLine('Bleepx: "Both fighters are thinking… 👀"');
+      setRefLine('Bleepx: "Both fighters are thinking…"');
       setTimeout(() => { setChampAnswer(data.answer); setChampTyped(true); }, 900);
       setTimeout(() => { setRivalAnswer(data.rivalPick); setRivalTyped(true); }, Math.min(RIVAL.solveDelayMs[roundIdx % RIVAL.solveDelayMs.length], 1600));
     } else {
@@ -793,7 +863,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
     xp,
     e: evolvedThisMatch.current ? 1 : undefined,
   });
-  const shareText = `⚔️ ${mode === 'tagteam' ? 'You + ' : ''}${champion.name} ${wins}—${totalRounds - wins} vs ${RIVAL.name} · ${verseName} · ${matchWon ? 'MATCH WON' : 'defeated'} — think your champion beats mine?`;
+  const shareText = `${mode === 'tagteam' ? 'You + ' : ''}${champion.name} ${wins}—${totalRounds - wins} vs ${RIVAL.name} · ${verseName} · ${matchWon ? 'MATCH WON' : 'defeated'} — think your champion beats mine?`;
 
   // spectate link — encode the real rounds so anyone can re-watch the fight
   const replayUrl = phase === 'done' && results.length ? (() => {
@@ -840,14 +910,14 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
         <div className="arena-ambient" aria-hidden />
         <div className="relative z-10 text-center mb-6">
           <motion.div
-            className="text-5xl mb-3"
+            className="mb-3 flex justify-center"
             animate={{ scale: [1, 1.15, 1], rotate: [0, -8, 8, 0] }}
             transition={{ duration: 2.4, repeat: Infinity }}
           >
-            ⚔️
+            <Swords size={44} style={{ color: ACCENT }} />
           </motion.div>
           <h1 className="text-4xl font-black tracking-tight text-white">
-            BLEEPX <span style={{ color: VERSE_ACCENT[verse].hex }}>ARENA</span>
+            BLEEPX <span style={{ color: ACCENT }}>ARENA</span>
           </h1>
           <p className="text-sm mt-2 max-w-xs mx-auto text-slate-400">
             Coach your champion through {MAX_ROUNDS_DISPLAY} rounds against {RIVAL.name}, the house bot. Or tag in and fight one yourself.
@@ -857,7 +927,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
 
         {phase === 'loading' ? (
           <div className="flex flex-col items-center gap-3 mt-10">
-            <div className="w-10 h-10 rounded-full border-4 border-slate-700 animate-spin" style={{ borderTopColor: TEAL }} />
+            <div className="w-10 h-10 rounded-full border-4 border-slate-700 animate-spin" style={{ borderTopColor: ACCENT }} />
             <p className="text-slate-400 text-sm">Loading arena…</p>
           </div>
         ) : (
@@ -868,26 +938,27 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               <div className="grid grid-cols-3 gap-2">
                 {VERSES.map((v) => (
                   <button key={v.id}
-                    onClick={() => { setVerse(v.id); playBleep(); }}
+                    onClick={() => { setVerse(v.id); setDomain(v.defaultCategory); playBleep(); }}
                     className={`p-3 rounded-xl border-2 text-center transition-all ${verse === v.id ? 'bg-slate-800' : 'bg-slate-800/30 opacity-70'}`}
-                    style={{ borderColor: verse === v.id ? VERSE_ACCENT[v.id].hex : '#2B333C', boxShadow: verse === v.id ? `0 0 18px -6px ${VERSE_ACCENT[v.id].hex}` : undefined }}>
-                    <div className="text-2xl mb-1">{v.icon}</div>
+                    style={{ borderColor: verse === v.id ? VERSE_ACCENT[v.id].hex : '#2B333C' }}>
+                    <div className="mb-1 flex justify-center" style={{ color: VERSE_ACCENT[v.id].hex }}>
+                      <VerseIcon verse={v.id === 'sql' ? 'query' : v.id} size={22} />
+                    </div>
                     <p className="text-[11px] font-bold text-white leading-tight">{v.name}</p>
                   </button>
                 ))}
               </div>
               <p className="text-[11px] text-slate-500 mt-2 text-center">{VERSES.find(v => v.id === verse)?.blurb}</p>
-              {verse === 'sql' && (
-                <div className="flex flex-wrap justify-center gap-1.5 mt-3">
-                  {VERSES[0].domains!.map((d) => (
-                    <button key={d.id} onClick={() => { setDomain(d.id); playBleep(); }}
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${domain === d.id ? 'text-[#0d1117]' : 'text-slate-400'}`}
-                      style={{ background: domain === d.id ? TEAL : 'transparent', borderColor: domain === d.id ? TEAL : '#334155' }}>
-                      {d.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+              {/* category picker — same categories as the verse's training section */}
+              <div className="flex flex-wrap justify-center gap-1.5 mt-3">
+                {VERSES.find(v => v.id === verse)!.categories.map((d) => (
+                  <button key={d.id} onClick={() => { setDomain(d.id); playBleep(); }}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${domain === d.id ? '' : 'text-slate-400'}`}
+                    style={{ background: domain === d.id ? ACCENT : 'transparent', borderColor: domain === d.id ? ACCENT : '#334155', color: domain === d.id ? ON_ACCENT : undefined }}>
+                    {d.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* tier picker */}
@@ -898,8 +969,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                   <button key={t.id}
                     onClick={() => { setTier(t.id); playBleep(); }}
                     className={`p-2.5 rounded-xl border-2 text-center transition-all ${tier === t.id ? 'bg-slate-800' : 'bg-slate-800/30 opacity-70'}`}
-                    style={{ borderColor: tier === t.id ? TEAL : '#2B333C' }}>
-                    <p className="text-[11px] font-bold text-white leading-tight">{t.name}</p>
+                    style={{ borderColor: tier === t.id ? ACCENT : '#2B333C' }}>
+                    <p className="text-[11px] font-bold text-white leading-tight flex items-center justify-center gap-1">{TIER_ICONS[t.id]} {t.name}</p>
                   </button>
                 ))}
               </div>
@@ -924,8 +995,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-white text-sm">
                           {c.name} <span className="font-normal text-slate-400">· {c.title}</span>
-                          <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full align-middle" style={{ background: `${p.stage.aura}22`, color: p.stage.aura }}>
-                            {p.stage.emoji} {p.stage.name}
+                          <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full align-middle inline-flex items-center gap-1" style={{ background: `${p.stage.aura}22`, color: p.stage.aura }}>
+                            {stageIcon(p.stage.level, 10)} {p.stage.name}
                           </span>
                         </p>
                         <p className="text-xs text-slate-400 truncate">{c.blurb}</p>
@@ -956,9 +1027,9 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                     className={`p-3 rounded-xl border-2 text-center transition-all ${
                       strategy.id === s.id ? 'bg-slate-800' : 'bg-slate-800/30 opacity-70'
                     }`}
-                    style={{ borderColor: strategy.id === s.id ? TEAL : '#2B333C' }}
+                    style={{ borderColor: strategy.id === s.id ? ACCENT : '#2B333C' }}
                   >
-                    <div className="text-2xl mb-1">{s.icon}</div>
+                    <div className="mb-1 flex justify-center" style={{ color: strategy.id === s.id ? ACCENT : '#94a3b8' }}>{STRATEGY_ICONS[s.id] ?? <Sparkles size={18} />}</div>
                     <p className="text-[11px] font-bold text-white leading-tight">{s.name}</p>
                   </button>
                 ))}
@@ -973,17 +1044,17 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                 <button
                   onClick={() => setMode('coach')}
                   className={`p-3 rounded-xl border-2 text-left transition-all ${mode === 'coach' ? 'bg-slate-800' : 'bg-slate-800/30 opacity-70'}`}
-                  style={{ borderColor: mode === 'coach' ? TEAL : '#2B333C' }}
+                  style={{ borderColor: mode === 'coach' ? ACCENT : '#2B333C' }}
                 >
-                  <p className="font-bold text-white text-sm">🎧 Coach mode</p>
+                  <p className="font-bold text-white text-sm flex items-center gap-1.5"><Headphones size={14} /> Coach mode</p>
                   <p className="text-[11px] text-slate-400 mt-1">Watch & tune. Your champion fights all 3 rounds.</p>
                 </button>
                 <button
                   onClick={() => setMode('tagteam')}
                   className={`p-3 rounded-xl border-2 text-left transition-all ${mode === 'tagteam' ? 'bg-slate-800' : 'bg-slate-800/30 opacity-70'}`}
-                  style={{ borderColor: mode === 'tagteam' ? TEAL : '#2B333C' }}
+                  style={{ borderColor: mode === 'tagteam' ? ACCENT : '#2B333C' }}
                 >
-                  <p className="font-bold text-white text-sm">🤝 Tag-team</p>
+                  <p className="font-bold text-white text-sm flex items-center gap-1.5"><Users size={14} /> Tag-team</p>
                   <p className="text-[11px] text-slate-400 mt-1">Champion fights 2 rounds — you fight the last one.</p>
                 </button>
               </div>
@@ -991,10 +1062,10 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
 
             <button
               onClick={loadMatch}
-              className="w-full py-4 rounded-2xl font-black text-lg tracking-wide text-[#0d1117] transition-transform active:scale-95 arena-glowpulse"
-              style={{ background: TEAL }}
+              className="w-full py-4 rounded-2xl font-black text-lg tracking-wide transition-transform active:scale-95 flex items-center justify-center gap-2"
+              style={{ background: ACCENT, color: ON_ACCENT }}
             >
-              ENTER THE ARENA
+              <Swords size={20} /> ENTER THE ARENA
             </button>
             <p className="text-center text-[11px] text-slate-500">
               {mode === 'tagteam' ? 'You fight round 3 — your champion warms up on 1–2.' : `${champion.name} fights all ${MAX_ROUNDS_DISPLAY} rounds under ${strategy.name}.`}
@@ -1028,15 +1099,15 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               disabled={runner?.state.status === 'running'}
               className="w-full py-2.5 rounded-2xl font-bold text-xs border border-slate-700 text-slate-300 hover:border-teal-400/50 transition-colors disabled:opacity-40"
             >
-              ⚡ QUICK MATCH — no setup, just fight
+              <Zap size={13} className="inline -mt-0.5" /> QUICK MATCH — no setup, just fight
             </button>
 
             {/* live gauntlet — what the widget taps through to */}
             {runner?.state.status === 'running' && (
               <div className={`rounded-2xl border p-4 ${runner.state.intervention ? 'border-red-400/60 bg-red-500/5' : 'border-teal-400/30 bg-teal-400/5'}`}>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: runner.state.intervention ? '#F87171' : TEAL }}>
-                    {runner.state.intervention ? '⚡ YOUR CALL' : `⚔️ GAUNTLET LIVE · M${runner.state.fight.matchIdx + 1}${runner.state.endless ? ' ♾️' : `/${runner.state.totalMatches}`}`}
+                  <p className="text-xs font-bold uppercase tracking-widest flex items-center gap-1" style={{ color: runner.state.intervention ? '#F87171' : ACCENT }}>
+                    {runner.state.intervention ? <><Zap size={11} /> YOUR CALL</> : <><Swords size={11} /> GAUNTLET LIVE · M{runner.state.fight.matchIdx + 1}{runner.state.endless ? ' ∞' : `/${runner.state.totalMatches}`}</>}
                   </p>
                   <p className="text-[10px] text-slate-500">{runner.state.verse} · {runner.state.tier}</p>
                 </div>
@@ -1065,7 +1136,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                         onClick={() => runner.answer(c)}
                         className="w-full flex items-start gap-2 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-left transition-colors"
                       >
-                        <span>{c.emoji}</span>
+                        <span className="text-slate-300 mt-0.5 shrink-0">{CHOICE_ICONS[c.id] ?? <Wrench size={14} />}</span>
                         <span className="min-w-0">
                           <span className="block text-[11px] font-bold text-white leading-tight">{c.label}</span>
                           <span className="block text-[10px] text-slate-500 leading-tight">{c.hint}</span>
@@ -1080,7 +1151,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
             {/* auto-gauntlet — the idle mode */}
             <div className="rounded-2xl border border-amber-400/30 bg-amber-400/5 p-4">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-bold text-amber-300 uppercase tracking-widest">🤖 Auto-Gauntlet</p>
+                <p className="text-xs font-bold text-amber-300 uppercase tracking-widest flex items-center gap-1"><Bot size={13} /> Auto-Gauntlet</p>
                 <div className="flex gap-1">
                   {[3, 5, 10].map((n) => (
                     <button
@@ -1132,8 +1203,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               <p className="text-xs font-bold" style={{ color: RIVAL.color }}>{RIVAL.name}</p>
             </div>
           </div>
-          <p className="text-center text-lg font-black mb-2" style={{ color: matchWon ? '#4ADE80' : '#F87171' }}>
-            {matchWon ? '🏆 MATCH WON' : '💀 DEFEATED'}
+          <p className="text-center text-lg font-black mb-2 flex items-center justify-center gap-2" style={{ color: matchWon ? '#4ADE80' : '#F87171' }}>
+            {matchWon ? <><Trophy size={18} /> MATCH WON</> : <><Skull size={18} /> DEFEATED</>}
           </p>
           <p className="text-center text-[11px] text-slate-400 mb-5">{verseName} · {TIERS.find(t => t.id === tier)?.name}</p>
           <div className="space-y-3 mb-5">
@@ -1146,10 +1217,10 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
             <p className="text-[11px] text-slate-400">added to your Bleepx points</p>
           </div>
           <div className="flex items-center justify-between rounded-xl bg-slate-800/70 px-4 py-3 mb-5">
-            <p className="text-sm font-bold" style={{ color: prog.stage.aura }}>{prog.stage.emoji} {prog.stage.name}</p>
+            <p className="text-sm font-bold flex items-center gap-1.5" style={{ color: prog.stage.aura }}>{stageIcon(prog.stage.level, 14)} {prog.stage.name}</p>
             <p className="text-[11px] text-slate-400">
               {evolvedThisMatch.current
-                ? `⚡ evolved this match → ${evolvedThisMatch.current}!`
+                ? `evolved this match → ${evolvedThisMatch.current}!`
                 : prog.nextStage
                 ? `${champion.name} · ${prog.xp}/${prog.nextStage.xpNeeded} XP to ${prog.nextStage.name}`
                 : `${champion.name} · ${prog.xp} XP · max stage`}
@@ -1157,8 +1228,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
           </div>
           <button
             onClick={share}
-            className="w-full py-3.5 rounded-2xl font-black text-[#0d1117] mb-3 transition-transform active:scale-95"
-            style={{ background: TEAL }}
+            className="w-full py-3.5 rounded-2xl font-black mb-3 transition-transform active:scale-95"
+            style={{ background: ACCENT, color: ON_ACCENT }}
           >
             {copied ? 'LINK COPIED!' : 'SHARE MATCH CARD'}
           </button>
@@ -1167,9 +1238,9 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               href={replayUrl}
               target="_blank"
               rel="noopener"
-              className="block w-full py-3 rounded-2xl font-bold text-center text-slate-200 bg-slate-800 hover:bg-slate-700 transition-colors mb-3"
+              className="w-full py-3 rounded-2xl font-bold text-center text-slate-200 bg-slate-800 hover:bg-slate-700 transition-colors mb-3 flex items-center justify-center gap-2"
             >
-              👁 SHARE FIGHT REPLAY
+              <Eye size={15} /> SHARE FIGHT REPLAY
             </a>
           )}
           <button
@@ -1179,7 +1250,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
             RUN IT BACK
           </button>
         </div>
-        <a href={cardUrl} target="_blank" rel="noopener" className="text-[11px] mt-4 hover:underline" style={{ color: TEAL }}>preview your match card ↗</a>
+        <a href={cardUrl} target="_blank" rel="noopener" className="text-[11px] mt-4 hover:underline" style={{ color: ACCENT }}>preview your match card ↗</a>
         <p className="text-[11px] text-slate-600 mt-2">better bots. brighter wins.</p>
       </div>
     );
@@ -1235,9 +1306,9 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
         <button
           onClick={() => setPhase('select')}
           title="Leave match"
-          className="shrink-0 w-6 h-6 rounded-md border border-slate-700/80 text-slate-500 text-[11px] font-bold leading-none hover:text-slate-300 hover:border-slate-500 transition-colors"
+          className="shrink-0 w-6 h-6 rounded-md border border-slate-700/80 text-slate-500 leading-none hover:text-slate-300 hover:border-slate-500 transition-colors flex items-center justify-center"
         >
-          ✕
+          <X size={12} />
         </button>
       </div>
 
@@ -1258,7 +1329,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
             <DamageNumber show={step === 'verdict' && results[roundIdx] != null && !results[roundIdx].champWon} amount="-34" color="#F87171" />
             <RingFighter
               sprite={isPlayerRound ? undefined : champion.sprite}
-              emoji={isPlayerRound ? '🧑‍💻' : champion.emoji}
+              emoji={isPlayerRound ? <User size={36} /> : champion.emoji}
               color={isPlayerRound ? TEAL : champion.color}
               aura={isPlayerRound ? undefined : prog.stage.aura}
               side="left"
@@ -1266,7 +1337,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               result={results[roundIdx]?.champ}
               name={isPlayerRound ? 'YOU' : champion.name}
             />
-            <p className="text-[9px] font-bold mt-0.5" style={{ color: isPlayerRound ? TEAL : champion.color }}>
+            <p className="text-[9px] font-bold mt-0.5" style={{ color: isPlayerRound ? ACCENT : champion.color }}>
               {isPlayerRound ? 'YOU' : champion.name.toUpperCase()}
             </p>
           </div>
@@ -1296,11 +1367,11 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       <div className="relative z-10 grid grid-cols-2 gap-2 flex-1 min-h-0 max-w-2xl mx-auto w-full">
         <FighterCard
           side="you"
-          color={isPlayerRound ? TEAL : champion.color}
-          emoji={isPlayerRound ? '🧑‍💻' : champion.emoji}
+          color={isPlayerRound ? ACCENT : champion.color}
+          emoji={isPlayerRound ? <User size={16} /> : champion.emoji}
           sprite={isPlayerRound ? undefined : champion.sprite}
           name={isPlayerRound ? 'YOU' : champion.name.toUpperCase()}
-          subtitle={isPlayerRound ? 'tagged in!' : `${prog.stage.emoji} ${prog.stage.name} · ${strategy.name}`}
+          subtitle={isPlayerRound ? 'tagged in!' : `${prog.stage.name} · ${strategy.name}`}
           step={step}
           sql={isQuiz ? '' : champSql}
           answer={isQuiz ? (isPlayerRound ? playerAnswer : champAnswer) : ''}
@@ -1340,8 +1411,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       {/* verdict + actions — pinned to the bottom of the viewport */}
       <div className="relative z-10 max-w-lg mx-auto w-full mt-2 space-y-2 shrink-0">
         {step === 'youFight' && !isQuiz && rounds[roundIdx]?.type === 'cloud' && (
-          <div className="rounded-2xl border-2 p-3" style={{ borderColor: TEAL }}>
-            <p className="text-xs font-bold mb-2" style={{ color: TEAL }}>🤝 You're tagged in — run the mission:</p>
+          <div className="rounded-2xl border-2 p-3" style={{ borderColor: ACCENT }}>
+            <p className="text-xs font-bold mb-2 flex items-center gap-1.5" style={{ color: ACCENT }}><Users size={13} /> You're tagged in — run the mission:</p>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {(cloudMissionById(rounds[roundIdx].id)?.palette ?? []).map((a, i) => (
                 <button
@@ -1366,8 +1437,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               <button
                 onClick={playerFight}
                 disabled={!playerActions.length}
-                className="flex-1 py-3 rounded-xl font-black text-[#0d1117] transition-transform active:scale-95 disabled:opacity-40"
-                style={{ background: TEAL }}
+                className="flex-1 py-3 rounded-xl font-black transition-transform active:scale-95 disabled:opacity-40"
+                style={{ background: ACCENT, color: ON_ACCENT }}
               >
                 RUN MISSION
               </button>
@@ -1375,9 +1446,9 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
           </div>
         )}
         {step === 'youFight' && !isQuiz && rounds[roundIdx]?.type !== 'cloud' && (
-          <div className="rounded-2xl border-2 p-3" style={{ borderColor: TEAL }}>
-            <p className="text-xs font-bold mb-2" style={{ color: TEAL }}>
-              🤝 You're tagged in — write the {rounds[roundIdx]?.type === 'python' ? 'Python' : 'query'}:
+          <div className="rounded-2xl border-2 p-3" style={{ borderColor: ACCENT }}>
+            <p className="text-xs font-bold mb-2 flex items-center gap-1.5" style={{ color: ACCENT }}>
+              <Users size={13} /> You're tagged in — write the {rounds[roundIdx]?.type === 'python' ? 'Python' : 'query'}:
             </p>
             <textarea
               value={playerSql}
@@ -1388,16 +1459,16 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
             />
             <button
               onClick={playerFight}
-              className="w-full mt-2 py-3 rounded-xl font-black text-[#0d1117] transition-transform active:scale-95"
-              style={{ background: TEAL }}
+              className="w-full mt-2 py-3 rounded-xl font-black transition-transform active:scale-95"
+              style={{ background: ACCENT, color: ON_ACCENT }}
             >
               FIGHT
             </button>
           </div>
         )}
         {step === 'youFight' && isQuiz && (
-          <div className="rounded-2xl border-2 p-3" style={{ borderColor: TEAL }}>
-            <p className="text-xs font-bold mb-2" style={{ color: TEAL }}>🤝 You're tagged in — pick the answer:</p>
+          <div className="rounded-2xl border-2 p-3" style={{ borderColor: ACCENT }}>
+            <p className="text-xs font-bold mb-2 flex items-center gap-1.5" style={{ color: ACCENT }}><Users size={13} /> You're tagged in — pick the answer:</p>
             <div className="space-y-2">
               {(round.options ?? []).map((opt, i) => (
                 <button key={i} onClick={() => playerQuizPick(opt)}
@@ -1415,17 +1486,21 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               {isQuiz && results[roundIdx]?.round.explanation && (
                 <p className="text-[11px] text-slate-400 mt-1 text-left">{results[roundIdx].round.explanation}</p>
               )}
-              <p className="text-[11px] text-slate-400 mt-1">
-                {isPlayerRound ? 'you' : champion.name}: {results[roundIdx]?.champ.correct ? '✅' : '❌'}{' '}
-                {((results[roundIdx]?.champ.solveMs ?? 0) + (results[roundIdx]?.champ.execMs ?? 0))}ms ·{' '}
-                {RIVAL.name}: {results[roundIdx]?.rival.correct ? '✅' : '❌'}{' '}
-                {((results[roundIdx]?.rival.solveMs ?? 0) + (results[roundIdx]?.rival.execMs ?? 0))}ms
+              <p className="text-[11px] text-slate-400 mt-1 flex items-center justify-center flex-wrap gap-x-2">
+                <span className="inline-flex items-center gap-1">
+                  {isPlayerRound ? 'you' : champion.name}: {results[roundIdx]?.champ.correct ? <Check size={11} className="text-emerald-400" /> : <X size={11} className="text-red-400" />}
+                  {isQuiz ? `${results[roundIdx]?.champ.solveMs ?? 0}ms think` : `solve ${results[roundIdx]?.champ.solveMs ?? 0}ms + exec ${results[roundIdx]?.champ.execMs ?? 0}ms`}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  {RIVAL.name}: {results[roundIdx]?.rival.correct ? <Check size={11} className="text-emerald-400" /> : <X size={11} className="text-red-400" />}
+                  {isQuiz ? `${results[roundIdx]?.rival.solveMs ?? 0}ms think` : `solve ${results[roundIdx]?.rival.solveMs ?? 0}ms + exec ${results[roundIdx]?.rival.execMs ?? 0}ms`}
+                </span>
               </p>
             </div>
             <button
               onClick={nextRound}
-              className="w-full py-3.5 rounded-2xl font-black text-[#0d1117] transition-transform active:scale-95"
-              style={{ background: TEAL }}
+              className="w-full py-3.5 rounded-2xl font-black transition-transform active:scale-95"
+              style={{ background: ACCENT, color: ON_ACCENT }}
             >
               {roundIdx + 1 >= rounds.length ? 'SEE MATCH RESULT' : 'NEXT ROUND →'}
             </button>
@@ -1471,7 +1546,7 @@ const ARENA_CSS = `
 
 /* Cinematic match entry — the environment change. Sprites fly in, names
  * clash, then the whole overlay burns away into the fight. */
-function ArenaIntro({ champion, stage, verseName }: { champion: Champion; stage: { emoji: string; name: string; aura: string }; verseName: string }) {
+function ArenaIntro({ champion, stage, verseName }: { champion: Champion; stage: { level?: number; name: string; aura: string }; verseName: string }) {
   return (
     <motion.div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center"
@@ -1494,7 +1569,7 @@ function ArenaIntro({ champion, stage, verseName }: { champion: Champion; stage:
             {champion.sprite ? <img src={champion.sprite} alt={champion.name} className="w-full h-full object-cover" /> : <span className="text-5xl">{champion.emoji}</span>}
           </div>
           <p className="mt-3 font-black text-white text-lg tracking-wide">{champion.name.toUpperCase()}</p>
-          <p className="text-[11px] font-bold" style={{ color: stage.aura }}>{stage.emoji} {stage.name}</p>
+          <p className="text-[11px] font-bold flex items-center gap-1.5" style={{ color: stage.aura }}>{stageIcon(stage.level ?? 0, 12)} {stage.name}</p>
         </motion.div>
         <motion.span className="text-4xl sm:text-5xl font-black"
           style={{ color: TEAL, textShadow: `0 0 30px ${TEAL}` }}
@@ -1510,7 +1585,7 @@ function ArenaIntro({ champion, stage, verseName }: { champion: Champion; stage:
             {RIVAL.sprite ? <img src={RIVAL.sprite} alt={RIVAL.name} className="w-full h-full object-cover" /> : <span className="text-5xl">{RIVAL.emoji}</span>}
           </div>
           <p className="mt-3 font-black text-white text-lg tracking-wide">{RIVAL.name}</p>
-          <p className="text-[11px] font-bold text-slate-400">🏠 House Champion</p>
+          <p className="text-[11px] font-bold text-slate-400">House Champion</p>
         </motion.div>
       </div>
       <motion.p className="mt-8 text-sm font-bold text-slate-400 tracking-widest"
@@ -1599,7 +1674,7 @@ function FighterCard({
 }: {
   side: 'you' | 'rival';
   color: string;
-  emoji: string;
+  emoji: React.ReactNode;
   sprite?: string;
   name: string;
   subtitle: string;
@@ -1679,8 +1754,12 @@ function FighterCard({
       </div>
       {result && step === 'verdict' && (
         <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[10px] text-slate-400 shrink-0">
-          <span>{result.correct ? '✅ correct' : result.error ? `❌ ${result.error.slice(0, 40)}` : '❌ wrong result'}</span>
-          {result.execMs > 0 && <span>⏱ {result.execMs}ms exec</span>}
+          <span className="inline-flex items-center gap-1">
+            {result.correct
+              ? <><Check size={10} className="text-emerald-400" /> correct</>
+              : <><X size={10} className="text-red-400" /> {result.error ? result.error.slice(0, 60) : 'wrong result'}</>}
+          </span>
+          {result.execMs > 0 && <span>{result.execMs}ms exec</span>}
           {result.rows > 0 && <span>{result.rows} rows</span>}
         </div>
       )}
@@ -1697,8 +1776,8 @@ function DailyDuelCard({ onFight, disabled }: { onFight: () => void; disabled?: 
   return (
     <div className="rounded-2xl border border-cyan-400/30 bg-cyan-400/5 p-4">
       <div className="flex items-center justify-between mb-1.5">
-        <p className="text-xs font-bold text-cyan-300 uppercase tracking-widest">🗓️ Daily Duel</p>
-        {streak.count > 0 && <p className="text-[10px] font-bold text-orange-300">🔥 {streak.count}-day streak</p>}
+        <p className="text-xs font-bold text-cyan-300 uppercase tracking-widest flex items-center gap-1"><Calendar size={12} /> Daily Duel</p>
+        {streak.count > 0 && <p className="text-[10px] font-bold text-orange-300 flex items-center gap-1"><Flame size={10} /> {streak.count}-day streak</p>}
       </div>
       <p className="text-[11px] text-slate-300 mb-1">
         Today's fight: <span className="font-bold text-white">{spec.rival}</span> in <span className="font-bold text-white">{spec.verse}</span> · {spec.tier} · +{spec.bonusXp}XP bonus
@@ -1710,7 +1789,7 @@ function DailyDuelCard({ onFight, disabled }: { onFight: () => void; disabled?: 
         className="w-full py-3 rounded-2xl font-black text-sm transition-transform active:scale-95 disabled:opacity-40"
         style={{ background: '#22D3EE', color: '#0d1117' }}
       >
-        {playedToday ? `STREAK SAFE — COME BACK TOMORROW (${streak.count}🔥)` : tierLocked ? `🔒 ${spec.tier.toUpperCase()} TIER — VERIFIED ONLY` : `FIGHT THE DAILY DUEL ×3`}
+        {playedToday ? `STREAK SAFE — COME BACK TOMORROW` : tierLocked ? `${spec.tier.toUpperCase()} TIER — VERIFIED ONLY` : `FIGHT THE DAILY DUEL ×3`}
       </button>
       {tierLocked && !playedToday && (
         <a href="/verified" className="mt-2 block text-center text-[10px] text-amber-300 underline">Unlock with Bleepx Verified →</a>
@@ -1725,7 +1804,7 @@ function RivalLadder({ onChallenge, disabled }: { onChallenge: (rival: string) =
   const rivals = Object.keys(records).length ? Object.keys(records) : ['VEX-7'];
   return (
     <div className="rounded-2xl border border-slate-700 bg-slate-900/40 p-4">
-      <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">🥊 Rival Ladder</p>
+      <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-2 flex items-center gap-1.5"><Swords size={13} /> Rival Ladder</p>
       <div className="space-y-1.5">
         {rivals.slice(0, 4).map((r) => {
           const rec = records[r] || { w: 0, l: 0 };

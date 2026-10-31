@@ -89,7 +89,7 @@ function SpectateInner() {
           ))}
           {done && (
             <p className="text-sm font-black text-white mt-2">
-              🏁 {replay.result.champWins}–{replay.result.rivalWins} — {replay.result.won ? `${replay.champ} TAKES IT` : `${replay.rival} TAKES IT`}
+              {replay.result.champWins}–{replay.result.rivalWins} — {replay.result.won ? `${replay.champ} TAKES IT` : `${replay.rival} TAKES IT`}
             </p>
           )}
         </div>

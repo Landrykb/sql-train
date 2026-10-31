@@ -72,10 +72,14 @@ async function sqlRounds(domain: string, tier: Tier) {
   return rounds;
 }
 
-function cloudRounds(tier: Tier) {
+function cloudRounds(tier: Tier, category: string) {
   // Single-answer questions only — quiz duels pick one option.
-  const pool = cloudTrials.filter((q) => QUIZ_TIER_DIFFICULTY[tier].includes(q.difficulty) && !Array.isArray(q.answer));
-  const quizzes = pickDeterministic(pool, MAX_ROUNDS - 1, `cloud-${tier}-${Date.now() / 86400000 | 0}`).map((q) => ({
+  // `category` mirrors the Cloud Quizzes track filter: aws | azure | gcp | multi | all
+  const pool = cloudTrials.filter((q) =>
+    QUIZ_TIER_DIFFICULTY[tier].includes(q.difficulty) &&
+    !Array.isArray(q.answer) &&
+    (category === 'all' || q.provider === category));
+  const quizzes = pickDeterministic(pool, MAX_ROUNDS - 1, `cloud-${category}-${tier}-${Date.now() / 86400000 | 0}`).map((q) => ({
     type: 'quiz',
     id: q.id,
     name: `${q.provider === 'multi' ? 'Multi-Cloud' : String(q.provider).toUpperCase()} · ${q.topic}`,
@@ -92,19 +96,22 @@ function cloudRounds(tier: Tier) {
   return [...quizzes, {
     type: 'cloud',
     id: mission.id,
-    name: `⚒ Build Mission · ${mission.name}`,
+    name: `Build Mission · ${mission.name}`,
     tier: 'build',
     instructions: mission.instructions,
     skills: [mission.service, 'sandbox'],
   }];
 }
 
-function labRounds(tier: Tier) {
-  const pool = [
-    ...Object.values(LAB_SKILL_QUESTIONS).flat(),
-    ...LAB_GENERIC_QUESTIONS,
-  ].filter((q) => q.type === 'multiple_choice' && q.options?.length);
-  const picked = pickDeterministic(pool, MAX_ROUNDS - 1, `lab-${tier}-${Date.now() / 86400000 | 0}`);
+function labRounds(tier: Tier, category: string) {
+  // `category` mirrors the Lab Quiz topic filter — a skill key from
+  // LAB_SKILL_QUESTIONS (statistics, python, machine_learning, …) or 'all'.
+  const source =
+    category === 'all'
+      ? [...Object.values(LAB_SKILL_QUESTIONS).flat(), ...LAB_GENERIC_QUESTIONS]
+      : [...(LAB_SKILL_QUESTIONS[category] ?? []), ...LAB_GENERIC_QUESTIONS];
+  const pool = source.filter((q) => q.type === 'multiple_choice' && q.options?.length);
+  const picked = pickDeterministic(pool, MAX_ROUNDS - 1, `lab-${category}-${tier}-${Date.now() / 86400000 | 0}`);
   const quizzes = picked.map((q, i) => ({
     type: 'quiz',
     id: `lab-${i}`,
@@ -121,7 +128,7 @@ function labRounds(tier: Tier) {
   return [...quizzes, {
     type: 'python',
     id: duel.id,
-    name: `⚒ Code Duel · ${duel.name}`,
+    name: `Code Duel · ${duel.name}`,
     tier: 'build',
     instructions: duel.instructions,
     setup: duel.setup,
@@ -145,8 +152,8 @@ export async function GET(req: NextRequest) {
   const tier = (TIERS.includes(tierParam as Tier) ? tierParam : 'rookie') as Tier;
 
   let rounds: any[] | null = null;
-  if (verse === 'cloud') rounds = cloudRounds(tier);
-  else if (verse === 'lab') rounds = labRounds(tier);
+  if (verse === 'cloud') rounds = cloudRounds(tier, domain === 'all' ? 'all' : domain);
+  else if (verse === 'lab') rounds = labRounds(tier, domain === 'all' ? 'all' : domain);
   else rounds = await sqlRounds(domain, tier);
 
   if (!rounds) {

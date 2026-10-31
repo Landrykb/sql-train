@@ -54,8 +54,9 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
             <div className="mx-auto mb-3 flex justify-center"><BleepxFace size={48} /></div>
             <h2 className="text-xl font-bold text-bleepx-text mb-2">Sign in to continue</h2>
             <p className="text-sm text-bleepx-text-secondary mb-5">
-              *bleep* You can browse everything freely, but to <strong>{action || 'solve challenges'}</strong> we need you to sign in with GitHub.
+              *bleep* You can browse and run everything freely — to <strong>{action || 'solve challenges'}</strong> we ask you to sign in with GitHub.
               This lets us save your progress, award points, and push your work to your own repo.
+              GitHub will ask for <code>public_repo</code> access — we only ever create and push to <em>your</em> portfolio repo.
             </p>
             <div className="flex flex-col gap-2">
               <button

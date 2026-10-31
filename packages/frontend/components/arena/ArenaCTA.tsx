@@ -1,42 +1,54 @@
 import Link from 'next/link';
-import { VERSE_ACCENT, ARENA_BG } from '@/lib/arena/theme';
+import { Swords } from 'lucide-react';
 
-// The one dominant call on every verse landing — Hick's law: a single
-// glowing action the eye lands on first. Verse-aware: the accent and the
-// target arena match the page the user is standing on.
+// One dominant call on every verse landing. Styled like the verse's other
+// section banners (gradient + soft border), accent matched to the verse so
+// it reads as part of the same product — no neon glow.
 const COPY = {
-  sql: { name: 'SQL Arena', blurb: 'Real queries, live execution. Fastest correct result wins.' },
-  lab: { name: 'Lab Arena', blurb: 'Quiz duels + real Python code duels in Pyodide.' },
-  cloud: { name: 'Cloud Arena', blurb: 'Quiz duels + real build missions in the AWS sandbox.' },
+  sql: {
+    name: 'SQL Arena',
+    blurb: 'Real queries, live execution. Fastest correct result wins.',
+    card: 'from-indigo-900 via-violet-900 to-purple-900 border-violet-500/30 hover:shadow-violet-500/20',
+    hoverText: 'group-hover:text-violet-300',
+    icon: 'text-violet-300',
+    button: 'bg-violet-500 hover:bg-violet-400',
+  },
+  lab: {
+    name: 'Lab Arena',
+    blurb: 'Quiz duels + real Python code duels in Pyodide.',
+    card: 'from-emerald-900 via-teal-900 to-cyan-900 border-teal-500/30 hover:shadow-teal-500/20',
+    hoverText: 'group-hover:text-teal-300',
+    icon: 'text-teal-300',
+    button: 'bg-teal-500 hover:bg-teal-400',
+  },
+  cloud: {
+    name: 'Cloud Arena',
+    blurb: 'Quiz duels + real build missions in the AWS sandbox.',
+    card: 'from-sky-900 via-blue-900 to-indigo-900 border-sky-500/30 hover:shadow-sky-500/20',
+    hoverText: 'group-hover:text-sky-300',
+    icon: 'text-sky-300',
+    button: 'bg-sky-500 hover:bg-sky-400',
+  },
 } as const;
 
 export default function ArenaCTA({ verse }: { verse: 'sql' | 'lab' | 'cloud' }) {
-  const accent = VERSE_ACCENT[verse];
   const copy = COPY[verse];
   return (
     <Link
       href={`/arena?verse=${verse}`}
-      className="group relative block overflow-hidden rounded-2xl border-2 p-5 sm:p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl"
-      style={{ borderColor: `${accent.hex}66`, background: `linear-gradient(135deg, ${ARENA_BG} 0%, #1C2129 100%)`, boxShadow: `0 0 40px -18px ${accent.hex}` }}
+      className={`group block bg-gradient-to-br ${copy.card} border-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5`}
     >
-      <div className="absolute inset-0 opacity-[0.07] pointer-events-none" style={{ background: `radial-gradient(circle at 85% 20%, ${accent.hex}, transparent 60%)` }} />
-      <div className="relative flex items-center gap-4">
-        <div className="text-4xl sm:text-5xl" aria-hidden>⚔️</div>
+      <div className="p-5 flex items-center gap-4">
+        <div className={`${copy.icon} flex-shrink-0`}><Swords size={32} /></div>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: accent.hex }}>The Arena</p>
-          <h3 className="text-lg sm:text-2xl font-black text-white leading-tight mt-0.5">
+          <h3 className={`font-extrabold text-white text-lg ${copy.hoverText} transition-colors break-words min-w-0`}>
             Enter the {copy.name}
           </h3>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Your champion fights. You call the shots. {copy.blurb}
-          </p>
+          <p className="text-sm text-gray-400 mt-0.5">Your champion fights. You call the shots. {copy.blurb}</p>
         </div>
-        <div
-          className="shrink-0 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full font-black text-sm sm:text-base transition-transform group-hover:scale-105"
-          style={{ background: accent.hex, color: accent.onHex }}
-        >
-          FIGHT →
-        </div>
+        <span className={`shrink-0 px-4 sm:px-6 py-2.5 rounded-full ${copy.button} text-white font-bold text-sm transition-colors inline-flex items-center gap-1.5`}>
+          <Swords size={14} /> FIGHT
+        </span>
       </div>
     </Link>
   );

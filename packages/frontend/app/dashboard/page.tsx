@@ -10,6 +10,7 @@ import { BleepxFace } from '@/components/BleepxIcons';
 import { VerseIcon } from '@/components/NavIcons';
 import { SchoolIcon, EditIcon } from '@/components/AppIcons';
 import { CrossVerseIcon } from '@/components/NavIcons';
+import { SAA_TOTAL_STEPS } from '@/app/cloud/certifications/page';
 
 const SQL_DOMAINS = Object.keys(caseOrder);
 const SAA_STORAGE = 'bleepx-saa-checklist';
@@ -82,7 +83,7 @@ export default function DashboardPage() {
     });
 
     // SAA
-    const saaTotal = 16; // 4 steps per 4 domains
+    const saaTotal = SAA_TOTAL_STEPS; // computed from the certifications checklist
     const saaDoneCount = saaDone.length;
 
     return {

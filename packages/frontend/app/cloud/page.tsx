@@ -119,7 +119,7 @@ export default function CloudHomePage() {
           <div className="text-sky-300 flex-shrink-0"><BrainIcon size={32} /></div>
           <div className="flex-1 min-w-0">
             <h3 className="font-extrabold text-white text-lg group-hover:text-sky-300 transition-colors break-words min-w-0">Cloud Quizzes</h3>
-            <p className="text-sm text-gray-400 mt-0.5">Rapid-fire scenario questions across AWS, Azure, GCP, ESG & FinOps — score 70%+ to earn points.</p>
+            <p className="text-sm text-gray-400 mt-0.5">Rapid-fire scenario questions across AWS, Azure & GCP — score 70%+ to earn points.</p>
             <div className="mt-2 flex items-center gap-3">
               <span className="text-xs text-gray-500">Pick a track or go multi-cloud</span>
               <span className="text-sky-400 text-xs inline-flex items-center gap-1"><GuideIcon size={14} /> Cloud Guide available</span>

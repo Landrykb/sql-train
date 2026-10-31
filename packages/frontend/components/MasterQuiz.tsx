@@ -249,17 +249,8 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
     } catch { /* ignore */ }
   }, []);
 
-  // Countdown effect
-  useEffect(() => {
-    if (countdown > 0 && redirectTarget) {
-      countdownRef.current = setTimeout(() => {
-        setCountdown((c) => c - 1);
-      }, 1000);
-      return () => { if (countdownRef.current) clearTimeout(countdownRef.current); };
-    } else if (countdown === 0 && redirectTarget) {
-      router.push(`/cases/trials/${redirectTarget.id}`);
-    }
-  }, [countdown, redirectTarget, router]);
+  // No auto-redirect — the related trial is a suggestion, not a hijack.
+  // Users choose "Go Now" or keep answering; navigation cancels it.
 
   const cancelRedirect = useCallback(() => {
     if (countdownRef.current) clearTimeout(countdownRef.current);
@@ -296,16 +287,25 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
     setAnswers(newAnswers);
 
     const newScore = isCorrect ? score + POINTS_PER_CORRECT : score;
-    if (isCorrect) setScore(newScore);
+    if (isCorrect) {
+      setScore(newScore);
+      // Award points immediately — one source of truth, same store the
+      // header tracker reads. Completion only adds the perfect bonus.
+      try {
+        const cur = parseInt(localStorage.getItem('bleepxPoints') || '0', 10);
+        localStorage.setItem('bleepxPoints', String(cur + POINTS_PER_CORRECT));
+        window.dispatchEvent(new Event('storage'));
+      } catch { /* ignore */ }
+    }
 
     // Save progress after each answer
     saveProgress(questions, newAnswers, currentIdx, newScore);
 
-    // Start redirect countdown if there's a related trial
+    // Suggest a related trial after the answer — no auto-redirect countdown.
     if (currentQ.relatedTrials.length > 0) {
       const randomTrial = currentQ.relatedTrials[Math.floor(Math.random() * currentQ.relatedTrials.length)];
       setRedirectTarget(randomTrial);
-      setCountdown(REDIRECT_SECONDS);
+      setCountdown(0);
     }
   }, [currentQ, answered, selected, textInput, answers, currentIdx, score, questions, saveProgress]);
 
@@ -321,7 +321,8 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
       // Award bonus points
       try {
         const currentPoints = parseInt(localStorage.getItem('bleepxPoints') || '0', 10);
-        localStorage.setItem('bleepxPoints', (currentPoints + finalScore).toString());
+        const bonus = finalScore - score; // perfect-run bonus only — answers already scored live
+        localStorage.setItem('bleepxPoints', (currentPoints + bonus).toString());
         localStorage.setItem('bleepx_master_quiz', JSON.stringify({
           score: finalScore,
           total: totalQuestions,
@@ -555,7 +556,7 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
             <div className="flex items-center gap-2 min-w-0">
               <BleepxGhost size={20} />
               <span className="text-sm text-indigo-800 dark:text-indigo-200 min-w-0 whitespace-normal break-words">
-                Redirecting to <strong className="break-all">{redirectTarget.name}</strong> in {countdown}s...
+                Related trial: <strong className="break-all">{redirectTarget.name}</strong>
               </span>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
@@ -563,7 +564,7 @@ export default function MasterQuiz({ trials }: MasterQuizProps) {
                 onClick={handleTryTrial}
                 className="px-3 py-1.5 rounded-full bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-colors"
               >
-                Go Now →
+                Try it →
               </button>
               <button
                 onClick={() => { cancelRedirect(); }}

@@ -46,7 +46,7 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
   const getTrialLockLabel = (caseId: string) => {
     const tier = CASE_TIERS[caseId] || 1;
     const req = TRIAL_TIER_UNLOCK[tier] || TRIAL_TIER_UNLOCK[1];
-    return `${req.label} (${req.minPoints} pts)`;
+    return `${req.label} — earn ${req.minPoints} total pts`;
   };
 
   const filteredCases = cases.filter((c, index) => {
@@ -200,7 +200,7 @@ export default function ClientCaseGrid({ cases, domain, nextCaseId }: Props) {
               )}
               {isEffectivelyLocked && isTrial && (
                 <div className="text-xs text-bleepx-gray mt-2 flex items-center gap-1.5">
-                  <BleepxLock size={16} /> Requires <strong>{getTrialLockLabel(c.id)}</strong> portfolio level
+                  <BleepxLock size={16} /> Requires <strong>{getTrialLockLabel(c.id)}</strong> tier
                 </div>
               )}
               {isEffectivelyLocked && !isTrial && c.prereq_cases && c.prereq_cases.length > 0 && (

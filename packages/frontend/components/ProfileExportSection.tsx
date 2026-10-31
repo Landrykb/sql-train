@@ -349,7 +349,7 @@ export default function ProfileExportSection({
           <FileText size={18} className="text-purple-600" /> Report Generation
         </h3>
         <p className="text-xs text-bleepx-text-secondary mb-3">
-          Purchase tiers to unlock AI-powered portfolio reports with graphs.
+          Spend earned points to unlock AI-powered portfolio reports with graphs.
         </p>
         {purchaseError && (
           <p className="text-xs text-red-600 mb-2">{purchaseError}</p>

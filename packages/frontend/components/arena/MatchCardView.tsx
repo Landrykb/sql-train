@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { Swords } from 'lucide-react';
 import { decodeMatchCard } from '@/lib/arena/matchCard';
 import { getChampion, RIVAL } from '@/lib/arena/champions';
 import { EVO_STAGES } from '@/lib/arena/evolution';
@@ -22,7 +23,7 @@ export default function MatchCardView() {
   if (!data) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6 text-center" style={{ background: BG }}>
-        <p className="text-4xl">⚔️</p>
+        <Swords size={34} className="text-slate-200" />
         <p className="text-slate-400 text-sm">This match card is empty or broken.</p>
         <Link href="/arena" className="px-6 py-3 rounded-2xl font-black text-sm" style={{ background: TEAL, color: '#0d1117' }}>
           ENTER THE ARENA
@@ -37,7 +38,7 @@ export default function MatchCardView() {
   const url = typeof window !== 'undefined' ? window.location.href : '';
 
   const share = async () => {
-    const text = `⚔️ ${champion.name} ${data.w}—${data.n - data.w} vs ${RIVAL.name} · ${data.v} · ${matchWon ? 'MATCH WON' : 'defeated'} — think your champion beats mine?`;
+    const text = `${champion.name} ${data.w}—${data.n - data.w} vs ${RIVAL.name} · ${data.v} · ${matchWon ? 'MATCH WON' : 'defeated'} — think your champion beats mine?`;
     try {
       if (navigator.share) {
         await navigator.share({ text, url });
@@ -73,7 +74,7 @@ export default function MatchCardView() {
               <div className="relative">
                 <img src={champion.sprite} alt={champion.name} className="w-20 h-20 rounded-full object-cover"
                   style={{ boxShadow: `0 0 24px ${stage.aura}88`, border: `2px solid ${stage.aura}` }} />
-                <span className="absolute -bottom-1 -right-1 text-base">{stage.emoji}</span>
+                
               </div>
               <p className="text-xs font-black" style={{ color: champion.color }}>{champion.name.toUpperCase()}</p>
               <p className="text-[9px] text-slate-500">{stage.name}{data.m === 'tagteam' ? ' + you' : ''}</p>
@@ -88,7 +89,7 @@ export default function MatchCardView() {
           </div>
 
           <p className="text-center text-xl font-black mb-1" style={{ color: matchWon ? '#4ADE80' : '#F87171' }}>
-            {matchWon ? '🏆 MATCH WON' : '💀 DEFEATED'}
+            {matchWon ? 'MATCH WON' : 'DEFEATED'}
           </p>
           {!!data.e && <p className="text-center text-[11px] font-bold mb-1" style={{ color: stage.aura }}>⚡ evolved this match</p>}
           <p className="text-center text-[11px] text-slate-400 mb-5">{data.v} · {data.t}</p>
@@ -117,7 +118,7 @@ export default function MatchCardView() {
         <Link href="/arena"
           className="mt-4 block w-full py-4 rounded-2xl font-black text-center text-[#0d1117] transition-transform active:scale-95"
           style={{ background: TEAL, boxShadow: `0 0 40px ${TEAL}55` }}>
-          THINK YOUR CHAMPION BEATS THIS? ENTER THE ARENA ⚔️
+          THINK YOUR CHAMPION BEATS THIS? ENTER THE ARENA
         </Link>
         <p className="text-center text-[10px] text-slate-600 mt-4">better bots. brighter wins.</p>
       </div>

@@ -107,7 +107,7 @@ export default function CloudMissionPage() {
   const params = useParams<{ provider: string; slug: string }>();
   const { provider, slug } = params;
   const { completed, markComplete } = useProgress();
-  const { user: ghUser, requireAuth, GateComponent } = useAuthGate();
+  const { requireAuth, GateComponent } = useAuthGate();
 
   if (!isCloudProvider(provider)) notFound();
   const p = provider as CloudProvider;
@@ -188,8 +188,10 @@ export default function CloudMissionPage() {
   const handleComplete = useCallback(() => {
     if (isDone) return;
     markComplete(missionCaseId, tier);
+    // Save-time gate: guests run everything; sign-in is asked when they win.
+    requireAuth('save your mission progress and earn points');
     playBleep();
-  }, [isDone, markComplete, missionCaseId, tier]);
+  }, [isDone, markComplete, missionCaseId, tier, requireAuth]);
 
   const canComplete = isScenario
     ? sandboxDone
@@ -200,28 +202,6 @@ export default function CloudMissionPage() {
         : reviewed;
 
   const template = mission.labType === 'iac' ? iacTemplate(p, mission) : null;
-
-  // Render the auth gate component
-  if (!ghUser?.login) {
-    return (
-      <>
-        <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-20 min-w-0">
-          {/* Breadcrumb */}
-          <nav className="text-xs sm:text-sm text-bleepx-text-secondary flex items-center gap-1.5 flex-wrap">
-            <Link href="/cloud" className="hover:underline">BleepxCloud</Link>
-            <span>/</span>
-            <Link href={`/cloud/${p}`} className="hover:underline">{meta.short}</Link>
-            <span>/</span>
-            <span className="font-semibold text-bleepx-gray whitespace-normal break-words">{mission.title}</span>
-          </nav>
-          <div className="bg-bleepx-white rounded-xl border border-bleepx-border p-8 text-center">
-            <p className="text-bleepx-text-secondary">Loading authentication...</p>
-          </div>
-        </main>
-        {GateComponent()}
-      </>
-    );
-  }
 
   return (
     <main className="max-w-5xl mx-auto px-2 md:px-4 py-4 space-y-5 bg-bleepx-bg min-h-screen pb-20 min-w-0">

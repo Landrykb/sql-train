@@ -58,7 +58,7 @@ export default async function VisualizationsPage({
 
       <header className="bg-gradient-to-r from-bleepx-blue/10 to-bleepx-pink/10 p-4 sm:p-6 rounded-xl">
         <h1 className="text-2xl sm:text-3xl font-bold text-bleepx-text break-words">{caseName} — Visualizations</h1>
-        <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-1">*bleep* Charts generated from your SQL query results. View code, learn, and export.</p>
+        <p className="text-xs sm:text-sm text-bleepx-text-secondary mt-1">*bleep* Preset charts for this case — view the code, learn, and export.</p>
       </header>
 
       <Visualizations domain={normalizedDomain} caseId={caseId} datasets={datasets} />

@@ -114,25 +114,25 @@ const INTERVENTION_PROMPTS: Record<string, { prompt: string; choices: IntervChoi
     {
       prompt: 'EXPLAIN shows a full seq scan over 2M rows — VEX-7\'s plan is faster. The call:',
       choices: [
-        { id: 'safe', emoji: '🛡️', label: 'Composite index (region, ts)', hint: 'covering index — reliable', winBoost: 0.35 },
-        { id: 'rush', emoji: '💨', label: 'CTE + early pre-filter', hint: 'planner may still seq-scan', winBoost: 0.15 },
-        { id: 'wild', emoji: '🎲', label: 'Materialized view', hint: 'huge win or locking pain', winBoost: 0.02 },
+        { id: 'safe', emoji: '', label: 'Composite index (region, ts)', hint: 'covering index — reliable', winBoost: 0.35 },
+        { id: 'rush', emoji: '', label: 'CTE + early pre-filter', hint: 'planner may still seq-scan', winBoost: 0.15 },
+        { id: 'wild', emoji: '', label: 'Materialized view', hint: 'huge win or locking pain', winBoost: 0.02 },
       ],
     },
     {
       prompt: 'N+1 detected — 400 queries per render. Quick — the fix:',
       choices: [
-        { id: 'fix', emoji: '🔧', label: 'Batch into one JOIN', hint: 'set-based, always lands', winBoost: 0.35 },
-        { id: 'force', emoji: '⚡', label: 'LATERAL join per group', hint: 'elegant but fiddly', winBoost: 0.15 },
-        { id: 'pray', emoji: '🙏', label: 'Cache in app memory', hint: 'fast demo, stale data', winBoost: 0.02 },
+        { id: 'fix', emoji: '', label: 'Batch into one JOIN', hint: 'set-based, always lands', winBoost: 0.35 },
+        { id: 'force', emoji: '', label: 'LATERAL join per group', hint: 'elegant but fiddly', winBoost: 0.15 },
+        { id: 'pray', emoji: '', label: 'Cache in app memory', hint: 'fast demo, stale data', winBoost: 0.02 },
       ],
     },
     {
       prompt: 'The big join is timing out — VEX-7 is gaining. The play:',
       choices: [
-        { id: 'defend', emoji: '🧱', label: 'Pre-aggregate in subquery', hint: 'shrinks the join input', winBoost: 0.35 },
-        { id: 'counter', emoji: '🥊', label: 'Window fn over join', hint: 'one pass — powerful, tricky', winBoost: 0.15 },
-        { id: 'gamble', emoji: '🃏', label: 'Partition table by date', hint: 'right answer, wrong deadline', winBoost: 0.02 },
+        { id: 'defend', emoji: '', label: 'Pre-aggregate in subquery', hint: 'shrinks the join input', winBoost: 0.35 },
+        { id: 'counter', emoji: '', label: 'Window fn over join', hint: 'one pass — powerful, tricky', winBoost: 0.15 },
+        { id: 'gamble', emoji: '', label: 'Partition table by date', hint: 'right answer, wrong deadline', winBoost: 0.02 },
       ],
     },
   ],
@@ -140,25 +140,25 @@ const INTERVENTION_PROMPTS: Record<string, { prompt: string; choices: IntervChoi
     {
       prompt: 'Lambda is cold-starting on every burst — latency is bleeding. The call:',
       choices: [
-        { id: 'safe', emoji: '🛡️', label: 'Provisioned concurrency', hint: 'warm pools, predictable', winBoost: 0.35 },
-        { id: 'rush', emoji: '💨', label: 'Trim deps into one layer', hint: 'shaves init, fiddly bundle', winBoost: 0.15 },
-        { id: 'wild', emoji: '🎲', label: 'SnapStart pre-warmed snapshot', hint: 'great or config hell', winBoost: 0.02 },
+        { id: 'safe', emoji: '', label: 'Provisioned concurrency', hint: 'warm pools, predictable', winBoost: 0.35 },
+        { id: 'rush', emoji: '', label: 'Trim deps into one layer', hint: 'shaves init, fiddly bundle', winBoost: 0.15 },
+        { id: 'wild', emoji: '', label: 'SnapStart pre-warmed snapshot', hint: 'great or config hell', winBoost: 0.02 },
       ],
     },
     {
       prompt: 'Audit flags an over-privileged IAM role mid-mission. The fix:',
       choices: [
-        { id: 'fix', emoji: '🔧', label: 'Least-privilege ARNs only', hint: 'correct, slower to write', winBoost: 0.35 },
-        { id: 'force', emoji: '⚡', label: 'Wild resources, tight actions', hint: 'passes check, thin ice', winBoost: 0.15 },
-        { id: 'pray', emoji: '🙏', label: 'Ship admin, fix later', hint: 'never ends well', winBoost: 0.02 },
+        { id: 'fix', emoji: '', label: 'Least-privilege ARNs only', hint: 'correct, slower to write', winBoost: 0.35 },
+        { id: 'force', emoji: '', label: 'Wild resources, tight actions', hint: 'passes check, thin ice', winBoost: 0.15 },
+        { id: 'pray', emoji: '', label: 'Ship admin, fix later', hint: 'never ends well', winBoost: 0.02 },
       ],
     },
     {
       prompt: 'Pipeline bottleneck — everything queues behind one worker. The play:',
       choices: [
-        { id: 'defend', emoji: '🧱', label: 'Fan out: SQS + workers', hint: 'classic decoupling', winBoost: 0.35 },
-        { id: 'counter', emoji: '🥊', label: 'Parallel Step Functions', hint: 'powerful, easy to miswire', winBoost: 0.15 },
-        { id: 'gamble', emoji: '🃏', label: 'Bigger instance', hint: 'money, not architecture', winBoost: 0.02 },
+        { id: 'defend', emoji: '', label: 'Fan out: SQS + workers', hint: 'classic decoupling', winBoost: 0.35 },
+        { id: 'counter', emoji: '', label: 'Parallel Step Functions', hint: 'powerful, easy to miswire', winBoost: 0.15 },
+        { id: 'gamble', emoji: '', label: 'Bigger instance', hint: 'money, not architecture', winBoost: 0.02 },
       ],
     },
   ],
@@ -166,25 +166,25 @@ const INTERVENTION_PROMPTS: Record<string, { prompt: string; choices: IntervChoi
     {
       prompt: 'A Python loop is crawling 500k rows — VEX-7 is way ahead. The call:',
       choices: [
-        { id: 'safe', emoji: '🛡️', label: 'Vectorize with np.where', hint: 'SIMD speed, usually lands', winBoost: 0.35 },
-        { id: 'rush', emoji: '💨', label: 'multiprocessing.Pool', hint: 'fast — pickling may bite', winBoost: 0.15 },
-        { id: 'wild', emoji: '🎲', label: 'Numba @njit hot loop', hint: 'compiler magic or type errors', winBoost: 0.02 },
+        { id: 'safe', emoji: '', label: 'Vectorize with np.where', hint: 'SIMD speed, usually lands', winBoost: 0.35 },
+        { id: 'rush', emoji: '', label: 'multiprocessing.Pool', hint: 'fast — pickling may bite', winBoost: 0.15 },
+        { id: 'wild', emoji: '', label: 'Numba @njit hot loop', hint: 'compiler magic or type errors', winBoost: 0.02 },
       ],
     },
     {
       prompt: 'Dataset load is blowing up memory. Quick — the fix:',
       choices: [
-        { id: 'fix', emoji: '🔧', label: 'Downcast dtypes + categoricals', hint: 'often 10x smaller', winBoost: 0.35 },
-        { id: 'force', emoji: '⚡', label: 'Stream with chunks=', hint: 'works, code gets ugly', winBoost: 0.15 },
-        { id: 'pray', emoji: '🙏', label: 'Just load a sample', hint: 'fast demo, wrong answer', winBoost: 0.02 },
+        { id: 'fix', emoji: '', label: 'Downcast dtypes + categoricals', hint: 'often 10x smaller', winBoost: 0.35 },
+        { id: 'force', emoji: '', label: 'Stream with chunks=', hint: 'works, code gets ugly', winBoost: 0.15 },
+        { id: 'pray', emoji: '', label: 'Just load a sample', hint: 'fast demo, wrong answer', winBoost: 0.02 },
       ],
     },
     {
       prompt: 'A bug slipped in — groupby returns wrong aggregates. The play:',
       choices: [
-        { id: 'defend', emoji: '🧱', label: '.pipe() assertion chain', hint: 'methodical, solid', winBoost: 0.35 },
-        { id: 'counter', emoji: '🥊', label: 'Pure-dict reduce rewrite', hint: 'dodges pandas quirks', winBoost: 0.15 },
-        { id: 'gamble', emoji: '🃏', label: 'Monkey-patch the agg', hint: 'works until it doesn\'t', winBoost: 0.02 },
+        { id: 'defend', emoji: '', label: '.pipe() assertion chain', hint: 'methodical, solid', winBoost: 0.35 },
+        { id: 'counter', emoji: '', label: 'Pure-dict reduce rewrite', hint: 'dodges pandas quirks', winBoost: 0.15 },
+        { id: 'gamble', emoji: '', label: 'Monkey-patch the agg', hint: 'works until it doesn\'t', winBoost: 0.02 },
       ],
     },
   ],
@@ -286,7 +286,7 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
       awardChampionXp(champ.id, xp);
       const recap = `While you were away: ${champ.name} picked ${fights} fight${fights > 1 ? 's' : ''} — ${w}W ${fights - w}L · +${xp}XP.`;
       setAwayRecap(recap);
-      sileo.show({ title: '🌙 While you were away', description: recap, button: { title: 'See results', onClick: () => { window.location.href = '/arena'; } } });
+      sileo.show({ title: 'While you were away', description: recap, button: { title: 'See results', onClick: () => { window.location.href = '/arena'; } } });
     } catch { /* ignore */ }
   }, []);
 
@@ -314,7 +314,7 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
         const champ = getChampion(fresh[0].champ);
         const recap = `While you were away: ${champ.name} picked ${fresh.length} fight${fresh.length > 1 ? 's' : ''} — ${w}W ${fresh.length - w}L.`;
         setAwayRecap(recap);
-        sileo.show({ title: '🌙 While you were away', description: recap, button: { title: 'See results', onClick: () => { window.location.href = '/arena'; } } });
+        sileo.show({ title: 'While you were away', description: recap, button: { title: 'See results', onClick: () => { window.location.href = '/arena'; } } });
       } catch { /* ignore */ }
     };
     document.addEventListener('visibilitychange', onVis);
@@ -369,9 +369,9 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
     const nextRival = s.isDaily ? s.rivalName : GHOST_RIVALS[Math.floor(Math.random() * GHOST_RIVALS.length)];
     if (done) {
       const w = results.filter((r) => r.won).length;
-      notify('🏁 Gauntlet done', `${champ.name} — ${w}W ${results.length - w}L · +${s.xpEarned}XP`);
+      notify('Gauntlet done', `${champ.name} — ${w}W ${results.length - w}L · +${s.xpEarned}XP`);
       sileo.success({
-        title: '🏁 Gauntlet done',
+        title: 'Gauntlet done',
         description: `${champ.name} — ${w}W ${results.length - w}L · +${s.xpEarned}XP`,
         button: { title: 'See results', onClick: () => { window.location.href = '/arena'; } },
       });
@@ -403,7 +403,7 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
         round: 0,
         champHp: 100,
         rivalHp: 100,
-        lastEvent: won ? `${champ.name} takes the match! 🏆` : `${champ.name} drops the match…`,
+        lastEvent: won ? `${champ.name} takes the match!` : `${champ.name} drops the match…`,
         codeLine: '',
       },
     }));
