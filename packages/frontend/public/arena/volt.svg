@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" shape-rendering="crispEdges">
+  <rect width="64" height="64" rx="14" fill="#3a2f00"/>
+  <!-- antenna -->
+  <rect x="30" y="4" width="4" height="6" fill="#FACC15"/>
+  <rect x="28" y="2" width="8" height="3" fill="#FDE047"/>
+  <!-- head -->
+  <rect x="10" y="10" width="44" height="34" rx="6" fill="#1c1600" stroke="#FACC15" stroke-width="2"/>
+  <!-- visor eyes: speed lines -->
+  <rect x="16" y="20" width="32" height="12" rx="3" fill="#0a0800"/>
+  <rect x="18" y="23" width="10" height="6" rx="1" fill="#FDE047"/>
+  <rect x="36" y="23" width="10" height="6" rx="1" fill="#FDE047"/>
+  <rect x="30" y="21" width="4" height="10" fill="#FACC15" opacity="0.55"/>
+  <!-- mouth: grimace -->
+  <rect x="22" y="37" width="20" height="3" fill="#FACC15"/>
+  <rect x="22" y="37" width="3" height="5" fill="#FACC15"/>
+  <rect x="39" y="37" width="3" height="5" fill="#FACC15"/>
+  <!-- bolt emblem -->
+  <rect x="26" y="48" width="6" height="4" fill="#FDE047"/>
+  <rect x="30" y="52" width="6" height="4" fill="#FDE047"/>
+  <rect x="32" y="56" width="4" height="4" fill="#FDE047"/>
+</svg>

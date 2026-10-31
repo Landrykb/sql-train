@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" shape-rendering="crispEdges">
+  <rect width="64" height="64" rx="14" fill="#0b2b2b"/>
+  <!-- antenna -->
+  <rect x="30" y="4" width="4" height="6" fill="#5EEAD4"/>
+  <rect x="28" y="2" width="8" height="3" fill="#99F6E4"/>
+  <!-- head -->
+  <rect x="10" y="10" width="44" height="34" rx="6" fill="#052020" stroke="#5EEAD4" stroke-width="2"/>
+  <!-- monocle eye pieces (professor glasses) -->
+  <rect x="16" y="20" width="14" height="12" rx="3" fill="#0a2e2e"/>
+  <rect x="34" y="20" width="14" height="12" rx="3" fill="#0a2e2e"/>
+  <rect x="18" y="23" width="10" height="6" rx="1" fill="#99F6E4"/>
+  <rect x="36" y="23" width="10" height="6" rx="1" fill="#99F6E4"/>
+  <!-- bridge -->
+  <rect x="30" y="24" width="4" height="2" fill="#5EEAD4"/>
+  <!-- calm mouth -->
+  <rect x="26" y="38" width="12" height="3" rx="1" fill="#5EEAD4"/>
+  <!-- book emblem -->
+  <rect x="24" y="48" width="16" height="12" rx="1" fill="#0f3d3d" stroke="#5EEAD4" stroke-width="1.5"/>
+  <rect x="30" y="48" width="4" height="12" fill="#5EEAD4" opacity="0.5"/>
+</svg>

@@ -478,7 +478,7 @@ export function ArenaRunnerProvider({ children }: { children: React.ReactNode })
     clear();
     const s = st.current;
     const champ = getChampion(s.championId);
-    setState((p) => ({ ...p, intervention: null, fight: { ...p.fight, lastEvent: `You called ${choice.emoji} ${choice.label}…` } }));
+    setState((p) => ({ ...p, intervention: null, fight: { ...p.fight, lastEvent: `You called ${choice.label}…` } }));
     timer.current = setTimeout(() => {
       const won = Math.random() < 0.3 + choice.winBoost * 1.6; // safe ≈ 86%, rush ≈ 54%, wild ≈ 33%
       matchWins.current[won ? 'champ' : 'rival'] += 1;

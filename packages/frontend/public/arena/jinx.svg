@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" shape-rendering="crispEdges">
+  <rect width="64" height="64" rx="14" fill="#3b1028"/>
+  <!-- antenna -->
+  <rect x="30" y="4" width="4" height="6" fill="#F472B6"/>
+  <rect x="28" y="2" width="8" height="3" fill="#F9A8D4"/>
+  <!-- head -->
+  <rect x="10" y="10" width="44" height="34" rx="6" fill="#2a0b1d" stroke="#F472B6" stroke-width="2"/>
+  <!-- eyes: one X one dot (glitch) -->
+  <rect x="16" y="20" width="14" height="12" rx="3" fill="#3d1229"/>
+  <rect x="34" y="20" width="14" height="12" rx="3" fill="#3d1229"/>
+  <rect x="19" y="23" width="3" height="3" fill="#F9A8D4"/>
+  <rect x="24" y="26" width="3" height="3" fill="#F9A8D4"/>
+  <rect x="19" y="29" width="3" height="3" fill="#F9A8D4"/>
+  <rect x="24" y="23" width="3" height="3" fill="#F9A8D4"/>
+  <rect x="38" y="25" width="6" height="4" rx="1" fill="#F9A8D4"/>
+  <!-- crooked smile -->
+  <rect x="24" y="37" width="16" height="3" fill="#F472B6"/>
+  <rect x="38" y="34" width="3" height="3" fill="#F472B6"/>
+  <!-- dice pips emblem -->
+  <rect x="24" y="48" width="16" height="12" rx="2" fill="#4a1733" stroke="#F472B6" stroke-width="1.5"/>
+  <rect x="27" y="51" width="3" height="3" fill="#F9A8D4"/>
+  <rect x="34" y="51" width="3" height="3" fill="#F9A8D4"/>
+  <rect x="30" y="56" width="3" height="3" fill="#F9A8D4"/>
+</svg>

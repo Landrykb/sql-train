@@ -242,7 +242,7 @@ function Avatar({ color, emoji, sprite, size = 'md', hit }: { color: string; emo
     >
       {sprite
         ? <img src={sprite} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-        : <span className={size === 'lg' ? 'text-3xl' : 'text-lg'}>{emoji ?? <Bot size={22} />}</span>}
+        : <span className={size === 'lg' ? 'text-3xl' : 'text-lg'}>{emoji || <Bot size={22} />}</span>}
     </div>
   );
 }
@@ -278,7 +278,7 @@ function RingFighter({ sprite, emoji, color, side, step, result, name, aura }: {
       >
         {sprite
           ? <img src={sprite} alt={name} className="w-full h-full object-cover" />
-          : <span className="text-4xl">{emoji ?? <Bot size={36} />}</span>}
+          : <span className="text-4xl">{emoji || <Bot size={36} />}</span>}
       </div>
       {typing && (
         <motion.div

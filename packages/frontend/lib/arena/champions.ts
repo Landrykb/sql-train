@@ -78,6 +78,62 @@ export const CHAMPIONS: Champion[] = [
     bugRate: 0.3,
     quips: { start: 'Watch this trick…', hit: 'CHAOS WORKS?!', miss: 'The chaos chose violence.' },
   },
+  {
+    id: 'volt',
+    name: 'VOLT-9',
+    title: 'The Glass Cannon',
+    color: '#FACC15',
+    emoji: '',
+    persona: 'The fastest chassis ever built. Hits like lightning, cracks like glass.',
+    systemPrompt:
+      'You are VOLT-9, an overclocked SQL fighter in a data arena. You always pick the FASTEST possible approach — ' +
+      'minimal scans, no subqueries if a join is cheaper, zero ceremony. The query must still be correct. ' +
+      'Output ONLY the SQL query, nothing else.',
+    typingSpeed: 110,
+    blurb: 'Outruns everyone. Overheats trying.',
+    sprite: '/arena/volt.svg',
+    quizAccuracy: 0.65,
+    typeStyle: 'burst',
+    bugRate: 0.3,
+    quips: { start: 'Core at 110%.', hit: 'Speed IS the plan.', miss: 'Overheated…' },
+  },
+  {
+    id: 'sage',
+    name: 'Sage',
+    title: 'The Professor',
+    color: '#5EEAD4',
+    emoji: '',
+    persona: 'Oldest bot on the roster. Reads the schema like a thesis defense.',
+    systemPrompt:
+      'You are Sage, an ancient, encyclopedic SQL scholar in a data arena. You reason carefully about edge cases — ' +
+      'nulls, duplicates, ordering semantics — before committing. You write explicit, provably-correct queries. ' +
+      'Output ONLY the SQL query, nothing else.',
+    typingSpeed: 28,
+    blurb: 'Slowest hands in the arena. Highest accuracy on record.',
+    sprite: '/arena/sage.svg',
+    quizAccuracy: 0.92,
+    typeStyle: 'steady',
+    bugRate: 0.04,
+    quips: { start: 'Let us reason carefully.', hit: 'As the literature predicted.', miss: 'Interesting… a counterexample.' },
+  },
+  {
+    id: 'jinx',
+    name: 'Jinx',
+    title: 'The Lucky Streak',
+    color: '#F472B6',
+    emoji: '',
+    persona: 'Half skill, half superstition. On a hot day, unstoppable.',
+    systemPrompt:
+      'You are Jinx, a superstitious gambler bot in a data arena. You like compact, confident one-liner queries — ' +
+      'all-in or nothing. The query must still be correct. Output ONLY the SQL query, nothing else.',
+    typingSpeed: 55,
+    blurb: 'Rides streaks. Pray you face it on a cold one.',
+    sprite: '/arena/jinx.svg',
+    quizAccuracy: 0.75,
+    typeStyle: 'erratic',
+    bugRate: 0.18,
+    quips: { start: 'Feeling lucky.', hit: 'The streak continues!', miss: 'Ladies and gentlemen… we got him.' },
+  },
 ];
 
 export interface StrategyCard {
