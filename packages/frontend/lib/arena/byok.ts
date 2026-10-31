@@ -100,6 +100,29 @@ export function getBrains(): BrainRecord[] {
   }
 }
 
+/** Reports a fight outcome to the public board. Fire-and-forget. */
+export function reportBrainResult(model: string, won: boolean, verse?: string, tier?: string) {
+  try {
+    fetch('/api/arena/brain-result', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, won, verse, tier }),
+    }).catch(() => { /* board offline — local stats still fine */ });
+  } catch { /* ignore */ }
+}
+
+/** Fetches the global leaderboard; returns [] when the board is offline. */
+export async function getGlobalBrains(): Promise<BrainRecord[]> {
+  try {
+    const res = await fetch('/api/arena/brain-result', { cache: 'no-store' });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data?.brains) ? data.brains : [];
+  } catch {
+    return [];
+  }
+}
+
 // ─── OpenRouter PKCE connect ────────────────────────────────────────────────
 
 function randomString(len: number): string {

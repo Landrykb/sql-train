@@ -30,7 +30,7 @@ import {
   Wind, Wrench, Clover, Swords as CounterIcon, Dices, Check, X, User,
   KeyRound,
 } from 'lucide-react';
-import { BYOK_MODELS, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
+import { BYOK_MODELS, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
 
 interface RoundDef {
   type: 'sql' | 'quiz' | 'python' | 'cloud';
@@ -352,6 +352,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   const [byok, setByokState] = useState<Byok | null>(null);
   const [byokModel, setByokModelState] = useState(BYOK_MODELS[0].id);
   const [brains, setBrains] = useState<BrainRecord[]>([]);
+  const [globalBrains, setGlobalBrains] = useState<BrainRecord[]>([]);
   const [verse, setVerse] = useState<Verse>(initialVerse ?? 'sql');
   const [domain, setDomain] = useState(() => VERSES.find((v) => v.id === (initialVerse ?? 'sql'))?.defaultCategory ?? 'business');
   const [tier, setTier] = useState<Tier>('rookie');
@@ -403,6 +404,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
     setByokState(getByok());
     setByokModelState(getByokModel());
     setBrains(getBrains());
+    getGlobalBrains().then(setGlobalBrains);
     for (const c of CHAMPIONS) syncTrainingXp(c.id);
     refreshProgress();
   }, [refreshProgress]);
@@ -863,10 +865,12 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       if (matchWon) st.wins += 1;
       st.xp += xp;
       localStorage.setItem('bleepxArenaStats', JSON.stringify(st));
-      // Brains scoreboard — which user's model wins most.
+      // Brains scoreboard — local stats + report to the public board.
       if (byok) {
         recordBrainResult(byok.model, matchWon);
         setBrains(getBrains());
+        reportBrainResult(byok.model, matchWon, verse, tier);
+        setTimeout(() => getGlobalBrains().then(setGlobalBrains), 800);
       }
     } catch { /* ignore storage errors */ }
     if (matchWon) grantXp(ARENA_XP.matchWon);
@@ -1125,10 +1129,12 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                   </p>
                 </div>
               )}
-              {brains.length > 0 && (
+              {(globalBrains.length > 0 ? globalBrains : brains).length > 0 && (
                 <div className="mt-2 pt-2 border-t border-slate-700/60">
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Brains scoreboard</p>
-                  {brains.slice(0, 3).map((b) => (
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+                    Brains scoreboard{globalBrains.length > 0 ? ' — global' : ' — yours'}
+                  </p>
+                  {(globalBrains.length > 0 ? globalBrains : brains).slice(0, 3).map((b) => (
                     <p key={b.model} className="text-[10px] text-slate-400 flex justify-between">
                       <span className="truncate">{BYOK_MODELS.find((m) => m.id === b.model)?.label ?? b.model}</span>
                       <span className="font-bold text-slate-300 ml-2 shrink-0">{b.w}W · {b.l}L</span>
