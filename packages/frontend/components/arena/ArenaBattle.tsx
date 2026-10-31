@@ -1083,8 +1083,9 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               </p>
               {byok ? (
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[11px] text-slate-300 min-w-0 truncate">
+                  <p className="text-[11px] text-slate-300 min-w-0">
                     Connected — {BYOK_MODELS.find((m) => m.id === byok.model)?.label ?? byok.model}
+                    <span className="block text-[9px] text-slate-500">Personality still applies — your champion can miss on its own.</span>
                   </p>
                   <button
                     onClick={() => { clearByok(); setByokState(null); }}
@@ -1111,7 +1112,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                     CONNECT &amp; AUTHORIZE
                   </button>
                   <p className="text-[9px] text-slate-500">
-                    Opens the model provider&apos;s sign-in — your key stays in this browser and is only used for your champion&apos;s solves.
+                    Opens the model provider&apos;s sign-in — your key stays in this browser and is only used for your champion&apos;s solves. Your champion&apos;s personality still applies — it can miss on its own.
                   </p>
                 </div>
               )}
