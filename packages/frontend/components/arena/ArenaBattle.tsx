@@ -9,6 +9,7 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { compareResults } from '@/lib/compare';
 import { CHAMPIONS, STRATEGY_CARDS, RIVAL, type Champion, type StrategyCard } from '@/lib/arena/champions';
@@ -23,6 +24,7 @@ import { dailyDuelSpec, getDuelStreak, getRivalRecords } from '@/lib/arena/daily
 import { encodeReplay, type ReplayEvent } from '@/lib/arena/replay';
 import { isVerified } from '@/lib/arena/verified';
 import { VERSE_ACCENT } from '@/lib/arena/theme';
+import { useProgress } from '@/lib/useProgress';
 import { VerseIcon } from '@/components/NavIcons';
 import {
   Swords, Shield, Zap, Sparkles, Bot, Crown, Egg, Dumbbell, Star,
@@ -374,6 +376,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   const [copied, setCopied] = useState(false);
   const [gauntletMatches, setGauntletMatches] = useState(5);
   const runner = useArenaRunner();
+  const { markComplete } = useProgress();
   const [xpAwarded, setXpAwarded] = useState(false);
   const [refLine, setRefLine] = useState('');
   const [banner, setBanner] = useState('');
@@ -392,6 +395,11 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   const evolved = getEvolvedStats(champion, prog.stage.level);
   const ACCENT = VERSE_ACCENT[verse].hex;
   const ON_ACCENT = VERSE_ACCENT[verse].onHex;
+  // Onboarding: train-first link matches the chosen verse + category.
+  const trainHref =
+    verse === 'sql' ? `/cases/${domain}`
+    : verse === 'cloud' ? (domain === 'all' ? '/cloud' : `/cloud/${domain}`)
+    : '/lab';
 
   const refreshProgress = useCallback(() => {
     const m: Record<string, ChampionProgress> = {};
@@ -776,6 +784,13 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
         ? `${label}'s code threw a bug mid-fight — ${RIVAL.name} punishes it!`
         : `${RIVAL.name} takes the round — ${possLabel} answer missed.${champ.error ? ` (${champ.error})` : ''}`;
 
+      // Progress either way: when the PLAYER wins a SQL case round in
+      // tag-team, they really solved that case — mark it complete in
+      // training so arena play and coursework advance the same progress.
+      if (isPlayerRound && champ.correct && round.type === 'sql' && round.id) {
+        markComplete(round.id, (round as any).tier ?? 1);
+      }
+
       setVerdict(v);
       const quip = champ.correct && champWon ? `${champion.name}: "${champion.quips.hit}"`
         : !champ.correct ? `${champion.name}: "${champion.quips.miss}"`
@@ -1151,6 +1166,19 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
             >
               <Swords size={20} /> ENTER THE ARENA
             </button>
+            {mode === 'tagteam' ? (
+              <p className="text-center text-[10px] text-slate-500 mt-2">
+                You fight the final round yourself — new to {verse === 'sql' ? 'SQL' : verse}?{' '}
+                <Link href={trainHref} className="font-bold underline underline-offset-2" style={{ color: ACCENT }}>
+                  Train first
+                </Link>{' '}
+                so you can carry your champion.
+              </p>
+            ) : (
+              <p className="text-center text-[10px] text-slate-500 mt-2">
+                Know your stuff? Tag in and fight a round yourself — your solves count as real case progress.
+              </p>
+            )}
             <p className="text-center text-[11px] text-slate-500">
               {mode === 'tagteam' ? 'You fight round 3 — your champion warms up on 1–2.' : `${champion.name} fights all ${MAX_ROUNDS_DISPLAY} rounds under ${strategy.name}.`}
             </p>

@@ -108,7 +108,7 @@ export default function HomePage() {
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="font-extrabold text-white text-lg sm:text-xl group-hover:text-indigo-300 transition-colors break-words min-w-0">
-                  Trials Arena
+                  Trials
                 </h3>
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider">
                   Timed

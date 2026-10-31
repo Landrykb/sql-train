@@ -34,7 +34,7 @@ const PATHS: Record<Goal, Step[]> = {
     { title: 'SQL Fundamentals', href: '/', resource: 'BleepxQuery', hint: 'Start with basics_select and basics filtering.', time: '1–2 weeks' },
     { title: 'Joins & Aggregations', href: '/cases/business', resource: 'Business cases', hint: 'Master JOIN, GROUP BY, HAVING, and CTEs.', time: '1–2 weeks' },
     { title: 'Window Functions', href: '/cases', resource: 'Advanced cases', hint: 'Use ROW_NUMBER, RANK, LEAD, LAG for ranking and trends.', time: '1 week' },
-    { title: 'Capstone', href: '/cases/trials/master-quiz', resource: 'Master Quiz', hint: 'Test everything in the trials arena.', time: '3 days' },
+    { title: 'Capstone', href: '/cases/trials/master-quiz', resource: 'Master Quiz', hint: 'Test everything in the trials.', time: '3 days' },
   ],
   python: [
     { title: 'Python Basics & Pandas', href: '/lab/churn/churn_explore', resource: 'BleepxLab', hint: 'Load data, inspect columns, and summarise.', time: '1 week' },
