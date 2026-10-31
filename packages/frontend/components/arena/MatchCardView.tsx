@@ -38,7 +38,7 @@ export default function MatchCardView() {
   const url = typeof window !== 'undefined' ? window.location.href : '';
 
   const share = async () => {
-    const text = `${champion.name} ${data.w}—${data.n - data.w} vs ${RIVAL.name} · ${data.v} · ${matchWon ? 'MATCH WON' : 'defeated'} — think your champion beats mine?`;
+    const text = `${champion.name} ${data.w}—${data.n - data.w} vs ${RIVAL.name} · ${data.v} · ${matchWon ? 'MATCH WON' : 'defeated'}${data.b ? ` · powered by ${data.b}` : ''} — think your champion beats mine?`;
     try {
       if (navigator.share) {
         await navigator.share({ text, url });
@@ -77,6 +77,7 @@ export default function MatchCardView() {
                 
               </div>
               <p className="text-xs font-black" style={{ color: champion.color }}>{champion.name.toUpperCase()}</p>
+              {data.b && <p className="text-[9px] text-slate-400 mt-0.5">powered by {data.b}</p>}
               <p className="text-[9px] text-slate-500">{stage.name}{data.m === 'tagteam' ? ' + you' : ''}</p>
             </div>
             <p className="text-5xl font-black text-white">{data.w}<span className="text-slate-600 mx-1">—</span>{data.n - data.w}</p>

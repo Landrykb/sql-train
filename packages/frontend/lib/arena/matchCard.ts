@@ -13,6 +13,7 @@ export interface MatchCardData {
   ms: number;  // avg solve+exec ms
   xp: number;  // xp earned
   e?: number;  // 1 = evolved this match
+  b?: string;  // brain — the model powering the champion (BYOK), e.g. "Llama 3.3 70B"
 }
 
 export function encodeMatchCard(data: MatchCardData): string {

@@ -866,6 +866,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   }, [phase, xpAwarded, xp, matchWon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const verseName = VERSES.find(v => v.id === verse)?.name ?? 'Arena';
+  const brainLabel = byok ? (BYOK_MODELS.find((m) => m.id === byok.model)?.label ?? byok.model) : null;
   const cardUrl = matchCardUrl({
     c: champion.id,
     st: prog.stage.level,
@@ -878,8 +879,9 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
     ms: avgMs,
     xp,
     e: evolvedThisMatch.current ? 1 : undefined,
+    b: brainLabel ?? undefined,
   });
-  const shareText = `${mode === 'tagteam' ? 'You + ' : ''}${champion.name} ${wins}—${totalRounds - wins} vs ${RIVAL.name} · ${verseName} · ${matchWon ? 'MATCH WON' : 'defeated'} — think your champion beats mine?`;
+  const shareText = `${mode === 'tagteam' ? 'You + ' : ''}${champion.name} ${wins}—${totalRounds - wins} vs ${RIVAL.name} · ${verseName} · ${matchWon ? 'MATCH WON' : 'defeated'}${brainLabel ? ` · powered by ${brainLabel}` : ''} — think your champion beats mine?`;
 
   // spectate link — encode the real rounds so anyone can re-watch the fight
   const replayUrl = phase === 'done' && results.length ? (() => {
@@ -1264,7 +1266,13 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
           <p className="text-center text-lg font-black mb-2 flex items-center justify-center gap-2" style={{ color: matchWon ? '#4ADE80' : '#F87171' }}>
             {matchWon ? <><Trophy size={18} /> MATCH WON</> : <><Skull size={18} /> DEFEATED</>}
           </p>
-          <p className="text-center text-[11px] text-slate-400 mb-5">{verseName} · {TIERS.find(t => t.id === tier)?.name}</p>
+          <p className="text-center text-[11px] text-slate-400">{verseName} · {TIERS.find(t => t.id === tier)?.name}</p>
+          {brainLabel && (
+            <p className="text-center text-[10px] text-slate-500 mt-1 flex items-center justify-center gap-1">
+              <KeyRound size={10} /> {champion.name} powered by {brainLabel} vs {RIVAL.name} house bot
+            </p>
+          )}
+          <div className="mb-5" />
           <div className="space-y-3 mb-5">
             <StatBar label="CORRECT" left={`${correct}/${totalRounds}`} right={`${results.filter((r) => r.rival.correct).length}/${totalRounds}`} pct={totalRounds ? (correct / totalRounds) * 100 : 0} />
             <StatBar label="AVG SOLVE TIME" left={`${(avgMs / 1000).toFixed(1)}s`} right={`${((results.reduce((a, r) => a + r.rival.solveMs + r.rival.execMs, 0) / Math.max(1, totalRounds)) / 1000).toFixed(1)}s`} pct={Math.min(100, 3000 / Math.max(1, avgMs) * 50)} />
@@ -1429,7 +1437,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
           emoji={isPlayerRound ? <User size={16} /> : champion.emoji}
           sprite={isPlayerRound ? undefined : champion.sprite}
           name={isPlayerRound ? 'YOU' : champion.name.toUpperCase()}
-          subtitle={isPlayerRound ? 'tagged in!' : `${prog.stage.name} · ${strategy.name}`}
+          subtitle={isPlayerRound ? 'tagged in!' : `${prog.stage.name} · ${strategy.name}${brainLabel ? ` · ${brainLabel}` : ''}`}
           step={step}
           sql={isQuiz ? '' : champSql}
           answer={isQuiz ? (isPlayerRound ? playerAnswer : champAnswer) : ''}
