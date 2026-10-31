@@ -97,9 +97,9 @@ export default function LinksPage() {
 
       {/* Social */}
       <div className="flex justify-center gap-3">
+        <a href="https://www.instagram.com/bleepx.builds" target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-full bg-bleepx-blue text-white text-sm font-bold hover:opacity-90 transition-colors">Instagram</a>
         <a href="https://www.linkedin.com/in/landrykb" target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-full border border-bleepx-border text-sm font-semibold text-bleepx-text hover:bg-bleepx-white transition-colors">LinkedIn</a>
         <a href="https://github.com/Landrykb" target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-full border border-bleepx-border text-sm font-semibold text-bleepx-text hover:bg-bleepx-white transition-colors">GitHub</a>
-        <a href="https://www.instagram.com/YOUR_HANDLE" target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-full border border-bleepx-border text-sm font-semibold text-bleepx-text hover:bg-bleepx-white transition-colors">Instagram</a>
       </div>
     </main>
   );
