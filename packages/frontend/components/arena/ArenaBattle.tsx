@@ -398,7 +398,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   // Onboarding: train-first link matches the chosen verse + category.
   const trainHref =
     verse === 'sql' ? `/cases/${domain}`
-    : verse === 'cloud' ? (domain === 'all' ? '/cloud' : `/cloud/${domain}`)
+    : verse === 'cloud' ? (domain === 'all' || domain === 'multi' ? '/cloud' : `/cloud/${domain}`)
     : '/lab';
 
   const refreshProgress = useCallback(() => {
