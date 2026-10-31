@@ -108,12 +108,17 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                       inputMode="numeric"
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && otp.length === 6) handleVerifyOtp(); }}
                       placeholder="6-digit code"
                       className="flex-1 min-w-0 px-3 py-2.5 rounded-full border border-bleepx-border text-sm text-bleepx-text bg-transparent text-center tracking-widest"
                     />
                     <button
                       onClick={handleVerifyOtp}
-                      className="px-4 py-2.5 rounded-full border border-bleepx-border text-sm font-bold text-bleepx-text hover:bg-bleepx-white transition-colors shrink-0"
+                      className={`px-4 py-2.5 rounded-full border text-sm font-bold transition-colors shrink-0 ${
+                        otp.length === 6
+                          ? 'bg-bleepx-blue border-bleepx-blue text-white hover:bg-blue-700'
+                          : 'border-bleepx-border text-bleepx-text-secondary'
+                      }`}
                     >
                       Verify
                     </button>
@@ -125,12 +130,17 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && email.trim()) handleEmailSignIn(); }}
                     placeholder="you@email.com"
                     className="flex-1 min-w-0 px-3 py-2.5 rounded-full border border-bleepx-border text-sm text-bleepx-text bg-transparent"
                   />
                   <button
                     onClick={handleEmailSignIn}
-                    className="px-4 py-2.5 rounded-full border border-bleepx-border text-sm font-bold text-bleepx-text hover:bg-bleepx-white transition-colors shrink-0"
+                    className={`px-4 py-2.5 rounded-full border text-sm font-bold transition-colors shrink-0 ${
+                      email.trim()
+                        ? 'bg-bleepx-blue border-bleepx-blue text-white hover:bg-blue-700'
+                        : 'border-bleepx-border text-bleepx-text-secondary'
+                    }`}
                   >
                     Email link
                   </button>
