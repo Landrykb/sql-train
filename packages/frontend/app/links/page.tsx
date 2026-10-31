@@ -1,6 +1,15 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { Swords, ArrowRight, Lock, Compass, Instagram, Send } from 'lucide-react';
+import { Swords, ArrowRight, Lock, Compass, Send } from 'lucide-react';
+
+// Brand glyph — lucide dropped brand icons; this is the IG camera mark.
+const InstagramIcon = ({ size = 18, className }: { size?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
 import BleepxLogo from '@/components/BleepxLogo';
 import { BleepxFace } from '@/components/BleepxIcons';
 import { VerseIcon } from '@/components/NavIcons';
@@ -127,7 +136,7 @@ export default function LinksPage() {
           className="flex items-center justify-center gap-2.5 w-full py-3.5 rounded-xl font-bold text-white text-sm transition-transform active:scale-95"
           style={{ background: 'linear-gradient(90deg, #833AB4, #E1306C 55%, #F77737)' }}
         >
-          <Instagram size={18} /> Instagram — @bleepx.builds
+          <InstagramIcon size={18} /> Instagram — @bleepx.builds
         </a>
         <a
           href="https://t.me/bleepxbuilds"
