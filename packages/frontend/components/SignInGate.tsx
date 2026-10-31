@@ -84,7 +84,7 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
             <h2 className="text-xl font-bold text-bleepx-text mb-2">Sign in to continue</h2>
             <p className="text-sm text-bleepx-text-secondary mb-5">
               *bleep* You can browse and run everything freely — to <strong>{action || 'solve challenges'}</strong> we ask you to sign in.
-              This lets us save your progress, award points, and sync across devices — GitHub also lets you push your work to your own repo.
+              New or returning — same flow, no password. Your progress saves and syncs; GitHub also lets you push your work to your own repo.
             </p>
             <div className="flex flex-col gap-2">
               <button
@@ -101,7 +101,7 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
               </div>
               {emailSent ? (
                 <div className="flex flex-col gap-2">
-                  <p className="text-xs text-bleepx-text">Check your inbox — we sent a sign-in link to <strong>{email}</strong>. Open it <strong>in this same browser</strong>, or enter the code:</p>
+                  <p className="text-xs text-bleepx-text">Check your inbox — we sent a link + code to <strong>{email}</strong>. Open it <strong>in this same browser</strong>, or enter the code:</p>
                   <div className="flex gap-2">
                     <input
                       type="text"
