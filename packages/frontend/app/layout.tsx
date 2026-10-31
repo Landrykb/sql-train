@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import Link from 'next/link';
 import NavHeader from '@/components/NavHeader';
 import AnalyticsProvider from '@/components/AnalyticsProvider';
+import SignupNudge from '@/components/SignupNudge';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import BleepxAssistant from '@/components/BleepxAssistant';
 import { ArenaRunnerProvider } from '@/components/arena/ArenaRunner';
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <AnalyticsProvider>
             <ArenaRunnerProvider>
             <NavHeader />
+            <SignupNudge />
             <main className="flex-1 flex flex-col max-w-5xl w-full mx-auto px-2 sm:px-6 py-3 sm:py-6 text-bleepx-text min-w-0">
               {children}
             </main>

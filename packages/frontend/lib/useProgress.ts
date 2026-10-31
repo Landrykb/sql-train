@@ -1,3 +1,4 @@
+import { noteGuestCompletion } from '@/lib/guestNudge';
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
@@ -27,6 +28,7 @@ export function useProgress() {
       localStorage.setItem('completedCases', JSON.stringify(completed));
       localStorage.setItem('bleepxPoints', pts.toString());
       localStorage.setItem('bleepxAchievements', JSON.stringify(achs));
+      noteGuestCompletion();
     } catch { /* quota */ }
   }, []);
 
