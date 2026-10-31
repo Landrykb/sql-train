@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { getGitHubUser, startGitHubLogin, setProviderTokenCookie, AUTH_CHANGE_EVENT } from '@/lib/authClient';
+import { getSupabaseBrowserClient } from '@/lib/supabase';
 import { track, Events } from '@/lib/analytics';
 import { BleepxFace } from './BleepxIcons';
 import { Skeleton, SkeletonButton } from './Skeleton';
@@ -24,7 +25,23 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
     }
   }, [open, action]);
 
+  const [email, setEmail] = useState('');
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailErr, setEmailErr] = useState('');
+
   if (!open) return null;
+
+  const handleEmailSignIn = async () => {
+    const sb = getSupabaseBrowserClient();
+    if (!sb || !email.trim()) return;
+    setEmailErr('');
+    const { error } = await sb.auth.signInWithOtp({
+      email: email.trim(),
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) setEmailErr(error.message);
+    else { setEmailSent(true); track(Events.AUTH_SIGN_IN_START, { from: 'gate', method: 'email' }); }
+  };
 
   const handleSignIn = async () => {
     setIsLoading(true);
@@ -54,9 +71,8 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
             <div className="mx-auto mb-3 flex justify-center"><BleepxFace size={48} /></div>
             <h2 className="text-xl font-bold text-bleepx-text mb-2">Sign in to continue</h2>
             <p className="text-sm text-bleepx-text-secondary mb-5">
-              *bleep* You can browse and run everything freely — to <strong>{action || 'solve challenges'}</strong> we ask you to sign in with GitHub.
-              This lets us save your progress, award points, and push your work to your own repo.
-              GitHub will ask for <code>public_repo</code> access — we only ever create and push to <em>your</em> portfolio repo.
+              *bleep* You can browse and run everything freely — to <strong>{action || 'solve challenges'}</strong> we ask you to sign in.
+              This lets us save your progress, award points, and sync across devices — GitHub also lets you push your work to your own repo.
             </p>
             <div className="flex flex-col gap-2">
               <button
@@ -66,6 +82,31 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                 <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
                 Sign in with GitHub
               </button>
+              <div className="flex items-center gap-2">
+                <div className="h-px flex-1 bg-bleepx-border" />
+                <span className="text-[10px] text-bleepx-text-secondary">or</span>
+                <div className="h-px flex-1 bg-bleepx-border" />
+              </div>
+              {emailSent ? (
+                <p className="text-xs text-bleepx-text">Check your inbox — we sent a magic link to <strong>{email}</strong>. Click it to sign in.</p>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@email.com"
+                    className="flex-1 min-w-0 px-3 py-2.5 rounded-full border border-bleepx-border text-sm text-bleepx-text bg-transparent"
+                  />
+                  <button
+                    onClick={handleEmailSignIn}
+                    className="px-4 py-2.5 rounded-full border border-bleepx-border text-sm font-bold text-bleepx-text hover:bg-bleepx-white transition-colors shrink-0"
+                  >
+                    Email link
+                  </button>
+                </div>
+              )}
+              {emailErr && <p className="text-xs text-red-500">{emailErr}</p>}
               <button onClick={onClose} className="w-full px-5 py-2 rounded-full text-bleepx-text-secondary text-xs hover:text-bleepx-text transition-colors">
                 Maybe later — keep browsing
               </button>
