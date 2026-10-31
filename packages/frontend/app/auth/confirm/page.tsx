@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getSupabaseBrowserClient } from '@/lib/supabase';
-import { BleepxFace } from '@/components/BleepxFace';
+import { BleepxFace } from '@/components/BleepxIcons';
 
 // Verifies email links via token_hash — works on ANY device/browser,
 // unlike the PKCE code exchange which is bound to the requesting browser.
