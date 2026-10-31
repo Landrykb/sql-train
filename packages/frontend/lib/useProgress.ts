@@ -1,5 +1,6 @@
-import { noteGuestCompletion } from '@/lib/guestNudge';
 'use client';
+
+import { noteGuestCompletion } from '@/lib/guestNudge';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   getCompletedCases,
