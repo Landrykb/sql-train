@@ -55,7 +55,7 @@ export default function NavAuth() {
         // Reset the UI if the OAuth redirect doesn't complete in a few seconds,
         // which can happen in installed PWAs that don't navigate away.
         timeoutRef.current = setTimeout(() => setSigningIn(false), 12000);
-        requireAuth('sign in');
+        requireAuth('save your progress');
         setSigningIn(false);
       }}
       disabled={signingIn}
