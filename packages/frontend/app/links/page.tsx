@@ -8,6 +8,19 @@ import { VerseIcon } from '@/components/NavIcons';
 export const metadata: Metadata = {
   title: 'Bleepx — links',
   description: 'Bleepx Academy — free SQL, data science & cloud training in your browser, plus the Bleepx Arena.',
+  openGraph: {
+    title: 'Bleepx — free SQL, data science & cloud training',
+    description: 'Train in your browser, no account needed to start. Coach a champion in the Bleepx Arena.',
+    siteName: 'Bleepx',
+    type: 'website',
+    images: [{ url: '/icons/icon-512x512.png', width: 512, height: 512, alt: 'Bleepx' }],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Bleepx — free SQL, data science & cloud training',
+    description: 'Train in your browser, no account needed to start.',
+    images: ['/icons/icon-512x512.png'],
+  },
 };
 
 const QUICK_LINKS = [
