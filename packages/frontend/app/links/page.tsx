@@ -4,7 +4,6 @@ import { Swords, ArrowRight, Lock } from 'lucide-react';
 import BleepxLogo from '@/components/BleepxLogo';
 import { BleepxFace } from '@/components/BleepxIcons';
 import { VerseIcon } from '@/components/NavIcons';
-import { SchoolIcon } from '@/components/AppIcons';
 
 export const metadata: Metadata = {
   title: 'Bleepx — links',
@@ -100,7 +99,6 @@ export default function LinksPage() {
       <div className="flex justify-center gap-3">
         <a href="https://www.linkedin.com/in/landrykb" target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-full border border-bleepx-border text-sm font-semibold text-bleepx-text hover:bg-bleepx-white transition-colors">LinkedIn</a>
         <a href="https://github.com/Landrykb" target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-full border border-bleepx-border text-sm font-semibold text-bleepx-text hover:bg-bleepx-white transition-colors">GitHub</a>
-        <Link href="/journey" className="px-4 py-2 rounded-full border border-bleepx-border text-sm font-semibold text-bleepx-text hover:bg-bleepx-white transition-colors inline-flex items-center gap-1.5"><SchoolIcon size={14} /> My Journey</Link>
       </div>
     </main>
   );
