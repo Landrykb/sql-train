@@ -37,6 +37,15 @@ export function useSupabaseUser(): GitHubUser | null {
           provider: u.app_metadata?.provider || 'email',
         };
         setUser(ghUser);
+        try {
+          const owner = localStorage.getItem('bleepx_progress_owner');
+          if (owner && owner !== u.id) {
+            Object.keys(localStorage)
+              .filter(k => k.startsWith('bleepx_') || k === 'completed' || k === 'completedCases')
+              .forEach(k => localStorage.removeItem(k));
+          }
+          localStorage.setItem('bleepx_progress_owner', u.id);
+        } catch { /* ignore */ }
         // Keep non-sensitive user info and the provider token in sync across
         // tabs and page reloads (localStorage for user, secure cookie for token).
         setGitHubUser(ghUser);
@@ -64,6 +73,15 @@ export function useSupabaseUser(): GitHubUser | null {
           provider: u.app_metadata?.provider || 'email',
           };
           setUser(ghUser);
+        try {
+          const owner = localStorage.getItem('bleepx_progress_owner');
+          if (owner && owner !== u.id) {
+            Object.keys(localStorage)
+              .filter(k => k.startsWith('bleepx_') || k === 'completed' || k === 'completedCases')
+              .forEach(k => localStorage.removeItem(k));
+          }
+          localStorage.setItem('bleepx_progress_owner', u.id);
+        } catch { /* ignore */ }
           setGitHubUser(ghUser);
           if (session.provider_token) setProviderTokenCookie(session.provider_token);
         } else if (event === 'SIGNED_OUT') {

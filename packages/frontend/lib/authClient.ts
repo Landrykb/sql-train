@@ -186,6 +186,13 @@ export async function logoutUser(): Promise<void> {
     await supabase.auth.signOut().catch(() => {});
   }
   clearGitHubUser();
+  // Local progress is per-ACCOUNT once signed in — wipe residue so the next
+  // account on this browser doesn't inherit it (cloud data re-syncs on sign-in).
+  try {
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('bleepx_') || k === 'completed' || k === 'completedCases')
+      .forEach(k => localStorage.removeItem(k));
+  } catch { /* ignore */ }
   if (typeof document !== 'undefined') {
     document.cookie = `${PROVIDER_TOKEN_COOKIE}=; path=/; max-age=0; secure; samesite=lax`;
   }
