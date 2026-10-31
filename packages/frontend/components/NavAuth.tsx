@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { startGitHubLogin } from '@/lib/authClient';
+import { useAuthGate } from '@/components/SignInGate';
 import { useSupabaseUser } from '@/lib/useSupabaseUser';
 
 export default function NavAuth() {
+  const { requireAuth, GateComponent } = useAuthGate();
   const user = useSupabaseUser();
   const [signingIn, setSigningIn] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -42,6 +44,7 @@ export default function NavAuth() {
   }
 
   return (
+    <>
     <button
       onClick={(e) => {
         e.preventDefault();
@@ -52,11 +55,8 @@ export default function NavAuth() {
         // Reset the UI if the OAuth redirect doesn't complete in a few seconds,
         // which can happen in installed PWAs that don't navigate away.
         timeoutRef.current = setTimeout(() => setSigningIn(false), 12000);
-        startGitHubLogin()
-          .catch(() => setSigningIn(false))
-          .finally(() => {
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-          });
+        requireAuth('sign in');
+        setSigningIn(false);
       }}
       disabled={signingIn}
       className="flex items-center justify-center gap-1.5 px-2 sm:px-3 py-2 -my-1 rounded-full bg-bleepx-blue text-white hover:bg-blue-700 font-medium text-sm sm:text-base transition-colors active:scale-95 touch-manipulation min-h-[44px] min-w-[44px]"
@@ -68,5 +68,7 @@ export default function NavAuth() {
       )}
       <span className="hidden sm:inline">{signingIn ? 'Connecting...' : 'Sign In'}</span>
     </button>
+    <GateComponent />
+    </>
   );
 }

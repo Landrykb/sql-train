@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { clearGitHubUser, startGitHubLogin, logoutUser, getGitHubUser } from '@/lib/authClient';
+import { useAuthGate } from '@/components/SignInGate';
 import { useSupabaseUser } from '@/lib/useSupabaseUser';
 import { useProgress } from '@/lib/useProgress';
 import { useTheme } from '@/lib/useTheme';
@@ -65,6 +66,7 @@ export default function ProfilePage() {
   const { completed, points, resetProgress } = useProgress();
   const { dark, toggle: toggleDark } = useTheme();
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
+  const { requireAuth, GateComponent } = useAuthGate();
   const [tab, setTab] = useState<'overview' | 'shop' | 'achievements' | 'settings' | 'exports'>('overview');
   const ghUser = useSupabaseUser();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -253,8 +255,9 @@ export default function ProfilePage() {
             </div>
             {/* Auth button aligned to avatar baseline */}
             <div className="flex-1 flex justify-end pb-1">
+                <GateComponent />
               {!isSignedIn ? (
-                <button onClick={() => { playBleep(); startGitHubLogin(); }} className={`px-4 py-2 rounded-full text-white text-sm font-semibold shadow-md transition-colors flex items-center gap-1.5 bg-gradient-to-r ${theme.gradient} hover:opacity-90`}>
+                <button onClick={() => { playBleep(); requireAuth('save your progress'); }} className={`px-4 py-2 rounded-full text-white text-sm font-semibold shadow-md transition-colors flex items-center gap-1.5 bg-gradient-to-r ${theme.gradient} hover:opacity-90`}>
                   <BleepxGitHub size={18} />
                   Sign In
                 </button>
@@ -354,7 +357,7 @@ export default function ProfilePage() {
               <h3 className="font-bold text-white">Connect with GitHub</h3>
               <p className="text-sm text-gray-400 mt-0.5">*bleep* Sign in with your real GitHub account. Redirects to GitHub for authentication — no passwords stored here.</p>
             </div>
-            <button onClick={() => { playBleep(); startGitHubLogin(); }} className="px-4 py-2 rounded-full bg-white text-gray-900 text-sm font-bold hover:bg-gray-100 transition-colors flex items-center gap-2 flex-shrink-0">
+            <button onClick={() => { playBleep(); requireAuth('save your progress'); }} className="px-4 py-2 rounded-full bg-white text-gray-900 text-sm font-bold hover:bg-gray-100 transition-colors flex items-center gap-2 flex-shrink-0">
               <BleepxGitHub size={18} />
               Sign In
             </button>
@@ -516,7 +519,7 @@ export default function ProfilePage() {
                   <p className="text-sm text-bleepx-text-secondary mt-1">
                     *bleep* Link your GitHub account to export your SQL portfolio directly. Show off your query skills to the world, human.
                   </p>
-                  <button onClick={() => { playBleep(); startGitHubLogin(); }} className="mt-3 px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-2">
+                  <button onClick={() => { playBleep(); requireAuth('save your progress'); }} className="mt-3 px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-2">
                     <BleepxGitHub size={18} />
                     Sign In with GitHub
                   </button>
@@ -643,7 +646,7 @@ export default function ProfilePage() {
             ) : (
               <div>
                 <p className="text-sm text-bleepx-text-secondary mb-3">*bleep* Connect your GitHub to push portfolio projects directly.</p>
-                <button onClick={() => { playBleep(); startGitHubLogin(); }} className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-2">
+                <button onClick={() => { playBleep(); requireAuth('save your progress'); }} className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex items-center gap-2">
                   <BleepxGitHub size={18} />
                   Sign In with GitHub
                 </button>
