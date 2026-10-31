@@ -120,6 +120,61 @@ class Poster:
         if pack.get("cover"):
             self.send_photo(pack["cover"], "")
 
+    # -- interactive (listen mode) ----------------------------------------
+    def send_chat_text(self, chat_id, text: str) -> None:
+        """Reply in whatever chat asked — private DM or the linked discussion group."""
+        for i in range(0, len(text), TEXT_LIMIT):
+            self.call("sendMessage", {
+                "chat_id": chat_id,
+                "text": text[i:i + TEXT_LIMIT],
+                "parse_mode": "HTML",
+                "disable_web_page_preview": "false",
+            })
+
+    def poll(self, site_base: str = "https://bleepxacademy.vercel.app") -> None:
+        """Long-poll getUpdates and answer commands — run wherever the bot should live."""
+        offset = 0
+        print(f"listening… (answers commands in DMs and groups the bot is in)")
+        while True:
+            updates = self.call("getUpdates", {"offset": offset, "timeout": 30})
+            for upd in updates.get("result", []):
+                offset = upd["update_id"] + 1
+                msg = upd.get("message") or {}
+                chat = msg.get("chat") or {}
+                text = (msg.get("text") or "").strip()
+                if not chat.get("id") or not text.startswith("/"):
+                    continue
+                cmd = text.split("@")[0].split()[0].lower()
+                self.handle_command(chat["id"], cmd, site_base)
+
+    def handle_command(self, chat_id, cmd: str, site_base: str) -> None:
+        if cmd in ("/start", "/help"):
+            self.send_chat_text(chat_id,
+                "<b>Bleepx bot</b> — the arena's herald.\n\n"
+                "/links — everything, one page\n"
+                "/arena — enter the arena\n"
+                "/standings — which brain wins the most")
+        elif cmd == "/links":
+            self.send_chat_text(chat_id, f"{site_base}/links")
+        elif cmd == "/arena":
+            self.send_chat_text(chat_id, f"{site_base}/arena")
+        elif cmd == "/standings":
+            self.send_standings(chat_id, site_base)
+        else:
+            self.send_chat_text(chat_id, "Unknown command — try /help")
+
+    def send_standings(self, chat_id, site_base: str) -> None:
+        try:
+            data = requests.get(f"{site_base}/api/arena/brain-result", timeout=20).json()
+            brains = data.get("brains", [])
+        except Exception:
+            brains = []
+        if not brains:
+            self.send_chat_text(chat_id, "No fights recorded yet — the board is waiting for its first brain.")
+            return
+        lines = [f"{i+1}. <b>{esc(b['model'])}</b> — {b['w']}W · {b['l']}L" for i, b in enumerate(brains[:10])]
+        self.send_chat_text(chat_id, "<b>Brains scoreboard</b>\n" + "\n".join(lines))
+
 
 def load_pack(path: str) -> dict:
     with open(path, encoding="utf-8") as fh:
@@ -136,6 +191,8 @@ def main() -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("ping", help="verify token + channel access")
+    ls = sub.add_parser("listen", help="answer commands in DMs and discussion groups")
+    ls.add_argument("--site", default="https://bleepxacademy.vercel.app")
     ep = sub.add_parser("episode", help="post an episode pack")
     ep.add_argument("--pack", required=True)
     tx = sub.add_parser("text", help="post a text message")
@@ -159,6 +216,8 @@ def main() -> int:
         chat = poster.call("getChat", {"chat_id": poster.channel})
         print("bot:", json.dumps(me.get("result", me), ensure_ascii=False))
         print("chat:", json.dumps(chat.get("result", chat), ensure_ascii=False))
+    elif args.cmd == "listen":
+        poster.poll(site_base=args.site)
     elif args.cmd == "episode":
         poster.post_episode(load_pack(args.pack))
         print("episode posted" if not args.dry_run else "dry run complete")
