@@ -28,6 +28,7 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
   const [emailErr, setEmailErr] = useState('');
+  const [otp, setOtp] = useState('');
 
   if (!open) return null;
 
@@ -41,6 +42,17 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
     });
     if (error) setEmailErr(error.message);
     else { setEmailSent(true); track(Events.AUTH_SIGN_IN_START, { from: 'gate', method: 'email' }); }
+  };
+
+  const handleVerifyOtp = async () => {
+    const sb = getSupabaseBrowserClient();
+    if (!sb || !otp.trim()) return;
+    setEmailErr('');
+    // 'email' covers magic-link codes; 'signup' covers new-account confirmations.
+    let { error } = await sb.auth.verifyOtp({ email: email.trim(), token: otp.trim(), type: 'email' });
+    if (error) ({ error } = await sb.auth.verifyOtp({ email: email.trim(), token: otp.trim(), type: 'signup' }));
+    if (error) setEmailErr(error.message);
+    else onClose();
   };
 
   const handleSignIn = async () => {
@@ -88,7 +100,25 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                 <div className="h-px flex-1 bg-bleepx-border" />
               </div>
               {emailSent ? (
-                <p className="text-xs text-bleepx-text">Check your inbox — we sent a magic link to <strong>{email}</strong>. Click it to sign in.</p>
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs text-bleepx-text">Check your inbox — we sent a sign-in link to <strong>{email}</strong>. Open it <strong>in this same browser</strong>, or enter the 6-digit code:</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="6-digit code"
+                      className="flex-1 min-w-0 px-3 py-2.5 rounded-full border border-bleepx-border text-sm text-bleepx-text bg-transparent text-center tracking-widest"
+                    />
+                    <button
+                      onClick={handleVerifyOtp}
+                      className="px-4 py-2.5 rounded-full border border-bleepx-border text-sm font-bold text-bleepx-text hover:bg-bleepx-white transition-colors shrink-0"
+                    >
+                      Verify
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <div className="flex gap-2">
                   <input
