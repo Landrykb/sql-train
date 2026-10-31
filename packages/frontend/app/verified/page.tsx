@@ -9,8 +9,7 @@ const BG = '#1C2129';
 const GOLD = '#FBBF24';
 
 export default function VerifiedPage() {
-  const [verified, setV] = useState(false);
-  useState(() => { if (typeof window !== 'undefined') setV(isVerified()); });
+  const [verified, setV] = useState(() => (typeof window !== 'undefined' ? isVerified() : false));
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-10" style={{ background: BG }}>

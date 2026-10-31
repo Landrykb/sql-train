@@ -28,7 +28,9 @@ import {
   Swords, Shield, Zap, Sparkles, Bot, Crown, Egg, Dumbbell, Star,
   Trophy, Skull, Eye, Users, Headphones, Calendar, Flame, Lock,
   Wind, Wrench, Clover, Swords as CounterIcon, Dices, Check, X, User,
+  KeyRound,
 } from 'lucide-react';
+import { BYOK_MODELS, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, byokSolveQuiz, byokSolveSql, type Byok } from '@/lib/arena/byok';
 
 interface RoundDef {
   type: 'sql' | 'quiz' | 'python' | 'cloud';
@@ -347,6 +349,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   });
   const [strategy, setStrategy] = useState<StrategyCard>(STRATEGY_CARDS[0]);
   const [mode, setMode] = useState<'coach' | 'tagteam'>('tagteam');
+  const [byok, setByokState] = useState<Byok | null>(null);
+  const [byokModel, setByokModelState] = useState(BYOK_MODELS[0].id);
   const [verse, setVerse] = useState<Verse>(initialVerse ?? 'sql');
   const [domain, setDomain] = useState(() => VERSES.find((v) => v.id === (initialVerse ?? 'sql'))?.defaultCategory ?? 'business');
   const [tier, setTier] = useState<Tier>('rookie');
@@ -395,6 +399,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
 
   // Verse training feeds every champion's XP before you even step in.
   useEffect(() => {
+    setByokState(getByok());
+    setByokModelState(getByokModel());
     for (const c of CHAMPIONS) syncTrainingXp(c.id);
     refreshProgress();
   }, [refreshProgress]);
@@ -575,14 +581,21 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
           };
         });
       } else if (round.type === 'quiz') {
-        const solvePromise = fetch('/api/arena/solve', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quiz: { question: round.instructions, options: round.options, answer: round.answer }, championId: champion.id, strategyId: strategy.id, accuracy: evolved.quizAccuracy }),
-        })
-          .then((r) => r.json())
-          .then((d) => ({ answer: d?.answer ?? '', ms: Math.round(performance.now() - t0) }))
-          .catch(() => ({ answer: '', ms: Math.round(performance.now() - t0) }));
+        // BYOK: user's own model solves if connected; else the server route
+        // (LLM if configured, scripted personality otherwise).
+        const byokNow = getByok();
+        const correctOpt = Array.isArray(round.answer) ? round.answer[0] : round.answer;
+        const solvePromise = (byokNow
+          ? byokSolveQuiz(round.instructions, round.options ?? [], champion, strategy, evolved.quizAccuracy, correctOpt)
+          : fetch('/api/arena/solve', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ quiz: { question: round.instructions, options: round.options, answer: round.answer }, championId: champion.id, strategyId: strategy.id, accuracy: evolved.quizAccuracy }),
+            })
+              .then((r) => r.json())
+              .then((d) => ({ answer: d?.answer ?? '', usedLLM: !!d?.usedLLM }))
+              .catch(() => ({ answer: '', usedLLM: false }))
+        ).then((s) => ({ answer: s.answer ?? '', ms: Math.round(performance.now() - t0) }));
 
         // rival picks: correct at quizAccuracy, else a random wrong option
         const a = Array.isArray(round.answer) ? round.answer[0] : round.answer;
@@ -593,15 +606,18 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
         pendingRef.current = Promise.all([solvePromise, new Promise((r) => setTimeout(r, Math.min(rivalDelay, 400)))])
           .then(([solve]) => ({ kind: 'quiz', answer: solve.answer, ms: solve.ms, rivalPick }));
       } else {
-        // Champion solves via API while rival "types" the canonical answer.
-        const solvePromise = fetch('/api/arena/solve', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ domain, caseId: round.id, championId: champion.id, strategyId: strategy.id }),
-        })
-          .then((r) => r.json())
-          .then((d) => ({ sql: d?.sql ?? 'SELECT 1;', ms: Math.round(performance.now() - t0), usedLLM: !!d?.usedLLM }))
-          .catch(() => ({ sql: 'SELECT 1;', ms: Math.round(performance.now() - t0), usedLLM: false }));
+        // Champion solves via user's own LLM (if connected) or the API.
+        const solvePromise = (getByok()
+          ? byokSolveSql(round, champion, strategy)
+          : fetch('/api/arena/solve', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ domain, caseId: round.id, championId: champion.id, strategyId: strategy.id }),
+            })
+              .then((r) => r.json())
+              .then((d) => ({ sql: d?.sql ?? 'SELECT 1;', usedLLM: !!d?.usedLLM }))
+              .catch(() => ({ sql: 'SELECT 1;', usedLLM: false }))
+        ).then((s) => ({ sql: s.sql ?? 'SELECT 1;', ms: Math.round(performance.now() - t0), usedLLM: !!s.usedLLM }));
 
         pendingRef.current = Promise.all([solvePromise, new Promise((r) => setTimeout(r, Math.min(rivalDelay, 400)))])
           .then(([solve]) => {
@@ -1058,6 +1074,47 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                   <p className="text-[11px] text-slate-400 mt-1">Champion fights 2 rounds — you fight the last one.</p>
                 </button>
               </div>
+            </div>
+
+            {/* bring your own brain — seamless OAuth connect */}
+            <div className="rounded-xl border border-slate-700 bg-slate-800/40 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5 flex items-center gap-1">
+                <KeyRound size={11} /> Your own brain (optional)
+              </p>
+              {byok ? (
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[11px] text-slate-300 min-w-0 truncate">
+                    Connected — {BYOK_MODELS.find((m) => m.id === byok.model)?.label ?? byok.model}
+                  </p>
+                  <button
+                    onClick={() => { clearByok(); setByokState(null); }}
+                    className="text-[10px] font-bold text-slate-500 hover:text-red-300 shrink-0"
+                  >
+                    DISCONNECT
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <select
+                    value={byokModel}
+                    onChange={(e) => { setByokModelState(e.target.value); setByokModel(e.target.value); }}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200 px-2 py-1.5"
+                  >
+                    {BYOK_MODELS.map((m) => (
+                      <option key={m.id} value={m.id}>{m.label}</option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={async () => { window.location.href = await byokConnectUrl(); }}
+                    className="w-full py-2 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 transition-colors"
+                  >
+                    CONNECT &amp; AUTHORIZE
+                  </button>
+                  <p className="text-[9px] text-slate-500">
+                    Opens the model provider&apos;s sign-in — your key stays in this browser and is only used for your champion&apos;s solves.
+                  </p>
+                </div>
+              )}
             </div>
 
             <button
