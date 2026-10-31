@@ -1158,11 +1158,10 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                     <span className="font-bold text-slate-200 ml-2 shrink-0">{b.w}W · {b.l}L</span>
                   </p>
                 ))}
-                {!byok && (
-                  <p className="text-[9px] text-slate-500 mt-2">
-                    Connect your own brain above to put your model on the board.
-                  </p>
-                )}
+                <p className="text-[9px] text-slate-500 mt-2">
+                  {(globalBrains.length > 0 ? globalBrains : brains).reduce((a, b) => a + b.w + b.l, 0)} fights recorded
+                  {!byok && ' — connect your brain above to put your model on the board.'}
+                </p>
               </div>
             )}
 

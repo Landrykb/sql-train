@@ -45,7 +45,7 @@ export default function LinksPage() {
         <div>
           <h1 className="text-3xl font-extrabold text-bleepx-text">Bleepx</h1>
           <p className="text-sm text-bleepx-text-secondary mt-1">
-            Free SQL, data science &amp; cloud training — runs entirely in your browser. No account needed to start.
+            Tutorials make you watch. Bleepx makes you fight. Free SQL, data science &amp; cloud training in your browser — plus an Arena where you bring your own AI to duel. No account needed to start, free forever.
           </p>
         </div>
       </div>
