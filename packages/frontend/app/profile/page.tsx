@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { clearGitHubUser, startGitHubLogin, logoutUser, getGitHubUser } from '@/lib/authClient';
+import { getSupabaseBrowserClient } from '@/lib/supabase';
 import { useAuthGate } from '@/components/SignInGate';
 import { useSupabaseUser } from '@/lib/useSupabaseUser';
 import { useProgress } from '@/lib/useProgress';
@@ -176,6 +177,17 @@ export default function ProfilePage() {
     window.location.reload();
   };
 
+  const handleLinkGitHub = async () => {
+    playBleep();
+    const sb = getSupabaseBrowserClient();
+    if (!sb) return;
+    const { error } = await sb.auth.linkIdentity({
+      provider: 'github',
+      options: { scopes: 'public_repo', redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) await startGitHubLogin();
+  };
+
   const handleDeleteAccount = async () => {
     playBleep();
     track(Events.DELETE_ACCOUNT_CONFIRMED);
@@ -289,12 +301,26 @@ export default function ProfilePage() {
                   <BleepxGitHub size={14} />
                   <span>GitHub</span>
                 </div>
-              ) : ghUser?.email ? (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bleepx-border text-bleepx-text text-xs font-medium">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                  <span>{ghUser.email}</span>
-                </div>
-              ) : null)}
+              ) : (
+                <>
+                  {ghUser?.email && (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bleepx-border text-bleepx-text text-xs font-medium">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                      <span>{ghUser.email}</span>
+                    </div>
+                  )}
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-bleepx-border text-bleepx-text-secondary text-xs font-medium">
+                    <BleepxGitHub size={14} />
+                    <span>GitHub not added</span>
+                  </div>
+                  <button
+                    onClick={handleLinkGitHub}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-900 text-white text-xs font-bold hover:bg-gray-700 transition-colors"
+                  >
+                    Add GitHub
+                  </button>
+                </>
+              ))}
               {githubUsername && isSignedIn && (
                 <a
                   href={`https://github.com/${githubUsername}`}
