@@ -69,6 +69,37 @@ export function clearByok() {
   } catch { /* ignore */ }
 }
 
+// ─── Brains scoreboard — which model wins most (local, per browser) ─────────
+
+const BRAINS_KEY = 'bleepxBrains';
+
+export interface BrainRecord {
+  model: string;
+  w: number;
+  l: number;
+}
+
+export function recordBrainResult(model: string, won: boolean) {
+  try {
+    const store = JSON.parse(localStorage.getItem(BRAINS_KEY) || '{}') as Record<string, { w: number; l: number }>;
+    const rec = store[model] ?? { w: 0, l: 0 };
+    if (won) rec.w += 1; else rec.l += 1;
+    store[model] = rec;
+    localStorage.setItem(BRAINS_KEY, JSON.stringify(store));
+  } catch { /* ignore */ }
+}
+
+export function getBrains(): BrainRecord[] {
+  try {
+    const store = JSON.parse(localStorage.getItem(BRAINS_KEY) || '{}') as Record<string, { w: number; l: number }>;
+    return Object.entries(store)
+      .map(([model, r]) => ({ model, w: r.w, l: r.l }))
+      .sort((a, b) => b.w - a.w || a.l - b.l);
+  } catch {
+    return [];
+  }
+}
+
 // ─── OpenRouter PKCE connect ────────────────────────────────────────────────
 
 function randomString(len: number): string {

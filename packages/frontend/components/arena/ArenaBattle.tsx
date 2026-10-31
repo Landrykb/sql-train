@@ -30,7 +30,7 @@ import {
   Wind, Wrench, Clover, Swords as CounterIcon, Dices, Check, X, User,
   KeyRound,
 } from 'lucide-react';
-import { BYOK_MODELS, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, byokSolveQuiz, byokSolveSql, type Byok } from '@/lib/arena/byok';
+import { BYOK_MODELS, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
 
 interface RoundDef {
   type: 'sql' | 'quiz' | 'python' | 'cloud';
@@ -351,6 +351,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   const [mode, setMode] = useState<'coach' | 'tagteam'>('tagteam');
   const [byok, setByokState] = useState<Byok | null>(null);
   const [byokModel, setByokModelState] = useState(BYOK_MODELS[0].id);
+  const [brains, setBrains] = useState<BrainRecord[]>([]);
   const [verse, setVerse] = useState<Verse>(initialVerse ?? 'sql');
   const [domain, setDomain] = useState(() => VERSES.find((v) => v.id === (initialVerse ?? 'sql'))?.defaultCategory ?? 'business');
   const [tier, setTier] = useState<Tier>('rookie');
@@ -401,6 +402,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   useEffect(() => {
     setByokState(getByok());
     setByokModelState(getByokModel());
+    setBrains(getBrains());
     for (const c of CHAMPIONS) syncTrainingXp(c.id);
     refreshProgress();
   }, [refreshProgress]);
@@ -452,7 +454,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       setPhase('fight');
       setCinematic(true);
       setTimeout(() => setCinematic(false), 2100);
-      setRefLine(`Bleepx: "Welcome to the ${VERSES.find(v => v.id === verse)?.name}! ${champion.name} vs ${RIVAL.name} — ${TIERS.find(t => t.id === tier)?.name} bracket. Coaches ready?"`);
+      setRefLine(`Bleepx: "Welcome to the ${VERSES.find(v => v.id === verse)?.name}! ${champion.name}${getByok() ? ' — powered by YOUR brain —' : ''} vs ${RIVAL.name} — ${TIERS.find(t => t.id === tier)?.name} bracket. Coaches ready?"`);
     } catch (err: any) {
       setStatus(err?.message ?? 'Failed to load match');
       setPhase('select');
@@ -861,6 +863,11 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       if (matchWon) st.wins += 1;
       st.xp += xp;
       localStorage.setItem('bleepxArenaStats', JSON.stringify(st));
+      // Brains scoreboard — which user's model wins most.
+      if (byok) {
+        recordBrainResult(byok.model, matchWon);
+        setBrains(getBrains());
+      }
     } catch { /* ignore storage errors */ }
     if (matchWon) grantXp(ARENA_XP.matchWon);
   }, [phase, xpAwarded, xp, matchWon]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -1118,6 +1125,17 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                   </p>
                 </div>
               )}
+              {brains.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-slate-700/60">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Brains scoreboard</p>
+                  {brains.slice(0, 3).map((b) => (
+                    <p key={b.model} className="text-[10px] text-slate-400 flex justify-between">
+                      <span className="truncate">{BYOK_MODELS.find((m) => m.id === b.model)?.label ?? b.model}</span>
+                      <span className="font-bold text-slate-300 ml-2 shrink-0">{b.w}W · {b.l}L</span>
+                    </p>
+                  ))}
+                </div>
+              )}
             </div>
 
             <button
@@ -1337,7 +1355,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
 
       {/* cinematic entry — the world changes */}
       <AnimatePresence>
-        {cinematic && <ArenaIntro champion={champion} stage={prog.stage} verseName={verseName} />}
+        {cinematic && <ArenaIntro champion={champion} stage={prog.stage} verseName={verseName} brain={brainLabel} />}
       </AnimatePresence>
 
       {/* evolution moment */}
@@ -1612,7 +1630,7 @@ const ARENA_CSS = `
 
 /* Cinematic match entry — the environment change. Sprites fly in, names
  * clash, then the whole overlay burns away into the fight. */
-function ArenaIntro({ champion, stage, verseName }: { champion: Champion; stage: { level?: number; name: string; aura: string }; verseName: string }) {
+function ArenaIntro({ champion, stage, verseName, brain }: { champion: Champion; stage: { level?: number; name: string; aura: string }; verseName: string; brain?: string | null }) {
   return (
     <motion.div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center"
@@ -1636,6 +1654,7 @@ function ArenaIntro({ champion, stage, verseName }: { champion: Champion; stage:
           </div>
           <p className="mt-3 font-black text-white text-lg tracking-wide">{champion.name.toUpperCase()}</p>
           <p className="text-[11px] font-bold flex items-center gap-1.5" style={{ color: stage.aura }}>{stageIcon(stage.level ?? 0, 12)} {stage.name}</p>
+          {brain && <p className="text-[9px] text-slate-400 mt-0.5">powered by {brain}</p>}
         </motion.div>
         <motion.span className="text-4xl sm:text-5xl font-black"
           style={{ color: TEAL, textShadow: `0 0 30px ${TEAL}` }}
