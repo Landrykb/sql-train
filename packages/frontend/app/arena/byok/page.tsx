@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { track, Events } from '@/lib/analytics';
 import { finishByokConnect } from '@/lib/arena/byok';
 
 // OAuth callback for the "connect your own brain" flow — exchanges the
@@ -9,6 +10,7 @@ export default function ByokCallbackPage() {
   const [status, setStatus] = useState('Connecting your brain…');
 
   useEffect(() => {
+    track(Events.BYOK_VIEWED);
     const code = new URLSearchParams(window.location.search).get('code');
     if (!code) {
       setStatus('No authorization code came back — close this tab and try again.');

@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
 import { Swords, ArrowRight, Lock, Compass, Send } from 'lucide-react';
+import { Events } from '@/lib/analytics';
+import TrackView from '@/components/TrackView';
+import TrackedOutboundLink from '@/components/TrackedOutboundLink';
 
 // Brand glyph — lucide dropped brand icons; this is the IG camera mark.
 const InstagramIcon = ({ size = 18, className }: { size?: number; className?: string }) => (
@@ -75,6 +78,7 @@ export default function LinksPage() {
       </Link>
 
       {/* Quick links */}
+      <TrackView event={Events.LINKS_VIEWED} />
       <div className="space-y-2.5">
         {QUICK_LINKS.map((l) => (
           <Link
@@ -130,22 +134,22 @@ export default function LinksPage() {
 
       {/* Social — one full-width branded button per platform; more slots go here (YouTube, TikTok, X) */}
       <div className="space-y-2.5">
-        <a
+        <TrackedOutboundLink
+          network="instagram"
           href="https://www.instagram.com/bleepx.builds"
-          target="_blank" rel="noopener noreferrer"
           className="flex items-center justify-center gap-2.5 w-full py-3.5 rounded-xl font-bold text-white text-sm transition-transform active:scale-95"
           style={{ background: 'linear-gradient(90deg, #833AB4, #E1306C 55%, #F77737)' }}
         >
           <InstagramIcon size={18} /> Instagram — @bleepx.builds
-        </a>
-        <a
+        </TrackedOutboundLink>
+        <TrackedOutboundLink
+          network="telegram"
           href="https://t.me/bleepxbuilds"
-          target="_blank" rel="noopener noreferrer"
           className="flex items-center justify-center gap-2.5 w-full py-3.5 rounded-xl font-bold text-white text-sm transition-transform active:scale-95"
           style={{ background: '#229ED9' }}
         >
           <Send size={18} /> Telegram — @bleepxbuilds
-        </a>
+        </TrackedOutboundLink>
       </div>
     </main>
   );

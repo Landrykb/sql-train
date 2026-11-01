@@ -172,4 +172,11 @@ export const Events = {
   DELETE_ACCOUNT_CLICKED: 'delete_account_clicked',
   DELETE_ACCOUNT_CONFIRMED: 'delete_account_confirmed',
   ACHIEVEMENT_UNLOCKED: 'achievement_unlocked',
+  // Growth funnel
+  LINKS_VIEWED: 'links_viewed',
+  LINKS_SOCIAL_CLICKED: 'links_social_clicked',
+  ARENA_VIEWED: 'arena_viewed',
+  ARENA_MATCH_STARTED: 'arena_match_started',
+  BYOK_VIEWED: 'byok_viewed',
+  BYOK_CONNECTED: 'byok_connected',
 } as const;

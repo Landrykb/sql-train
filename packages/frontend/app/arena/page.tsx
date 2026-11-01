@@ -3,6 +3,8 @@ import Link from 'next/link';
 import ArenaBattle from '@/components/arena/ArenaBattle';
 import BleepxLogo from '@/components/BleepxLogo';
 import { verseFromParam } from '@/lib/arena/theme';
+import { Events } from '@/lib/analytics';
+import TrackView from '@/components/TrackView';
 
 export const metadata: Metadata = {
   title: 'Bleepx Arena — coach your champion',
@@ -13,6 +15,7 @@ export default async function ArenaPage({ searchParams }: { searchParams: Promis
   const { verse } = await searchParams;
   return (
     <div className="min-h-screen" style={{ background: '#1C2129' }}>
+      <TrackView event={Events.ARENA_VIEWED} />
       <header className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
         <BleepxLogo />
         <Link href="/" className="text-xs font-bold text-slate-400 hover:text-cyan-300 transition-colors">
