@@ -34,6 +34,7 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [showPw, setShowPw] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [busy, setBusy] = useState('');
 
   if (!open) return null;
 
@@ -41,10 +42,11 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
     const sb = getSupabaseBrowserClient();
     if (!sb || !email.trim()) return;
     setEmailErr('');
+    setBusy('link');
     const { error } = await sb.auth.signInWithOtp({
       email: email.trim(),
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    });
+    }).finally(() => setBusy(''));
     if (error) setEmailErr(error.message);
     else { setEmailSent(true); track(Events.AUTH_SIGN_IN_START, { from: 'gate', method: 'email' }); }
   };
@@ -53,8 +55,9 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
     const sb = getSupabaseBrowserClient();
     if (!sb || !email.trim() || password.length < 6) return;
     setEmailErr('');
+    setBusy('auth');
     if (mode === 'signin') {
-      const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password });
+      const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password }).finally(() => setBusy(''));
       if (error) setEmailErr(error.message === 'Invalid login credentials' ? 'Wrong email or password — or create an account below.' : error.message);
       else onClose();
     } else {
@@ -62,7 +65,7 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
         email: email.trim(),
         password,
         options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-      });
+      }).finally(() => setBusy(''));
       if (error) setEmailErr(error.message);
       else if (data.session) onClose();
       else setEmailSent(true); // email-confirm required → show link/code path
@@ -73,9 +76,10 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
     const sb = getSupabaseBrowserClient();
     if (!sb || !email.trim()) { setEmailErr('Enter your email first.'); return; }
     setEmailErr('');
+    setBusy('forgot');
     const { error } = await sb.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/auth/reset`,
-    });
+    }).finally(() => setBusy(''));
     if (error) setEmailErr(error.message);
     else setResetSent(true);
   };
@@ -84,9 +88,11 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
     const sb = getSupabaseBrowserClient();
     if (!sb || !otp.trim()) return;
     setEmailErr('');
+    setBusy('otp');
     // 'email' covers magic-link codes; 'signup' covers new-account confirmations.
     let { error } = await sb.auth.verifyOtp({ email: email.trim(), token: otp.trim(), type: 'email' });
     if (error) ({ error } = await sb.auth.verifyOtp({ email: email.trim(), token: otp.trim(), type: 'signup' }));
+    setBusy('');
     if (error) setEmailErr(error.message);
     else onClose();
   };
@@ -150,13 +156,14 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                     />
                     <button
                       onClick={handleVerifyOtp}
-                      className={`px-4 py-2.5 rounded-full border text-sm font-bold transition-colors shrink-0 ${
+                      disabled={busy !== ''}
+                      className={`px-4 py-2.5 rounded-full border text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-50 shrink-0 ${
                         otp.length >= 6
                           ? 'bg-bleepx-blue border-bleepx-blue text-white hover:bg-blue-700'
                           : 'border-bleepx-border text-bleepx-text-secondary'
                       }`}
                     >
-                      Verify
+                      {busy === 'otp' ? 'Verifying…' : 'Verify'}
                     </button>
                   </div>
                 </div>
@@ -190,13 +197,14 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                   {mode === 'signup' && <PasswordStrength password={password} email={email} />}
                   <button
                     onClick={handleEmailAuth}
-                    className={`w-full px-4 py-2.5 rounded-full border text-sm font-bold transition-colors ${
+                    disabled={busy !== ''}
+                    className={`w-full px-4 py-2.5 rounded-full border text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-50 ${
                       email.trim() && (mode === 'signin' ? password.length >= 6 : checkPassword(password, email).ok)
                         ? 'bg-bleepx-blue border-bleepx-blue text-white hover:bg-blue-700'
                         : 'border-bleepx-border text-bleepx-text-secondary'
                     }`}
                   >
-                    {mode === 'signin' ? 'Sign in' : 'Create account'}
+                    {busy === 'auth' ? 'Working…' : mode === 'signin' ? 'Sign in' : 'Create account'}
                   </button>
                   <div className="flex items-center justify-between">
                     <button
@@ -211,14 +219,14 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                           onClick={handleForgot}
                           className="text-[11px] text-bleepx-text-secondary hover:text-bleepx-text transition-colors underline"
                         >
-                          forgot password?
+                          {busy === 'forgot' ? 'sending…' : 'forgot password?'}
                         </button>
                       )}
                       <button
                         onClick={() => { if (email.trim()) handleEmailSignIn(); }}
                         className="text-[11px] text-bleepx-text-secondary hover:text-bleepx-text transition-colors underline"
                       >
-                        email me a link instead
+                        {busy === 'link' ? 'sending…' : 'email me a link instead'}
                       </button>
                     </span>
                   </div>
