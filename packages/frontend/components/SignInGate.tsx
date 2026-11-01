@@ -149,7 +149,7 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                       type="text"
                       inputMode="numeric"
                       value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       onKeyDown={(e) => { if (e.key === 'Enter' && otp.length >= 6) handleVerifyOtp(); }}
                       placeholder="Enter code"
                       className="flex-1 min-w-0 px-3 py-2.5 rounded-full border border-bleepx-border text-sm text-bleepx-text bg-transparent text-center tracking-widest"
