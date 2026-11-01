@@ -144,21 +144,41 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
               {emailSent ? (
                 <div className="flex flex-col gap-2">
                   <p className="text-xs text-bleepx-text">Check your inbox — we sent a link + code to <strong>{email}</strong>. Open it <strong>in this same browser</strong>, or enter the code:</p>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      onKeyDown={(e) => { if (e.key === 'Enter' && otp.length >= 6) handleVerifyOtp(); }}
-                      placeholder="Enter code"
-                      className="flex-1 min-w-0 px-3 py-2.5 rounded-full border border-bleepx-border text-sm text-bleepx-text bg-transparent text-center tracking-widest"
-                    />
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        onKeyDown={(e) => { if (e.key === 'Enter' && otp.length === 6) handleVerifyOtp(); }}
+                        className="absolute inset-0 w-full opacity-0 cursor-text"
+                        aria-label="verification code"
+                        autoFocus
+                      />
+                      <div className="flex gap-1.5 pointer-events-none">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className={`w-9 h-11 rounded-xl border flex items-center justify-center text-base font-bold transition-colors ${
+                              otp[i]
+                                ? 'border-bleepx-blue bg-bleepx-blue/5 text-bleepx-text'
+                                : i === otp.length
+                                  ? 'border-bleepx-blue/50 text-bleepx-text-secondary'
+                                  : 'border-bleepx-border text-bleepx-text-secondary'
+                            }`}
+                          >
+                            {otp[i] || ''}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                     <button
                       onClick={handleVerifyOtp}
                       disabled={busy !== ''}
-                      className={`px-4 py-2.5 rounded-full border text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-50 shrink-0 ${
-                        otp.length >= 6
+                      className={`w-full px-4 py-2.5 rounded-full border text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-50 ${
+                        otp.length === 6
                           ? 'bg-bleepx-blue border-bleepx-blue text-white hover:bg-blue-700'
                           : 'border-bleepx-border text-bleepx-text-secondary'
                       }`}
