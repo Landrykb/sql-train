@@ -9,6 +9,13 @@ import { track, Events } from '@/lib/analytics';
 import { BleepxFace } from './BleepxIcons';
 import { Skeleton, SkeletonButton } from './Skeleton';
 
+const SpinnerIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
+  <svg className={`${className} animate-spin`} fill="none" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" className="opacity-75" />
+  </svg>
+);
+
 interface SignInGateProps {
   open: boolean;
   onClose: () => void;
@@ -177,13 +184,13 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                     <button
                       onClick={handleVerifyOtp}
                       disabled={busy !== ''}
-                      className={`w-full px-4 py-2.5 rounded-full border text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-50 ${
+                      className={`w-full px-4 py-2.5 rounded-full border text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 ${
                         otp.length === 6
                           ? 'bg-bleepx-blue border-bleepx-blue text-white hover:bg-blue-700'
                           : 'border-bleepx-border text-bleepx-text-secondary'
                       }`}
                     >
-                      {busy === 'otp' ? 'Verifying…' : 'Verify'}
+                      {busy === 'otp' ? (<><SpinnerIcon /> Verifying…</>) : 'Verify'}
                     </button>
                   </div>
                 </div>
@@ -218,13 +225,13 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                   <button
                     onClick={handleEmailAuth}
                     disabled={busy !== ''}
-                    className={`w-full px-4 py-2.5 rounded-full border text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-50 ${
+                    className={`w-full px-4 py-2.5 rounded-full border text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 ${
                       email.trim() && (mode === 'signin' ? password.length >= 6 : checkPassword(password, email).ok)
                         ? 'bg-bleepx-blue border-bleepx-blue text-white hover:bg-blue-700'
                         : 'border-bleepx-border text-bleepx-text-secondary'
                     }`}
                   >
-                    {busy === 'auth' ? 'Working…' : mode === 'signin' ? 'Sign in' : 'Create account'}
+                    {busy === 'auth' ? (<><SpinnerIcon /> Working…</>) : mode === 'signin' ? 'Sign in' : 'Create account'}
                   </button>
                   <div className="flex items-center justify-between">
                     <button
@@ -239,14 +246,14 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                           onClick={handleForgot}
                           className="text-[11px] text-bleepx-text-secondary hover:text-bleepx-text transition-colors underline"
                         >
-                          {busy === 'forgot' ? 'sending…' : 'forgot password?'}
+                          {busy === 'forgot' ? (<span className="inline-flex items-center gap-1"><SpinnerIcon className="w-3 h-3" /> sending…</span>) : 'forgot password?'}
                         </button>
                       )}
                       <button
                         onClick={() => { if (email.trim()) handleEmailSignIn(); }}
                         className="text-[11px] text-bleepx-text-secondary hover:text-bleepx-text transition-colors underline"
                       >
-                        {busy === 'link' ? 'sending…' : 'email me a link instead'}
+                        {busy === 'link' ? (<span className="inline-flex items-center gap-1"><SpinnerIcon className="w-3 h-3" /> sending…</span>) : 'email me a link instead'}
                       </button>
                     </span>
                   </div>
