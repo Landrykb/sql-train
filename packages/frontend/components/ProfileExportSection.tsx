@@ -40,6 +40,7 @@ import {
 } from '@/components/AppIcons';
 import { VerseIcon } from '@/components/NavIcons';
 import { FileText } from 'lucide-react';
+import { track, Events } from '@/lib/analytics';
 
 const DOMAINS = [
   'business',
@@ -121,6 +122,7 @@ export default function ProfileExportSection({
   };
 
   const handleExportQueryDomain = async (domain: string) => {
+    track(Events.GITHUB_EXPORT_QUERY, { domain });
     const key = `query-${domain}`;
     setItemStatus(key, { loading: true, result: undefined });
 
@@ -168,6 +170,7 @@ export default function ProfileExportSection({
   };
 
   const handleExportLabDomain = async (domain: string) => {
+    track(Events.GITHUB_EXPORT_LAB, { domain });
     const key = `lab-${domain}`;
     setItemStatus(key, { loading: true, result: undefined });
 

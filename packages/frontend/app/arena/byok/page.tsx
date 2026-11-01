@@ -19,6 +19,7 @@ export default function ByokCallbackPage() {
     finishByokConnect(code).then((ok) => {
       if (ok) {
         setStatus('Connected — back to the arena.');
+        track(Events.BYOK_CONNECTED);
         window.location.href = '/arena';
       } else {
         setStatus('Authorization failed — close this tab and try again.');

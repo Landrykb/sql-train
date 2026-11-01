@@ -179,6 +179,7 @@ export default function ProfilePage() {
 
   const handleLinkGitHub = async () => {
     playBleep();
+    track(Events.GITHUB_LINKED);
     const sb = getSupabaseBrowserClient();
     if (!sb) return;
     const { error } = await sb.auth.linkIdentity({

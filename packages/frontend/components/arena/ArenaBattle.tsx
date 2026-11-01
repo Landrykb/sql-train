@@ -33,6 +33,7 @@ import {
   KeyRound,
 } from 'lucide-react';
 import { BYOK_MODELS, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
+import { track, Events } from '@/lib/analytics';
 
 interface RoundDef {
   type: 'sql' | 'quiz' | 'python' | 'cloud';
@@ -660,6 +661,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   // Apply the staged solves and start the fight — called by the reading
   // countdown and by the "FIGHT" skip button. Consumes pendingRef once.
   const beginFight = useCallback(async () => {
+    if (roundIdx === 0 && results.length === 0) track(Events.ARENA_MATCH_STARTED);
     const round = rounds[roundIdx];
     if (!round) return;
     if (isPlayerRound) {
@@ -776,6 +778,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       const champBug = !!(window as any).__champBug;
       const rivalBug = !!(window as any).__rivalBug;
       const diff = Math.abs(champTotal - rivalTotal);
+      track(Events.ARENA_ROUND_RESULT, { round: roundIdx, won: !!(champ.correct && champWon) });
       const v = champ.correct && champWon
         ? `${label} ${winsVerb} — clean hit, ${diff}ms faster${rivalBug ? ` while ${RIVAL.name}'s query glitched` : ''}!`
         : champ.correct

@@ -191,4 +191,6 @@ export const Events = {
   ARENA_MATCH_STARTED: 'arena_match_started',
   BYOK_VIEWED: 'byok_viewed',
   BYOK_CONNECTED: 'byok_connected',
+  ARENA_ROUND_RESULT: 'arena_round_result',
+  GITHUB_LINKED: 'github_linked',
 } as const;
