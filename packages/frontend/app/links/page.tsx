@@ -151,6 +151,9 @@ export default function LinksPage() {
           <Send size={18} /> Telegram — @bleepxbuilds
         </TrackedOutboundLink>
       </div>
+      <p className="text-center text-xs text-bleepx-text-secondary mt-5">
+        Questions or feedback? <a href="mailto:hello@bleepx.dev" className="underline hover:text-bleepx-text">hello@bleepx.dev</a>
+      </p>
     </main>
   );
 }

@@ -82,6 +82,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   >
                     GitHub
                   </a>
+                    <a href="mailto:hello@bleepx.dev" className="hover:text-teal-600 transition-colors">hello@bleepx.dev</a>
                   <span aria-hidden>&middot;</span>
                   <Link href="/privacy" className="hover:text-teal-600 transition-colors">Privacy</Link>
                   <span aria-hidden>&middot;</span>

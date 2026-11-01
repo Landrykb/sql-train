@@ -114,8 +114,9 @@ export default function TermsPage() {
       <h2>13. Contact</h2>
       <p>
         Questions or concerns? The primary contact is{' '}
-        <a href="https://www.linkedin.com/in/landrykb" target="_blank" rel="noopener noreferrer">LinkedIn</a>.
+        <a href="mailto:hello@bleepx.dev">hello@bleepx.dev</a>.
         You can also reach the maintainer on{' '}
+        <a href="https://www.linkedin.com/in/landrykb" target="_blank" rel="noopener noreferrer">LinkedIn</a> or{' '}
         <a href="https://github.com/Landrykb" target="_blank" rel="noopener noreferrer">GitHub</a>.
       </p>
 
