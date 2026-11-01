@@ -88,6 +88,7 @@ export function initAnalytics(): void {
         if (!hasAnalyticsConsent()) ph.opt_out_capturing();
       },
     });
+    posthog.register({ signed_in: false }); // guests bucket as false, not undefined
     initialized = true;
     enabled = true;
   } catch (err) {
