@@ -150,7 +150,7 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
               </div>
               {emailSent ? (
                 <div className="flex flex-col gap-2">
-                  <p className="text-xs text-bleepx-text">Check your inbox — we sent a link + code to <strong>{email}</strong>. Open it <strong>in this same browser</strong>, or type/paste the 8-digit code:</p>
+                  <p className="text-xs text-bleepx-text">Check your inbox — we sent a link + code to <strong>{email}</strong>. Open it <strong>in this same browser</strong>, or type/paste the 6-digit code:</p>
                   <div className="flex flex-col items-center gap-2">
                     <div className="relative">
                       <input
@@ -158,17 +158,17 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                         inputMode="numeric"
                         autoComplete="one-time-code"
                         value={otp}
-                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                        onKeyDown={(e) => { if (e.key === 'Enter' && otp.length === 8) handleVerifyOtp(); }}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        onKeyDown={(e) => { if (e.key === 'Enter' && otp.length === 6) handleVerifyOtp(); }}
                         className="absolute inset-0 w-full opacity-0 cursor-text"
                         aria-label="verification code"
                         autoFocus
                       />
                       <div className="flex gap-1.5 pointer-events-none">
-                        {Array.from({ length: 8 }).map((_, i) => (
+                        {Array.from({ length: 6 }).map((_, i) => (
                           <div
                             key={i}
-                            className={`relative w-8 h-11 rounded-xl border flex items-center justify-center text-base font-bold transition-all ${
+                            className={`relative w-9 h-11 rounded-xl border flex items-center justify-center text-base font-bold transition-all ${
                               otp[i]
                                 ? 'border-bleepx-blue bg-bleepx-blue/5 text-bleepx-text'
                                 : i === otp.length
@@ -185,7 +185,7 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                       onClick={handleVerifyOtp}
                       disabled={busy !== ''}
                       className={`w-full px-4 py-2.5 rounded-full border text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 ${
-                        otp.length === 8
+                        otp.length === 6
                           ? 'bg-bleepx-blue border-bleepx-blue text-white hover:bg-blue-700'
                           : 'border-bleepx-border text-bleepx-text-secondary'
                       }`}
