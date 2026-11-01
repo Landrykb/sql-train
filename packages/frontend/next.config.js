@@ -19,6 +19,14 @@ module.exports = {
       ],
     }];
   },
+  async redirects() {
+    return [{
+      source: '/:path*',
+      has: [{ type: 'host', value: 'bleepxacademy.vercel.app' }],
+      destination: 'https://bleepx.dev/:path*',
+      permanent: true,
+    }];
+  },
   webpack(config, { isServer }) {
     if (!isServer) {
       config.resolve.fallback = {
