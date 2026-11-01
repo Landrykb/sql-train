@@ -38,6 +38,9 @@ export function useSupabaseUser(): GitHubUser | null {
         };
         setUser(ghUser);
         try {
+          identify(`${ghUser.provider === 'github' ? 'gh' : 'em'}_${(ghUser.email || ghUser.login).toLowerCase()}`, { email: ghUser.email, name: ghUser.name, provider: ghUser.provider });
+        } catch { /* ignore */ }
+        try {
           const owner = localStorage.getItem('bleepx_progress_owner');
           if (owner && owner !== u.id) {
             Object.keys(localStorage)
@@ -85,6 +88,7 @@ export function useSupabaseUser(): GitHubUser | null {
           setGitHubUser(ghUser);
           if (session.provider_token) setProviderTokenCookie(session.provider_token);
         } else if (event === 'SIGNED_OUT') {
+          resetAnalytics();
           setUser(null);
         }
       });
@@ -102,3 +106,4 @@ export function useSupabaseUser(): GitHubUser | null {
 
   return user;
 }
+import { identify, track, resetAnalytics, Events } from './analytics';

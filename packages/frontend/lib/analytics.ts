@@ -117,13 +117,13 @@ export function track(event: string, props?: Record<string, any>): void {
   } catch { /* ignore */ }
 }
 
-/** Identify a signed-in user (hashed GitHub login). */
-export function identify(githubLogin: string): void {
+/** Identify a signed-in user and attach person properties so they show a
+ *  readable name/email in PostHog instead of an anonymous id. */
+export function identify(userId: string, props?: { email?: string; name?: string; provider?: string }): void {
   if (!initialized) return;
   try {
-    // Hash to avoid storing raw logins as user IDs
-    const id = `gh_${githubLogin.toLowerCase()}`;
-    posthog.identify(id);
+    posthog.identify(userId);
+    if (props) posthog.people.set(props);
   } catch { /* ignore */ }
 }
 
