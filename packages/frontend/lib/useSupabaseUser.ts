@@ -38,7 +38,7 @@ export function useSupabaseUser(): GitHubUser | null {
         };
         setUser(ghUser);
         try {
-          identify(`${ghUser.provider === 'github' ? 'gh' : 'em'}_${(ghUser.email || ghUser.login).toLowerCase()}`, { email: ghUser.email, name: ghUser.name, provider: ghUser.provider });
+          identify(u.id, { provider: ghUser.provider });
         } catch { /* ignore */ }
         try {
           const owner = localStorage.getItem('bleepx_progress_owner');

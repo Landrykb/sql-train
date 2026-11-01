@@ -119,11 +119,13 @@ export function track(event: string, props?: Record<string, any>): void {
 
 /** Identify a signed-in user and attach person properties so they show a
  *  readable name/email in PostHog instead of an anonymous id. */
-export function identify(userId: string, props?: { email?: string; name?: string; provider?: string }): void {
+export function identify(userId: string, props?: { provider?: string }): void {
   if (!initialized) return;
   try {
+    // Pseudonymous: the Supabase user UUID — no email/name stored in PostHog.
     posthog.identify(userId);
     if (props) posthog.people.set(props);
+    posthog.register({ signed_in: true, ...(props?.provider ? { provider: props.provider } : {}) });
   } catch { /* ignore */ }
 }
 
