@@ -2,7 +2,7 @@
 
 > Bleepx is a browser-native learning platform where you master **SQL** (BleepxQuery), **Python/R data science** (BleepxLab), and **cloud architecture** (BleepxCloud) by solving realistic case studies. Everything runs client-side on WebAssembly — your code never leaves your device. And when you want a fight, the **Bleepx Arena** pits your champion against the house bot in real-code duels.
 
-Live: **[bleepxacademy.vercel.app](https://bleepxacademy.vercel.app)** &nbsp;•&nbsp; Bio hub: [/links](https://bleepxacademy.vercel.app/links) &nbsp;•&nbsp; Source: [github.com/Landrykb/sql-train](https://github.com/Landrykb/sql-train)
+Live: **[bleepx.dev](https://bleepx.dev)** &nbsp;•&nbsp; Bio hub: [/links](https://bleepx.dev/links) &nbsp;•&nbsp; Source: [github.com/Landrykb/sql-train](https://github.com/Landrykb/sql-train)
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-teal)
 ![Next.js](https://img.shields.io/badge/Next.js-15-black)
@@ -344,8 +344,8 @@ Open a PR against `main` — CI validates curriculum + builds.
 
 ## Privacy &amp; Terms
 
-- **[Privacy Policy](https://bleepxacademy.vercel.app/privacy)** — what we collect, what we don't.
-- **[Terms of Service](https://bleepxacademy.vercel.app/terms)** — acceptable use, your content, pricing commitments.
+- **[Privacy Policy](https://bleepx.dev/privacy)** — what we collect, what we don't.
+- **[Terms of Service](https://bleepx.dev/terms)** — acceptable use, your content, pricing commitments.
 
 Short version: we collect the minimum, never sell, you can opt out of analytics, your code stays yours, and any future paid features are published before anyone is charged.
 

@@ -359,7 +359,7 @@ export function formatReportMarkdown(data: ReportData): string {
     }
   }
 
-  md += `---\n*Generated via [Bleepx](https://bleepxacademy.vercel.app) — Your AI Learning Companion*\n`;
+  md += `---\n*Generated via [Bleepx](https://bleepx.dev) — Your AI Learning Companion*\n`;
   return md;
 }
 

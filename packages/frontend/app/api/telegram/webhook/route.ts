@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
  *
  *   Then register the webhook (one GET, in a browser):
  *     https://api.telegram.org/bot<TOKEN>/setWebhook
- *       ?url=https://bleepxacademy.vercel.app/api/telegram/webhook
+ *       ?url=https://bleepx.dev/api/telegram/webhook
  *       &secret_token=<TELEGRAM_WEBHOOK_SECRET>
  *
  * Channels can't host commands — this answers in DMs and any group the bot is
@@ -24,7 +24,7 @@ export const dynamic = 'force-dynamic';
 
 const TOKEN = process.env.BLEEPX_TG_BOT_TOKEN ?? '';
 const SECRET = process.env.TELEGRAM_WEBHOOK_SECRET ?? '';
-const SITE = 'https://bleepxacademy.vercel.app';
+const SITE = 'https://bleepx.dev';
 const API = `https://api.telegram.org/bot${TOKEN}`;
 
 async function sendText(chatId: number | string, text: string) {

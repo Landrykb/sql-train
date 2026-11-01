@@ -22,7 +22,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata = {
-  metadataBase: new URL('https://bleepxacademy.vercel.app'),
+  metadataBase: new URL('https://bleepx.dev'),
   title: { default: 'Bleepx — SQL, Data Science & Cloud training', template: '%s | Bleepx' },
   description: 'Master SQL with BleepxQuery, data science with BleepxLab, and cloud with BleepxCloud — free, in-browser training with a fight-card Arena.',
   openGraph: {

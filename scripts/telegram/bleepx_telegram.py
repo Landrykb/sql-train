@@ -28,7 +28,7 @@ Pack JSON format (the launch system emits one per episode):
     "cover": "/path/to/cover.png",         // optional; posted after the video
     "short_caption": "<=1024 chars, rides on the video",
     "full_text": "longer text, posted as a follow-up message (links clickable)",
-    "link": "https://bleepxacademy.vercel.app/links"
+    "link": "https://bleepx.dev/links"
   }
 """
 
@@ -131,7 +131,7 @@ class Poster:
                 "disable_web_page_preview": "false",
             })
 
-    def poll(self, site_base: str = "https://bleepxacademy.vercel.app") -> None:
+    def poll(self, site_base: str = "https://bleepx.dev") -> None:
         """Long-poll getUpdates and answer commands — run wherever the bot should live."""
         offset = 0
         print(f"listening… (answers commands in DMs and groups the bot is in)")
@@ -202,7 +202,7 @@ def main() -> int:
 
     sub.add_parser("ping", help="verify token + channel access")
     ls = sub.add_parser("listen", help="answer commands in DMs and discussion groups")
-    ls.add_argument("--site", default="https://bleepxacademy.vercel.app")
+    ls.add_argument("--site", default="https://bleepx.dev")
     ep = sub.add_parser("episode", help="post an episode pack")
     ep.add_argument("--pack", required=True)
     tx = sub.add_parser("text", help="post a text message")
