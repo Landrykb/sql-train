@@ -36,6 +36,6 @@ export function normalizeDomain(rawDomain: string): string {
       }
     }
   
-    console.warn(`Unable to normalize domain: ${rawDomain}. Defaulting to lowercase with underscores.`);
+    if (process.env.NODE_ENV !== 'production') console.warn(`Unable to normalize domain: ${rawDomain}. Defaulting to lowercase with underscores.`);
     return normalized;
   }

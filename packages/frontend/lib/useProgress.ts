@@ -311,7 +311,7 @@ export function useProgress() {
   const isUnlocked = useCallback((prereqs: string[]) => {
     try {
       const unlocked = isUnlockedRaw(prereqs);
-      console.log('Checking Unlock:', { prereqs, unlocked, completed: Array.from(completed) });
+      if (process.env.NODE_ENV !== 'production') console.log('Checking Unlock:', { prereqs, unlocked, completed: Array.from(completed) });
       return unlocked;
     } catch {
       return false;
