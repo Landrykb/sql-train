@@ -279,7 +279,8 @@ export async function pushDomainPortfolioToGitHub(
   const caseList = caseIds.map((id) => {
     const data = caseData[id] || { name: id };
     const resultNote = data.results?.length ? ` — *${data.results.length} rows analyzed*` : '';
-    return `- **${data.name}** (\`${id}\`)${resultNote}`;
+    const syncNote = caseData[id] ? '' : ' — *completed (solution not synced on this device)*';
+    return `- **${data.name}** (\`${id}\`)${resultNote}${syncNote}`;
   }).join('\n');
 
   const readme = `# ${domainTitle} SQL Analytics Portfolio\n\n` +
@@ -288,7 +289,23 @@ export async function pushDomainPortfolioToGitHub(
     `## Completed Cases\n\n${caseList}\n\n` +
     `---\n*Assembled by **${author}** with a little *bleep* guidance. Not bad for a human.*\n`;
 
+  const rootReadme = `# SQL Analytics Portfolio
+
+` +
+    `Hands-on SQL analytics work by **${author}** — real queries, real results, pushed from [Bleepx Academy](https://bleepx.dev).
+
+` +
+    `## Domains
+
+- \`${domain}/\` — ${domain.charAt(0).toUpperCase() + domain.slice(1)} domain cases, queries, and analysis
+
+` +
+    `---
+*Built in-browser at Bleepx Academy. *bleep**.
+`;
+
   const files: PortfolioFile[] = [
+    { path: `README.md`, content: rootReadme },
     { path: `${domain}/README.md`, content: readme },
   ];
 
@@ -382,7 +399,23 @@ export async function pushLabDomainPortfolioToGitHub(
     `## Completed Projects\n\n${projectList}\n\n` +
     `---\n*Curated by **${author}** — *bleep* thinks you might actually know what you're doing.*\n`;
 
+  const rootReadme = `# Data Science Portfolio
+
+` +
+    `Hands-on data science work by **${author}** — real notebooks, real results, pushed from [Bleepx Academy](https://bleepx.dev).
+
+` +
+    `## Domains
+
+- \`${domain}/\` — ${domain.charAt(0).toUpperCase() + domain.slice(1)} domain cases, queries, and analysis
+
+` +
+    `---
+*Built in-browser at Bleepx Academy. *bleep**.
+`;
+
   const files: PortfolioFile[] = [
+    { path: `README.md`, content: rootReadme },
     { path: `${domain}/README.md`, content: readme },
   ];
 
