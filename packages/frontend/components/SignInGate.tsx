@@ -63,6 +63,7 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
     if (!sb || !email.trim() || password.length < 6) return;
     setEmailErr('');
     setBusy('auth');
+    track(Events.AUTH_SIGN_IN_START, { from: 'gate', method: mode === 'signin' ? 'password' : 'signup' });
     if (mode === 'signin') {
       const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password }).finally(() => setBusy(''));
       if (error) setEmailErr(error.message === 'Invalid login credentials' ? 'Wrong email or password — or create an account below.' : error.message);
@@ -106,7 +107,7 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
 
   const handleSignIn = async () => {
     setIsLoading(true);
-    track(Events.AUTH_SIGN_IN_START, { from: 'gate', action });
+    track(Events.AUTH_SIGN_IN_START, { from: 'gate', method: 'github', action });
     await startGitHubLogin();
   };
 

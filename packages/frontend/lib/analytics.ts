@@ -101,6 +101,17 @@ export function initAnalytics(): void {
 export function capturePageview(path?: string): void {
   if (!initialized || !enabled) return;
   try {
+    // UTM params → super-props so anonymous traffic is attributed too
+    // (person_profiles:'identified_only' means no person record to tag).
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search);
+      const utm: Record<string, string> = {};
+      for (const k of ['utm_source', 'utm_medium', 'utm_campaign']) {
+        const v = sp.get(k);
+        if (v) utm[k] = v.slice(0, 60);
+      }
+      if (Object.keys(utm).length) posthog.register(utm);
+    }
     const url = sanitizeUrl(typeof window !== 'undefined' ? window.location.href : '');
     posthog.capture('$pageview', {
       $current_url: url,
