@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { getGitHubUser, startGitHubLogin, setProviderTokenCookie, AUTH_CHANGE_EVENT } from '@/lib/authClient';
 import { getSupabaseBrowserClient } from '@/lib/supabase';
+import PasswordStrength, { checkPassword } from './PasswordStrength';
 import { track, Events } from '@/lib/analytics';
 import { BleepxFace } from './BleepxIcons';
 import { Skeleton, SkeletonButton } from './Skeleton';
@@ -31,6 +32,8 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
   const [otp, setOtp] = useState('');
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [showPw, setShowPw] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   if (!open) return null;
 
@@ -64,6 +67,17 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
       else if (data.session) onClose();
       else setEmailSent(true); // email-confirm required → show link/code path
     }
+  };
+
+  const handleForgot = async () => {
+    const sb = getSupabaseBrowserClient();
+    if (!sb || !email.trim()) { setEmailErr('Enter your email first.'); return; }
+    setEmailErr('');
+    const { error } = await sb.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/auth/reset`,
+    });
+    if (error) setEmailErr(error.message);
+    else setResetSent(true);
   };
 
   const handleVerifyOtp = async () => {
@@ -155,18 +169,29 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                     placeholder="you@email.com"
                     className="w-full px-3 py-2.5 rounded-full border border-bleepx-border text-sm text-bleepx-text bg-transparent"
                   />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' && email.trim() && password.length >= 6) handleEmailAuth(); }}
-                    placeholder={mode === 'signin' ? 'password' : 'choose a password (6+ chars)'}
-                    className="w-full px-3 py-2.5 rounded-full border border-bleepx-border text-sm text-bleepx-text bg-transparent"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPw ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && email.trim() && password.length >= 6) handleEmailAuth(); }}
+                      placeholder={mode === 'signin' ? 'password' : 'choose a password (8+ chars)'}
+                      className="w-full px-3 py-2.5 pr-10 rounded-full border border-bleepx-border text-sm text-bleepx-text bg-transparent"
+                    />
+                    <button type="button" onClick={() => setShowPw(!showPw)} aria-label="show password"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-bleepx-text-secondary hover:text-bleepx-text">
+                      {showPw ? (
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+                      ) : (
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                      )}
+                    </button>
+                  </div>
+                  {mode === 'signup' && <PasswordStrength password={password} email={email} />}
                   <button
                     onClick={handleEmailAuth}
                     className={`w-full px-4 py-2.5 rounded-full border text-sm font-bold transition-colors ${
-                      email.trim() && password.length >= 6
+                      email.trim() && (mode === 'signin' ? password.length >= 6 : checkPassword(password, email).ok)
                         ? 'bg-bleepx-blue border-bleepx-blue text-white hover:bg-blue-700'
                         : 'border-bleepx-border text-bleepx-text-secondary'
                     }`}
@@ -180,15 +205,26 @@ export default function SignInGate({ open, onClose, action }: SignInGateProps) {
                     >
                       {mode === 'signin' ? 'New here? Create account' : 'Have an account? Sign in'}
                     </button>
-                    <button
-                      onClick={() => { if (email.trim()) handleEmailSignIn(); }}
-                      className="text-[11px] text-bleepx-text-secondary hover:text-bleepx-text transition-colors underline"
-                    >
-                      email me a link instead
-                    </button>
+                    <span className="flex gap-3">
+                      {mode === 'signin' && (
+                        <button
+                          onClick={handleForgot}
+                          className="text-[11px] text-bleepx-text-secondary hover:text-bleepx-text transition-colors underline"
+                        >
+                          forgot password?
+                        </button>
+                      )}
+                      <button
+                        onClick={() => { if (email.trim()) handleEmailSignIn(); }}
+                        className="text-[11px] text-bleepx-text-secondary hover:text-bleepx-text transition-colors underline"
+                      >
+                        email me a link instead
+                      </button>
+                    </span>
                   </div>
                 </div>
               )}
+              {resetSent && <p className="text-xs text-emerald-600">Reset email sent — open the link and choose a new password.</p>}
               {emailErr && <p className="text-xs text-red-500">{emailErr}</p>}
               <button onClick={onClose} className="w-full px-5 py-2 rounded-full text-bleepx-text-secondary text-xs hover:text-bleepx-text transition-colors">
                 Maybe later — keep browsing
