@@ -16,7 +16,7 @@ import type { Champion, StrategyCard } from './champions';
 
 const KEY_KEY = 'bleepxByokKey';
 const MODEL_KEY = 'bleepxByokModel';
-const VERIFIER_KEY = 'bleepxByokVerifier'; // legacy key from the pre-state builds — only cleaned up
+const VERIFIER_KEY = 'bleepxByokVerifier';
 
 /** Always-available OpenRouter router that picks a live free model. */
 export const DEFAULT_BYOK_MODEL = 'openrouter/free';
@@ -250,6 +250,7 @@ export async function byokConnectUrl(): Promise<string> {
   const challenge = b64url(digest);
   try {
     localStorage.setItem(PENDING_KEY, JSON.stringify({ ...readPending(), [state]: { v: verifier, t: Date.now() } }));
+    localStorage.setItem(VERIFIER_KEY, verifier);
   } catch { /* ignore */ }
   const cb = encodeURIComponent(`${window.location.origin}/arena/byok`);
   return `https://openrouter.ai/auth?callback_url=${cb}&code_challenge=${challenge}&code_challenge_method=S256&state=${state}&key_label=${encodeURIComponent('Bleepx Arena')}`;
@@ -306,16 +307,26 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
     return getByok() ? { ok: true } : { ok: false, error: 'this authorization code was already used — connect again' };
   }
 
-  // The callback must answer an attempt this browser started: a `state` that
-  // matches a stored pending entry supplies the verifier. Own-property lookup —
-  // `pending['__proto__']` would wrongly match Object.prototype. This also
-  // stops a crafted callback URL from swapping in a foreign code.
+  // The callback must answer an attempt this browser started. OpenRouter does
+  // NOT echo `state` back, so matching it strictly rejects real callbacks —
+  // instead verify a pending attempt exists in this browser and take the
+  // matching (or newest) verifier. Own-property lookup:
+  // `pending['__proto__']` would wrongly match Object.prototype.
   const pending = readPending();
-  const ownAttempt = !!state && Object.prototype.hasOwnProperty.call(pending, state);
-  let verifier = ownAttempt ? pending[state as string].v : '';
-  if (!verifier && !state) {
-    // Legacy attempt started before `state` existed: verifier alone, and the
-    // code-only retry below stays off for it.
+  let verifier = '';
+  let stateKey: string | null = null;
+  if (state && Object.prototype.hasOwnProperty.call(pending, state)) {
+    verifier = pending[state].v;
+    stateKey = state;
+  } else {
+    const newest = Object.entries(pending).sort((a, b) => b[1].t - a[1].t)[0];
+    if (newest) {
+      verifier = newest[1].v;
+      stateKey = newest[0];
+    }
+  }
+  if (!verifier) {
+    // Attempts started before pending existed stored only the legacy key.
     try {
       verifier = localStorage.getItem(VERIFIER_KEY) ?? '';
     } catch { /* storage unavailable */ }
@@ -323,6 +334,7 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
   if (!verifier) {
     return { ok: false, error: 'authorization attempt not found — start the connect again' };
   }
+  const verifiedAttempt = true; // a pending or legacy entry in this browser vouched for it
   try {
     sessionStorage.setItem(USED_CODE_KEY, code);
   } catch { /* storage unavailable */ }
@@ -347,14 +359,14 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
     // sign-in detour), the PKCE exchange reports "Invalid code". Retrying with
     // the code alone is the correct exchange for an unbound code — it can't
     // redeem a bound code, so it only helps codes OpenRouter issued unbound.
-    if (!r.key && r.res.status === 400 && /invalid code/i.test(r.detail) && ownAttempt) {
+    if (!r.key && r.res.status === 400 && /invalid code/i.test(r.detail) && verifiedAttempt) {
       r = await exchange(false);
     }
     if (r.key) {
       setByokKey(r.key);
       try {
         const rest = readPending();
-        delete rest[state!];
+        if (stateKey) delete rest[stateKey];
         localStorage.setItem(PENDING_KEY, JSON.stringify(rest));
         localStorage.removeItem(VERIFIER_KEY);
       } catch { /* ignore */ }
