@@ -32,7 +32,7 @@ import {
   Wind, Wrench, Clover, Swords as CounterIcon, Dices, Check, X, User,
   KeyRound, Loader2, PlugZap,
 } from 'lucide-react';
-import { BYOK_MODELS, DEFAULT_BYOK_MODEL, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, connectByokWithKey, getByokResolved, getByokResolvedAt, byokDisplayLabel, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
+import { BYOK_MODELS, DEFAULT_BYOK_MODEL, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, connectByokWithKey, getByokResolved, getByokResolvedAt, byokDisplayLabel, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord, type BrainVerdict } from '@/lib/arena/byok';
 import { track, Events } from '@/lib/analytics';
 
 interface RoundDef {
@@ -904,9 +904,20 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
         const resolved = getByokResolved();
         const routedThisMatch = resolved && getByokResolvedAt() >= matchStartAt.current ? resolved : null;
         const brainModel = (byok.model === DEFAULT_BYOK_MODEL ? routedThisMatch : null) ?? getByok()?.model ?? byok.model;
-        recordBrainResult(brainModel, matchWon);
+        // Whose fight was it: solo when the model played every round; in
+        // tag-team compare round win-rates — model out-won you → it carried,
+        // you out-won it → it dragged the team down.
+        const modelRs = results.filter((r) => !r.byPlayer);
+        const playerRs = results.filter((r) => r.byPlayer);
+        let verdict: BrainVerdict = 'solo';
+        if (playerRs.length > 0 && modelRs.length > 0) {
+          const mr = modelRs.filter((r) => r.champWon).length / modelRs.length;
+          const pr = playerRs.filter((r) => r.champWon).length / playerRs.length;
+          verdict = mr > pr ? 'carried' : mr < pr ? 'dragged' : 'even';
+        }
+        recordBrainResult(brainModel, matchWon, verdict);
         setBrains(getBrains());
-        reportBrainResult(brainModel, matchWon, verse, tier);
+        reportBrainResult(brainModel, matchWon, verse, tier, verdict);
         setTimeout(() => getGlobalBrains().then(setGlobalBrains), 800);
       }
     } catch { /* ignore storage errors */ }
@@ -1237,12 +1248,23 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
                   Brains scoreboard{globalBrains.length > 0 ? ' — global' : ' — yours'}
                 </p>
-                {(globalBrains.length > 0 ? globalBrains : brains).slice(0, 5).map((b) => (
-                  <p key={b.model} className="text-[11px] text-slate-300 flex justify-between py-0.5">
-                    <span className="truncate">{byokModels.find((m) => m.id === b.model)?.label ?? b.model}</span>
-                    <span className="font-bold text-slate-200 ml-2 shrink-0">{b.w}W · {b.l}L</span>
-                  </p>
-                ))}
+                {(globalBrains.length > 0 ? globalBrains : brains).slice(0, 5).map((b) => {
+                  const tags: string[] = [];
+                  if (b.solo) tags.push(`solo bot ×${b.solo}`);
+                  if (b.carried) tags.push(`carried the team ×${b.carried}`);
+                  if (b.dragged) tags.push(`dragged the team down ×${b.dragged}`);
+                  return (
+                    <div key={b.model} className="py-0.5">
+                      <p className="text-[11px] text-slate-300 flex justify-between">
+                        <span className="truncate">{byokModels.find((m) => m.id === b.model)?.label ?? b.model}</span>
+                        <span className="font-bold text-slate-200 ml-2 shrink-0">{b.w}W · {b.l}L</span>
+                      </p>
+                      {tags.length > 0 && (
+                        <p className="text-[9px] text-slate-500">{tags.join(' · ')}</p>
+                      )}
+                    </div>
+                  );
+                })}
                 <p className="text-[9px] text-slate-500 mt-2">
                   {(globalBrains.length > 0 ? globalBrains : brains).reduce((a, b) => a + b.w + b.l, 0)} fights recorded
                   {!byok && ' — connect your brain above to put your model on the board.'}

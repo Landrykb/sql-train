@@ -25,6 +25,9 @@ import { createSupabaseServerClient } from '@/lib/supabaseServer';
  *     tier text,
  *     created_at timestamptz default now()
  *   );
+ *   -- optional enrichment (scoreboard verdicts):
+ *   alter table arena_brain_results add column if not exists mode text;
+ *   alter table arena_brain_results add column if not exists verdict text;
  *   alter table arena_brain_results enable row level security;
  *   create policy "anyone can insert" on arena_brain_results for insert with check (true);
  *   create policy "anyone can read"   on arena_brain_results for select using (true);
@@ -90,25 +93,37 @@ export async function GET(req: NextRequest) {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return NextResponse.json({ brains: [] }, { status: 503 });
 
-  const { data, error } = await supabase
+  // mode/verdict columns are optional — added later, so fall back cleanly.
+  let rows: { model: string; won: boolean; mode?: string | null; verdict?: string | null }[] | null = null;
+  const rich = await supabase
     .from('arena_brain_results')
-    .select('model, won')
+    .select('model, won, mode, verdict')
     .order('created_at', { ascending: false })
     .limit(5000);
-
-  if (error || !data) {
-    return NextResponse.json({ brains: [] }, { status: error ? 503 : 200 });
+  if (rich.error) {
+    const plain = await supabase
+      .from('arena_brain_results')
+      .select('model, won')
+      .order('created_at', { ascending: false })
+      .limit(5000);
+    if (plain.error) return NextResponse.json({ brains: [] }, { status: 503 });
+    rows = plain.data;
+  } else {
+    rows = rich.data;
   }
 
-  const acc = new Map<string, { w: number; l: number }>();
-  for (const row of data as { model: string; won: boolean }[]) {
-    const rec = acc.get(row.model) ?? { w: 0, l: 0 };
+  const acc = new Map<string, { w: number; l: number; solo: number; carried: number; dragged: number }>();
+  for (const row of rows ?? []) {
+    const rec = acc.get(row.model) ?? { w: 0, l: 0, solo: 0, carried: 0, dragged: 0 };
     if (row.won) rec.w += 1; else rec.l += 1;
+    if (row.mode === 'bot') rec.solo += 1;
+    if (row.verdict === 'carried') rec.carried += 1;
+    else if (row.verdict === 'dragged') rec.dragged += 1;
     acc.set(row.model, rec);
   }
 
   const brains = [...acc.entries()]
-    .map(([model, r]) => ({ model, w: r.w, l: r.l }))
+    .map(([model, r]) => ({ model, ...r }))
     .sort((a, b) => b.w - a.w || a.l - b.l)
     .slice(0, 20);
 
@@ -132,6 +147,8 @@ export async function POST(req: NextRequest) {
   const won = typeof body?.won === 'boolean' ? body.won : null;
   const verse = typeof body?.verse === 'string' ? body.verse.slice(0, 32) : null;
   const tier = typeof body?.tier === 'string' ? body.tier.slice(0, 32) : null;
+  const mode = body?.mode === 'bot' || body?.mode === 'tag' ? body.mode : null;
+  const verdict = ['carried', 'dragged', 'even'].includes(body?.verdict) ? body.verdict : null;
   const ticket = typeof body?.ticket === 'string' ? body.ticket : '';
 
   if (!model || won === null) {
@@ -146,9 +163,13 @@ export async function POST(req: NextRequest) {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return NextResponse.json({ ok: false }, { status: 503 });
 
-  const { error } = await supabase.from('arena_brain_results').insert({ model, won, verse, tier });
+  // Try the enriched insert first; older tables lack mode/verdict → retry plain.
+  const { error } = await supabase.from('arena_brain_results').insert({ model, won, verse, tier, mode, verdict });
   if (error) {
-    return NextResponse.json({ ok: false, detail: error.message }, { status: 503 });
+    const retry = await supabase.from('arena_brain_results').insert({ model, won, verse, tier });
+    if (retry.error) {
+      return NextResponse.json({ ok: false, detail: retry.error.message }, { status: 503 });
+    }
   }
   return NextResponse.json({ ok: true });
 }

@@ -191,13 +191,24 @@ export interface BrainRecord {
   model: string;
   w: number;
   l: number;
+  /** Matches fought without a human teammate (coach mode). */
+  solo?: number;
+  /** Tag-team matches where the model out-won the player. */
+  carried?: number;
+  /** Tag-team matches where the player out-won the model. */
+  dragged?: number;
 }
 
-export function recordBrainResult(model: string, won: boolean) {
+export type BrainVerdict = 'solo' | 'carried' | 'dragged' | 'even';
+
+export function recordBrainResult(model: string, won: boolean, verdict?: BrainVerdict) {
   try {
-    const store = JSON.parse(localStorage.getItem(BRAINS_KEY) || '{}') as Record<string, { w: number; l: number }>;
+    const store = JSON.parse(localStorage.getItem(BRAINS_KEY) || '{}') as Record<string, { w: number; l: number; solo?: number; carried?: number; dragged?: number }>;
     const rec = store[model] ?? { w: 0, l: 0 };
     if (won) rec.w += 1; else rec.l += 1;
+    if (verdict === 'solo') rec.solo = (rec.solo ?? 0) + 1;
+    else if (verdict === 'carried') rec.carried = (rec.carried ?? 0) + 1;
+    else if (verdict === 'dragged') rec.dragged = (rec.dragged ?? 0) + 1;
     store[model] = rec;
     localStorage.setItem(BRAINS_KEY, JSON.stringify(store));
   } catch { /* ignore */ }
@@ -205,9 +216,9 @@ export function recordBrainResult(model: string, won: boolean) {
 
 export function getBrains(): BrainRecord[] {
   try {
-    const store = JSON.parse(localStorage.getItem(BRAINS_KEY) || '{}') as Record<string, { w: number; l: number }>;
+    const store = JSON.parse(localStorage.getItem(BRAINS_KEY) || '{}') as Record<string, { w: number; l: number; solo?: number; carried?: number; dragged?: number }>;
     return Object.entries(store)
-      .map(([model, r]) => ({ model, w: r.w, l: r.l }))
+      .map(([model, r]) => ({ model, ...r }))
       .sort((a, b) => b.w - a.w || a.l - b.l);
   } catch {
     return [];
@@ -215,7 +226,7 @@ export function getBrains(): BrainRecord[] {
 }
 
 /** Reports a fight outcome to the public board. Fire-and-forget. */
-export async function reportBrainResult(model: string, won: boolean, verse?: string, tier?: string) {
+export async function reportBrainResult(model: string, won: boolean, verse?: string, tier?: string, verdict?: BrainVerdict) {
   try {
     // Signed mode: fetch a fight ticket first; unsigned mode returns null.
     let ticket: string | null = null;
@@ -230,7 +241,7 @@ export async function reportBrainResult(model: string, won: boolean, verse?: str
     fetch('/api/arena/brain-result', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, won, verse, tier, ticket }),
+      body: JSON.stringify({ model, won, verse, tier, ticket, mode: verdict === 'solo' ? 'bot' : 'tag', verdict: verdict === 'solo' ? null : verdict }),
     }).catch(() => { /* board offline — local stats still fine */ });
   } catch { /* ignore */ }
 }
