@@ -270,7 +270,18 @@ export interface ByokConnectResult {
  * the stored result instead of re-sending a spent code. On failure the result
  * carries OpenRouter's HTTP status and message.
  */
-export async function finishByokConnect(code: string, state?: string | null): Promise<ByokConnectResult> {
+const inflight = new Map<string, Promise<ByokConnectResult>>();
+
+export function finishByokConnect(code: string, state?: string | null): Promise<ByokConnectResult> {
+  let p = inflight.get(code);
+  if (!p) {
+    p = exchangeByokCode(code, state);
+    inflight.set(code, p);
+  }
+  return p;
+}
+
+async function exchangeByokCode(code: string, state?: string | null): Promise<ByokConnectResult> {
   let used: string | null = null;
   try {
     used = sessionStorage.getItem(USED_CODE_KEY);
