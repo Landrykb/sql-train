@@ -153,7 +153,7 @@ export async function byokConnectUrl(): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
   const challenge = b64url(digest);
   try {
-    sessionStorage.setItem(VERIFIER_KEY, verifier);
+    localStorage.setItem(VERIFIER_KEY, verifier);
   } catch { /* ignore */ }
   const cb = encodeURIComponent(`${window.location.origin}/arena/byok`);
   return `https://openrouter.ai/auth?callback_url=${cb}&code_challenge=${challenge}&code_challenge_method=S256`;
@@ -162,8 +162,8 @@ export async function byokConnectUrl(): Promise<string> {
 /** Exchanges the OAuth `code` for a key on the callback page. */
 export async function finishByokConnect(code: string): Promise<boolean> {
   try {
-    const verifier = sessionStorage.getItem(VERIFIER_KEY) ?? '';
-    sessionStorage.removeItem(VERIFIER_KEY);
+    const verifier = localStorage.getItem(VERIFIER_KEY) ?? '';
+    localStorage.removeItem(VERIFIER_KEY);
     const res = await fetch('https://openrouter.ai/api/v1/auth/keys', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
