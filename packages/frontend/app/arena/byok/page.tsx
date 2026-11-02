@@ -14,14 +14,15 @@ export default function ByokCallbackPage() {
     const search = window.location.search;
     const code = rawQueryParam(search, 'code');
     const state = rawQueryParam(search, 'state');
-    // Drop the single-use code from the URL so reload/back can't resend it.
-    if (code) window.history.replaceState(null, '', window.location.pathname);
+    // Keep the code in the URL on failure (it's already spent) so the exact
+    // value OpenRouter issued can be shared for debugging; strip on success.
     if (!code) {
       setStatus('No authorization code came back — close this tab and try again.');
       return;
     }
     finishByokConnect(code, state).then((result) => {
       if (result.ok) {
+        window.history.replaceState(null, '', window.location.pathname);
         setStatus('Connected — back to the arena.');
         track(Events.BYOK_CONNECTED);
         window.location.href = '/arena';
@@ -30,7 +31,9 @@ export default function ByokCallbackPage() {
           .filter(Boolean)
           .join(': ');
         console.error('[byok] connect failed:', detail);
-        setStatus(`Authorization failed${detail ? ` (${detail})` : ''} — try again, or paste an OpenRouter key in the arena.`);
+        setStatus(
+          `Authorization failed${detail ? ` (${detail})` : ''} — try again, or paste an OpenRouter key in the arena. (code: ${code.slice(0, 6)}…${code.slice(-3)}, len ${code.length})`,
+        );
       }
     });
   }, []);
