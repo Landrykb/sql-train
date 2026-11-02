@@ -32,7 +32,7 @@ import {
   Wind, Wrench, Clover, Swords as CounterIcon, Dices, Check, X, User,
   KeyRound, Loader2,
 } from 'lucide-react';
-import { BYOK_MODELS, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
+import { BYOK_MODELS, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, connectByokWithKey, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
 import { track, Events } from '@/lib/analytics';
 
 interface RoundDef {
@@ -347,6 +347,10 @@ function ClashSparks({ active }: { active: boolean }) {
 export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | 'cloud' | 'lab' | null }) {
   const [phase, setPhase] = useState<Phase>('select');
   const [byokConnecting, setByokConnecting] = useState(false);
+  const [byokPasteOpen, setByokPasteOpen] = useState(false);
+  const [byokPasteKey, setByokPasteKey] = useState('');
+  const [byokPasteBusy, setByokPasteBusy] = useState(false);
+  const [byokPasteErr, setByokPasteErr] = useState<string | null>(null);
   const [champion, setChampion] = useState<Champion>(() => {
     const id = getSelectedChampionId();
     return CHAMPIONS.find((c) => c.id === id) ?? CHAMPIONS[0];
@@ -1155,6 +1159,52 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                   >
                     {byokConnecting ? (<><Loader2 className="w-3.5 h-3.5 animate-spin" /> CONNECTING…</>) : <>CONNECT &amp; AUTHORIZE</>}
                   </button>
+                  {byokPasteOpen ? (
+                    <form
+                      className="flex gap-1.5"
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (byokPasteBusy) return;
+                        setByokPasteBusy(true);
+                        setByokPasteErr(null);
+                        const r = await connectByokWithKey(byokPasteKey);
+                        setByokPasteBusy(false);
+                        if (r.ok) {
+                          setByokPasteKey('');
+                          setByokPasteOpen(false);
+                          setByokState(getByok());
+                          track(Events.BYOK_CONNECTED, { via: 'paste' });
+                        } else {
+                          setByokPasteErr([r.status ? `HTTP ${r.status}` : null, r.error].filter(Boolean).join(': '));
+                        }
+                      }}
+                    >
+                      <input
+                        type="password"
+                        autoComplete="off"
+                        value={byokPasteKey}
+                        onChange={(e) => setByokPasteKey(e.target.value)}
+                        placeholder="sk-or-v1-…"
+                        className="flex-1 min-w-0 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200 px-2 py-1.5"
+                      />
+                      <button
+                        type="submit"
+                        disabled={byokPasteBusy || !byokPasteKey.trim()}
+                        className="px-3 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 active:scale-95 disabled:opacity-60 inline-flex items-center gap-1"
+                      >
+                        {byokPasteBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'SAVE'}
+                      </button>
+                    </form>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setByokPasteOpen(true)}
+                      className="text-[10px] text-slate-400 hover:text-slate-200 underline underline-offset-2"
+                    >
+                      Or paste an OpenRouter key
+                    </button>
+                  )}
+                  {byokPasteErr && <p className="text-[10px] text-red-300">{byokPasteErr}</p>}
                   <p className="text-[9px] text-slate-500">
                     Opens the model provider&apos;s sign-in — your key stays in this browser and is only used for your champion&apos;s solves. Your champion&apos;s personality still applies — it can miss on its own.
                   </p>

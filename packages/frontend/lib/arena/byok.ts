@@ -121,6 +121,23 @@ export function setByokKey(key: string) {
   } catch { /* ignore */ }
 }
 
+/** Fallback when OAuth fails: validate a pasted OpenRouter key, then store it locally. */
+export async function connectByokWithKey(raw: string): Promise<ByokConnectResult> {
+  const key = raw.trim();
+  if (!/^sk-or-/.test(key)) return { ok: false, error: 'that does not look like an OpenRouter key (sk-or-…)' };
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/key', { headers: { Authorization: `Bearer ${key}` } });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      return { ok: false, status: res.status, error: data?.error?.message ?? 'key rejected' };
+    }
+    setByokKey(key);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'network error' };
+  }
+}
+
 export function clearByok() {
   try {
     localStorage.removeItem(KEY_KEY);

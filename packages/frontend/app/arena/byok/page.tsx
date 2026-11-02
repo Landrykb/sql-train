@@ -30,7 +30,7 @@ export default function ByokCallbackPage() {
           .filter(Boolean)
           .join(': ');
         console.error('[byok] connect failed:', detail);
-        setStatus(`Authorization failed${detail ? ` (${detail})` : ''} — close this tab and try again.`);
+        setStatus(`Authorization failed${detail ? ` (${detail})` : ''} — try again, or paste an OpenRouter key in the arena.`);
       }
     });
   }, []);
