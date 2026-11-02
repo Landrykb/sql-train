@@ -1260,9 +1260,9 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                 </p>
                 {(globalBrains.length > 0 ? globalBrains : brains).slice(0, 5).map((b) => {
                   const tags: string[] = [];
-                  if (b.solo) tags.push(`solo bot ×${b.solo}`);
-                  if (b.carried) tags.push(`carried the team ×${b.carried}`);
-                  if (b.dragged) tags.push(`dragged the team down ×${b.dragged}`);
+                  if (b.solo) tags.push(`fought alone ×${b.solo}`);
+                  if (b.carried) tags.push(`it carried you ×${b.carried}`);
+                  if (b.dragged) tags.push(`you carried it ×${b.dragged}`);
                   return (
                     <div key={b.model} className="py-0.5">
                       <p className="text-[11px] text-slate-300 flex justify-between">
