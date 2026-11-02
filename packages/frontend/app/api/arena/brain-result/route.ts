@@ -28,6 +28,7 @@ import { createSupabaseServerClient } from '@/lib/supabaseServer';
  *   -- optional enrichment (scoreboard verdicts):
  *   alter table arena_brain_results add column if not exists mode text;
  *   alter table arena_brain_results add column if not exists verdict text;
+ *   alter table arena_brain_results add column if not exists champion text;
  *   alter table arena_brain_results enable row level security;
  *   create policy "anyone can insert" on arena_brain_results for insert with check (true);
  *   create policy "anyone can read"   on arena_brain_results for select using (true);
@@ -94,10 +95,10 @@ export async function GET(req: NextRequest) {
   if (!supabase) return NextResponse.json({ brains: [] }, { status: 503 });
 
   // mode/verdict columns are optional — added later, so fall back cleanly.
-  let rows: { model: string; won: boolean; mode?: string | null; verdict?: string | null }[] | null = null;
+  let rows: { model: string; won: boolean; mode?: string | null; verdict?: string | null; champion?: string | null }[] | null = null;
   const rich = await supabase
     .from('arena_brain_results')
-    .select('model, won, mode, verdict')
+    .select('model, won, mode, verdict, champion')
     .order('created_at', { ascending: false })
     .limit(5000);
   if (rich.error) {
@@ -112,19 +113,23 @@ export async function GET(req: NextRequest) {
     rows = rich.data;
   }
 
-  const acc = new Map<string, { w: number; l: number; solo: number; carried: number; dragged: number }>();
+  const acc = new Map<string, { w: number; l: number; solo: number; carried: number; dragged: number; champs: Map<string, number> }>();
   for (const row of rows ?? []) {
-    const rec = acc.get(row.model) ?? { w: 0, l: 0, solo: 0, carried: 0, dragged: 0 };
+    const rec = acc.get(row.model) ?? { w: 0, l: 0, solo: 0, carried: 0, dragged: 0, champs: new Map() };
     if (row.won) rec.w += 1; else rec.l += 1;
     // solo = a bot-mode match where the model played every round (verdict 'solo').
     if (row.mode === 'bot' && row.verdict === 'solo') rec.solo += 1;
     if (row.verdict === 'carried') rec.carried += 1;
     else if (row.verdict === 'dragged') rec.dragged += 1;
+    if (row.champion) rec.champs.set(row.champion, (rec.champs.get(row.champion) ?? 0) + 1);
     acc.set(row.model, rec);
   }
 
   const brains = [...acc.entries()]
-    .map(([model, r]) => ({ model, ...r }))
+    .map(([model, { champs, ...r }]) => {
+      const top = [...champs.entries()].sort((a, b) => b[1] - a[1])[0];
+      return { model, ...r, champ: top?.[0], champFights: top?.[1] };
+    })
     .sort((a, b) => b.w - a.w || a.l - b.l)
     .slice(0, 20);
 
@@ -149,6 +154,7 @@ export async function POST(req: NextRequest) {
   const verse = typeof body?.verse === 'string' ? body.verse.slice(0, 32) : null;
   const tier = typeof body?.tier === 'string' ? body.tier.slice(0, 32) : null;
   const mode = body?.mode === 'bot' || body?.mode === 'tag' ? body.mode : null;
+  const champion = typeof body?.champion === 'string' ? body.champion.slice(0, 40) : null;
   // Verdict vocabulary depends on the match format — reject contradictory combos.
   const verdict = (
     (mode === 'tag' && ['carried', 'dragged', 'even'].includes(body?.verdict)) ||
@@ -169,7 +175,7 @@ export async function POST(req: NextRequest) {
   if (!supabase) return NextResponse.json({ ok: false }, { status: 503 });
 
   // Try the enriched insert first; older tables lack mode/verdict → retry plain.
-  const { error } = await supabase.from('arena_brain_results').insert({ model, won, verse, tier, mode, verdict });
+  const { error } = await supabase.from('arena_brain_results').insert({ model, won, verse, tier, mode, verdict, champion });
   if (error) {
     const retry = await supabase.from('arena_brain_results').insert({ model, won, verse, tier });
     if (retry.error) {

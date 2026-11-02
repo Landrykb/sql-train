@@ -925,9 +925,9 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
           const pr = playerRs.filter((r) => r.champWon).length / playerRs.length;
           verdict = mr > pr ? 'carried' : mr < pr ? 'dragged' : 'even';
         }
-        recordBrainResult(brainModel, matchWon, verdict);
+        recordBrainResult(brainModel, matchWon, verdict, champion.name);
         setBrains(getBrains());
-        reportBrainResult(brainModel, matchWon, verse, tier, playerRs.length ? 'tag' : 'bot', verdict);
+        reportBrainResult(brainModel, matchWon, verse, tier, playerRs.length ? 'tag' : 'bot', verdict, champion.name);
         setTimeout(() => getGlobalBrains().then(setGlobalBrains), 800);
       }
     } catch { /* ignore storage errors */ }
@@ -1266,7 +1266,14 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                   return (
                     <div key={b.model} className="py-0.5">
                       <p className="text-[11px] text-slate-300 flex justify-between">
-                        <span className="truncate">{byokModels.find((m) => m.id === b.model)?.label ?? b.model}</span>
+                        <span className="truncate">
+                          {byokModels.find((m) => m.id === b.model)?.label ?? b.model}
+                          {b.champ && (
+                            <span className="ml-1.5 px-1.5 py-0.5 rounded bg-slate-700/70 text-[9px] font-bold text-slate-300 align-middle">
+                              as {b.champ}{(b.champFights ?? 0) > 1 ? ` ×${b.champFights}` : ''}
+                            </span>
+                          )}
+                        </span>
                         <span className="font-bold text-slate-200 ml-2 shrink-0">{b.w}W · {b.l}L</span>
                       </p>
                       {tags.length > 0 && (

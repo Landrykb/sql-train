@@ -197,18 +197,24 @@ export interface BrainRecord {
   carried?: number;
   /** Tag-team matches where the player out-won the model. */
   dragged?: number;
+  /** Champion the model fought as most (name → fight count kept internally). */
+  champ?: string;
+  champFights?: number;
 }
 
 export type BrainVerdict = 'solo' | 'carried' | 'dragged' | 'even';
 
-export function recordBrainResult(model: string, won: boolean, verdict?: BrainVerdict) {
+type StoredBrain = { w: number; l: number; solo?: number; carried?: number; dragged?: number; champs?: Record<string, number> };
+
+export function recordBrainResult(model: string, won: boolean, verdict?: BrainVerdict, champion?: string) {
   try {
-    const store = JSON.parse(localStorage.getItem(BRAINS_KEY) || '{}') as Record<string, { w: number; l: number; solo?: number; carried?: number; dragged?: number }>;
+    const store = JSON.parse(localStorage.getItem(BRAINS_KEY) || '{}') as Record<string, StoredBrain>;
     const rec = store[model] ?? { w: 0, l: 0 };
     if (won) rec.w += 1; else rec.l += 1;
     if (verdict === 'solo') rec.solo = (rec.solo ?? 0) + 1;
     else if (verdict === 'carried') rec.carried = (rec.carried ?? 0) + 1;
     else if (verdict === 'dragged') rec.dragged = (rec.dragged ?? 0) + 1;
+    if (champion) (rec.champs ??= {})[champion] = ((rec.champs ??= {})[champion] ?? 0) + 1;
     store[model] = rec;
     localStorage.setItem(BRAINS_KEY, JSON.stringify(store));
   } catch { /* ignore */ }
@@ -216,9 +222,12 @@ export function recordBrainResult(model: string, won: boolean, verdict?: BrainVe
 
 export function getBrains(): BrainRecord[] {
   try {
-    const store = JSON.parse(localStorage.getItem(BRAINS_KEY) || '{}') as Record<string, { w: number; l: number; solo?: number; carried?: number; dragged?: number }>;
+    const store = JSON.parse(localStorage.getItem(BRAINS_KEY) || '{}') as Record<string, StoredBrain>;
     return Object.entries(store)
-      .map(([model, r]) => ({ model, ...r }))
+      .map(([model, { champs, ...r }]) => {
+        const top = Object.entries(champs ?? {}).sort((a, b) => b[1] - a[1])[0];
+        return { model, ...r, champ: top?.[0], champFights: top?.[1] };
+      })
       .sort((a, b) => b.w - a.w || a.l - b.l);
   } catch {
     return [];
@@ -226,7 +235,7 @@ export function getBrains(): BrainRecord[] {
 }
 
 /** Reports a fight outcome to the public board. Fire-and-forget. */
-export async function reportBrainResult(model: string, won: boolean, verse?: string, tier?: string, mode?: 'bot' | 'tag', verdict?: BrainVerdict) {
+export async function reportBrainResult(model: string, won: boolean, verse?: string, tier?: string, mode?: 'bot' | 'tag', verdict?: BrainVerdict, champion?: string) {
   try {
     // Signed mode: fetch a fight ticket first; unsigned mode returns null.
     let ticket: string | null = null;
@@ -241,7 +250,7 @@ export async function reportBrainResult(model: string, won: boolean, verse?: str
     fetch('/api/arena/brain-result', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, won, verse, tier, ticket, mode, verdict: verdict ?? null }),
+      body: JSON.stringify({ model, won, verse, tier, ticket, mode, verdict: verdict ?? null, champion: champion ?? null }),
     }).catch(() => { /* board offline — local stats still fine */ });
   } catch { /* ignore */ }
 }
