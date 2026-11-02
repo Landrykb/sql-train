@@ -20,6 +20,12 @@ export default function ByokCallbackPage() {
       setStatus('No authorization code came back — close this tab and try again.');
       return;
     }
+    // The shared analytics provider rewrites `?code=` to REDACTED on mount —
+    // a reload of this page must not send that placeholder to the exchange.
+    if (code === 'REDACTED') {
+      setStatus('This callback was already handled — back to the arena to check your connection.');
+      return;
+    }
     finishByokConnect(code, state).then((result) => {
       if (result.ok) {
         window.history.replaceState(null, '', window.location.pathname);
