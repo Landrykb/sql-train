@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { track, Events } from '@/lib/analytics';
 import { finishByokConnect, rawQueryParam } from '@/lib/arena/byok';
 
@@ -8,6 +9,7 @@ import { finishByokConnect, rawQueryParam } from '@/lib/arena/byok';
 // OpenRouter code for a scoped key (browser-only) and returns to the arena.
 export default function ByokCallbackPage() {
   const [status, setStatus] = useState('Connecting your brain…');
+  const [failed, setFailed] = useState(false);
   // Read the code during RENDER — before any effect runs. AnalyticsProvider's
   // mount effect rewrites `?code=` to REDACTED, so an effect that reads the URL
   // can already be too late (the exchange then fails with 400 "Invalid code").
@@ -41,6 +43,7 @@ export default function ByokCallbackPage() {
           .filter(Boolean)
           .join(': ');
         console.error('[byok] connect failed:', detail);
+        setFailed(true);
         setStatus(
           `Authorization failed${detail ? ` (${detail})` : ''} — try again, or paste an OpenRouter key in the arena. (code: ${code.slice(0, 6)}…${code.slice(-3)}, len ${code.length})`,
         );
@@ -50,7 +53,17 @@ export default function ByokCallbackPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: '#1C2129' }}>
-      <p className="text-sm text-slate-300">{status}</p>
+      <div className="flex flex-col items-center gap-4">
+        <p className="text-sm text-slate-300">{status}</p>
+        {failed && (
+          <Link
+            href="/arena"
+            className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-[#0d1117] transition active:scale-95"
+          >
+            Back to the arena
+          </Link>
+        )}
+      </div>
     </div>
   );
 }

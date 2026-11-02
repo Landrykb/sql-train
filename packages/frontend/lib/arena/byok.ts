@@ -295,7 +295,11 @@ const inflight = new Map<string, Promise<ByokConnectResult>>();
 export function finishByokConnect(code: string, state?: string | null): Promise<ByokConnectResult> {
   let p = inflight.get(code);
   if (!p) {
-    p = exchangeByokCode(code, state);
+    p = exchangeByokCode(code, state).then((r) => {
+      // Don't cache failures — a repeat call should retry the exchange.
+      if (!r.ok) inflight.delete(code);
+      return r;
+    });
     inflight.set(code, p);
   }
   return p;
