@@ -30,9 +30,9 @@ import {
   Swords, Shield, Zap, Sparkles, Bot, Crown, Egg, Dumbbell, Star,
   Trophy, Skull, Eye, Users, Headphones, Calendar, Flame, Lock,
   Wind, Wrench, Clover, Swords as CounterIcon, Dices, Check, X, User,
-  KeyRound, Loader2,
+  KeyRound, Loader2, PlugZap,
 } from 'lucide-react';
-import { BYOK_MODELS, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, connectByokWithKey, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
+import { BYOK_MODELS, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, connectByokWithKey, getByokResolved, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
 import { track, Events } from '@/lib/analytics';
 
 interface RoundDef {
@@ -1122,17 +1122,29 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
             {/* bring your own brain — seamless OAuth connect */}
             <div className="rounded-xl border border-slate-700 bg-slate-800/40 p-3">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5 flex items-center gap-1">
-                <KeyRound size={11} /> Your own brain (optional)
+                <KeyRound size={11} /> Your own brain{byok ? '' : ' (optional)'}
               </p>
               {byok ? (
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-[11px] text-slate-300 min-w-0">
-                    Connected — {byokModels.find((m) => m.id === byok.model)?.label ?? byok.model}
-                    <span className="block text-[9px] text-slate-500">Personality still applies — your champion can miss on its own.</span>
-                  </p>
+                <div className="flex items-center gap-2.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-2">
+                  <PlugZap size={15} className="text-emerald-400 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-bold text-emerald-300 truncate">
+                      {byokModels.find((m) => m.id === byok.model)?.label ?? byok.model}
+                    </p>
+                    <p className="text-[9px] text-slate-400">
+                      {(() => {
+                        const resolved = getByokResolved();
+                        if (byok.model === BYOK_MODELS[0].id && resolved) {
+                          const rl = byokModels.find((m) => m.id === resolved)?.label ?? resolved;
+                          return `Auto picked: ${rl} — can miss on its own.`;
+                        }
+                        return 'Personality still applies — your champion can miss on its own.';
+                      })()}
+                    </p>
+                  </div>
                   <button
                     onClick={() => { clearByok(); setByokState(null); }}
-                    className="text-[10px] font-bold text-slate-500 hover:text-red-300 shrink-0"
+                    className="text-[10px] font-bold text-slate-500 hover:text-red-300 shrink-0 active:scale-95"
                   >
                     DISCONNECT
                   </button>

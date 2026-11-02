@@ -112,7 +112,19 @@ export function getByokModel(): string {
 export function setByokModel(id: string) {
   try {
     localStorage.setItem(MODEL_KEY, id);
+    localStorage.removeItem(RESOLVED_KEY); // resolved id belonged to the old pick
   } catch { /* ignore */ }
+}
+
+const RESOLVED_KEY = 'bleepxByokResolved';
+
+/** The concrete model OpenRouter routed the last call to (e.g. under openrouter/free). */
+export function getByokResolved(): string | null {
+  try {
+    return localStorage.getItem(RESOLVED_KEY);
+  } catch {
+    return null;
+  }
 }
 
 export function setByokKey(key: string) {
@@ -141,6 +153,7 @@ export async function connectByokWithKey(raw: string): Promise<ByokConnectResult
 export function clearByok() {
   try {
     localStorage.removeItem(KEY_KEY);
+    localStorage.removeItem(RESOLVED_KEY);
   } catch { /* ignore */ }
 }
 
@@ -423,6 +436,11 @@ async function askModel(system: string, user: string, maxTokens = 300): Promise<
   }
   if (!res.ok) throw new Error(`byok ${res.status}`);
   const data = await res.json();
+  // OpenRouter echoes the concrete model it routed to — remember it so the UI
+  // can show what "Auto — best free model" actually picked.
+  try {
+    if (typeof data?.model === 'string' && data.model) localStorage.setItem(RESOLVED_KEY, data.model);
+  } catch { /* ignore */ }
   return String(data?.choices?.[0]?.message?.content ?? '').trim();
 }
 
