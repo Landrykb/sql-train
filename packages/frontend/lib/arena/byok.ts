@@ -307,15 +307,18 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
     return getByok() ? { ok: true } : { ok: false, error: 'this authorization code was already used — connect again' };
   }
 
+  // The callback must answer an attempt this browser started: only a `state`
+  // that matches a stored pending entry carries the verifier. This also stops
+  // a crafted callback URL from swapping in a foreign code.
   const pending = readPending();
-  let verifier = (state && pending[state]?.v) || '';
+  const entry = (state && pending[state]) || null;
+  if (!entry) {
+    return { ok: false, error: 'authorization attempt not found — start the connect again' };
+  }
+  const verifier = entry.v;
   try {
-    if (!verifier) verifier = localStorage.getItem(VERIFIER_KEY) ?? '';
     sessionStorage.setItem(USED_CODE_KEY, code);
   } catch { /* storage unavailable */ }
-  if (!verifier) {
-    return { ok: false, error: 'missing code_verifier (connect flow context was lost)' };
-  }
 
   const exchange = async (withPkce: boolean) => {
     const res = await fetch('https://openrouter.ai/api/v1/auth/keys', {
@@ -343,11 +346,9 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
     if (r.key) {
       setByokKey(r.key);
       try {
-        if (state) {
-          const rest = readPending();
-          delete rest[state];
-          localStorage.setItem(PENDING_KEY, JSON.stringify(rest));
-        }
+        const rest = readPending();
+        delete rest[state!];
+        localStorage.setItem(PENDING_KEY, JSON.stringify(rest));
         localStorage.removeItem(VERIFIER_KEY);
       } catch { /* ignore */ }
       return { ok: true };
