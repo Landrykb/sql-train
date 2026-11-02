@@ -16,13 +16,17 @@ export default function ByokCallbackPage() {
       setStatus('No authorization code came back — close this tab and try again.');
       return;
     }
-    finishByokConnect(code).then((ok) => {
-      if (ok) {
+    finishByokConnect(code).then((result) => {
+      if (result.ok) {
         setStatus('Connected — back to the arena.');
         track(Events.BYOK_CONNECTED);
         window.location.href = '/arena';
       } else {
-        setStatus('Authorization failed — close this tab and try again.');
+        const detail = [result.status ? `HTTP ${result.status}` : null, result.error]
+          .filter(Boolean)
+          .join(': ');
+        console.error('[byok] connect failed:', detail);
+        setStatus(`Authorization failed${detail ? ` (${detail})` : ''} — close this tab and try again.`);
       }
     });
   }, []);

@@ -160,22 +160,45 @@ export async function byokConnectUrl(): Promise<string> {
 }
 
 /** Exchanges the OAuth `code` for a key on the callback page. */
-export async function finishByokConnect(code: string): Promise<boolean> {
+export interface ByokConnectResult {
+  ok: boolean;
+  status?: number;
+  error?: string;
+}
+
+/**
+ * Exchanges the OAuth `code` for a key on the callback page.
+ * On failure the result carries OpenRouter's HTTP status and error
+ * message so the callback page can show WHY, not just THAT, it failed.
+ */
+export async function finishByokConnect(code: string): Promise<ByokConnectResult> {
+  let verifier = '';
   try {
-    const verifier = localStorage.getItem(VERIFIER_KEY) ?? '';
+    verifier = localStorage.getItem(VERIFIER_KEY) ?? '';
     localStorage.removeItem(VERIFIER_KEY);
+  } catch { /* storage unavailable */ }
+  if (!verifier) {
+    return { ok: false, error: 'missing code_verifier (connect flow context was lost)' };
+  }
+  try {
     const res = await fetch('https://openrouter.ai/api/v1/auth/keys', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code, code_verifier: verifier, code_challenge_method: 'S256' }),
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => null);
     if (data?.key) {
       setByokKey(data.key);
-      return true;
+      return { ok: true };
     }
-  } catch { /* fall through */ }
-  return false;
+    const detail =
+      (typeof data?.error === 'string' ? data.error : data?.error?.message) ??
+      (typeof data?.message === 'string' ? data.message : null) ??
+      'no key in response';
+    return { ok: false, status: res.status, error: detail };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'network error' };
+  }
 }
 
 // ─── Model calls (browser → OpenRouter, user key) ───────────────────────────
