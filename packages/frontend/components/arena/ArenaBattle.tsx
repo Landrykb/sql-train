@@ -1199,7 +1199,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                     <button
                       type="button"
                       onClick={() => setByokPasteOpen(true)}
-                      className="text-[10px] text-slate-400 hover:text-slate-200 underline underline-offset-2"
+                      className="text-[10px] text-slate-400 hover:text-slate-200 underline underline-offset-2 active:scale-95"
                     >
                       Or paste an OpenRouter key
                     </button>

@@ -317,11 +317,11 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
     return { ok: false, error: 'missing code_verifier (connect flow context was lost)' };
   }
 
-  const exchange = async () => {
+  const exchange = async (withPkce: boolean) => {
     const res = await fetch('https://openrouter.ai/api/v1/auth/keys', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, code_verifier: verifier, code_challenge_method: 'S256' }),
+      body: JSON.stringify(withPkce ? { code, code_verifier: verifier, code_challenge_method: 'S256' } : { code }),
     });
     const data = await res.json().catch(() => null);
     const detail: string =
@@ -332,7 +332,14 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
   };
 
   try {
-    const r = await exchange();
+    let r = await exchange(true);
+    // If OpenRouter issued the code without a bound challenge (e.g. after its
+    // sign-in detour), the PKCE exchange reports "Invalid code". Retrying with
+    // the code alone is the correct exchange for an unbound code — it can't
+    // redeem a bound code, so it only helps codes OpenRouter issued unbound.
+    if (!r.key && r.res.status === 400 && /invalid code/i.test(r.detail)) {
+      r = await exchange(false);
+    }
     if (r.key) {
       setByokKey(r.key);
       try {
