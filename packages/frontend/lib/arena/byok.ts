@@ -333,9 +333,6 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
   if (!candidates.length) {
     return { ok: false, error: 'authorization attempt not found — start the connect again' };
   }
-  try {
-    sessionStorage.setItem(USED_CODE_KEY, code);
-  } catch { /* storage unavailable */ }
 
   const exchange = async (verifier: string | null) => {
     const res = await fetch('https://openrouter.ai/api/v1/auth/keys', {
@@ -351,13 +348,19 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
     return { res, key: typeof data?.key === 'string' ? data.key : null, detail };
   };
 
+  const sleep = (ms: number) => new Promise((r2) => setTimeout(r2, ms));
   try {
     // 403 "Invalid code or code_verifier" can mean the WRONG verifier, so try
-    // each candidate. Any other failure (incl. 400 "Invalid code" — the code
-    // itself is malformed) can't be fixed by another verifier: stop.
+    // each candidate. 400 "Invalid code" means the code itself isn't recognized —
+    // usually malformed, but a just-issued code can lag a beat, so retry the
+    // first candidate briefly before giving up.
     let r = { res: { status: 0 } as Response, key: null as string | null, detail: 'exchange did not run' };
     for (const verifier of candidates.slice(0, 5)) {
       r = await exchange(verifier);
+      for (let i = 0; !r.key && r.res.status === 400 && /invalid code/i.test(r.detail) && i < 2; i++) {
+        await sleep(900 * (i + 1));
+        r = await exchange(verifier);
+      }
       if (r.key || r.res.status !== 403) break;
     }
     // A code OpenRouter issued unbound (its sign-in detour can drop the
@@ -369,6 +372,8 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
     if (r.key) {
       setByokKey(r.key);
       try {
+        // Mark used only on success — a failure must leave the code retryable.
+        sessionStorage.setItem(USED_CODE_KEY, code);
         sessionStorage.removeItem(PENDING_KEY);
         sessionStorage.removeItem(VERIFIER_KEY);
         localStorage.removeItem(VERIFIER_KEY);
