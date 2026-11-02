@@ -902,7 +902,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   }, [phase, xpAwarded, xp, matchWon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const verseName = VERSES.find(v => v.id === verse)?.name ?? 'Arena';
-  const brainLabel = byok ? (BYOK_MODELS.find((m) => m.id === byok.model)?.label ?? byok.model) : null;
+  const brainLabel = byok ? (byokModels.find((m) => m.id === byok.model)?.label ?? byok.model) : null;
   const cardUrl = matchCardUrl({
     c: champion.id,
     st: prog.stage.level,
@@ -1122,7 +1122,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               {byok ? (
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-[11px] text-slate-300 min-w-0">
-                    Connected — {BYOK_MODELS.find((m) => m.id === byok.model)?.label ?? byok.model}
+                    Connected — {byokModels.find((m) => m.id === byok.model)?.label ?? byok.model}
                     <span className="block text-[9px] text-slate-500">Personality still applies — your champion can miss on its own.</span>
                   </p>
                   <button
@@ -1164,7 +1164,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                 </p>
                 {(globalBrains.length > 0 ? globalBrains : brains).slice(0, 5).map((b) => (
                   <p key={b.model} className="text-[11px] text-slate-300 flex justify-between py-0.5">
-                    <span className="truncate">{BYOK_MODELS.find((m) => m.id === b.model)?.label ?? b.model}</span>
+                    <span className="truncate">{byokModels.find((m) => m.id === b.model)?.label ?? b.model}</span>
                     <span className="font-bold text-slate-200 ml-2 shrink-0">{b.w}W · {b.l}L</span>
                   </p>
                 ))}

@@ -35,25 +35,51 @@ export const BYOK_MODELS: { id: string; label: string }[] = [
   { id: 'x-ai/grok-4.7', label: 'Grok 4.7' },
 ];
 
-let liveModels: Promise<Set<string> | null> | null = null;
+type ByokModel = { id: string; label: string };
 
-function fetchLiveModelIds(): Promise<Set<string> | null> {
-  liveModels ??= fetch('https://openrouter.ai/api/v1/models')
+interface CatalogModel {
+  id: string;
+  name?: string;
+  created?: number;
+  architecture?: { output_modalities?: string[] };
+}
+
+let catalog: Promise<CatalogModel[] | null> | null = null;
+
+function fetchCatalog(): Promise<CatalogModel[] | null> {
+  catalog ??= fetch('https://openrouter.ai/api/v1/models', { cache: 'no-store' })
     .then((r) => (r.ok ? r.json() : null))
-    .then((d) => (Array.isArray(d?.data) ? new Set<string>(d.data.map((m: { id: string }) => m.id)) : null))
+    .then((d) => (Array.isArray(d?.data) ? (d.data as CatalogModel[]) : null))
     .catch(() => null);
-  return liveModels;
+  return catalog;
+}
+
+/** true/false from the live catalog; null when the catalog is unreachable. */
+async function isModelLive(id: string): Promise<boolean | null> {
+  if (id === DEFAULT_BYOK_MODEL) return true;
+  const models = await fetchCatalog();
+  return models ? models.some((m) => m.id === id) : null;
 }
 
 /**
- * Picker options still live on OpenRouter. Also resets a stored model that
- * was retired to the default so solves stop hitting a dead id.
+ * Picker options built from OpenRouter's live catalog on every arena load:
+ * the free router, every live chat-capable `:free` model (newest first),
+ * then the curated paid models that still exist. Falls back to the static
+ * list offline. Also resets a stored model that was retired.
  */
-export async function liveByokModels(): Promise<{ models: typeof BYOK_MODELS; model: string }> {
-  const ids = await fetchLiveModelIds();
-  const models = ids ? BYOK_MODELS.filter((m) => m.id === DEFAULT_BYOK_MODEL || ids.has(m.id)) : BYOK_MODELS;
+export async function liveByokModels(): Promise<{ models: ByokModel[]; model: string }> {
+  const live = await fetchCatalog();
   let model = getByokModel();
-  if (ids && model !== DEFAULT_BYOK_MODEL && !ids.has(model)) {
+  if (!live) return { models: BYOK_MODELS, model };
+  const ids = new Set(live.map((m) => m.id));
+  const free: ByokModel[] = live
+    .filter((m) => m.id.endsWith(':free') && !/safety|guard/i.test(m.id))
+    .filter((m) => m.architecture?.output_modalities?.includes('text') ?? true)
+    .sort((x, y) => (y.created ?? 0) - (x.created ?? 0))
+    .map((m) => ({ id: m.id, label: (m.name ?? m.id).replace(/^[^:]+:\s*/, '').replace(/\s+/g, ' ') }));
+  const paid = BYOK_MODELS.filter((m) => !m.id.endsWith(':free') && m.id !== DEFAULT_BYOK_MODEL && ids.has(m.id));
+  const models = [BYOK_MODELS[0], ...free, ...paid];
+  if (!models.some((m) => m.id === model)) {
     model = DEFAULT_BYOK_MODEL;
     setByokModel(model);
   }
@@ -258,10 +284,11 @@ async function askModel(system: string, user: string, maxTokens = 300): Promise<
       }),
     });
   let res = await call(b.model);
-  // Retired/unknown model id → retry on the free router and remember it.
+  // 400/404 → answer this round on the free router; only switch the saved
+  // choice when the live catalog confirms the model was retired.
   if ((res.status === 400 || res.status === 404) && b.model !== DEFAULT_BYOK_MODEL) {
     res = await call(DEFAULT_BYOK_MODEL);
-    if (res.ok) setByokModel(DEFAULT_BYOK_MODEL);
+    if (res.ok && (await isModelLive(b.model)) === false) setByokModel(DEFAULT_BYOK_MODEL);
   }
   if (!res.ok) throw new Error(`byok ${res.status}`);
   const data = await res.json();
