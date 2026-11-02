@@ -127,6 +127,20 @@ export function getByokResolved(): string | null {
   }
 }
 
+/** Display label for a model id — appends what "Auto" last picked when known. */
+export function byokDisplayLabel(
+  models: { id: string; label: string }[],
+  modelId: string,
+  resolved?: string | null,
+): string {
+  const label = models.find((m) => m.id === modelId)?.label ?? modelId;
+  if (modelId === DEFAULT_BYOK_MODEL && resolved) {
+    const rl = models.find((m) => m.id === resolved)?.label ?? resolved;
+    return `${label} · ${rl}`;
+  }
+  return label;
+}
+
 export function setByokKey(key: string) {
   try {
     localStorage.setItem(KEY_KEY, key);

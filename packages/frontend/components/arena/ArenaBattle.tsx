@@ -32,7 +32,7 @@ import {
   Wind, Wrench, Clover, Swords as CounterIcon, Dices, Check, X, User,
   KeyRound, Loader2, PlugZap,
 } from 'lucide-react';
-import { BYOK_MODELS, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, connectByokWithKey, getByokResolved, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
+import { BYOK_MODELS, DEFAULT_BYOK_MODEL, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, connectByokWithKey, getByokResolved, byokDisplayLabel, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
 import { track, Events } from '@/lib/analytics';
 
 interface RoundDef {
@@ -896,7 +896,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       localStorage.setItem('bleepxArenaStats', JSON.stringify(st));
       // Brains scoreboard — local stats + report to the public board.
       if (byok) {
-        const brainModel = getByok()?.model ?? byok.model;
+        // Record the concrete model when Auto routed — the scoreboard names it.
+        const brainModel = (byok.model === DEFAULT_BYOK_MODEL ? getByokResolved() : null) ?? getByok()?.model ?? byok.model;
         recordBrainResult(brainModel, matchWon);
         setBrains(getBrains());
         reportBrainResult(brainModel, matchWon, verse, tier);
@@ -907,7 +908,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   }, [phase, xpAwarded, xp, matchWon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const verseName = VERSES.find(v => v.id === verse)?.name ?? 'Arena';
-  const brainLabel = byok ? (byokModels.find((m) => m.id === byok.model)?.label ?? byok.model) : null;
+  const brainLabel = byok ? byokDisplayLabel(byokModels, byok.model, getByokResolved()) : null;
   const cardUrl = matchCardUrl({
     c: champion.id,
     st: prog.stage.level,
