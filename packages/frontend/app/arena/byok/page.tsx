@@ -8,14 +8,18 @@ import { finishByokConnect, rawQueryParam } from '@/lib/arena/byok';
 // OpenRouter code for a scoped key (browser-only) and returns to the arena.
 export default function ByokCallbackPage() {
   const [status, setStatus] = useState('Connecting your brain…');
+  // Read the code during RENDER — before any effect runs. AnalyticsProvider's
+  // mount effect rewrites `?code=` to REDACTED, so an effect that reads the URL
+  // can already be too late (the exchange then fails with 400 "Invalid code").
+  const [params] = useState(() => {
+    if (typeof window === 'undefined') return { code: null as string | null, state: null as string | null };
+    const search = window.location.search;
+    return { code: rawQueryParam(search, 'code'), state: rawQueryParam(search, 'state') };
+  });
+  const { code, state } = params;
 
   useEffect(() => {
     track(Events.BYOK_VIEWED);
-    const search = window.location.search;
-    const code = rawQueryParam(search, 'code');
-    const state = rawQueryParam(search, 'state');
-    // Keep the code in the URL on failure (it's already spent) so the exact
-    // value OpenRouter issued can be shared for debugging; strip on success.
     if (!code) {
       setStatus('No authorization code came back — close this tab and try again.');
       return;

@@ -230,7 +230,10 @@ type Pending = Record<string, { v: string; t: number }>;
 
 function readPending(): Pending {
   try {
-    const all = JSON.parse(localStorage.getItem(PENDING_KEY) || '{}') as Pending;
+    // sessionStorage, not localStorage: it survives the same-tab round-trip to
+    // OpenRouter and back, but a callback opened in a *different* tab sees no
+    // pending attempt, so a crafted link can't attach to one.
+    const all = JSON.parse(sessionStorage.getItem(PENDING_KEY) || '{}') as Pending;
     const now = Date.now();
     return Object.fromEntries(Object.entries(all).filter(([, p]) => now - p.t < PENDING_TTL_MS));
   } catch {
@@ -249,8 +252,8 @@ export async function byokConnectUrl(): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
   const challenge = b64url(digest);
   try {
-    localStorage.setItem(PENDING_KEY, JSON.stringify({ ...readPending(), [state]: { v: verifier, t: Date.now() } }));
-    localStorage.setItem(VERIFIER_KEY, verifier);
+    sessionStorage.setItem(PENDING_KEY, JSON.stringify({ ...readPending(), [state]: { v: verifier, t: Date.now() } }));
+    sessionStorage.setItem(VERIFIER_KEY, verifier);
   } catch { /* ignore */ }
   const cb = encodeURIComponent(`${window.location.origin}/arena/byok`);
   return `https://openrouter.ai/auth?callback_url=${cb}&code_challenge=${challenge}&code_challenge_method=S256&state=${state}&key_label=${encodeURIComponent('Bleepx Arena')}`;
@@ -307,45 +310,38 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
     return getByok() ? { ok: true } : { ok: false, error: 'this authorization code was already used — connect again' };
   }
 
-  // The callback must answer an attempt this browser started. OpenRouter does
-  // NOT echo `state` back, so matching it strictly rejects real callbacks —
-  // instead verify a pending attempt exists in this browser and take the
-  // matching (or newest) verifier. Own-property lookup:
-  // `pending['__proto__']` would wrongly match Object.prototype.
+  // The callback must answer an attempt this tab started. OpenRouter does NOT
+  // echo `state` back, so a pending attempt in this tab's sessionStorage is
+  // the binding — a crafted callback in another tab has none. Verifier
+  // candidates: the state-matched entry first, then every pending verifier
+  // newest-first (authorizing an older OpenRouter tab must still pair), then
+  // the flat legacy keys. Own-property lookup: `pending['__proto__']` would
+  // wrongly match Object.prototype.
   const pending = readPending();
-  let verifier = '';
-  let stateKey: string | null = null;
-  if (state && Object.prototype.hasOwnProperty.call(pending, state)) {
-    verifier = pending[state].v;
-    stateKey = state;
-  } else {
-    const newest = Object.entries(pending).sort((a, b) => b[1].t - a[1].t)[0];
-    if (newest) {
-      verifier = newest[1].v;
-      stateKey = newest[0];
-    }
-  }
-  if (!verifier) {
-    // Attempts started before pending existed stored only the legacy key.
-    try {
-      verifier = localStorage.getItem(VERIFIER_KEY) ?? '';
-    } catch { /* storage unavailable */ }
-  }
-  if (!verifier) {
+  const verifiedAttempt =
+    (!!state && Object.prototype.hasOwnProperty.call(pending, state)) || Object.keys(pending).length > 0;
+  const candidates: string[] = [];
+  const push = (v: string | null | undefined) => {
+    if (v && !candidates.includes(v)) candidates.push(v);
+  };
+  if (state && Object.prototype.hasOwnProperty.call(pending, state)) push(pending[state].v);
+  for (const [, p] of Object.entries(pending).sort((a, b) => b[1].t - a[1].t)) push(p.v);
+  try {
+    push(sessionStorage.getItem(VERIFIER_KEY));
+    push(localStorage.getItem(VERIFIER_KEY)); // attempts started before the move to sessionStorage
+  } catch { /* storage unavailable */ }
+  if (!candidates.length) {
     return { ok: false, error: 'authorization attempt not found — start the connect again' };
   }
-  // The code-only retry below is allowed only when a recent pending entry
-  // vouched for this attempt — a stale legacy verifier can't enable it.
-  const verifiedAttempt = stateKey !== null;
   try {
     sessionStorage.setItem(USED_CODE_KEY, code);
   } catch { /* storage unavailable */ }
 
-  const exchange = async (withPkce: boolean) => {
+  const exchange = async (verifier: string | null) => {
     const res = await fetch('https://openrouter.ai/api/v1/auth/keys', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(withPkce ? { code, code_verifier: verifier, code_challenge_method: 'S256' } : { code }),
+      body: JSON.stringify(verifier ? { code, code_verifier: verifier, code_challenge_method: 'S256' } : { code }),
     });
     const data = await res.json().catch(() => null);
     const detail: string =
@@ -355,29 +351,26 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
     return { res, key: typeof data?.key === 'string' ? data.key : null, detail };
   };
 
-  const sleep = (ms: number) => new Promise((r2) => setTimeout(r2, ms));
   try {
-    let r = await exchange(true);
-    // "Invalid code" within seconds of issuance is often just replication lag
-    // between OpenRouter's auth service and the exchange endpoint — retry a few
-    // times before believing it.
-    for (let i = 0; !r.key && r.res.status === 400 && /invalid code/i.test(r.detail) && i < 3; i++) {
-      await sleep(1500 * (i + 1));
-      r = await exchange(true);
+    // 403 "Invalid code or code_verifier" can mean the WRONG verifier, so try
+    // each candidate. Any other failure (incl. 400 "Invalid code" — the code
+    // itself is malformed) can't be fixed by another verifier: stop.
+    let r = { res: { status: 0 } as Response, key: null as string | null, detail: 'exchange did not run' };
+    for (const verifier of candidates.slice(0, 5)) {
+      r = await exchange(verifier);
+      if (r.key || r.res.status !== 403) break;
     }
-    // If OpenRouter issued the code without a bound challenge (e.g. after its
-    // sign-in detour), the PKCE exchange reports "Invalid code". Retrying with
-    // the code alone is the correct exchange for an unbound code — it can't
-    // redeem a bound code, so it only helps codes OpenRouter issued unbound.
-    if (!r.key && r.res.status === 400 && /invalid code/i.test(r.detail) && verifiedAttempt) {
-      r = await exchange(false);
+    // A code OpenRouter issued unbound (its sign-in detour can drop the
+    // challenge) exchanges with the code alone — that call can't redeem a
+    // bound code, so it only helps codes that are genuinely unbound.
+    if (!r.key && verifiedAttempt && (r.res.status === 400 || r.res.status === 403)) {
+      r = await exchange(null);
     }
     if (r.key) {
       setByokKey(r.key);
       try {
-        const rest = readPending();
-        if (stateKey) delete rest[stateKey];
-        localStorage.setItem(PENDING_KEY, JSON.stringify(rest));
+        sessionStorage.removeItem(PENDING_KEY);
+        sessionStorage.removeItem(VERIFIER_KEY);
         localStorage.removeItem(VERIFIER_KEY);
       } catch { /* ignore */ }
       return { ok: true };
