@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual, randomBytes } from 'crypto';
 import { createSupabaseServerClient } from '@/lib/supabaseServer';
+import { CHAMPIONS } from '@/lib/arena/champions';
 
 /**
  * /api/arena/brain-result — the public Brains scoreboard.
@@ -94,24 +95,22 @@ export async function GET(req: NextRequest) {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return NextResponse.json({ brains: [] }, { status: 503 });
 
-  // mode/verdict columns are optional — added later, so fall back cleanly.
-  let rows: { model: string; won: boolean; mode?: string | null; verdict?: string | null; champion?: string | null }[] | null = null;
-  const rich = await supabase
-    .from('arena_brain_results')
-    .select('model, won, mode, verdict, champion')
-    .order('created_at', { ascending: false })
-    .limit(5000);
-  if (rich.error) {
-    const plain = await supabase
+  // Columns are optional and may have been added at different times — fall
+  // back one tier at a time so verdicts survive a missing champion column.
+  type ResultRow = { model: string; won: boolean; mode?: string | null; verdict?: string | null; champion?: string | null };
+  let rows: ResultRow[] | null = null;
+  for (const cols of ['model, won, mode, verdict, champion', 'model, won, mode, verdict', 'model, won']) {
+    const q = await supabase
       .from('arena_brain_results')
-      .select('model, won')
+      .select(cols)
       .order('created_at', { ascending: false })
       .limit(5000);
-    if (plain.error) return NextResponse.json({ brains: [] }, { status: 503 });
-    rows = plain.data;
-  } else {
-    rows = rich.data;
+    if (!q.error) {
+      rows = q.data as unknown as ResultRow[];
+      break;
+    }
   }
+  if (!rows) return NextResponse.json({ brains: [] }, { status: 503 });
 
   const acc = new Map<string, { w: number; l: number; solo: number; carried: number; dragged: number; champs: Map<string, number> }>();
   for (const row of rows ?? []) {
@@ -154,7 +153,8 @@ export async function POST(req: NextRequest) {
   const verse = typeof body?.verse === 'string' ? body.verse.slice(0, 32) : null;
   const tier = typeof body?.tier === 'string' ? body.tier.slice(0, 32) : null;
   const mode = body?.mode === 'bot' || body?.mode === 'tag' ? body.mode : null;
-  const champion = typeof body?.champion === 'string' ? body.champion.slice(0, 40) : null;
+  // Champion must be a real roster name — the board displays it verbatim.
+  const champion = CHAMPIONS.some((c) => c.name === body?.champion) ? body.champion : null;
   // Verdict vocabulary depends on the match format — reject contradictory combos.
   const verdict = (
     (mode === 'tag' && ['carried', 'dragged', 'even'].includes(body?.verdict)) ||
@@ -174,13 +174,16 @@ export async function POST(req: NextRequest) {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return NextResponse.json({ ok: false }, { status: 503 });
 
-  // Try the enriched insert first; older tables lack mode/verdict → retry plain.
-  const { error } = await supabase.from('arena_brain_results').insert({ model, won, verse, tier, mode, verdict, champion });
-  if (error) {
-    const retry = await supabase.from('arena_brain_results').insert({ model, won, verse, tier });
-    if (retry.error) {
-      return NextResponse.json({ ok: false, detail: retry.error.message }, { status: 503 });
-    }
+  // Degrade one column tier at a time so verdicts survive a missing
+  // champion column on tables migrated only partway.
+  for (const row of [
+    { model, won, verse, tier, mode, verdict, champion },
+    { model, won, verse, tier, mode, verdict },
+    { model, won, verse, tier },
+  ]) {
+    const { error } = await supabase.from('arena_brain_results').insert(row);
+    if (!error) return NextResponse.json({ ok: true });
+    if (row === undefined) break;
   }
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: false, detail: 'insert failed' }, { status: 503 });
 }
