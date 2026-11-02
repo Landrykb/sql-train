@@ -334,7 +334,9 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
   if (!verifier) {
     return { ok: false, error: 'authorization attempt not found — start the connect again' };
   }
-  const verifiedAttempt = true; // a pending or legacy entry in this browser vouched for it
+  // The code-only retry below is allowed only when a recent pending entry
+  // vouched for this attempt — a stale legacy verifier can't enable it.
+  const verifiedAttempt = stateKey !== null;
   try {
     sessionStorage.setItem(USED_CODE_KEY, code);
   } catch { /* storage unavailable */ }
