@@ -205,19 +205,59 @@ function b64url(buf: ArrayBuffer): string {
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-/** Builds the authorization URL and stores the verifier for the callback. */
+const PENDING_KEY = 'bleepxByokPending';
+const USED_CODE_KEY = 'bleepxByokUsedCode';
+const PENDING_TTL_MS = 15 * 60_000;
+
+type Pending = Record<string, { v: string; t: number }>;
+
+function readPending(): Pending {
+  try {
+    const all = JSON.parse(localStorage.getItem(PENDING_KEY) || '{}') as Pending;
+    const now = Date.now();
+    return Object.fromEntries(Object.entries(all).filter(([, p]) => now - p.t < PENDING_TTL_MS));
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Builds the authorization URL. Each attempt gets its own `state` → verifier
+ * entry, so a double-click or a second tab can't pair a code with the wrong
+ * verifier.
+ */
 export async function byokConnectUrl(): Promise<string> {
   const verifier = randomString(96);
+  const state = randomString(32);
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
   const challenge = b64url(digest);
   try {
+    localStorage.setItem(PENDING_KEY, JSON.stringify({ ...readPending(), [state]: { v: verifier, t: Date.now() } }));
     localStorage.setItem(VERIFIER_KEY, verifier);
   } catch { /* ignore */ }
   const cb = encodeURIComponent(`${window.location.origin}/arena/byok`);
-  return `https://openrouter.ai/auth?callback_url=${cb}&code_challenge=${challenge}&code_challenge_method=S256`;
+  return `https://openrouter.ai/auth?callback_url=${cb}&code_challenge=${challenge}&code_challenge_method=S256&state=${state}&key_label=${encodeURIComponent('Bleepx Arena')}`;
 }
 
-/** Exchanges the OAuth `code` for a key on the callback page. */
+/**
+ * Reads a query param WITHOUT form-decoding: URLSearchParams turns a literal
+ * `+` into a space, which corrupts the code (OpenRouter answers "Invalid code").
+ */
+export function rawQueryParam(search: string, name: string): string | null {
+  for (const part of search.replace(/^\?/, '').split('&')) {
+    const i = part.indexOf('=');
+    const k = i < 0 ? part : part.slice(0, i);
+    if (k !== name) continue;
+    const v = i < 0 ? '' : part.slice(i + 1);
+    try {
+      return decodeURIComponent(v);
+    } catch {
+      return v;
+    }
+  }
+  return null;
+}
+
 export interface ByokConnectResult {
   ok: boolean;
   status?: number;
@@ -225,35 +265,63 @@ export interface ByokConnectResult {
 }
 
 /**
- * Exchanges the OAuth `code` for a key on the callback page.
- * On failure the result carries OpenRouter's HTTP status and error
- * message so the callback page can show WHY, not just THAT, it failed.
+ * Exchanges the OAuth `code` for a key on the callback page. A code is
+ * single-use, so a repeat run (reload, back button, remount) is answered from
+ * the stored result instead of re-sending a spent code. On failure the result
+ * carries OpenRouter's HTTP status and message.
  */
-export async function finishByokConnect(code: string): Promise<ByokConnectResult> {
-  let verifier = '';
+export async function finishByokConnect(code: string, state?: string | null): Promise<ByokConnectResult> {
+  let used: string | null = null;
   try {
-    verifier = localStorage.getItem(VERIFIER_KEY) ?? '';
-    localStorage.removeItem(VERIFIER_KEY);
+    used = sessionStorage.getItem(USED_CODE_KEY);
+  } catch { /* ignore */ }
+  if (used === code) {
+    return getByok() ? { ok: true } : { ok: false, error: 'this authorization code was already used — connect again' };
+  }
+
+  const pending = readPending();
+  let verifier = (state && pending[state]?.v) || '';
+  try {
+    if (!verifier) verifier = localStorage.getItem(VERIFIER_KEY) ?? '';
+    sessionStorage.setItem(USED_CODE_KEY, code);
   } catch { /* storage unavailable */ }
   if (!verifier) {
     return { ok: false, error: 'missing code_verifier (connect flow context was lost)' };
   }
-  try {
+
+  const exchange = async (withPkce: boolean) => {
     const res = await fetch('https://openrouter.ai/api/v1/auth/keys', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, code_verifier: verifier, code_challenge_method: 'S256' }),
+      body: JSON.stringify(withPkce ? { code, code_verifier: verifier, code_challenge_method: 'S256' } : { code }),
     });
     const data = await res.json().catch(() => null);
-    if (data?.key) {
-      setByokKey(data.key);
-      return { ok: true };
-    }
-    const detail =
+    const detail: string =
       (typeof data?.error === 'string' ? data.error : data?.error?.message) ??
       (typeof data?.message === 'string' ? data.message : null) ??
       'no key in response';
-    return { ok: false, status: res.status, error: detail };
+    return { res, key: typeof data?.key === 'string' ? data.key : null, detail };
+  };
+
+  try {
+    let r = await exchange(true);
+    // Code issued without a challenge (OpenRouter's login detour can drop it).
+    if (!r.key && r.res.status === 400 && /code_challenge_method/i.test(r.detail)) {
+      r = await exchange(false);
+    }
+    if (r.key) {
+      setByokKey(r.key);
+      try {
+        if (state) {
+          const rest = readPending();
+          delete rest[state];
+          localStorage.setItem(PENDING_KEY, JSON.stringify(rest));
+        }
+        localStorage.removeItem(VERIFIER_KEY);
+      } catch { /* ignore */ }
+      return { ok: true };
+    }
+    return { ok: false, status: r.res.status, error: r.detail };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'network error' };
   }

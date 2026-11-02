@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { track, Events } from '@/lib/analytics';
-import { finishByokConnect } from '@/lib/arena/byok';
+import { finishByokConnect, rawQueryParam } from '@/lib/arena/byok';
 
 // OAuth callback for the "connect your own brain" flow — exchanges the
 // OpenRouter code for a scoped key (browser-only) and returns to the arena.
@@ -11,12 +11,16 @@ export default function ByokCallbackPage() {
 
   useEffect(() => {
     track(Events.BYOK_VIEWED);
-    const code = new URLSearchParams(window.location.search).get('code');
+    const search = window.location.search;
+    const code = rawQueryParam(search, 'code');
+    const state = rawQueryParam(search, 'state');
+    // Drop the single-use code from the URL so reload/back can't resend it.
+    if (code) window.history.replaceState(null, '', window.location.pathname);
     if (!code) {
       setStatus('No authorization code came back — close this tab and try again.');
       return;
     }
-    finishByokConnect(code).then((result) => {
+    finishByokConnect(code, state).then((result) => {
       if (result.ok) {
         setStatus('Connected — back to the arena.');
         track(Events.BYOK_CONNECTED);

@@ -30,7 +30,7 @@ import {
   Swords, Shield, Zap, Sparkles, Bot, Crown, Egg, Dumbbell, Star,
   Trophy, Skull, Eye, Users, Headphones, Calendar, Flame, Lock,
   Wind, Wrench, Clover, Swords as CounterIcon, Dices, Check, X, User,
-  KeyRound,
+  KeyRound, Loader2,
 } from 'lucide-react';
 import { BYOK_MODELS, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
 import { track, Events } from '@/lib/analytics';
@@ -346,6 +346,7 @@ function ClashSparks({ active }: { active: boolean }) {
 
 export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | 'cloud' | 'lab' | null }) {
   const [phase, setPhase] = useState<Phase>('select');
+  const [byokConnecting, setByokConnecting] = useState(false);
   const [champion, setChampion] = useState<Champion>(() => {
     const id = getSelectedChampionId();
     return CHAMPIONS.find((c) => c.id === id) ?? CHAMPIONS[0];
@@ -1144,10 +1145,15 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                     ))}
                   </select>
                   <button
-                    onClick={async () => { window.location.href = await byokConnectUrl(); }}
-                    className="w-full py-2 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 transition-colors"
+                    disabled={byokConnecting}
+                    onClick={async () => {
+                      if (byokConnecting) return;
+                      setByokConnecting(true);
+                      window.location.href = await byokConnectUrl();
+                    }}
+                    className="w-full py-2 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 transition-colors active:scale-[0.98] disabled:opacity-70 inline-flex items-center justify-center gap-1.5"
                   >
-                    CONNECT &amp; AUTHORIZE
+                    {byokConnecting ? (<><Loader2 className="w-3.5 h-3.5 animate-spin" /> CONNECTING…</>) : <>CONNECT &amp; AUTHORIZE</>}
                   </button>
                   <p className="text-[9px] text-slate-500">
                     Opens the model provider&apos;s sign-in — your key stays in this browser and is only used for your champion&apos;s solves. Your champion&apos;s personality still applies — it can miss on its own.
