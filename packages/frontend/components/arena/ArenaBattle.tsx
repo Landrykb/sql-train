@@ -75,6 +75,7 @@ interface RoundResult {
   champ: FighterResult;
   rival: FighterResult;
   champWon: boolean;
+  byModel?: boolean;
   byPlayer: boolean;
 }
 
@@ -392,6 +393,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   const [evoBanner, setEvoBanner] = useState('');
   const [cinematic, setCinematic] = useState(false);
   const matchStartAt = useRef(0);
+  const roundByModel = useRef(false);
   const evolvedThisMatch = useRef<string | null>(null);
   const pendingRef = useRef<Promise<any> | null>(null);
   const playerRound = 2; // last round in tag-team mode
@@ -582,6 +584,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       if (round.type === 'python' || round.type === 'cloud') {
         // Real-code rounds: scripted plays — canonical solution vs personality bug.
         pendingRef.current = new Promise((r) => setTimeout(r, Math.min(rivalDelay, 600))).then(() => {
+          roundByModel.current = false; // scripted plays — the model never ran
           const champBug = Math.random() < evolved.bugRate;
           const rivalBug = Math.random() < RIVAL.bugRate;
           (window as any).__champBug = champBug;
@@ -621,7 +624,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               .then((r) => r.json())
               .then((d) => ({ answer: d?.answer ?? '', usedLLM: !!d?.usedLLM }))
               .catch(() => ({ answer: '', usedLLM: false }))
-        ).then((s) => ({ answer: s.answer ?? '', ms: Math.round(performance.now() - t0) }));
+        ).then((s) => ({ answer: s.answer ?? '', ms: Math.round(performance.now() - t0), usedLLM: !!(byokNow && s.usedLLM) }));
 
         // rival picks: correct at quizAccuracy, else a random wrong option
         const a = Array.isArray(round.answer) ? round.answer[0] : round.answer;
@@ -630,7 +633,10 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
         const rivalPick = rivalHit && a ? String(a) : (wrongPool[Math.floor(Math.random() * wrongPool.length)] ?? String(a ?? ''));
 
         pendingRef.current = Promise.all([solvePromise, new Promise((r) => setTimeout(r, Math.min(rivalDelay, 400)))])
-          .then(([solve]) => ({ kind: 'quiz', answer: solve.answer, ms: solve.ms, rivalPick }));
+          .then(([solve]) => {
+            roundByModel.current = !!solve.usedLLM;
+            return { kind: 'quiz', answer: solve.answer, ms: solve.ms, rivalPick };
+          });
       } else {
         // Champion solves via user's own LLM (if connected) or the API.
         const solvePromise = (getByok()
@@ -649,6 +655,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
           .then(([solve]) => {
             // Scripted-mode drama: without a live LLM the champion plays the
             // canonical solve — inject personality bugs so rounds can flip.
+            roundByModel.current = !!getByok() && !!solve.usedLLM;
             const scripted = !solve.usedLLM;
             const champBug = scripted && Math.random() < evolved.bugRate;
             const rivalBug = Math.random() < RIVAL.bugRate;
@@ -812,7 +819,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
         : !champ.correct ? `${champion.name}: "${champion.quips.miss}"`
         : `${RIVAL.name}: "${RIVAL.quips.hit}"`;
       setRefLine(`Bleepx: "${champ.correct && champWon ? REF.champHit[roundIdx % 3] : !champ.correct ? REF.champMiss[roundIdx % 3] : REF.rivalHit[roundIdx % 2]}" ${quip}`);
-      setResults((rs) => [...rs, { round, champ, rival, champWon, byPlayer: isPlayerRound }]);
+      setResults((rs) => [...rs, { round, champ, rival, champWon, byPlayer: isPlayerRound, byModel: !isPlayerRound && roundByModel.current }]);
       grantXp(champWon ? (isPlayerRound ? ARENA_XP.playerRoundWon : ARENA_XP.roundWon) : ARENA_XP.roundLost);
       setStep('verdict');
       if (!champ.correct) { setShake(true); setTimeout(() => setShake(false), 500); }
@@ -904,20 +911,23 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
         const resolved = getByokResolved();
         const routedThisMatch = resolved && getByokResolvedAt() >= matchStartAt.current ? resolved : null;
         const brainModel = (byok.model === DEFAULT_BYOK_MODEL ? routedThisMatch : null) ?? getByok()?.model ?? byok.model;
-        // Whose fight was it: solo when the model played every round; in
-        // tag-team compare round win-rates — model out-won you → it carried,
-        // you out-won it → it dragged the team down.
-        const modelRs = results.filter((r) => !r.byPlayer);
+        // Whose fight was it: 'solo' only when the model really played every
+        // non-player round (scripted rounds don't count); in tag-team compare
+        // win-rates on the rounds each side actually played.
         const playerRs = results.filter((r) => r.byPlayer);
-        let verdict: BrainVerdict = 'solo';
-        if (playerRs.length > 0 && modelRs.length > 0) {
+        const modelRs = results.filter((r) => !r.byPlayer && r.byModel);
+        const scriptedRs = results.filter((r) => !r.byPlayer && !r.byModel);
+        let verdict: BrainVerdict = 'even';
+        if (playerRs.length === 0) {
+          verdict = modelRs.length > 0 && scriptedRs.length === 0 ? 'solo' : 'even';
+        } else if (modelRs.length > 0) {
           const mr = modelRs.filter((r) => r.champWon).length / modelRs.length;
           const pr = playerRs.filter((r) => r.champWon).length / playerRs.length;
           verdict = mr > pr ? 'carried' : mr < pr ? 'dragged' : 'even';
         }
         recordBrainResult(brainModel, matchWon, verdict);
         setBrains(getBrains());
-        reportBrainResult(brainModel, matchWon, verse, tier, verdict);
+        reportBrainResult(brainModel, matchWon, verse, tier, playerRs.length ? 'tag' : 'bot', playerRs.length ? verdict : undefined);
         setTimeout(() => getGlobalBrains().then(setGlobalBrains), 800);
       }
     } catch { /* ignore storage errors */ }

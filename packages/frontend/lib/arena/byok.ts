@@ -226,7 +226,7 @@ export function getBrains(): BrainRecord[] {
 }
 
 /** Reports a fight outcome to the public board. Fire-and-forget. */
-export async function reportBrainResult(model: string, won: boolean, verse?: string, tier?: string, verdict?: BrainVerdict) {
+export async function reportBrainResult(model: string, won: boolean, verse?: string, tier?: string, mode?: 'bot' | 'tag', verdict?: BrainVerdict) {
   try {
     // Signed mode: fetch a fight ticket first; unsigned mode returns null.
     let ticket: string | null = null;
@@ -241,7 +241,7 @@ export async function reportBrainResult(model: string, won: boolean, verse?: str
     fetch('/api/arena/brain-result', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, won, verse, tier, ticket, mode: verdict === 'solo' ? 'bot' : 'tag', verdict: verdict === 'solo' ? null : verdict }),
+      body: JSON.stringify({ model, won, verse, tier, ticket, mode, verdict: mode === 'tag' ? verdict : null }),
     }).catch(() => { /* board offline — local stats still fine */ });
   } catch { /* ignore */ }
 }

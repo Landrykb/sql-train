@@ -148,7 +148,8 @@ export async function POST(req: NextRequest) {
   const verse = typeof body?.verse === 'string' ? body.verse.slice(0, 32) : null;
   const tier = typeof body?.tier === 'string' ? body.tier.slice(0, 32) : null;
   const mode = body?.mode === 'bot' || body?.mode === 'tag' ? body.mode : null;
-  const verdict = ['carried', 'dragged', 'even'].includes(body?.verdict) ? body.verdict : null;
+  // A verdict only exists for tag-team fights — reject contradictory combos.
+  const verdict = mode === 'tag' && ['carried', 'dragged', 'even'].includes(body?.verdict) ? body.verdict : null;
   const ticket = typeof body?.ticket === 'string' ? body.ticket : '';
 
   if (!model || won === null) {
