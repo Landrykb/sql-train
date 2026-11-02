@@ -927,7 +927,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
         }
         recordBrainResult(brainModel, matchWon, verdict);
         setBrains(getBrains());
-        reportBrainResult(brainModel, matchWon, verse, tier, playerRs.length ? 'tag' : 'bot', playerRs.length ? verdict : undefined);
+        reportBrainResult(brainModel, matchWon, verse, tier, playerRs.length ? 'tag' : 'bot', verdict);
         setTimeout(() => getGlobalBrains().then(setGlobalBrains), 800);
       }
     } catch { /* ignore storage errors */ }

@@ -116,7 +116,8 @@ export async function GET(req: NextRequest) {
   for (const row of rows ?? []) {
     const rec = acc.get(row.model) ?? { w: 0, l: 0, solo: 0, carried: 0, dragged: 0 };
     if (row.won) rec.w += 1; else rec.l += 1;
-    if (row.mode === 'bot') rec.solo += 1;
+    // solo = a bot-mode match where the model played every round (verdict 'solo').
+    if (row.mode === 'bot' && row.verdict === 'solo') rec.solo += 1;
     if (row.verdict === 'carried') rec.carried += 1;
     else if (row.verdict === 'dragged') rec.dragged += 1;
     acc.set(row.model, rec);
@@ -148,8 +149,11 @@ export async function POST(req: NextRequest) {
   const verse = typeof body?.verse === 'string' ? body.verse.slice(0, 32) : null;
   const tier = typeof body?.tier === 'string' ? body.tier.slice(0, 32) : null;
   const mode = body?.mode === 'bot' || body?.mode === 'tag' ? body.mode : null;
-  // A verdict only exists for tag-team fights — reject contradictory combos.
-  const verdict = mode === 'tag' && ['carried', 'dragged', 'even'].includes(body?.verdict) ? body.verdict : null;
+  // Verdict vocabulary depends on the match format — reject contradictory combos.
+  const verdict = (
+    (mode === 'tag' && ['carried', 'dragged', 'even'].includes(body?.verdict)) ||
+    (mode === 'bot' && ['solo', 'even'].includes(body?.verdict))
+  ) ? body.verdict : null;
   const ticket = typeof body?.ticket === 'string' ? body.ticket : '';
 
   if (!model || won === null) {

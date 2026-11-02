@@ -241,7 +241,7 @@ export async function reportBrainResult(model: string, won: boolean, verse?: str
     fetch('/api/arena/brain-result', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, won, verse, tier, ticket, mode, verdict: mode === 'tag' ? verdict : null }),
+      body: JSON.stringify({ model, won, verse, tier, ticket, mode, verdict: verdict ?? null }),
     }).catch(() => { /* board offline — local stats still fine */ });
   } catch { /* ignore */ }
 }
