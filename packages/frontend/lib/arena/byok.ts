@@ -18,15 +18,47 @@ const KEY_KEY = 'bleepxByokKey';
 const MODEL_KEY = 'bleepxByokModel';
 const VERIFIER_KEY = 'bleepxByokVerifier';
 
+/** Always-available OpenRouter router that picks a live free model. */
+export const DEFAULT_BYOK_MODEL = 'openrouter/free';
+
+// OpenRouter retires model ids regularly (dead ids answer 400/404), so the
+// picker is pruned against the live catalog at runtime — see liveByokModels.
 export const BYOK_MODELS: { id: string; label: string }[] = [
-  { id: 'meta-llama/llama-3.3-70b-instruct:free', label: 'Llama 3.3 70B (free)' },
-  { id: 'deepseek/deepseek-chat-v3-0324:free', label: 'DeepSeek V3 (free)' },
-  { id: 'google/gemini-2.0-flash-exp:free', label: 'Gemini 2.0 Flash (free)' },
-  { id: 'moonshotai/kimi-k2:free', label: 'Kimi K2 (free)' },
-  { id: 'x-ai/grok-4.1-fast', label: 'Grok 4.1 Fast' },
-  { id: 'openai/gpt-4o-mini', label: 'GPT-4o mini' },
-  { id: 'anthropic/claude-3.5-haiku', label: 'Claude 3.5 Haiku' },
+  { id: DEFAULT_BYOK_MODEL, label: 'Auto — best free model' },
+  { id: 'google/gemma-4-31b-it:free', label: 'Gemma 4 31B (free)' },
+  { id: 'nvidia/nemotron-3-ultra-550b-a55b:free', label: 'Nemotron 3 Ultra (free)' },
+  { id: 'thinkingmachines/inkling:free', label: 'Inkling (free)' },
+  { id: 'deepseek/deepseek-v4.1-flash', label: 'DeepSeek V4.1 Flash' },
+  { id: 'google/gemini-3.8-flash', label: 'Gemini 3.8 Flash' },
+  { id: 'openai/gpt-5.6-luna', label: 'GPT-5.6 Luna' },
+  { id: 'anthropic/claude-haiku-5.5', label: 'Claude Haiku 5.5' },
+  { id: 'x-ai/grok-4.7', label: 'Grok 4.7' },
 ];
+
+let liveModels: Promise<Set<string> | null> | null = null;
+
+function fetchLiveModelIds(): Promise<Set<string> | null> {
+  liveModels ??= fetch('https://openrouter.ai/api/v1/models')
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => (Array.isArray(d?.data) ? new Set<string>(d.data.map((m: { id: string }) => m.id)) : null))
+    .catch(() => null);
+  return liveModels;
+}
+
+/**
+ * Picker options still live on OpenRouter. Also resets a stored model that
+ * was retired to the default so solves stop hitting a dead id.
+ */
+export async function liveByokModels(): Promise<{ models: typeof BYOK_MODELS; model: string }> {
+  const ids = await fetchLiveModelIds();
+  const models = ids ? BYOK_MODELS.filter((m) => m.id === DEFAULT_BYOK_MODEL || ids.has(m.id)) : BYOK_MODELS;
+  let model = getByokModel();
+  if (ids && model !== DEFAULT_BYOK_MODEL && !ids.has(model)) {
+    model = DEFAULT_BYOK_MODEL;
+    setByokModel(model);
+  }
+  return { models, model };
+}
 
 export interface Byok {
   key: string;
@@ -36,7 +68,7 @@ export interface Byok {
 export function getByok(): Byok | null {
   try {
     const key = localStorage.getItem(KEY_KEY);
-    const model = localStorage.getItem(MODEL_KEY) || BYOK_MODELS[0].id;
+    const model = localStorage.getItem(MODEL_KEY) || DEFAULT_BYOK_MODEL;
     return key ? { key, model } : null;
   } catch {
     return null;
@@ -45,9 +77,9 @@ export function getByok(): Byok | null {
 
 export function getByokModel(): string {
   try {
-    return localStorage.getItem(MODEL_KEY) || BYOK_MODELS[0].id;
+    return localStorage.getItem(MODEL_KEY) || DEFAULT_BYOK_MODEL;
   } catch {
-    return BYOK_MODELS[0].id;
+    return DEFAULT_BYOK_MODEL;
   }
 }
 
@@ -206,24 +238,31 @@ export async function finishByokConnect(code: string): Promise<ByokConnectResult
 async function askModel(system: string, user: string, maxTokens = 300): Promise<string> {
   const b = getByok();
   if (!b) throw new Error('no byok key');
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${b.key}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': window.location.origin,
-      'X-Title': 'Bleepx Arena',
-    },
-    body: JSON.stringify({
-      model: b.model,
-      max_tokens: maxTokens,
-      temperature: 0.4,
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: user },
-      ],
-    }),
-  });
+  const call = (model: string) =>
+    fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${b.key}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Bleepx Arena',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens,
+        temperature: 0.4,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user },
+        ],
+      }),
+    });
+  let res = await call(b.model);
+  // Retired/unknown model id → retry on the free router and remember it.
+  if ((res.status === 400 || res.status === 404) && b.model !== DEFAULT_BYOK_MODEL) {
+    res = await call(DEFAULT_BYOK_MODEL);
+    if (res.ok) setByokModel(DEFAULT_BYOK_MODEL);
+  }
   if (!res.ok) throw new Error(`byok ${res.status}`);
   const data = await res.json();
   return String(data?.choices?.[0]?.message?.content ?? '').trim();

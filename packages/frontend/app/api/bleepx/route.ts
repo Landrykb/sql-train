@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { fetchChatCompletion } from '@/lib/llmFetch';
 import { retrieveChunks, formatContext, Chunk } from '@/lib/rag';
 import { BLEEPX_BIO } from '@/lib/bleepxLore';
 
@@ -117,25 +118,21 @@ export async function POST(req: NextRequest) {
   const userContent = pieces.join('\n\n');
 
   try {
-    const res = await fetch(LLM_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${LLM_KEY}`,
-        // OpenRouter asks for these; ignored by other providers
-        'HTTP-Referer': LLM_REFERER,
-        'X-Title': 'Bleepx',
-      },
-      body: JSON.stringify({
-        model: LLM_MODEL,
-        messages: [
-          { role: 'system', content: systemContent },
-          ...safeHistory,
-          { role: 'user', content: userContent },
-        ],
-        temperature: 0.4,
-        max_tokens: LLM_MAX_TOKENS,
-      }),
+    const res = await fetchChatCompletion(LLM_URL, {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${LLM_KEY}`,
+      // OpenRouter asks for these; ignored by other providers
+      'HTTP-Referer': LLM_REFERER,
+      'X-Title': 'Bleepx',
+    }, {
+      model: LLM_MODEL,
+      messages: [
+        { role: 'system', content: systemContent },
+        ...safeHistory,
+        { role: 'user', content: userContent },
+      ],
+      temperature: 0.4,
+      max_tokens: LLM_MAX_TOKENS,
     });
 
     if (!res.ok) {
