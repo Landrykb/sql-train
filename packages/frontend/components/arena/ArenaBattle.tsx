@@ -32,7 +32,7 @@ import {
   Wind, Wrench, Clover, Swords as CounterIcon, Dices, Check, X, User,
   KeyRound,
 } from 'lucide-react';
-import { BYOK_MODELS, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
+import { BYOK_MODELS, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
 import { track, Events } from '@/lib/analytics';
 
 interface RoundDef {
@@ -354,6 +354,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   const [mode, setMode] = useState<'coach' | 'tagteam'>('tagteam');
   const [byok, setByokState] = useState<Byok | null>(null);
   const [byokModel, setByokModelState] = useState(BYOK_MODELS[0].id);
+  const [byokModels, setByokModels] = useState(BYOK_MODELS);
   const [brains, setBrains] = useState<BrainRecord[]>([]);
   const [globalBrains, setGlobalBrains] = useState<BrainRecord[]>([]);
   const [verse, setVerse] = useState<Verse>(initialVerse ?? 'sql');
@@ -412,6 +413,11 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   useEffect(() => {
     setByokState(getByok());
     setByokModelState(getByokModel());
+    liveByokModels().then(({ models, model }) => {
+      setByokModels(models);
+      setByokModelState(model);
+      setByokState(getByok());
+    });
     setBrains(getBrains());
     getGlobalBrains().then(setGlobalBrains);
     for (const c of CHAMPIONS) syncTrainingXp(c.id);
@@ -885,9 +891,10 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       localStorage.setItem('bleepxArenaStats', JSON.stringify(st));
       // Brains scoreboard — local stats + report to the public board.
       if (byok) {
-        recordBrainResult(byok.model, matchWon);
+        const brainModel = getByok()?.model ?? byok.model;
+        recordBrainResult(brainModel, matchWon);
         setBrains(getBrains());
-        reportBrainResult(byok.model, matchWon, verse, tier);
+        reportBrainResult(brainModel, matchWon, verse, tier);
         setTimeout(() => getGlobalBrains().then(setGlobalBrains), 800);
       }
     } catch { /* ignore storage errors */ }
@@ -895,7 +902,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   }, [phase, xpAwarded, xp, matchWon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const verseName = VERSES.find(v => v.id === verse)?.name ?? 'Arena';
-  const brainLabel = byok ? (BYOK_MODELS.find((m) => m.id === byok.model)?.label ?? byok.model) : null;
+  const brainLabel = byok ? (byokModels.find((m) => m.id === byok.model)?.label ?? byok.model) : null;
   const cardUrl = matchCardUrl({
     c: champion.id,
     st: prog.stage.level,
@@ -1115,7 +1122,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               {byok ? (
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-[11px] text-slate-300 min-w-0">
-                    Connected — {BYOK_MODELS.find((m) => m.id === byok.model)?.label ?? byok.model}
+                    Connected — {byokModels.find((m) => m.id === byok.model)?.label ?? byok.model}
                     <span className="block text-[9px] text-slate-500">Personality still applies — your champion can miss on its own.</span>
                   </p>
                   <button
@@ -1132,7 +1139,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                     onChange={(e) => { setByokModelState(e.target.value); setByokModel(e.target.value); }}
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200 px-2 py-1.5"
                   >
-                    {BYOK_MODELS.map((m) => (
+                    {byokModels.map((m) => (
                       <option key={m.id} value={m.id}>{m.label}</option>
                     ))}
                   </select>
@@ -1157,7 +1164,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                 </p>
                 {(globalBrains.length > 0 ? globalBrains : brains).slice(0, 5).map((b) => (
                   <p key={b.model} className="text-[11px] text-slate-300 flex justify-between py-0.5">
-                    <span className="truncate">{BYOK_MODELS.find((m) => m.id === b.model)?.label ?? b.model}</span>
+                    <span className="truncate">{byokModels.find((m) => m.id === b.model)?.label ?? b.model}</span>
                     <span className="font-bold text-slate-200 ml-2 shrink-0">{b.w}W · {b.l}L</span>
                   </p>
                 ))}

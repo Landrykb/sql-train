@@ -18,15 +18,73 @@ const KEY_KEY = 'bleepxByokKey';
 const MODEL_KEY = 'bleepxByokModel';
 const VERIFIER_KEY = 'bleepxByokVerifier';
 
+/** Always-available OpenRouter router that picks a live free model. */
+export const DEFAULT_BYOK_MODEL = 'openrouter/free';
+
+// OpenRouter retires model ids regularly (dead ids answer 400/404), so the
+// picker is pruned against the live catalog at runtime — see liveByokModels.
 export const BYOK_MODELS: { id: string; label: string }[] = [
-  { id: 'meta-llama/llama-3.3-70b-instruct:free', label: 'Llama 3.3 70B (free)' },
-  { id: 'deepseek/deepseek-chat-v3-0324:free', label: 'DeepSeek V3 (free)' },
-  { id: 'google/gemini-2.0-flash-exp:free', label: 'Gemini 2.0 Flash (free)' },
-  { id: 'moonshotai/kimi-k2:free', label: 'Kimi K2 (free)' },
-  { id: 'x-ai/grok-4.1-fast', label: 'Grok 4.1 Fast' },
-  { id: 'openai/gpt-4o-mini', label: 'GPT-4o mini' },
-  { id: 'anthropic/claude-3.5-haiku', label: 'Claude 3.5 Haiku' },
+  { id: DEFAULT_BYOK_MODEL, label: 'Auto — best free model' },
+  { id: 'google/gemma-4-31b-it:free', label: 'Gemma 4 31B (free)' },
+  { id: 'nvidia/nemotron-3-ultra-550b-a55b:free', label: 'Nemotron 3 Ultra (free)' },
+  { id: 'thinkingmachines/inkling:free', label: 'Inkling (free)' },
+  { id: 'deepseek/deepseek-v4.1-flash', label: 'DeepSeek V4.1 Flash' },
+  { id: 'google/gemini-3.8-flash', label: 'Gemini 3.8 Flash' },
+  { id: 'openai/gpt-5.6-luna', label: 'GPT-5.6 Luna' },
+  { id: 'anthropic/claude-haiku-5.5', label: 'Claude Haiku 5.5' },
+  { id: 'x-ai/grok-4.7', label: 'Grok 4.7' },
 ];
+
+type ByokModel = { id: string; label: string };
+
+interface CatalogModel {
+  id: string;
+  name?: string;
+  created?: number;
+  architecture?: { output_modalities?: string[] };
+}
+
+let catalog: Promise<CatalogModel[] | null> | null = null;
+
+function fetchCatalog(): Promise<CatalogModel[] | null> {
+  catalog ??= fetch('https://openrouter.ai/api/v1/models', { cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => (Array.isArray(d?.data) ? (d.data as CatalogModel[]) : null))
+    .catch(() => null);
+  return catalog;
+}
+
+/** true/false from the live catalog; null when the catalog is unreachable. */
+async function isModelLive(id: string): Promise<boolean | null> {
+  if (id === DEFAULT_BYOK_MODEL) return true;
+  const models = await fetchCatalog();
+  return models ? models.some((m) => m.id === id) : null;
+}
+
+/**
+ * Picker options built from OpenRouter's live catalog on every arena load:
+ * the free router, every live chat-capable `:free` model (newest first),
+ * then the curated paid models that still exist. Falls back to the static
+ * list offline. Also resets a stored model that was retired.
+ */
+export async function liveByokModels(): Promise<{ models: ByokModel[]; model: string }> {
+  const live = await fetchCatalog();
+  let model = getByokModel();
+  if (!live) return { models: BYOK_MODELS, model };
+  const ids = new Set(live.map((m) => m.id));
+  const free: ByokModel[] = live
+    .filter((m) => m.id.endsWith(':free') && !/safety|guard/i.test(m.id))
+    .filter((m) => m.architecture?.output_modalities?.includes('text') ?? true)
+    .sort((x, y) => (y.created ?? 0) - (x.created ?? 0))
+    .map((m) => ({ id: m.id, label: (m.name ?? m.id).replace(/^[^:]+:\s*/, '').replace(/\s+/g, ' ') }));
+  const paid = BYOK_MODELS.filter((m) => !m.id.endsWith(':free') && m.id !== DEFAULT_BYOK_MODEL && ids.has(m.id));
+  const models = [BYOK_MODELS[0], ...free, ...paid];
+  if (!models.some((m) => m.id === model)) {
+    model = DEFAULT_BYOK_MODEL;
+    setByokModel(model);
+  }
+  return { models, model };
+}
 
 export interface Byok {
   key: string;
@@ -36,7 +94,7 @@ export interface Byok {
 export function getByok(): Byok | null {
   try {
     const key = localStorage.getItem(KEY_KEY);
-    const model = localStorage.getItem(MODEL_KEY) || BYOK_MODELS[0].id;
+    const model = localStorage.getItem(MODEL_KEY) || DEFAULT_BYOK_MODEL;
     return key ? { key, model } : null;
   } catch {
     return null;
@@ -45,9 +103,9 @@ export function getByok(): Byok | null {
 
 export function getByokModel(): string {
   try {
-    return localStorage.getItem(MODEL_KEY) || BYOK_MODELS[0].id;
+    return localStorage.getItem(MODEL_KEY) || DEFAULT_BYOK_MODEL;
   } catch {
-    return BYOK_MODELS[0].id;
+    return DEFAULT_BYOK_MODEL;
   }
 }
 
@@ -206,24 +264,32 @@ export async function finishByokConnect(code: string): Promise<ByokConnectResult
 async function askModel(system: string, user: string, maxTokens = 300): Promise<string> {
   const b = getByok();
   if (!b) throw new Error('no byok key');
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${b.key}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': window.location.origin,
-      'X-Title': 'Bleepx Arena',
-    },
-    body: JSON.stringify({
-      model: b.model,
-      max_tokens: maxTokens,
-      temperature: 0.4,
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: user },
-      ],
-    }),
-  });
+  const call = (model: string) =>
+    fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${b.key}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Bleepx Arena',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens,
+        temperature: 0.4,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user },
+        ],
+      }),
+    });
+  let res = await call(b.model);
+  // 400/404 → answer this round on the free router; only switch the saved
+  // choice when the live catalog confirms the model was retired.
+  if ((res.status === 400 || res.status === 404) && b.model !== DEFAULT_BYOK_MODEL) {
+    res = await call(DEFAULT_BYOK_MODEL);
+    if (res.ok && (await isModelLive(b.model)) === false) setByokModel(DEFAULT_BYOK_MODEL);
+  }
   if (!res.ok) throw new Error(`byok ${res.status}`);
   const data = await res.json();
   return String(data?.choices?.[0]?.message?.content ?? '').trim();

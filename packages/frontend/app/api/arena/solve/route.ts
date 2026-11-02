@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { fetchChatCompletion } from '@/lib/llmFetch';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { load } from 'js-yaml';
@@ -97,18 +98,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ answer, usedLLM: false, champion: champion.name });
     }
     try {
-      const resp = await fetch(LLM_URL, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${LLM_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': LLM_REFERER },
-        body: JSON.stringify({
-          model: LLM_MODEL,
-          max_tokens: 120,
-          temperature: champion.id === 'hex' ? 0.9 : 0.4,
-          messages: [
-            { role: 'system', content: champion.systemPrompt + ' You are answering a multiple-choice arena question. Reply with ONLY the exact text of the correct option — no letter, no explanation.' },
-            { role: 'user', content: `QUESTION:\n${quiz.question}\n\nOPTIONS:\n${options.map((o, i) => `${String.fromCharCode(65 + i)}. ${o}`).join('\n')}\n\n${strategy.promptSuffix}\nReply with only the correct option text.` },
-          ],
-        }),
+      const resp = await fetchChatCompletion(LLM_URL, { Authorization: `Bearer ${LLM_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': LLM_REFERER }, {
+        model: LLM_MODEL,
+        max_tokens: 120,
+        temperature: champion.id === 'hex' ? 0.9 : 0.4,
+        messages: [
+          { role: 'system', content: champion.systemPrompt + ' You are answering a multiple-choice arena question. Reply with ONLY the exact text of the correct option — no letter, no explanation.' },
+          { role: 'user', content: `QUESTION:\n${quiz.question}\n\nOPTIONS:\n${options.map((o, i) => `${String.fromCharCode(65 + i)}. ${o}`).join('\n')}\n\n${strategy.promptSuffix}\nReply with only the correct option text.` },
+        ],
       });
       const data = resp.ok ? await resp.json() : null;
       const text = (data?.choices?.[0]?.message?.content ?? '').trim();
@@ -140,22 +137,18 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const resp = await fetch(LLM_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${LLM_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': LLM_REFERER,
-      },
-      body: JSON.stringify({
-        model: LLM_MODEL,
-        max_tokens: LLM_MAX_TOKENS,
-        temperature: champion.id === 'hex' ? 0.9 : 0.4,
-        messages: [
-          { role: 'system', content: champion.systemPrompt },
-          { role: 'user', content: buildPrompt(c, strategy.promptSuffix) },
-        ],
-      }),
+    const resp = await fetchChatCompletion(LLM_URL, {
+      Authorization: `Bearer ${LLM_KEY}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': LLM_REFERER,
+    }, {
+      model: LLM_MODEL,
+      max_tokens: LLM_MAX_TOKENS,
+      temperature: champion.id === 'hex' ? 0.9 : 0.4,
+      messages: [
+        { role: 'system', content: champion.systemPrompt },
+        { role: 'user', content: buildPrompt(c, strategy.promptSuffix) },
+      ],
     });
 
     if (!resp.ok) {
