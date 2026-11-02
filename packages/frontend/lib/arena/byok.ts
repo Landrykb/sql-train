@@ -306,15 +306,23 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
     return getByok() ? { ok: true } : { ok: false, error: 'this authorization code was already used — connect again' };
   }
 
-  // The callback must answer an attempt this browser started: only a `state`
-  // that matches a stored pending entry carries the verifier. This also stops
-  // a crafted callback URL from swapping in a foreign code.
+  // The callback must answer an attempt this browser started: a `state` that
+  // matches a stored pending entry supplies the verifier. Own-property lookup —
+  // `pending['__proto__']` would wrongly match Object.prototype. This also
+  // stops a crafted callback URL from swapping in a foreign code.
   const pending = readPending();
-  const entry = (state && pending[state]) || null;
-  if (!entry) {
+  const ownAttempt = !!state && Object.prototype.hasOwnProperty.call(pending, state);
+  let verifier = ownAttempt ? pending[state as string].v : '';
+  if (!verifier && !state) {
+    // Legacy attempt started before `state` existed: verifier alone, and the
+    // code-only retry below stays off for it.
+    try {
+      verifier = localStorage.getItem(VERIFIER_KEY) ?? '';
+    } catch { /* storage unavailable */ }
+  }
+  if (!verifier) {
     return { ok: false, error: 'authorization attempt not found — start the connect again' };
   }
-  const verifier = entry.v;
   try {
     sessionStorage.setItem(USED_CODE_KEY, code);
   } catch { /* storage unavailable */ }
@@ -339,7 +347,7 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
     // sign-in detour), the PKCE exchange reports "Invalid code". Retrying with
     // the code alone is the correct exchange for an unbound code — it can't
     // redeem a bound code, so it only helps codes OpenRouter issued unbound.
-    if (!r.key && r.res.status === 400 && /invalid code/i.test(r.detail)) {
+    if (!r.key && r.res.status === 400 && /invalid code/i.test(r.detail) && ownAttempt) {
       r = await exchange(false);
     }
     if (r.key) {
