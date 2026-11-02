@@ -22,6 +22,8 @@ export default function ByokCallbackPage() {
 
   useEffect(() => {
     track(Events.BYOK_VIEWED);
+    // Single-use credential: never leave it in the URL/history.
+    window.history.replaceState(null, '', window.location.pathname);
     if (!code) {
       setStatus('No authorization code came back — close this tab and try again.');
       return;
@@ -34,7 +36,6 @@ export default function ByokCallbackPage() {
     }
     finishByokConnect(code, state).then((result) => {
       if (result.ok) {
-        window.history.replaceState(null, '', window.location.pathname);
         setStatus('Connected — back to the arena.');
         track(Events.BYOK_CONNECTED);
         window.location.href = '/arena';
@@ -45,7 +46,7 @@ export default function ByokCallbackPage() {
         console.error('[byok] connect failed:', detail);
         setFailed(true);
         setStatus(
-          `Authorization failed${detail ? ` (${detail})` : ''} — try again, or paste an OpenRouter key in the arena. (code: ${code.slice(0, 6)}…${code.slice(-3)}, len ${code.length})`,
+          `Authorization failed${detail ? ` (${detail})` : ''} — try again, or paste an OpenRouter key in the arena.`,
         );
       }
     });
