@@ -355,8 +355,16 @@ async function exchangeByokCode(code: string, state?: string | null): Promise<By
     return { res, key: typeof data?.key === 'string' ? data.key : null, detail };
   };
 
+  const sleep = (ms: number) => new Promise((r2) => setTimeout(r2, ms));
   try {
     let r = await exchange(true);
+    // "Invalid code" within seconds of issuance is often just replication lag
+    // between OpenRouter's auth service and the exchange endpoint — retry a few
+    // times before believing it.
+    for (let i = 0; !r.key && r.res.status === 400 && /invalid code/i.test(r.detail) && i < 3; i++) {
+      await sleep(1500 * (i + 1));
+      r = await exchange(true);
+    }
     // If OpenRouter issued the code without a bound challenge (e.g. after its
     // sign-in detour), the PKCE exchange reports "Invalid code". Retrying with
     // the code alone is the correct exchange for an unbound code — it can't
