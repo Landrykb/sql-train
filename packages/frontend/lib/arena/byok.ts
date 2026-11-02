@@ -113,10 +113,12 @@ export function setByokModel(id: string) {
   try {
     localStorage.setItem(MODEL_KEY, id);
     localStorage.removeItem(RESOLVED_KEY); // resolved id belonged to the old pick
+    localStorage.removeItem(RESOLVED_TS_KEY);
   } catch { /* ignore */ }
 }
 
 const RESOLVED_KEY = 'bleepxByokResolved';
+const RESOLVED_TS_KEY = 'bleepxByokResolvedT';
 
 /** The concrete model OpenRouter routed the last call to (e.g. under openrouter/free). */
 export function getByokResolved(): string | null {
@@ -124,6 +126,15 @@ export function getByokResolved(): string | null {
     return localStorage.getItem(RESOLVED_KEY);
   } catch {
     return null;
+  }
+}
+
+/** Timestamp of the last resolved-model write (0 = never) — match attribution. */
+export function getByokResolvedAt(): number {
+  try {
+    return Number(localStorage.getItem(RESOLVED_TS_KEY)) || 0;
+  } catch {
+    return 0;
   }
 }
 
@@ -168,6 +179,7 @@ export function clearByok() {
   try {
     localStorage.removeItem(KEY_KEY);
     localStorage.removeItem(RESOLVED_KEY);
+    localStorage.removeItem(RESOLVED_TS_KEY);
   } catch { /* ignore */ }
 }
 
@@ -453,7 +465,10 @@ async function askModel(system: string, user: string, maxTokens = 300): Promise<
   // OpenRouter echoes the concrete model it routed to — remember it so the UI
   // can show what "Auto — best free model" actually picked.
   try {
-    if (typeof data?.model === 'string' && data.model) localStorage.setItem(RESOLVED_KEY, data.model);
+    if (typeof data?.model === 'string' && data.model) {
+      localStorage.setItem(RESOLVED_KEY, data.model);
+      localStorage.setItem(RESOLVED_TS_KEY, String(Date.now()));
+    }
   } catch { /* ignore */ }
   return String(data?.choices?.[0]?.message?.content ?? '').trim();
 }

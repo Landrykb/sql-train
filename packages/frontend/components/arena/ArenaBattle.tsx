@@ -32,7 +32,7 @@ import {
   Wind, Wrench, Clover, Swords as CounterIcon, Dices, Check, X, User,
   KeyRound, Loader2, PlugZap,
 } from 'lucide-react';
-import { BYOK_MODELS, DEFAULT_BYOK_MODEL, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, connectByokWithKey, getByokResolved, byokDisplayLabel, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
+import { BYOK_MODELS, DEFAULT_BYOK_MODEL, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, connectByokWithKey, getByokResolved, getByokResolvedAt, byokDisplayLabel, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
 import { track, Events } from '@/lib/analytics';
 
 interface RoundDef {
@@ -391,6 +391,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   const [progMap, setProgMap] = useState<Record<string, ChampionProgress>>({});
   const [evoBanner, setEvoBanner] = useState('');
   const [cinematic, setCinematic] = useState(false);
+  const matchStartAt = useRef(0);
   const evolvedThisMatch = useRef<string | null>(null);
   const pendingRef = useRef<Promise<any> | null>(null);
   const playerRound = 2; // last round in tag-team mode
@@ -473,6 +474,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       setResults([]);
       setRoundIdx(0);
       setStep('intro');
+      matchStartAt.current = Date.now();
       setPhase('fight');
       setCinematic(true);
       setTimeout(() => setCinematic(false), 2100);
@@ -896,8 +898,12 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       localStorage.setItem('bleepxArenaStats', JSON.stringify(st));
       // Brains scoreboard — local stats + report to the public board.
       if (byok) {
-        // Record the concrete model when Auto routed — the scoreboard names it.
-        const brainModel = (byok.model === DEFAULT_BYOK_MODEL ? getByokResolved() : null) ?? getByok()?.model ?? byok.model;
+        // Credit the concrete model Auto routed to THIS match — a resolved id
+        // from an earlier match must not claim a match whose calls all fell
+        // back to scripted solves.
+        const resolved = getByokResolved();
+        const routedThisMatch = resolved && getByokResolvedAt() >= matchStartAt.current ? resolved : null;
+        const brainModel = (byok.model === DEFAULT_BYOK_MODEL ? routedThisMatch : null) ?? getByok()?.model ?? byok.model;
         recordBrainResult(brainModel, matchWon);
         setBrains(getBrains());
         reportBrainResult(brainModel, matchWon, verse, tier);
