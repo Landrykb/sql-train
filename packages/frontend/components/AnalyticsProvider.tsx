@@ -21,7 +21,13 @@ export default function AnalyticsProvider({ children }: { children: React.ReactN
     // the dedicated /auth/callback page, which handles its own scrubbing after
     // the exchange. Everywhere else, a stray ?code / #access_token is noise
     // we should erase immediately.
-    if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/callback')) {
+    if (
+      typeof window !== 'undefined' &&
+      !window.location.pathname.startsWith('/auth/callback') &&
+      // /arena/byok handles its own code param — scrubbing here races the
+      // exchange and can turn the code into the literal "REDACTED" it sends.
+      !window.location.pathname.startsWith('/arena/byok')
+    ) {
       scrubCurrentUrl();
     }
     // One-shot: scrub any legacy GitHub token left in bleepx_github_user by

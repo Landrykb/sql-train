@@ -30,9 +30,9 @@ import {
   Swords, Shield, Zap, Sparkles, Bot, Crown, Egg, Dumbbell, Star,
   Trophy, Skull, Eye, Users, Headphones, Calendar, Flame, Lock,
   Wind, Wrench, Clover, Swords as CounterIcon, Dices, Check, X, User,
-  KeyRound,
+  KeyRound, Loader2, PlugZap,
 } from 'lucide-react';
-import { BYOK_MODELS, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord } from '@/lib/arena/byok';
+import { BYOK_MODELS, DEFAULT_BYOK_MODEL, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, connectByokWithKey, getByokResolved, getByokResolvedAt, byokDisplayLabel, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord, type BrainVerdict } from '@/lib/arena/byok';
 import { track, Events } from '@/lib/analytics';
 
 interface RoundDef {
@@ -75,6 +75,7 @@ interface RoundResult {
   champ: FighterResult;
   rival: FighterResult;
   champWon: boolean;
+  byModel?: boolean;
   byPlayer: boolean;
 }
 
@@ -346,6 +347,11 @@ function ClashSparks({ active }: { active: boolean }) {
 
 export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | 'cloud' | 'lab' | null }) {
   const [phase, setPhase] = useState<Phase>('select');
+  const [byokConnecting, setByokConnecting] = useState(false);
+  const [byokPasteOpen, setByokPasteOpen] = useState(false);
+  const [byokPasteKey, setByokPasteKey] = useState('');
+  const [byokPasteBusy, setByokPasteBusy] = useState(false);
+  const [byokPasteErr, setByokPasteErr] = useState<string | null>(null);
   const [champion, setChampion] = useState<Champion>(() => {
     const id = getSelectedChampionId();
     return CHAMPIONS.find((c) => c.id === id) ?? CHAMPIONS[0];
@@ -386,6 +392,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   const [progMap, setProgMap] = useState<Record<string, ChampionProgress>>({});
   const [evoBanner, setEvoBanner] = useState('');
   const [cinematic, setCinematic] = useState(false);
+  const matchStartAt = useRef(0);
+  const roundByModel = useRef(false);
   const evolvedThisMatch = useRef<string | null>(null);
   const pendingRef = useRef<Promise<any> | null>(null);
   const playerRound = 2; // last round in tag-team mode
@@ -468,6 +476,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       setResults([]);
       setRoundIdx(0);
       setStep('intro');
+      matchStartAt.current = Date.now();
       setPhase('fight');
       setCinematic(true);
       setTimeout(() => setCinematic(false), 2100);
@@ -575,6 +584,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       if (round.type === 'python' || round.type === 'cloud') {
         // Real-code rounds: scripted plays — canonical solution vs personality bug.
         pendingRef.current = new Promise((r) => setTimeout(r, Math.min(rivalDelay, 600))).then(() => {
+          roundByModel.current = false; // scripted plays — the model never ran
           const champBug = Math.random() < evolved.bugRate;
           const rivalBug = Math.random() < RIVAL.bugRate;
           (window as any).__champBug = champBug;
@@ -614,7 +624,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               .then((r) => r.json())
               .then((d) => ({ answer: d?.answer ?? '', usedLLM: !!d?.usedLLM }))
               .catch(() => ({ answer: '', usedLLM: false }))
-        ).then((s) => ({ answer: s.answer ?? '', ms: Math.round(performance.now() - t0) }));
+        ).then((s) => ({ answer: s.answer ?? '', ms: Math.round(performance.now() - t0), usedLLM: !!(byokNow && s.usedLLM) }));
 
         // rival picks: correct at quizAccuracy, else a random wrong option
         const a = Array.isArray(round.answer) ? round.answer[0] : round.answer;
@@ -623,7 +633,10 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
         const rivalPick = rivalHit && a ? String(a) : (wrongPool[Math.floor(Math.random() * wrongPool.length)] ?? String(a ?? ''));
 
         pendingRef.current = Promise.all([solvePromise, new Promise((r) => setTimeout(r, Math.min(rivalDelay, 400)))])
-          .then(([solve]) => ({ kind: 'quiz', answer: solve.answer, ms: solve.ms, rivalPick }));
+          .then(([solve]) => {
+            roundByModel.current = !!solve.usedLLM;
+            return { kind: 'quiz', answer: solve.answer, ms: solve.ms, rivalPick };
+          });
       } else {
         // Champion solves via user's own LLM (if connected) or the API.
         const solvePromise = (getByok()
@@ -642,6 +655,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
           .then(([solve]) => {
             // Scripted-mode drama: without a live LLM the champion plays the
             // canonical solve — inject personality bugs so rounds can flip.
+            roundByModel.current = !!getByok() && !!solve.usedLLM;
             const scripted = !solve.usedLLM;
             const champBug = scripted && Math.random() < evolved.bugRate;
             const rivalBug = Math.random() < RIVAL.bugRate;
@@ -805,7 +819,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
         : !champ.correct ? `${champion.name}: "${champion.quips.miss}"`
         : `${RIVAL.name}: "${RIVAL.quips.hit}"`;
       setRefLine(`Bleepx: "${champ.correct && champWon ? REF.champHit[roundIdx % 3] : !champ.correct ? REF.champMiss[roundIdx % 3] : REF.rivalHit[roundIdx % 2]}" ${quip}`);
-      setResults((rs) => [...rs, { round, champ, rival, champWon, byPlayer: isPlayerRound }]);
+      setResults((rs) => [...rs, { round, champ, rival, champWon, byPlayer: isPlayerRound, byModel: !isPlayerRound && roundByModel.current }]);
       grantXp(champWon ? (isPlayerRound ? ARENA_XP.playerRoundWon : ARENA_XP.roundWon) : ARENA_XP.roundLost);
       setStep('verdict');
       if (!champ.correct) { setShake(true); setTimeout(() => setShake(false), 500); }
@@ -891,10 +905,29 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       localStorage.setItem('bleepxArenaStats', JSON.stringify(st));
       // Brains scoreboard — local stats + report to the public board.
       if (byok) {
-        const brainModel = getByok()?.model ?? byok.model;
-        recordBrainResult(brainModel, matchWon);
+        // Credit the concrete model Auto routed to THIS match — a resolved id
+        // from an earlier match must not claim a match whose calls all fell
+        // back to scripted solves.
+        const resolved = getByokResolved();
+        const routedThisMatch = resolved && getByokResolvedAt() >= matchStartAt.current ? resolved : null;
+        const brainModel = (byok.model === DEFAULT_BYOK_MODEL ? routedThisMatch : null) ?? getByok()?.model ?? byok.model;
+        // Whose fight was it: 'solo' only when the model really played every
+        // non-player round (scripted rounds don't count); in tag-team compare
+        // win-rates on the rounds each side actually played.
+        const playerRs = results.filter((r) => r.byPlayer);
+        const modelRs = results.filter((r) => !r.byPlayer && r.byModel);
+        const scriptedRs = results.filter((r) => !r.byPlayer && !r.byModel);
+        let verdict: BrainVerdict = 'even';
+        if (playerRs.length === 0) {
+          verdict = modelRs.length > 0 && scriptedRs.length === 0 ? 'solo' : 'even';
+        } else if (modelRs.length > 0) {
+          const mr = modelRs.filter((r) => r.champWon).length / modelRs.length;
+          const pr = playerRs.filter((r) => r.champWon).length / playerRs.length;
+          verdict = mr > pr ? 'carried' : mr < pr ? 'dragged' : 'even';
+        }
+        recordBrainResult(brainModel, matchWon, verdict, champion.name);
         setBrains(getBrains());
-        reportBrainResult(brainModel, matchWon, verse, tier);
+        reportBrainResult(brainModel, matchWon, verse, tier, playerRs.length ? 'tag' : 'bot', verdict, champion.name);
         setTimeout(() => getGlobalBrains().then(setGlobalBrains), 800);
       }
     } catch { /* ignore storage errors */ }
@@ -902,7 +935,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   }, [phase, xpAwarded, xp, matchWon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const verseName = VERSES.find(v => v.id === verse)?.name ?? 'Arena';
-  const brainLabel = byok ? (byokModels.find((m) => m.id === byok.model)?.label ?? byok.model) : null;
+  const brainLabel = byok ? byokDisplayLabel(byokModels, byok.model, getByokResolved()) : null;
   const cardUrl = matchCardUrl({
     c: champion.id,
     st: prog.stage.level,
@@ -1117,17 +1150,29 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
             {/* bring your own brain — seamless OAuth connect */}
             <div className="rounded-xl border border-slate-700 bg-slate-800/40 p-3">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5 flex items-center gap-1">
-                <KeyRound size={11} /> Your own brain (optional)
+                <KeyRound size={11} /> Your own brain{byok ? '' : ' (optional)'}
               </p>
               {byok ? (
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-[11px] text-slate-300 min-w-0">
-                    Connected — {byokModels.find((m) => m.id === byok.model)?.label ?? byok.model}
-                    <span className="block text-[9px] text-slate-500">Personality still applies — your champion can miss on its own.</span>
-                  </p>
+                <div className="flex items-center gap-2.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-2">
+                  <PlugZap size={15} className="text-emerald-400 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-bold text-emerald-300 truncate">
+                      {byokModels.find((m) => m.id === byok.model)?.label ?? byok.model}
+                    </p>
+                    <p className="text-[9px] text-slate-400">
+                      {(() => {
+                        const resolved = getByokResolved();
+                        if (byok.model === BYOK_MODELS[0].id && resolved) {
+                          const rl = byokModels.find((m) => m.id === resolved)?.label ?? resolved;
+                          return `Auto picked: ${rl} — can miss on its own.`;
+                        }
+                        return 'Personality still applies — your champion can miss on its own.';
+                      })()}
+                    </p>
+                  </div>
                   <button
                     onClick={() => { clearByok(); setByokState(null); }}
-                    className="text-[10px] font-bold text-slate-500 hover:text-red-300 shrink-0"
+                    className="text-[10px] font-bold text-slate-500 hover:text-red-300 shrink-0 active:scale-95"
                   >
                     DISCONNECT
                   </button>
@@ -1144,11 +1189,62 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                     ))}
                   </select>
                   <button
-                    onClick={async () => { window.location.href = await byokConnectUrl(); }}
-                    className="w-full py-2 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 transition-colors"
+                    disabled={byokConnecting}
+                    onClick={async () => {
+                      if (byokConnecting) return;
+                      setByokConnecting(true);
+                      window.location.href = await byokConnectUrl();
+                    }}
+                    className="w-full py-2 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 transition-colors active:scale-[0.98] disabled:opacity-70 inline-flex items-center justify-center gap-1.5"
                   >
-                    CONNECT &amp; AUTHORIZE
+                    {byokConnecting ? (<><Loader2 className="w-3.5 h-3.5 animate-spin" /> CONNECTING…</>) : <>CONNECT &amp; AUTHORIZE</>}
                   </button>
+                  {byokPasteOpen ? (
+                    <form
+                      className="flex gap-1.5"
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (byokPasteBusy) return;
+                        setByokPasteBusy(true);
+                        setByokPasteErr(null);
+                        const r = await connectByokWithKey(byokPasteKey);
+                        setByokPasteBusy(false);
+                        if (r.ok) {
+                          setByokPasteKey('');
+                          setByokPasteOpen(false);
+                          setByokState(getByok());
+                          track(Events.BYOK_CONNECTED, { via: 'paste' });
+                        } else {
+                          setByokPasteErr([r.status ? `HTTP ${r.status}` : null, r.error].filter(Boolean).join(': '));
+                        }
+                      }}
+                    >
+                      <input
+                        type="password"
+                        autoComplete="off"
+                        value={byokPasteKey}
+                        onChange={(e) => setByokPasteKey(e.target.value)}
+                        placeholder="sk-or-v1-…"
+                        className="flex-1 min-w-0 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200 px-2 py-1.5"
+                      />
+                      <button
+                        type="submit"
+                        disabled={byokPasteBusy || !byokPasteKey.trim()}
+                        className="px-3 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 active:scale-95 disabled:opacity-60 inline-flex items-center gap-1"
+                      >
+                        {byokPasteBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'SAVE'}
+                      </button>
+                    </form>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setByokPasteOpen(true)}
+                      className="text-[10px] text-slate-400 hover:text-slate-200 underline underline-offset-2 active:scale-95"
+                    >
+                      Or paste an OpenRouter key
+                    </button>
+                  )}
+                  {byokPasteErr && <p className="text-[10px] text-red-300">{byokPasteErr}</p>}
                   <p className="text-[9px] text-slate-500">
                     Opens the model provider&apos;s sign-in — your key stays in this browser and is only used for your champion&apos;s solves. Your champion&apos;s personality still applies — it can miss on its own.
                   </p>
@@ -1162,12 +1258,30 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
                   Brains scoreboard{globalBrains.length > 0 ? ' — global' : ' — yours'}
                 </p>
-                {(globalBrains.length > 0 ? globalBrains : brains).slice(0, 5).map((b) => (
-                  <p key={b.model} className="text-[11px] text-slate-300 flex justify-between py-0.5">
-                    <span className="truncate">{byokModels.find((m) => m.id === b.model)?.label ?? b.model}</span>
-                    <span className="font-bold text-slate-200 ml-2 shrink-0">{b.w}W · {b.l}L</span>
-                  </p>
-                ))}
+                {(globalBrains.length > 0 ? globalBrains : brains).slice(0, 5).map((b) => {
+                  const tags: string[] = [];
+                  if (b.solo) tags.push(`fought alone ×${b.solo}`);
+                  if (b.carried) tags.push(`it carried you ×${b.carried}`);
+                  if (b.dragged) tags.push(`you carried it ×${b.dragged}`);
+                  return (
+                    <div key={b.model} className="py-0.5">
+                      <p className="text-[11px] text-slate-300 flex justify-between">
+                        <span className="truncate">
+                          {byokModels.find((m) => m.id === b.model)?.label ?? b.model}
+                          {b.champ && (
+                            <span className="ml-1.5 px-1.5 py-0.5 rounded bg-slate-700/70 text-[9px] font-bold text-slate-300 align-middle">
+                              as {b.champ}{(b.champFights ?? 0) > 1 ? ` ×${b.champFights}` : ''}
+                            </span>
+                          )}
+                        </span>
+                        <span className="font-bold text-slate-200 ml-2 shrink-0">{b.w}W · {b.l}L</span>
+                      </p>
+                      {tags.length > 0 && (
+                        <p className="text-[9px] text-slate-500">{tags.join(' · ')}</p>
+                      )}
+                    </div>
+                  );
+                })}
                 <p className="text-[9px] text-slate-500 mt-2">
                   {(globalBrains.length > 0 ? globalBrains : brains).reduce((a, b) => a + b.w + b.l, 0)} fights recorded
                   {!byok && ' — connect your brain above to put your model on the board.'}
