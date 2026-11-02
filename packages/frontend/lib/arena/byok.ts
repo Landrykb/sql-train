@@ -289,11 +289,11 @@ export async function finishByokConnect(code: string, state?: string | null): Pr
     return { ok: false, error: 'missing code_verifier (connect flow context was lost)' };
   }
 
-  const exchange = async (withPkce: boolean) => {
+  const exchange = async () => {
     const res = await fetch('https://openrouter.ai/api/v1/auth/keys', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(withPkce ? { code, code_verifier: verifier, code_challenge_method: 'S256' } : { code }),
+      body: JSON.stringify({ code, code_verifier: verifier, code_challenge_method: 'S256' }),
     });
     const data = await res.json().catch(() => null);
     const detail: string =
@@ -304,11 +304,7 @@ export async function finishByokConnect(code: string, state?: string | null): Pr
   };
 
   try {
-    let r = await exchange(true);
-    // Code issued without a challenge (OpenRouter's login detour can drop it).
-    if (!r.key && r.res.status === 400 && /code_challenge_method/i.test(r.detail)) {
-      r = await exchange(false);
-    }
+    const r = await exchange();
     if (r.key) {
       setByokKey(r.key);
       try {
