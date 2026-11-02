@@ -16,7 +16,7 @@ import type { Champion, StrategyCard } from './champions';
 
 const KEY_KEY = 'bleepxByokKey';
 const MODEL_KEY = 'bleepxByokModel';
-const VERIFIER_KEY = 'bleepxByokVerifier';
+const VERIFIER_KEY = 'bleepxByokVerifier'; // legacy key from the pre-state builds — only cleaned up
 
 /** Always-available OpenRouter router that picks a live free model. */
 export const DEFAULT_BYOK_MODEL = 'openrouter/free';
@@ -250,7 +250,6 @@ export async function byokConnectUrl(): Promise<string> {
   const challenge = b64url(digest);
   try {
     localStorage.setItem(PENDING_KEY, JSON.stringify({ ...readPending(), [state]: { v: verifier, t: Date.now() } }));
-    localStorage.setItem(VERIFIER_KEY, verifier);
   } catch { /* ignore */ }
   const cb = encodeURIComponent(`${window.location.origin}/arena/byok`);
   return `https://openrouter.ai/auth?callback_url=${cb}&code_challenge=${challenge}&code_challenge_method=S256&state=${state}&key_label=${encodeURIComponent('Bleepx Arena')}`;
