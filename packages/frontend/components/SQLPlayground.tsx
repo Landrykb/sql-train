@@ -12,6 +12,7 @@ import { BleepxTrophy, BleepxLock, BleepxGhost } from '@/components/BleepxIcons'
 import { DifficultyIcon, LockIcon, LockOpenIcon, BoltIcon, ClockIcon, BrainIcon, FlaskIcon, CheckBadge, ErrorIcon, StarRating, FileTextIcon, TargetIcon, HistoryIcon, FolderIcon, ChartBarIcon, SearchIcon, CircleIcon, GuideIcon, BulbIcon } from '@/components/AppIcons';
 import { initSQL, loadCSV, runQuery } from '@/lib/sqlClient/browser';
 import { compareResults } from '@/lib/compare';
+import { recordDuelAttempt } from '@/lib/duels/record';
 import { useProgress } from '@/lib/useProgress';
 import { fullCaseOrder, caseOrder, visualizationConfigs, trialDifficulties, testModeTimeLimits } from '@/lib/constants';
 import type { TrialDifficulty } from '@/lib/constants';
@@ -410,6 +411,16 @@ export default function SQLPlayground({ caseData, guideData }: { caseData: CaseD
         : feedback;
       setMessage(finalFeedback);
       addHistory(query, correct);
+
+      // Duel Scoring v1: when this case is in the duel task set, record
+      // the checked run — the server recomputes the verdict from the
+      // submitted rows, so the scorecard never takes the browser's word.
+      // No-ops for every non-duel case; failures never affect play.
+      recordDuelAttempt({
+        task_id: id,
+        submission: { query, rows: grid },
+        runtime_ms: timerSeconds * 1000,
+      });
 
       if (!correct && expected.length > 0) {
         const expGrid = (expected as Record<string, any>[]);
