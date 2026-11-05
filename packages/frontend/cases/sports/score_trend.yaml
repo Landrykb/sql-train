@@ -15,7 +15,10 @@ prereq_cases:
   - match_select
   - score_by_team
 seedQuery: |-
-  -- TODO: write query for score_trend
+  -- SCENARIO: The Performance Director asks:
+  -- "Is scoring trending up or down? Show
+  --  the average points per game for every
+  --  month so we can see the pattern."
   SELECT 1;
 solutionQuery: |-
   SELECT strftime('%Y-%m', game_date) AS month, AVG(points) AS avg_points

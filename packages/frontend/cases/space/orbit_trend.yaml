@@ -13,7 +13,10 @@ prereq_cases:
   - orbit_select
   - velocity_by_type
 seedQuery: |-
-  -- TODO: write query for orbit_trend
+  -- SCENARIO: The NEO Program Lead asks:
+  -- "Are close approaches getting more
+  --  frequent? Count them year by year so
+  --  we can see the trend."
   SELECT 1;
 solutionQuery: |-
   SELECT strftime('%Y', close_approach_date) AS year, COUNT(*) AS neo_count

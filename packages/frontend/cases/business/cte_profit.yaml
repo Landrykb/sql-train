@@ -17,7 +17,10 @@ prereq_cases:
   - agg_revenue
   - joins_returns
 seedQuery: |-
-  -- TODO: write query for cte_profit
+  -- SCENARIO: The Finance Manager asks:
+  -- "What is each branch's real profit once
+  --  we subtract the sales that came back
+  --  as returns? Use a CTE to work it out."
   SELECT 1;
 solutionQuery: |-
   WITH ReturnTotals AS (

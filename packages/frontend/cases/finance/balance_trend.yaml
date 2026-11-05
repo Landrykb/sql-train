@@ -15,7 +15,10 @@ prereq_cases:
   - transaction_select
   - balance_by_account
 seedQuery: |-
-  -- TODO: write query for balance_trend
+  -- SCENARIO: The Portfolio Manager asks:
+  -- "How have stock prices moved over time?
+  --  Show me the average close for every
+  --  month so we can see the trend."
   SELECT 1;
 solutionQuery: |-
   SELECT strftime('%Y-%m', date) AS month, AVG(close) AS avg_close

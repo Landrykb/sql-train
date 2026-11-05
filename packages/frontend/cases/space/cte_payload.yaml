@@ -14,7 +14,10 @@ prereq_cases:
   - velocity_by_type
   - mission_joins
 seedQuery: |-
-  -- TODO: write query for cte_payload
+  -- SCENARIO: The Flight Dynamics Officer asks:
+  -- "Rank the riskiest near-Earth objects:
+  --  use a CTE to score each one by distance
+  --  times velocity, worst first."
   SELECT 1;
 solutionQuery: |-
   WITH RiskScores AS (

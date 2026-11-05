@@ -13,7 +13,10 @@ datasets:
 prereq_cases:
   - crime_select
 seedQuery: |-
-  -- TODO: write query for crime_by_area
+  -- SCENARIO: The Crime Analyst asks:
+  -- "Which types of crime happen most often
+  --  across the city? Count them up and
+  --  show me the top 10."
   SELECT 1;
 solutionQuery: |-
   SELECT primary_type, COUNT(*) as crime_count

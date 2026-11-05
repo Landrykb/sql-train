@@ -13,7 +13,10 @@ prereq_cases:
   - orbit_select
   - velocity_by_type
 seedQuery: |-
-  -- TODO: write query for mission_joins
+  -- SCENARIO: The Mission Director asks:
+  -- "Which NEOs pass within a million
+  --  kilometers of Earth? List the closest
+  --  candidates for a potential mission."
   SELECT 1;
 solutionQuery: |-
   SELECT des, close_approach_date

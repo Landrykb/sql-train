@@ -19,7 +19,12 @@ prereq_cases:
   - window_cumsum
   - cte_profit
 seedQuery: |-
-  -- TODO: write query for capstone_root
+  -- SCENARIO: The Head of Retail asks:
+  -- "I need the full picture: sales, returns,
+  --  and totals for every branch and product
+  --  line in one dashboard view."
+  --
+  -- Build the retail dashboard!
   SELECT 1;
 solutionQuery: |-
   WITH Sales AS (

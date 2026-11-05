@@ -11,7 +11,10 @@ datasets:
     file: space_neo.csv
 prereq_cases: []
 seedQuery: |-
-  -- TODO: write query for orbit_select
+  -- SCENARIO: The NEO Program Lead asks:
+  -- "Show me the 5 most recent close
+  --  approaches inside 500,000 km — the
+  --  watch team needs the latest list."
   SELECT 1;
 solutionQuery: |-
   SELECT des, close_approach_date, dist_km

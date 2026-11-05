@@ -15,7 +15,10 @@ prereq_cases:
   - crime_select
   - crime_by_area
 seedQuery: |-
-  -- TODO: write query for crime_trend
+  -- SCENARIO: The Crime Analyst asks:
+  -- "How is crime trending week by week?
+  --  Break the weekly counts down by crime
+  --  type so we can spot the patterns."
   SELECT 1;
 solutionQuery: |-
   SELECT strftime('%Y-%W', date) AS week, primary_type, COUNT(*) AS crime_count

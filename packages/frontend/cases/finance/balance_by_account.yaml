@@ -13,7 +13,10 @@ datasets:
 prereq_cases:
   - transaction_select
 seedQuery: |-
-  -- TODO: write query for balance_by_account
+  -- SCENARIO: The Portfolio Manager asks:
+  -- "Line our stocks up against the market
+  --  index: the latest closes side by side
+  --  with the index value for the same day."
   SELECT 1;
 solutionQuery: |-
   SELECT s.ticker, s.date, s.close, m.index_close

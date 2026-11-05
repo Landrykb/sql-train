@@ -19,7 +19,10 @@ prereq_cases:
   - patient_select
   - diagnosis_count
 seedQuery: |-
-  -- TODO: write query for admission_trend
+  -- SCENARIO: The Admissions Manager asks:
+  -- "How busy are we month to month? Count
+  --  the admissions for every month so we
+  --  can plan staffing ahead."
   SELECT 1;
 solutionQuery: |-
   SELECT strftime('%Y-%m', admission_date) AS month, COUNT(*) AS admission_count

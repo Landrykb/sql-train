@@ -17,7 +17,10 @@ prereq_cases:
   - yield_by_crop
   - soil_joins
 seedQuery: |-
-  -- TODO: write query for cte_soil
+  -- SCENARIO: The Regional Agronomist asks:
+  -- "Does soil pH drive our results? Use a
+  --  CTE to bucket fields by pH and compare
+  --  average NDVI and yield per bucket."
   SELECT 1;
 solutionQuery: |-
   WITH SoilBuckets AS (

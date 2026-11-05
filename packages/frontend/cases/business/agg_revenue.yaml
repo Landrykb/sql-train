@@ -14,8 +14,11 @@ datasets:
 prereq_cases:
   - basics_select
 seedQuery: |-
-  -- TODO: write query for agg_revenue
-  SELECT *;
+  -- SCENARIO: The VP of Sales asks:
+  -- "How much revenue is each product line
+  --  bringing in? Rank them from highest
+  --  to lowest so we know what drives sales."
+  SELECT 1;
 solutionQuery: |-
   SELECT product_line, SUM(total) AS total_revenue
   FROM business_retail

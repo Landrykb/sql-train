@@ -13,7 +13,10 @@ datasets:
     file: returns.csv
 prereq_cases: []
 seedQuery: |-
-  -- TODO: write query for basics_select
+  -- SCENARIO: The Branch Manager asks:
+  -- "Show me our top 5 sales at branch A,
+  --  ranked by total amount. I want to see
+  --  what a great sales day looks like."
   SELECT 1;
 solutionQuery: |-
   SELECT invoice_id, branch, total

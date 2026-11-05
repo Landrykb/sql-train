@@ -19,7 +19,12 @@ prereq_cases:
   - yield_trend
   - cte_soil
 seedQuery: |-
-  -- TODO: write query for capstone_farm
+  -- SCENARIO: The Agricultural Ministry asks:
+  -- "Give us the regional overview: yield,
+  --  vegetation health, and soil quality
+  --  for every region in one dashboard."
+  --
+  -- Build the farming dashboard!
   SELECT 1;
 solutionQuery: |-
   WITH YieldStats AS (

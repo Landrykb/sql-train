@@ -15,7 +15,10 @@ prereq_cases:
   - transaction_select
   - balance_by_account
 seedQuery: |-
-  -- TODO: write query for fraud_joins
+  -- SCENARIO: The Risk Analyst asks:
+  -- "Flag the wildest trading days: show the
+  --  recent stock rows where the price swung
+  --  more than 10% in a single day."
   SELECT 1;
 solutionQuery: |-
   SELECT s.ticker, s.date, s.close, ((s.high - s.low) / s.close) AS volatility

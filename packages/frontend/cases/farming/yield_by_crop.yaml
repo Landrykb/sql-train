@@ -13,7 +13,10 @@ datasets:
 prereq_cases:
   - ndvi_overview
 seedQuery: |-
-  -- TODO: write query for yield_by_crop
+  -- SCENARIO: The Farm Manager asks:
+  -- "Which soil type gives us the best
+  --  average yield? Rank the soil types so
+  --  we know where to plant next season."
   SELECT 1;
 solutionQuery: |-
   SELECT soil_type, AVG(yield) as avg_yield

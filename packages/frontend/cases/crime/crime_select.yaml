@@ -13,7 +13,10 @@ datasets:
     file: suspects.csv
 prereq_cases: []
 seedQuery: |-
-  -- TODO: write query for crime_select
+  -- SCENARIO: The Precinct Captain asks:
+  -- "Pull the 5 most recent theft incidents
+  --  so the team can review what happened
+  --  and when."
   SELECT 1;
 solutionQuery: |-
   SELECT id, date, primary_type
