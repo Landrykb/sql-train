@@ -195,5 +195,6 @@ export const Events = {
   ARENA_SQUAD_CREATED: 'arena_squad_created',
   ARENA_SQUAD_JOINED: 'arena_squad_joined',
   ARENA_SQUAD_RESULT: 'arena_squad_result',
+  DUEL_ATTEMPT: 'duel_attempt',
   GITHUB_LINKED: 'github_linked',
 } as const;

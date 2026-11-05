@@ -35,6 +35,7 @@ import {
 import { BYOK_MODELS, DEFAULT_BYOK_MODEL, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, connectByokWithKey, getByokResolved, getByokResolvedAt, byokDisplayLabel, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord, type BrainVerdict } from '@/lib/arena/byok';
 import { track, Events } from '@/lib/analytics';
 import type { SquadSideResult } from '@/lib/arena/squad';
+import { recordDuelAttempt, pythonVerdict, cloudVerdict } from '@/lib/duels/record';
 
 /**
  * Squad Battle run configuration. When present, this component hosts
@@ -844,6 +845,22 @@ export default function ArenaBattle({ initialVerse, squad }: { initialVerse?: 's
         markComplete(round.id, (round as any).tier ?? 1);
       }
 
+      // Duel Scoring v1: record the PLAYER's own run when they fought a
+      // duel-set Python/Cloud task — the verdict is the platform
+      // checker's (Pyodide asserts / sandbox state validation), mapped
+      // to the spec's verdict shape. No-ops for non-duel tasks; the
+      // recorder never throws, so a scoring outage can't break a match.
+      if (isPlayerRound && round.id && (round.type === 'python' || round.type === 'cloud')) {
+        recordDuelAttempt({
+          task_id: round.id,
+          submission: round.type === 'python'
+            ? { code: playerSql }
+            : { actions: playerActions.map((a) => a.label) },
+          verdict: round.type === 'python' ? pythonVerdict(champ) : cloudVerdict(champ),
+          runtime_ms: champ.solveMs + champ.execMs,
+        });
+      }
+
       setVerdict(v);
       const quip = champ.correct && champWon ? `${champion.name}: "${champion.quips.hit}"`
         : !champ.correct ? `${champion.name}: "${champion.quips.miss}"`
@@ -1375,6 +1392,16 @@ export default function ArenaBattle({ initialVerse, squad }: { initialVerse?: 's
                   {!byok && ' — connect your brain above to put your model on the board.'}
                 </p>
               </div>
+            )}
+
+            {/* duel scorecard — attempt-level records on the duel task set */}
+            {!squad && (
+              <Link
+                href="/arena/scorecard"
+                className="block text-center text-[11px] font-bold text-slate-400 hover:text-cyan-300 transition-colors py-0.5"
+              >
+                Duel scorecard — every scored run on the duel tasks, with the human baseline →
+              </Link>
             )}
 
             <button
