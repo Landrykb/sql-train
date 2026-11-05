@@ -17,7 +17,12 @@ prereq_cases:
   - orbit_trend
   - cte_payload
 seedQuery: |-
-  -- TODO: write query for capstone_space
+  -- SCENARIO: The Mission Director asks:
+  -- "Give me the NEO dashboard: approaches
+  --  per year with the risk picture, so the
+  --  team sees the trend at a glance."
+  --
+  -- Build the NEO dashboard!
   SELECT 1;
 solutionQuery: "WITH NeoStats AS (\n SELECT strftime('%Y', close_approach_date) AS
   year, \n is_potentially_hazardous, \n COUNT(*) AS neo_count\n FROM space_neo\n GROUP

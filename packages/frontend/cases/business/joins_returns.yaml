@@ -14,7 +14,10 @@ prereq_cases:
   - basics_select
   - agg_revenue
 seedQuery: |-
-  -- TODO: write query for joins_returns
+  -- SCENARIO: The Store Manager asks:
+  -- "Which big sales ended up being returned,
+  --  and why? Show me the top returned sales
+  --  together with their return reasons."
   SELECT 1;
 solutionQuery: |-
   SELECT b.invoice_id, b.total, r.return_reason

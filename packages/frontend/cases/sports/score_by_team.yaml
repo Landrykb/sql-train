@@ -14,7 +14,10 @@ datasets:
 prereq_cases:
   - match_select
 seedQuery: |-
-  -- TODO: write query for score_by_team
+  -- SCENARIO: The Team Analyst asks:
+  -- "Where does each player shoot best?
+  --  Break field-goal percentage down by
+  --  player and shot zone."
   SELECT 1;
 solutionQuery: |-
   SELECT

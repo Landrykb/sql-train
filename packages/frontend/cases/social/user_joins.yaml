@@ -15,7 +15,10 @@ prereq_cases:
   - post_select
   - engagement_by_type
 seedQuery: |-
-  -- TODO: write query for user_joins
+  -- SCENARIO: The Growth Analyst asks:
+  -- "Who are our most active users? Count
+  --  the tweets per user and show me the
+  --  top 5."
   SELECT 1;
 solutionQuery: |-
   SELECT u.user_name, COUNT(t.tweet_id) AS tweet_count

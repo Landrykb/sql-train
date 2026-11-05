@@ -13,7 +13,10 @@ datasets:
     file: soil_data.csv
 prereq_cases: []
 seedQuery: |-
-  -- TODO: write query for ndvi_overview
+  -- SCENARIO: The Farm Manager asks:
+  -- "Find our healthiest fields: the top 5
+  --  with NDVI above 0.5, ranked by yield.
+  --  Those are the ones to learn from."
   SELECT 1;
 solutionQuery: |-
   SELECT id, region, ndvi, yield

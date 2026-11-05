@@ -13,7 +13,10 @@ datasets:
     file: market_index.csv
 prereq_cases: []
 seedQuery: |-
-  -- TODO: write query for transaction_select
+  -- SCENARIO: The Head of Trading asks:
+  -- "Pull the 5 most recent stock closes
+  --  above 100 so I can review the big
+  --  names before the market opens."
   SELECT 1;
 solutionQuery: |-
   SELECT ticker, date, close

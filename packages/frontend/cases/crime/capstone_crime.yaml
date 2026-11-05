@@ -19,7 +19,12 @@ prereq_cases:
   - crime_trend
   - cte_crime
 seedQuery: |-
-  -- TODO: write query for capstone_crime
+  -- SCENARIO: The Police Chief asks:
+  -- "Give me the citywide picture: crime
+  --  counts and suspect counts by type and
+  --  location, all in one dashboard."
+  --
+  -- Build the crime dashboard!
   SELECT 1;
 solutionQuery: |-
   WITH CrimeStats AS (

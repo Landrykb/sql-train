@@ -11,7 +11,10 @@ datasets:
 prereq_cases:
   - orbit_select
 seedQuery: |-
-  -- TODO: write query for velocity_by_type
+  -- SCENARIO: The Flight Dynamics Officer asks:
+  -- "Do hazardous objects move faster?
+  --  Compare the average velocity of
+  --  hazardous and non-hazardous NEOs."
   SELECT 1;
 solutionQuery: |-
   SELECT is_potentially_hazardous, AVG(relative_velocity_km_s) AS avg_velocity

@@ -18,7 +18,10 @@ prereq_cases:
   - patient_select
   - diagnosis_count
 seedQuery: |-
-  -- TODO: write query for treatment_joins
+  -- SCENARIO: The Chief Physician asks:
+  -- "List patient treatments since April
+  --  2020: each patient with their diagnosis
+  --  and treatment date, oldest first."
   SELECT 1;
 solutionQuery: |-
   SELECT

@@ -15,7 +15,10 @@ prereq_cases:
   - basics_select
   - agg_revenue
 seedQuery: |-
-  -- TODO: write query for window_cumsum
+  -- SCENARIO: The Regional Manager asks:
+  -- "Track our sales momentum: for each
+  --  branch, show every sale with a running
+  --  total that builds up day by day."
   SELECT 1;
 solutionQuery: |-
   SELECT branch, date, total,

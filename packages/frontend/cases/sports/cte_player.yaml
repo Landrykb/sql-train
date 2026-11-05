@@ -16,7 +16,10 @@ prereq_cases:
   - score_by_team
   - player_joins
 seedQuery: |-
-  -- TODO: write query for cte_player
+  -- SCENARIO: The Performance Director asks:
+  -- "Who is our most efficient player? Use a
+  --  CTE to combine points, assists, and
+  --  rebounds, then rank by the average."
   SELECT 1;
 solutionQuery: |-
   WITH Efficiency AS (

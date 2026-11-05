@@ -14,7 +14,10 @@ prereq_cases:
   - ndvi_overview
   - yield_by_crop
 seedQuery: |-
-  -- TODO: write query for soil_joins
+  -- SCENARIO: The Regional Agronomist asks:
+  -- "Show me the fields on sandy loam soil,
+  --  with their pH and NDVI, best vegetation
+  --  first — I am planning next season."
   SELECT 1;
 solutionQuery: |-
   SELECT f.id, f.ndvi, s.soil_ph, s.soil_type

@@ -13,7 +13,10 @@ datasets:
     file: shot_zones.csv
 prereq_cases: []
 seedQuery: |-
-  -- TODO: write query for match_select
+  -- SCENARIO: The Head Coach asks:
+  -- "Rank every player by total efficiency —
+  --  points plus assists plus rebounds —
+  --  so I can see who carries the team."
   SELECT 1;
 solutionQuery: |-
   SELECT player_id, SUM(points + assists + rebounds) AS total_efficiency

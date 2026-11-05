@@ -17,7 +17,10 @@ datasets:
     file: admissions.csv
 prereq_cases: []
 seedQuery: |-
-  -- TODO: write query for patient_select
+  -- SCENARIO: The Intake Coordinator asks:
+  -- "Pull 5 of our most recent patients
+  --  over 50 — the care team needs their
+  --  ages and birthdates for a review."
   SELECT 1;
 solutionQuery: |-
   SELECT patient_id, age, birthdate

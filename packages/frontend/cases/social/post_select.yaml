@@ -13,7 +13,10 @@ datasets:
     file: users.csv
 prereq_cases: []
 seedQuery: |-
-  -- TODO: write query for post_select
+  -- SCENARIO: The Community Lead asks:
+  -- "Find the 5 most recent tweets that use
+  --  the #SQL hashtag — I want to feature
+  --  them in the community roundup."
   SELECT 1;
 solutionQuery: |-
   SELECT tweet_id, created_at, text

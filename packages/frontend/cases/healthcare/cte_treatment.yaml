@@ -21,7 +21,10 @@ prereq_cases:
   - diagnosis_count
   - treatment_joins
 seedQuery: |-
-  -- TODO: write query for cte_treatment
+  -- SCENARIO: The Chief Physician asks:
+  -- "How long do treatments take for each
+  --  diagnosis? Use a CTE to work out the
+  --  average duration per diagnosis."
   SELECT 1;
 solutionQuery: "WITH TreatmentDurations AS (\n SELECT t.diagnosis, \n AVG((julianday(a.discharge_date)
   - julianday(a.admission_date))) AS avg_duration\n FROM treatments t\n JOIN admissions

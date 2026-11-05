@@ -13,7 +13,10 @@ datasets:
 prereq_cases:
   - post_select
 seedQuery: |-
-  -- TODO: write query for engagement_by_type
+  -- SCENARIO: The Social Media Manager asks:
+  -- "Show me the latest tweets together
+  --  with the name of the user who posted
+  --  each one — I need the full picture."
   SELECT 1;
 solutionQuery: |-
   SELECT t.tweet_id, t.created_at, u.user_name

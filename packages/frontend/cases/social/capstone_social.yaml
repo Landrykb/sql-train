@@ -19,7 +19,12 @@ prereq_cases:
   - likes_trend
   - cte_engagement
 seedQuery: |-
-  -- TODO: write query for capstone_social
+  -- SCENARIO: The Community Lead asks:
+  -- "Who drives our community? Build a
+  --  dashboard of tweet counts per user,
+  --  ranked from most to least active."
+  --
+  -- Build the social dashboard!
   SELECT 1;
 solutionQuery: |-
   WITH TweetStats AS (

@@ -17,7 +17,10 @@ datasets:
 prereq_cases:
   - patient_select
 seedQuery: |-
-  -- TODO: write query for diagnosis_count
+  -- SCENARIO: The Hospital Director asks:
+  -- "What are we treating most often? Count
+  --  every diagnosis and rank them from
+  --  most to least common."
   SELECT 1;
 solutionQuery: |-
   SELECT diagnosis, COUNT(*) as diagnosis_count

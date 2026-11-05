@@ -15,7 +15,10 @@ prereq_cases:
   - post_select
   - engagement_by_type
 seedQuery: |-
-  -- TODO: write query for likes_trend
+  -- SCENARIO: The Growth Analyst asks:
+  -- "Is our community getting louder? Count
+  --  the tweets posted each month so we can
+  --  see the trend over time."
   SELECT 1;
 solutionQuery: |-
   SELECT strftime('%Y-%m', created_at) AS month, COUNT(*) AS tweet_count

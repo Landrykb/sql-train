@@ -16,7 +16,10 @@ prereq_cases:
   - balance_by_account
   - fraud_joins
 seedQuery: |-
-  -- TODO: write query for cte_fraud
+  -- SCENARIO: The Risk Analyst asks:
+  -- "Which tickers swing the most? Use a CTE
+  --  to compute each day's volatility, then
+  --  rank tickers by their average."
   SELECT 1;
 solutionQuery: |-
   WITH Volatility AS (

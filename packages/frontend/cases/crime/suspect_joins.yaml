@@ -14,7 +14,10 @@ prereq_cases:
   - crime_select
   - crime_by_area
 seedQuery: |-
-  -- TODO: write query for suspect_joins
+  -- SCENARIO: The Lead Detective asks:
+  -- "Show me the latest incidents where we
+  --  actually have a suspect on file, so we
+  --  can follow up while the trail is warm."
   SELECT 1;
 solutionQuery: |-
   SELECT c.id, c.date, s.suspect_name

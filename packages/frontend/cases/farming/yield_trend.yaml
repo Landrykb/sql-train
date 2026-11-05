@@ -15,7 +15,10 @@ prereq_cases:
   - ndvi_overview
   - yield_by_crop
 seedQuery: |-
-  -- TODO: write query for yield_trend
+  -- SCENARIO: The Agricultural Ministry asks:
+  -- "Are our harvests improving? Show the
+  --  average yield for each year so we can
+  --  see the trend over time."
   SELECT 1;
 solutionQuery: |-
   SELECT year, AVG(yield) AS avg_yield

@@ -17,7 +17,10 @@ prereq_cases:
   - crime_by_area
   - suspect_joins
 seedQuery: |-
-  -- TODO: write query for cte_crime
+  -- SCENARIO: The Police Chief asks:
+  -- "For each location, how many crimes were
+  --  reported and how many suspects do we
+  --  have? Use a CTE to build the summary."
   SELECT 1;
 solutionQuery: |-
   WITH SuspectCounts AS (

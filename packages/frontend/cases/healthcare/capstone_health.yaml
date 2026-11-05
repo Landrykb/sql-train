@@ -23,7 +23,12 @@ prereq_cases:
   - admission_trend
   - cte_treatment
 seedQuery: |-
-  -- TODO: write query for capstone_health
+  -- SCENARIO: The Hospital Director asks:
+  -- "One dashboard by diagnosis: average
+  --  patient age and total admissions, so
+  --  we can see where the load really is."
+  --
+  -- Build the healthcare dashboard!
   SELECT 1;
 solutionQuery: |-
   WITH PatientTreatments AS (
