@@ -19,7 +19,12 @@ prereq_cases:
   - score_trend
   - cte_player
 seedQuery: |-
-  -- TODO: write query for capstone_sports
+  -- SCENARIO: The Head Coach asks:
+  -- "One dashboard per player: scoring and
+  --  shooting efficiency side by side, so
+  --  we can set the rotation with data."
+  --
+  -- Build the NBA dashboard!
   SELECT 1;
 solutionQuery: "WITH PlayerStats AS (\n SELECT player_id, AVG(points) AS avg_points\n
   FROM nba_games\n GROUP BY player_id\n),\nShootingStats AS (\n SELECT player_id,
