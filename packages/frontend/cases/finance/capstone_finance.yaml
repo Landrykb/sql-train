@@ -19,7 +19,12 @@ prereq_cases:
   - balance_trend
   - cte_fraud
 seedQuery: |-
-  -- TODO: write query for capstone_finance
+  -- SCENARIO: The Head of Trading asks:
+  -- "One dashboard per ticker: average close
+  --  and average volatility side by side,
+  --  so we can judge risk at a glance."
+  --
+  -- Build the finance dashboard!
   SELECT 1;
 solutionQuery: |-
   WITH StockStats AS (
