@@ -192,5 +192,8 @@ export const Events = {
   BYOK_VIEWED: 'byok_viewed',
   BYOK_CONNECTED: 'byok_connected',
   ARENA_ROUND_RESULT: 'arena_round_result',
+  ARENA_SQUAD_CREATED: 'arena_squad_created',
+  ARENA_SQUAD_JOINED: 'arena_squad_joined',
+  ARENA_SQUAD_RESULT: 'arena_squad_result',
   GITHUB_LINKED: 'github_linked',
 } as const;
