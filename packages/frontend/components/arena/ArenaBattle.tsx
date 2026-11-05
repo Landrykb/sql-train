@@ -34,6 +34,28 @@ import {
 } from 'lucide-react';
 import { BYOK_MODELS, DEFAULT_BYOK_MODEL, liveByokModels, getByok, getByokModel, setByokModel, clearByok, byokConnectUrl, connectByokWithKey, getByokResolved, getByokResolvedAt, byokDisplayLabel, byokSolveQuiz, byokSolveSql, recordBrainResult, getBrains, reportBrainResult, getGlobalBrains, type Byok, type BrainRecord, type BrainVerdict } from '@/lib/arena/byok';
 import { track, Events } from '@/lib/analytics';
+import type { SquadSideResult } from '@/lib/arena/squad';
+
+/**
+ * Squad Battle run configuration. When present, this component hosts
+ * one side's run of a squad battle: the battle terms (verse, category,
+ * tier) are fixed by the challenge, the opposing side shown is the
+ * rival squad (name + their agent), and finishing the match reports
+ * the side's score through onComplete instead of only recording it
+ * locally. Without it, the component behaves exactly as the solo Arena.
+ */
+export interface SquadRunConfig {
+  verse: 'sql' | 'cloud' | 'lab';
+  domain: string;
+  tier: 'rookie' | 'pro' | 'boss';
+  seed: string; // battle code — pins the shared duel set for both sides
+  selfName: string;
+  opponentName: string;
+  opponentBrainLabel: string;
+  battleHref: string;
+  submitState: 'idle' | 'sending' | 'sent' | 'error';
+  onComplete: (result: SquadSideResult) => void;
+}
 
 interface RoundDef {
   type: 'sql' | 'quiz' | 'python' | 'cloud';
@@ -345,7 +367,7 @@ function ClashSparks({ active }: { active: boolean }) {
   );
 }
 
-export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | 'cloud' | 'lab' | null }) {
+export default function ArenaBattle({ initialVerse, squad }: { initialVerse?: 'sql' | 'cloud' | 'lab' | null; squad?: SquadRunConfig }) {
   const [phase, setPhase] = useState<Phase>('select');
   const [byokConnecting, setByokConnecting] = useState(false);
   const [byokPasteOpen, setByokPasteOpen] = useState(false);
@@ -363,9 +385,17 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
   const [byokModels, setByokModels] = useState(BYOK_MODELS);
   const [brains, setBrains] = useState<BrainRecord[]>([]);
   const [globalBrains, setGlobalBrains] = useState<BrainRecord[]>([]);
-  const [verse, setVerse] = useState<Verse>(initialVerse ?? 'sql');
-  const [domain, setDomain] = useState(() => VERSES.find((v) => v.id === (initialVerse ?? 'sql'))?.defaultCategory ?? 'business');
-  const [tier, setTier] = useState<Tier>('rookie');
+  const [verse, setVerse] = useState<Verse>(squad?.verse ?? initialVerse ?? 'sql');
+  const [domain, setDomain] = useState(() => squad?.domain ?? VERSES.find((v) => v.id === (initialVerse ?? 'sql'))?.defaultCategory ?? 'business');
+  const [tier, setTier] = useState<Tier>(squad?.tier ?? 'rookie');
+  // Squad Battle: the opposing side shown is the rival squad, not the
+  // house bot. The scripted in-ring behavior (pace, bug rate, quips)
+  // is unchanged — it is the standard both squads run against; the
+  // battle itself is decided by the two submitted scores, server-side.
+  const rivalFighter = squad
+    ? { ...RIVAL, name: `${squad.opponentName} · ${squad.opponentBrainLabel}`, title: 'Rival squad' }
+    : RIVAL;
+  const squadSentRef = useRef(false);
   const [rounds, setRounds] = useState<RoundDef[]>([]);
   const [roundIdx, setRoundIdx] = useState(0);
   const [step, setStep] = useState<FightStep>('intro');
@@ -454,7 +484,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
     setPhase('loading');
     setStatus('');
     try {
-      const r = await fetch(`/api/arena/match?verse=${verse}&domain=${domain}&tier=${tier}`);
+      const r = await fetch(`/api/arena/match?verse=${verse}&domain=${domain}&tier=${tier}${squad ? `&seed=${encodeURIComponent(squad.seed)}` : ''}`);
       const data = await r.json();
       if (!r.ok || !data?.rounds?.length) {
         setStatus(data?.error ?? 'No rounds found — try another arena.');
@@ -480,7 +510,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       setPhase('fight');
       setCinematic(true);
       setTimeout(() => setCinematic(false), 2100);
-      setRefLine(`Bleepx: "Welcome to the ${VERSES.find(v => v.id === verse)?.name}! ${champion.name}${getByok() ? ' — powered by YOUR brain —' : ''} vs ${RIVAL.name} — ${TIERS.find(t => t.id === tier)?.name} bracket. Coaches ready?"`);
+      setRefLine(`Bleepx: "Welcome to the ${VERSES.find(v => v.id === verse)?.name}! ${champion.name}${getByok() ? ' — powered by YOUR brain —' : ''} vs ${rivalFighter.name} — ${TIERS.find(t => t.id === tier)?.name} bracket. Coaches ready?"`);
     } catch (err: any) {
       setStatus(err?.message ?? 'Failed to load match');
       setPhase('select');
@@ -579,14 +609,14 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       }
 
       const t0 = performance.now();
-      const rivalDelay = RIVAL.solveDelayMs[roundIdx % RIVAL.solveDelayMs.length];
+      const rivalDelay = rivalFighter.solveDelayMs[roundIdx % rivalFighter.solveDelayMs.length];
 
       if (round.type === 'python' || round.type === 'cloud') {
         // Real-code rounds: scripted plays — canonical solution vs personality bug.
         pendingRef.current = new Promise((r) => setTimeout(r, Math.min(rivalDelay, 600))).then(() => {
           roundByModel.current = false; // scripted plays — the model never ran
           const champBug = Math.random() < evolved.bugRate;
-          const rivalBug = Math.random() < RIVAL.bugRate;
+          const rivalBug = Math.random() < rivalFighter.bugRate;
           (window as any).__champBug = champBug;
           (window as any).__rivalBug = rivalBug;
           if (round.type === 'python') {
@@ -628,7 +658,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
 
         // rival picks: correct at quizAccuracy, else a random wrong option
         const a = Array.isArray(round.answer) ? round.answer[0] : round.answer;
-        const rivalHit = Math.random() < RIVAL.quizAccuracy;
+        const rivalHit = Math.random() < rivalFighter.quizAccuracy;
         const wrongPool = (round.options ?? []).filter((o) => String(o).trim().toLowerCase() !== String(a ?? '').trim().toLowerCase());
         const rivalPick = rivalHit && a ? String(a) : (wrongPool[Math.floor(Math.random() * wrongPool.length)] ?? String(a ?? ''));
 
@@ -658,7 +688,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
             roundByModel.current = !!getByok() && !!solve.usedLLM;
             const scripted = !solve.usedLLM;
             const champBug = scripted && Math.random() < evolved.bugRate;
-            const rivalBug = Math.random() < RIVAL.bugRate;
+            const rivalBug = Math.random() < rivalFighter.bugRate;
             const tbl = round.schema?.[0]?.name ?? 'data';
             return {
               kind: 'sql',
@@ -704,7 +734,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       setStep('typing');
       setRefLine('Bleepx: "Both fighters are thinking…"');
       setTimeout(() => { setChampAnswer(data.answer); setChampTyped(true); }, 900);
-      setTimeout(() => { setRivalAnswer(data.rivalPick); setRivalTyped(true); }, Math.min(RIVAL.solveDelayMs[roundIdx % RIVAL.solveDelayMs.length], 1600));
+      setTimeout(() => { setRivalAnswer(data.rivalPick); setRivalTyped(true); }, Math.min(rivalFighter.solveDelayMs[roundIdx % rivalFighter.solveDelayMs.length], 1600));
     } else {
       (window as any).__champSolveMs = data.ms;
       (window as any).__champBug = data.champBug;
@@ -743,7 +773,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
     const round = rounds[roundIdx];
     const run = async () => {
       const champSolveMs = (window as any).__champSolveMs ?? 0;
-      const rivalSolveMs = RIVAL.solveDelayMs[roundIdx % RIVAL.solveDelayMs.length];
+      const rivalSolveMs = rivalFighter.solveDelayMs[roundIdx % rivalFighter.solveDelayMs.length];
 
       if (round.type === 'quiz') {
         const cAns = isPlayerRound ? playerAnswer : champAnswer;
@@ -800,12 +830,12 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       const diff = Math.abs(champTotal - rivalTotal);
       track(Events.ARENA_ROUND_RESULT, { round: roundIdx, won: !!(champ.correct && champWon) });
       const v = champ.correct && champWon
-        ? `${label} ${winsVerb} — clean hit, ${diff}ms faster${rivalBug ? ` while ${RIVAL.name}'s query glitched` : ''}!`
+        ? `${label} ${winsVerb} — clean hit, ${diff}ms faster${rivalBug ? ` while ${rivalFighter.name}'s query glitched` : ''}!`
         : champ.correct
-        ? `${label} ${wasVerb} right but ${RIVAL.name} edged it by ${diff}ms.`
+        ? `${label} ${wasVerb} right but ${rivalFighter.name} edged it by ${diff}ms.`
         : champBug
-        ? `${label}'s code threw a bug mid-fight — ${RIVAL.name} punishes it!`
-        : `${RIVAL.name} takes the round — ${possLabel} answer missed.${champ.error ? ` (${champ.error})` : ''}`;
+        ? `${label}'s code threw a bug mid-fight — ${rivalFighter.name} punishes it!`
+        : `${rivalFighter.name} takes the round — ${possLabel} answer missed.${champ.error ? ` (${champ.error})` : ''}`;
 
       // Progress either way: when the PLAYER wins a SQL case round in
       // tag-team, they really solved that case — mark it complete in
@@ -817,7 +847,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
       setVerdict(v);
       const quip = champ.correct && champWon ? `${champion.name}: "${champion.quips.hit}"`
         : !champ.correct ? `${champion.name}: "${champion.quips.miss}"`
-        : `${RIVAL.name}: "${RIVAL.quips.hit}"`;
+        : `${rivalFighter.name}: "${rivalFighter.quips.hit}"`;
       setRefLine(`Bleepx: "${champ.correct && champWon ? REF.champHit[roundIdx % 3] : !champ.correct ? REF.champMiss[roundIdx % 3] : REF.rivalHit[roundIdx % 2]}" ${quip}`);
       setResults((rs) => [...rs, { round, champ, rival, champWon, byPlayer: isPlayerRound, byModel: !isPlayerRound && roundByModel.current }]);
       grantXp(champWon ? (isPlayerRound ? ARENA_XP.playerRoundWon : ARENA_XP.roundWon) : ARENA_XP.roundLost);
@@ -846,12 +876,12 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
     (window as any).__champBug = false;
     if (round.type === 'cloud') {
       const m = cloudMissionById(round.id);
-      const rivalBug = Math.random() < RIVAL.bugRate;
+      const rivalBug = Math.random() < rivalFighter.bugRate;
       (window as any).__rivalBug = rivalBug;
       setChampSql(actionsToLines(playerActions));
       setRivalSql(actionsToLines(rivalBug ? (m?.buggy ?? []) : (m?.solution ?? [])));
     } else if (round.type === 'python') {
-      const rivalBug = Math.random() < RIVAL.bugRate;
+      const rivalBug = Math.random() < rivalFighter.bugRate;
       (window as any).__rivalBug = rivalBug;
       setChampSql(playerSql);
       setRivalSql(rivalBug ? (round.buggy ?? '') : (round.solution ?? ''));
@@ -869,7 +899,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
     (window as any).__rivalPick = (() => {
       const round = rounds[roundIdx];
       const a = Array.isArray(round.answer) ? round.answer[0] : round.answer;
-      const rivalHit = Math.random() < RIVAL.quizAccuracy;
+      const rivalHit = Math.random() < rivalFighter.quizAccuracy;
       const wrong = (round.options ?? []).filter((o) => String(o) !== String(a));
       return rivalHit ? String(a) : wrong[Math.floor(Math.random() * wrong.length)];
     })();
@@ -934,6 +964,35 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
     if (matchWon) grantXp(ARENA_XP.matchWon);
   }, [phase, xpAwarded, xp, matchWon]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Squad Battle: when a squad run finishes, hand the side's score to
+  // the battle page, which submits it through the token-bound route.
+  // The payload mirrors the match-card numbers above; the server
+  // recomputes every total from the per-round entries.
+  useEffect(() => {
+    if (!squad || phase !== 'done' || squadSentRef.current) return;
+    squadSentRef.current = true;
+    const byokNow = getByok();
+    const resolved = byokNow ? getByokResolved() : null;
+    const brainModel = byokNow
+      ? ((byokNow.model === DEFAULT_BYOK_MODEL ? resolved : null) ?? byokNow.model)
+      : null;
+    squad.onComplete({
+      wins,
+      totalRounds,
+      correct,
+      avgMs,
+      brainId: byokNow ? 'byok' : champion.id,
+      brainLabel: byokNow ? byokDisplayLabel(byokModels, brainModel ?? byokNow.model, resolved) : champion.name,
+      rounds: results.map((r) => ({
+        name: r.round.name,
+        won: r.champWon,
+        correct: !!r.champ.correct,
+        ms: Math.max(0, Math.round(r.champ.solveMs + r.champ.execMs)),
+        byPlayer: r.byPlayer,
+      })),
+    });
+  }, [squad, phase, results, wins, totalRounds, correct, avgMs, champion, byokModels]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const verseName = VERSES.find(v => v.id === verse)?.name ?? 'Arena';
   const brainLabel = byok ? byokDisplayLabel(byokModels, byok.model, getByokResolved()) : null;
   const cardUrl = matchCardUrl({
@@ -950,7 +1009,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
     e: evolvedThisMatch.current ? 1 : undefined,
     b: brainLabel ?? undefined,
   });
-  const shareText = `${mode === 'tagteam' ? 'You + ' : ''}${champion.name} ${wins}—${totalRounds - wins} vs ${RIVAL.name} · ${verseName} · ${matchWon ? 'MATCH WON' : 'defeated'}${brainLabel ? ` · powered by ${brainLabel}` : ''} — think your champion beats mine?`;
+  const shareText = `${mode === 'tagteam' ? 'You + ' : ''}${champion.name} ${wins}—${totalRounds - wins} vs ${rivalFighter.name} · ${verseName} · ${matchWon ? 'MATCH WON' : 'defeated'}${brainLabel ? ` · powered by ${brainLabel}` : ''} — think your champion beats mine?`;
 
   // spectate link — encode the real rounds so anyone can re-watch the fight
   const replayUrl = phase === 'done' && results.length ? (() => {
@@ -967,7 +1026,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
     });
     const q = encodeReplay({
       champ: champion.name, champSprite: champion.sprite, champColor: champion.color,
-      rival: RIVAL.name, rivalSprite: RIVAL.sprite, rivalColor: RIVAL.color,
+      rival: rivalFighter.name, rivalSprite: rivalFighter.sprite, rivalColor: rivalFighter.color,
       verse: verseName, tier,
       events,
       result: { won: matchWon, champWins: wins, rivalWins: totalRounds - wins },
@@ -1007,7 +1066,9 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
             BLEEPX <span style={{ color: ACCENT }}>ARENA</span>
           </h1>
           <p className="text-sm mt-2 max-w-xs mx-auto text-slate-400">
-            Coach your champion through {MAX_ROUNDS_DISPLAY} rounds against {RIVAL.name}, the house bot. Or tag in and fight one yourself.
+            {squad
+              ? <>Squad Battle run — you and your agent, on the shared tasks. Your score goes to the battle when you finish.</>
+              : <>Coach your champion through {MAX_ROUNDS_DISPLAY} rounds against {rivalFighter.name}, the house bot. Or tag in and fight one yourself.</>}
           </p>
           {status && <p className="text-xs text-slate-400 mt-3">{status}</p>}
         </div>
@@ -1019,8 +1080,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
           </div>
         ) : (
           <div className="relative z-10 w-full max-w-md space-y-6">
-            {/* verse picker */}
-            <div>
+            {/* verse picker — locked in squad mode: the challenge sets the terms */}
+            <div className={squad ? 'hidden' : undefined}>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Choose your arena</p>
               <div className="grid grid-cols-3 gap-2">
                 {VERSES.map((v) => (
@@ -1048,8 +1109,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               </div>
             </div>
 
-            {/* tier picker */}
-            <div>
+            {/* tier picker — locked in squad mode */}
+            <div className={squad ? 'hidden' : undefined}>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Difficulty</p>
               <div className="grid grid-cols-3 gap-2">
                 {TIERS.map((t) => (
@@ -1062,6 +1123,19 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                 ))}
               </div>
             </div>
+
+            {/* squad battle terms — shown instead of the pickers in squad mode */}
+            {squad && (
+              <div className="rounded-2xl border-2 p-4" style={{ borderColor: ACCENT, background: '#57ECF40d' }}>
+                <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-1.5 flex items-center gap-1.5"><Users size={13} /> Squad Battle</p>
+                <p className="text-sm font-bold text-white">
+                  {squad.selfName} + your agent <span className="text-slate-500 font-normal">vs</span> {squad.opponentName} + {squad.opponentBrainLabel}
+                </p>
+                <p className="text-[11px] text-slate-400 mt-1.5">
+                  {VERSES.find(v => v.id === verse)?.name} · {VERSES.find(v => v.id === verse)?.categories.find(c => c.id === domain)?.label ?? domain} · {TIERS.find(t => t.id === tier)?.name} — the same tasks your rival plays. Pick your champion below, then enter the arena.
+                </p>
+              </div>
+            )}
 
             {/* champion picker */}
             <div>
@@ -1124,8 +1198,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               <p className="text-[11px] text-slate-500 mt-2 text-center">{strategy.description}</p>
             </div>
 
-            {/* mode */}
-            <div>
+            {/* mode — squad battles are always tag-team: your agent fights, you fight the last round */}
+            <div className={squad ? 'hidden' : undefined}>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">How do you play?</p>
               <div className="grid grid-cols-2 gap-2">
                 <button
@@ -1146,6 +1220,20 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                 </button>
               </div>
             </div>
+
+            {/* squad battle — the community mode: your squad vs another squad */}
+            {!squad && (
+              <Link
+                href="/arena/squad"
+                className="block rounded-2xl border-2 border-teal-300/40 bg-teal-300/5 p-4 transition-all hover:bg-teal-300/10 active:scale-[0.98]"
+              >
+                <p className="text-xs font-bold text-teal-200 uppercase tracking-widest flex items-center gap-1.5"><Users size={13} /> Squad Battle — new</p>
+                <p className="text-sm font-bold text-white mt-1.5">Team up with your agent. Fight another team.</p>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  You and your AI against another person and theirs — same tasks, best score wins. Create a battle, send the link, play whenever each of you has time.
+                </p>
+              </Link>
+            )}
 
             {/* bring your own brain — seamless OAuth connect */}
             <div className="rounded-xl border border-slate-700 bg-slate-800/40 p-3">
@@ -1313,7 +1401,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               {mode === 'tagteam' ? 'You fight round 3 — your champion warms up on 1–2.' : `${champion.name} fights all ${MAX_ROUNDS_DISPLAY} rounds under ${strategy.name}.`}
             </p>
 
-            {/* daily duel — today's featured fight, same for everyone */}
+            {/* daily duel — today's featured fight, same for everyone (not in squad mode) */}
+            <div className={squad ? 'hidden' : undefined}>
             <DailyDuelCard
               onFight={() => {
                 const spec = dailyDuelSpec();
@@ -1323,7 +1412,10 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               disabled={runner?.state.status === 'running'}
             />
 
-            {/* rival ladder — ghost PvP, persistent records */}
+            </div>
+
+            {/* rival ladder — ghost PvP, persistent records (not in squad mode) */}
+            <div className={squad ? 'hidden' : undefined}>
             <RivalLadder
               onChallenge={(rival) => {
                 runner?.start({ championId: champion.id, verse: verseName, tier, matches: 1, rival });
@@ -1332,20 +1424,22 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               disabled={runner?.state.status === 'running'}
             />
 
-            {/* guest quick-match — first fight in under a minute */}
+            </div>
+
+            {/* guest quick-match — first fight in under a minute (not in squad mode) */}
             <button
               onClick={() => {
                 runner?.start({ championId: champion.id, verse: verseName, tier, matches: 1 });
                 setStatus(`${champion.name} dives into a quick match — track it bottom-left.`);
               }}
               disabled={runner?.state.status === 'running'}
-              className="w-full py-2.5 rounded-2xl font-bold text-xs border border-slate-700 text-slate-300 hover:border-teal-400/50 transition-colors disabled:opacity-40"
+              className={`w-full py-2.5 rounded-2xl font-bold text-xs border border-slate-700 text-slate-300 hover:border-teal-400/50 transition-colors disabled:opacity-40 ${squad ? 'hidden' : ''}`}
             >
               <Zap size={13} className="inline -mt-0.5" /> QUICK MATCH — no setup, just fight
             </button>
 
             {/* live gauntlet — what the widget taps through to */}
-            {runner?.state.status === 'running' && (
+            {!squad && runner?.state.status === 'running' && (
               <div className={`rounded-2xl border p-4 ${runner.state.intervention ? 'border-red-400/60 bg-red-500/5' : 'border-teal-400/30 bg-teal-400/5'}`}>
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-bold uppercase tracking-widest flex items-center gap-1" style={{ color: runner.state.intervention ? '#F87171' : ACCENT }}>
@@ -1360,10 +1454,10 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                       <div className="h-full transition-all duration-500" style={{ width: `${runner.state.fight.champHp}%`, background: champion.color }} />
                     </div>
                     <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
-                      <div className="h-full transition-all duration-500" style={{ width: `${runner.state.fight.rivalHp}%`, background: RIVAL.color }} />
+                      <div className="h-full transition-all duration-500" style={{ width: `${runner.state.fight.rivalHp}%`, background: rivalFighter.color }} />
                     </div>
                   </div>
-                  <img src={RIVAL.sprite} alt={runner.state.rivalName} className={`w-10 h-10 rounded-full ${runner.state.intervention ? '' : 'arena-mini-fight-r'}`} style={{ boxShadow: `0 0 12px ${RIVAL.color}66` }} />
+                  <img src={rivalFighter.sprite} alt={runner.state.rivalName} className={`w-10 h-10 rounded-full ${runner.state.intervention ? '' : 'arena-mini-fight-r'}`} style={{ boxShadow: `0 0 12px ${rivalFighter.color}66` }} />
                 </div>
                 <p className="text-[11px] text-slate-400 mb-1">{runner.state.fight.lastEvent}</p>
                 {runner.state.fight.codeLine && (
@@ -1390,8 +1484,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               </div>
             )}
 
-            {/* auto-gauntlet — the idle mode */}
-            <div className="rounded-2xl border border-amber-400/30 bg-amber-400/5 p-4">
+            {/* auto-gauntlet — the idle mode (not in squad mode) */}
+            <div className={`rounded-2xl border border-amber-400/30 bg-amber-400/5 p-4 ${squad ? 'hidden' : ''}`}>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-bold text-amber-300 uppercase tracking-widest flex items-center gap-1"><Bot size={13} /> Auto-Gauntlet</p>
                 <div className="flex gap-1">
@@ -1441,8 +1535,8 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
             </div>
             <p className="text-4xl font-black text-white">{wins}<span className="text-slate-600 mx-2">—</span>{totalRounds - wins}</p>
             <div className="flex flex-col items-center gap-2">
-              <Avatar color={RIVAL.color} emoji={RIVAL.emoji} sprite={RIVAL.sprite} size="lg" hit={!matchWon} />
-              <p className="text-xs font-bold" style={{ color: RIVAL.color }}>{RIVAL.name}</p>
+              <Avatar color={rivalFighter.color} emoji={rivalFighter.emoji} sprite={rivalFighter.sprite} size="lg" hit={!matchWon} />
+              <p className="text-xs font-bold" style={{ color: rivalFighter.color }}>{rivalFighter.name}</p>
             </div>
           </div>
           <p className="text-center text-lg font-black mb-2 flex items-center justify-center gap-2" style={{ color: matchWon ? '#4ADE80' : '#F87171' }}>
@@ -1451,7 +1545,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
           <p className="text-center text-[11px] text-slate-400">{verseName} · {TIERS.find(t => t.id === tier)?.name}</p>
           {brainLabel && (
             <p className="text-center text-[10px] text-slate-500 mt-1 flex items-center justify-center gap-1">
-              <KeyRound size={10} /> {champion.name} powered by {brainLabel} vs {RIVAL.name} house bot
+              <KeyRound size={10} /> {champion.name} powered by {brainLabel} vs {rivalFighter.name}{squad ? '' : ' house bot'}
             </p>
           )}
           <div className="mb-5" />
@@ -1474,6 +1568,19 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                 : `${champion.name} · ${prog.xp} XP · max stage`}
             </p>
           </div>
+          {squad && (
+            <div className="rounded-xl border border-teal-300/40 bg-teal-300/5 px-4 py-3 mb-5 text-center">
+              <p className="text-sm font-bold text-teal-200">
+                {squad.submitState === 'sending' && 'Sending your score to the battle…'}
+                {squad.submitState === 'sent' && 'Your score is on the battle board.'}
+                {squad.submitState === 'error' && 'Your score could not be sent — go back to the battle and play a new run to try again.'}
+                {squad.submitState === 'idle' && 'Squad Battle run — your score goes to the battle.'}
+              </p>
+              <p className="text-[11px] text-slate-400 mt-1">
+                The battle is decided when both squads have played — the winner is worked out from the two scores.
+              </p>
+            </div>
+          )}
           <button
             onClick={share}
             className="w-full py-3.5 rounded-2xl font-black mb-3 transition-transform active:scale-95"
@@ -1491,12 +1598,21 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
               <Eye size={15} /> SHARE FIGHT REPLAY
             </a>
           )}
-          <button
-            onClick={() => { setPhase('select'); setResults([]); setRoundIdx(0); setXpAwarded(false); setStatus(''); evolvedThisMatch.current = null; }}
-            className="w-full py-3 rounded-2xl font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
-          >
-            RUN IT BACK
-          </button>
+          {squad ? (
+            <Link
+              href={squad.battleHref}
+              className="block w-full py-3 rounded-2xl font-bold text-center text-slate-100 bg-slate-800 hover:bg-slate-700 transition-colors"
+            >
+              BACK TO YOUR BATTLE
+            </Link>
+          ) : (
+            <button
+              onClick={() => { setPhase('select'); setResults([]); setRoundIdx(0); setXpAwarded(false); setStatus(''); evolvedThisMatch.current = null; }}
+              className="w-full py-3 rounded-2xl font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
+            >
+              RUN IT BACK
+            </button>
+          )}
         </div>
         <a href={cardUrl} target="_blank" rel="noopener" className="text-[11px] mt-4 hover:underline" style={{ color: ACCENT }}>preview your match card ↗</a>
         <p className="text-[11px] text-slate-600 mt-2">better bots. brighter wins.</p>
@@ -1519,7 +1635,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
 
       {/* cinematic entry — the world changes */}
       <AnimatePresence>
-        {cinematic && <ArenaIntro champion={champion} stage={prog.stage} verseName={verseName} brain={brainLabel} />}
+        {cinematic && <ArenaIntro champion={champion} stage={prog.stage} verseName={verseName} brain={brainLabel} rival={rivalFighter} />}
       </AnimatePresence>
 
       {/* evolution moment */}
@@ -1596,15 +1712,15 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
           <div className="relative flex flex-col items-center">
             <DamageNumber show={step === 'verdict' && results[roundIdx] != null && results[roundIdx].champWon} amount="-34" color="#F87171" />
             <RingFighter
-              sprite={RIVAL.sprite}
-              emoji={RIVAL.emoji}
-              color={RIVAL.color}
+              sprite={rivalFighter.sprite}
+              emoji={rivalFighter.emoji}
+              color={rivalFighter.color}
               side="right"
               step={step}
               result={results[roundIdx]?.rival}
-              name={RIVAL.name}
+              name={rivalFighter.name}
             />
-            <p className="text-[9px] font-bold mt-0.5" style={{ color: RIVAL.color }}>{RIVAL.name}</p>
+            <p className="text-[9px] font-bold mt-0.5" style={{ color: rivalFighter.color }}>{rivalFighter.name}</p>
           </div>
         </div>
         {/* arena floor */}
@@ -1634,18 +1750,18 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
         />
         <FighterCard
           side="rival"
-          color={RIVAL.color}
-          emoji={RIVAL.emoji}
-          sprite={RIVAL.sprite}
-          name={RIVAL.name}
-          subtitle={RIVAL.title}
+          color={rivalFighter.color}
+          emoji={rivalFighter.emoji}
+          sprite={rivalFighter.sprite}
+          name={rivalFighter.name}
+          subtitle={rivalFighter.title}
           step={step}
           sql={isQuiz ? '' : rivalSql}
           answer={isQuiz ? rivalAnswer : ''}
           options={isQuiz ? round.options : undefined}
           correctAnswer={isQuiz ? round.answer : undefined}
           typingSpeed={110}
-          typeStyle={RIVAL.typeStyle}
+          typeStyle={rivalFighter.typeStyle}
           typingActive={step === 'typing' && !isQuiz}
           onTyped={() => setRivalTyped(true)}
           result={results[roundIdx]?.rival}
@@ -1740,7 +1856,7 @@ export default function ArenaBattle({ initialVerse }: { initialVerse?: 'sql' | '
                   {isQuiz ? `${results[roundIdx]?.champ.solveMs ?? 0}ms think` : `solve ${results[roundIdx]?.champ.solveMs ?? 0}ms + exec ${results[roundIdx]?.champ.execMs ?? 0}ms`}
                 </span>
                 <span className="inline-flex items-center gap-1">
-                  {RIVAL.name}: {results[roundIdx]?.rival.correct ? <Check size={11} className="text-emerald-400" /> : <X size={11} className="text-red-400" />}
+                  {rivalFighter.name}: {results[roundIdx]?.rival.correct ? <Check size={11} className="text-emerald-400" /> : <X size={11} className="text-red-400" />}
                   {isQuiz ? `${results[roundIdx]?.rival.solveMs ?? 0}ms think` : `solve ${results[roundIdx]?.rival.solveMs ?? 0}ms + exec ${results[roundIdx]?.rival.execMs ?? 0}ms`}
                 </span>
               </p>
@@ -1794,7 +1910,7 @@ const ARENA_CSS = `
 
 /* Cinematic match entry — the environment change. Sprites fly in, names
  * clash, then the whole overlay burns away into the fight. */
-function ArenaIntro({ champion, stage, verseName, brain }: { champion: Champion; stage: { level?: number; name: string; aura: string }; verseName: string; brain?: string | null }) {
+function ArenaIntro({ champion, stage, verseName, brain, rival = RIVAL }: { champion: Champion; stage: { level?: number; name: string; aura: string }; verseName: string; brain?: string | null; rival?: { name: string; color: string; sprite: string; emoji: string; title: string } }) {
   return (
     <motion.div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center"
@@ -1830,11 +1946,11 @@ function ArenaIntro({ champion, stage, verseName, brain }: { champion: Champion;
           initial={{ x: 160, opacity: 0, rotate: 10 }} animate={{ x: 0, opacity: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 140, damping: 14, delay: 0.35 }}>
           <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-[#0d1117]"
-            style={{ border: `4px solid ${RIVAL.color}`, boxShadow: `0 0 40px ${RIVAL.color}88` }}>
-            {RIVAL.sprite ? <img src={RIVAL.sprite} alt={RIVAL.name} className="w-full h-full object-cover" /> : <span className="text-5xl">{RIVAL.emoji}</span>}
+            style={{ border: `4px solid ${rival.color}`, boxShadow: `0 0 40px ${rival.color}88` }}>
+            {rival.sprite ? <img src={rival.sprite} alt={rival.name} className="w-full h-full object-cover" /> : <span className="text-5xl">{rival.emoji}</span>}
           </div>
-          <p className="mt-3 font-black text-white text-lg tracking-wide">{RIVAL.name}</p>
-          <p className="text-[11px] font-bold text-slate-400">House Champion</p>
+          <p className="mt-3 font-black text-white text-lg tracking-wide">{rival.name}</p>
+          <p className="text-[11px] font-bold text-slate-400">{rival.title}</p>
         </motion.div>
       </div>
       <motion.p className="mt-8 text-sm font-bold text-slate-400 tracking-widest"

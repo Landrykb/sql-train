@@ -72,14 +72,15 @@ async function sqlRounds(domain: string, tier: Tier) {
   return rounds;
 }
 
-function cloudRounds(tier: Tier, category: string) {
+function cloudRounds(tier: Tier, category: string, seed?: string) {
   // Single-answer questions only — quiz duels pick one option.
   // `category` mirrors the Cloud Quizzes track filter: aws | azure | gcp | multi | all
   const pool = cloudTrials.filter((q) =>
     QUIZ_TIER_DIFFICULTY[tier].includes(q.difficulty) &&
     !Array.isArray(q.answer) &&
     (category === 'all' || q.provider === category));
-  const quizzes = pickDeterministic(pool, MAX_ROUNDS - 1, `cloud-${category}-${tier}-${Date.now() / 86400000 | 0}`).map((q) => ({
+  const day = seed ?? `${Date.now() / 86400000 | 0}`;
+  const quizzes = pickDeterministic(pool, MAX_ROUNDS - 1, `cloud-${category}-${tier}-${day}`).map((q) => ({
     type: 'quiz',
     id: q.id,
     name: `${q.provider === 'multi' ? 'Multi-Cloud' : String(q.provider).toUpperCase()} · ${q.topic}`,
@@ -92,7 +93,7 @@ function cloudRounds(tier: Tier, category: string) {
     skills: [q.topic],
   }));
   // Final round: a real build mission inside the cloud sandbox.
-  const mission = pickDeterministic(CLOUD_MISSION_META, 1, `cloud-mission-${Date.now() / 86400000 | 0}`)[0];
+  const mission = pickDeterministic(CLOUD_MISSION_META, 1, `cloud-mission-${seed ?? `${Date.now() / 86400000 | 0}`}`)[0];
   return [...quizzes, {
     type: 'cloud',
     id: mission.id,
@@ -103,7 +104,7 @@ function cloudRounds(tier: Tier, category: string) {
   }];
 }
 
-function labRounds(tier: Tier, category: string) {
+function labRounds(tier: Tier, category: string, seed?: string) {
   // `category` mirrors the Lab Quiz topic filter — a skill key from
   // LAB_SKILL_QUESTIONS (statistics, python, machine_learning, …) or 'all'.
   const source =
@@ -111,7 +112,8 @@ function labRounds(tier: Tier, category: string) {
       ? [...Object.values(LAB_SKILL_QUESTIONS).flat(), ...LAB_GENERIC_QUESTIONS]
       : [...(LAB_SKILL_QUESTIONS[category] ?? []), ...LAB_GENERIC_QUESTIONS];
   const pool = source.filter((q) => q.type === 'multiple_choice' && q.options?.length);
-  const picked = pickDeterministic(pool, MAX_ROUNDS - 1, `lab-${category}-${tier}-${Date.now() / 86400000 | 0}`);
+  const day = seed ?? `${Date.now() / 86400000 | 0}`;
+  const picked = pickDeterministic(pool, MAX_ROUNDS - 1, `lab-${category}-${tier}-${day}`);
   const quizzes = picked.map((q, i) => ({
     type: 'quiz',
     id: `lab-${i}`,
@@ -124,7 +126,7 @@ function labRounds(tier: Tier, category: string) {
     skills: ['python', 'data-science'],
   }));
   // Final round: a real Python coding duel executed in Pyodide.
-  const duel = pickDeterministic(PYTHON_DUELS, 1, `lab-duel-${Date.now() / 86400000 | 0}`)[0];
+  const duel = pickDeterministic(PYTHON_DUELS, 1, `lab-duel-${seed ?? `${Date.now() / 86400000 | 0}`}`)[0];
   return [...quizzes, {
     type: 'python',
     id: duel.id,
@@ -144,16 +146,22 @@ function labRounds(tier: Tier, category: string) {
  * GET /api/arena/match?verse=sql|cloud|lab&domain=business&tier=rookie|pro|boss
  * sql verse → real case rounds (SQL executed + compared).
  * cloud/lab verses → quiz duels from the existing question banks.
+ *
+ * Optional &seed=XXXX: pins the cloud/lab question picks to the seed
+ * instead of the day, so both sides of a Squad Battle draw the exact
+ * same rounds whenever they play. SQL rounds are fixed slices of the
+ * case order and never needed it.
  */
 export async function GET(req: NextRequest) {
   const verse = req.nextUrl.searchParams.get('verse') ?? 'sql';
   const domain = req.nextUrl.searchParams.get('domain') ?? 'business';
   const tierParam = req.nextUrl.searchParams.get('tier') ?? 'rookie';
   const tier = (TIERS.includes(tierParam as Tier) ? tierParam : 'rookie') as Tier;
+  const seed = req.nextUrl.searchParams.get('seed')?.slice(0, 32) || undefined;
 
   let rounds: any[] | null = null;
-  if (verse === 'cloud') rounds = cloudRounds(tier, domain === 'all' ? 'all' : domain);
-  else if (verse === 'lab') rounds = labRounds(tier, domain === 'all' ? 'all' : domain);
+  if (verse === 'cloud') rounds = cloudRounds(tier, domain === 'all' ? 'all' : domain, seed);
+  else if (verse === 'lab') rounds = labRounds(tier, domain === 'all' ? 'all' : domain, seed);
   else rounds = await sqlRounds(domain, tier);
 
   if (!rounds) {
