@@ -17,7 +17,10 @@ prereq_cases:
   - engagement_by_type
   - user_joins
 seedQuery: |-
-  -- TODO: write query for cte_engagement
+  -- SCENARIO: The Social Media Manager asks:
+  -- "Who writes the longest tweets? Use a
+  --  CTE to measure tweet length, then rank
+  --  users by their average."
   SELECT 1;
 solutionQuery: |-
   WITH TweetLengths AS (

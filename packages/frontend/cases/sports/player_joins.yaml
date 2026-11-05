@@ -15,7 +15,10 @@ prereq_cases:
   - match_select
   - score_by_team
 seedQuery: |-
-  -- TODO: write query for player_joins
+  -- SCENARIO: The Team Analyst asks:
+  -- "Which players shoot the most? Join the
+  --  game and shot data, count shots per
+  --  player, and rank them highest first."
   SELECT 1;
 solutionQuery: |-
   SELECT g.player_id, COUNT(s.shot_id) AS shot_count
